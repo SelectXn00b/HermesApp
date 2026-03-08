@@ -98,13 +98,26 @@ class BrowserToolClient(private val context: Context) {
             intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
 
-            // 等待浏览器启动
-            Log.d(TAG, "Waiting for browser to start...")
-            kotlinx.coroutines.delay(2000)
+            // 等待浏览器启动和 HTTP 服务启动
+            // BrowserForClaw 需要时间启动 HTTP API 服务 (端口 8766)
+            Log.d(TAG, "Waiting for browser and HTTP API to start...")
 
-            // 验证启动
+            // 轮询检查健康状态,最多等待 5 秒
+            var attempts = 0
+            val maxAttempts = 10
+            while (attempts < maxAttempts) {
+                kotlinx.coroutines.delay(500)
+                if (checkBrowserHealth()) {
+                    Log.d(TAG, "✅ Browser HTTP API is ready (attempt ${attempts + 1})")
+                    return@withContext true
+                }
+                attempts++
+                Log.d(TAG, "⏳ Waiting for HTTP API... (attempt ${attempts}/$maxAttempts)")
+            }
+
+            // 超时后最后一次检查
             val isRunning = checkBrowserHealth()
-            Log.d(TAG, "Browser started: $isRunning")
+            Log.w(TAG, "❌ Browser HTTP API not responding after ${maxAttempts * 500}ms. Health: $isRunning")
             isRunning
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start browser", e)
@@ -135,7 +148,9 @@ class BrowserToolClient(private val context: Context) {
                 } else {
                     ToolResult(
                         success = false,
-                        error = "Failed to start BrowserForClaw. Please ensure it's installed (package: $BROWSER_PACKAGE)"
+                        error = "Failed to start BrowserForClaw HTTP API (port 8766). " +
+                                "App is installed ($BROWSER_PACKAGE) but API service not responding. " +
+                                "Please ensure BrowserForClaw is the correct version with HTTP API support."
                     )
                 }
             }
