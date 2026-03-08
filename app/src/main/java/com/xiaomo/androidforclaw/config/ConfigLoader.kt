@@ -245,7 +245,7 @@ class ConfigLoader(private val context: Context) {
     private var reloadCallback: ((OpenClawConfig) -> Unit)? = null
 
     /**
-     * 加载 OpenClaw 主配置
+     * 加载 OpenClaw 主配置（带自动备份和恢复）
      */
     fun loadOpenClawConfig(): OpenClawConfig {
         // 如果缓存有效，直接返回
@@ -254,6 +254,30 @@ class ConfigLoader(private val context: Context) {
             return cachedOpenClawConfig!!
         }
 
+        // 使用 ConfigBackupManager 安全加载
+        val backupManager = ConfigBackupManager(context)
+        val config = backupManager.loadConfigSafely {
+            loadOpenClawConfigInternal()
+        }
+
+        if (config != null) {
+            cachedOpenClawConfig = config
+            openclawConfigCacheValid = true
+            return config
+        } else {
+            // 如果所有恢复都失败，返回默认配置
+            Log.w(TAG, "使用默认配置")
+            val defaultConfig = createDefaultOpenClawConfigObject()
+            cachedOpenClawConfig = defaultConfig
+            openclawConfigCacheValid = true
+            return defaultConfig
+        }
+    }
+
+    /**
+     * 内部加载方法（不带容错）
+     */
+    private fun loadOpenClawConfigInternal(): OpenClawConfig {
         try {
             // 确保配置目录存在
             ensureConfigDir()
@@ -277,21 +301,20 @@ class ConfigLoader(private val context: Context) {
             // 验证配置
             validateOpenClawConfig(config)
 
-            // 缓存配置
-            cachedOpenClawConfig = config
-            openclawConfigCacheValid = true
-
             Log.i(TAG, "✅ OpenClaw 配置加载成功")
             return config
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ OpenClaw 配置加载失败: ${e.message}", e)
-            // 返回默认配置
-            val defaultConfig = getDefaultOpenClawConfig()
-            cachedOpenClawConfig = defaultConfig
-            openclawConfigCacheValid = true
-            return defaultConfig
+            throw e // 抛出异常，由 ConfigBackupManager 处理
         }
+    }
+
+    /**
+     * 创建默认配置对象
+     */
+    private fun createDefaultOpenClawConfigObject(): OpenClawConfig {
+        return gson.fromJson(DEFAULT_OPENCLAW_CONFIG, OpenClawConfig::class.java)
     }
 
 

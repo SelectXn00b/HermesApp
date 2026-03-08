@@ -146,8 +146,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         MMKV.initialize(this)
         registerActivityLifecycleCallbacks(this)
 
+        // 初始化文件日志系统
+        initializeFileLogger()
+
         // 初始化 Workspace (对齐 OpenClaw)
         initializeWorkspace()
+
+        // 初始化 Cron 定时任务
+        initializeCronJobs()
 
         // 注册全局异常处理器
         Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler())
@@ -288,6 +294,31 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     /**
      * 测试配置系统
      */
+    /**
+     * 初始化文件日志系统
+     */
+    private fun initializeFileLogger() {
+        try {
+            com.xiaomo.androidforclaw.logging.AppLog.init(this)
+            Log.i(TAG, "✅ 文件日志系统已初始化")
+        } catch (e: Exception) {
+            Log.e(TAG, "初始化文件日志系统失败", e)
+        }
+    }
+
+    /**
+     * 初始化 Cron 定时任务
+     */
+    private fun initializeCronJobs() {
+        try {
+            val cronManager = com.xiaomo.androidforclaw.cron.CronJobManager(this)
+            cronManager.scheduleAllJobs()
+            Log.i(TAG, "✅ Cron 定时任务已调度")
+        } catch (e: Exception) {
+            Log.e(TAG, "初始化 Cron 任务失败", e)
+        }
+    }
+
     /**
      * 初始化 Workspace (对齐 OpenClaw)
      */
