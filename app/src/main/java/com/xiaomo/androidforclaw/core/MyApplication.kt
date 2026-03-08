@@ -311,11 +311,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
      */
     private fun initializeCronJobs() {
         try {
-            val cronManager = com.xiaomo.androidforclaw.cron.CronJobManager(this)
-            cronManager.scheduleAllJobs()
-            Log.i(TAG, "✅ Cron 定时任务已调度")
+            com.xiaomo.androidforclaw.cron.CronInitializer.initialize(this)
+            Log.i(TAG, "✅ Cron 系统已初始化")
         } catch (e: Exception) {
-            Log.e(TAG, "初始化 Cron 任务失败", e)
+            Log.e(TAG, "初始化 Cron 系统失败", e)
         }
     }
 

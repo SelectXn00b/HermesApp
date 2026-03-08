@@ -10,6 +10,7 @@ import com.xiaomo.androidforclaw.gateway.methods.ModelsMethods
 import com.xiaomo.androidforclaw.gateway.methods.ToolsMethods
 import com.xiaomo.androidforclaw.gateway.methods.SkillsMethods
 import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
+import com.xiaomo.androidforclaw.gateway.methods.CronMethods
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
@@ -24,6 +25,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import android.util.Log
 import java.io.IOException
+import org.json.JSONObject
 
 /**
  * Main Gateway controller that integrates all components:
@@ -182,6 +184,35 @@ class GatewayController(
 
                 registerMethod("config.reload") { _ ->
                     configMethods.configReload()
+                }
+
+                // Register Cron methods (OpenClaw alignment)
+                registerMethod("cron.list") { params ->
+                    CronMethods.list(params as JSONObject)
+                }
+
+                registerMethod("cron.status") { params ->
+                    CronMethods.status(params as JSONObject)
+                }
+
+                registerMethod("cron.add") { params ->
+                    CronMethods.add(params as JSONObject)
+                }
+
+                registerMethod("cron.update") { params ->
+                    CronMethods.update(params as JSONObject)
+                }
+
+                registerMethod("cron.remove") { params ->
+                    CronMethods.remove(params as JSONObject)
+                }
+
+                registerMethod("cron.run") { params ->
+                    CronMethods.run(params as JSONObject)
+                }
+
+                registerMethod("cron.runs") { params ->
+                    CronMethods.runs(params as JSONObject)
                 }
 
                 Log.i(TAG,"Registered ${getMethodCount()} RPC methods")
