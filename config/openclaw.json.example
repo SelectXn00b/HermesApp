@@ -3,23 +3,179 @@
   "agent": {
     "name": "androidforclaw",
     "defaultModel": "claude-opus-4-6",
-    "maxIterations": 50
+    "maxIterations": 50,
+    "timeout": 300000,
+    "retryOnError": true,
+    "maxRetries": 3,
+    "mode": "exploration"
   },
   "thinking": {
     "enabled": true,
-    "budgetTokens": 10000
+    "budgetTokens": 10000,
+    "showInUI": true,
+    "logToFile": false
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com/v1",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "api": "anthropic",
+        "authHeader": true,
+        "models": [
+          {
+            "id": "claude-opus-4-6",
+            "name": "Claude Opus 4.6",
+            "reasoning": true,
+            "input": ["text", "image"],
+            "cost": {
+              "input": 15.0,
+              "output": 75.0,
+              "cacheRead": 1.5,
+              "cacheWrite": 18.75
+            },
+            "contextWindow": 200000,
+            "maxTokens": 16384
+          },
+          {
+            "id": "claude-sonnet-4-6",
+            "name": "Claude Sonnet 4.6",
+            "reasoning": true,
+            "input": ["text", "image"],
+            "cost": {
+              "input": 3.0,
+              "output": 15.0,
+              "cacheRead": 0.3,
+              "cacheWrite": 3.75
+            },
+            "contextWindow": 200000,
+            "maxTokens": 16384
+          }
+        ]
+      }
+    }
   },
   "skills": {
     "bundledPath": "assets://skills/",
     "workspacePath": "/sdcard/AndroidForClaw/workspace/skills/",
-    "autoLoad": ["mobile-operations"]
+    "managedPath": "/sdcard/AndroidForClaw/.skills",
+    "autoLoad": ["mobile-operations"],
+    "disabled": [],
+    "onDemand": true,
+    "cacheEnabled": true
+  },
+  "tools": {
+    "screenshot": {
+      "enabled": true,
+      "quality": 85,
+      "maxWidth": 1080,
+      "format": "jpeg",
+      "hideFloatingWindow": true
+    },
+    "accessibility": {
+      "enabled": true,
+      "gestureDuration": 100,
+      "enableUITree": true,
+      "maxUITreeDepth": 20
+    },
+    "exec": {
+      "enabled": true,
+      "allowRoot": false,
+      "timeout": 30000,
+      "blocklist": ["rm -rf /", "dd if=", "format"]
+    },
+    "browser": {
+      "enabled": true,
+      "userAgent": null,
+      "timeout": 30000
+    }
   },
   "gateway": {
-    "enabled": false,
+    "enabled": true,
     "port": 8080,
+    "host": "0.0.0.0",
     "security": {
-      "requirePairing": true,
-      "allowlist": []
+      "enabled": false,
+      "pairingRequired": false,
+      "allowlist": [],
+      "rateLimit": {
+        "enabled": false,
+        "maxRequests": 100,
+        "windowMs": 60000
+      }
+    },
+    "channels": ["app", "webui", "adb"],
+    "feishu": {
+      "enabled": false,
+      "appId": "",
+      "appSecret": "",
+      "encryptKey": null,
+      "verificationToken": null,
+      "domain": "feishu",
+      "connectionMode": "websocket",
+      "webhookPath": "/feishu/webhook",
+      "webhookPort": 8765,
+      "dmPolicy": "pairing",
+      "allowFrom": [],
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": [],
+      "requireMention": true,
+      "groupCommandMentionBypass": "never",
+      "allowMentionlessInMultiBotGroup": false,
+      "topicSessionMode": "disabled",
+      "historyLimit": 20,
+      "dmHistoryLimit": 100,
+      "textChunkLimit": 4000,
+      "chunkMode": "length",
+      "mediaMaxMb": 20.0,
+      "audioMaxDurationSec": 300,
+      "enableDocTools": true,
+      "enableWikiTools": true,
+      "enableDriveTools": true,
+      "enableBitableTools": true,
+      "enableTaskTools": true,
+      "enableChatTools": true,
+      "enablePermTools": true,
+      "enableUrgentTools": true,
+      "typingIndicator": true,
+      "reactionDedup": true,
+      "debugMode": false
     }
+  },
+  "ui": {
+    "floatingWindow": {
+      "enabled": true,
+      "showProgress": true,
+      "showReasoningContent": true,
+      "autoHide": false,
+      "opacity": 0.9,
+      "position": "top-right"
+    },
+    "theme": "auto",
+    "language": "zh"
+  },
+  "logging": {
+    "level": "INFO",
+    "logToFile": true,
+    "logPath": "/sdcard/AndroidForClaw/logs",
+    "maxFileSize": 10485760,
+    "maxFiles": 5,
+    "includeTimestamp": true,
+    "logLLMCalls": true,
+    "logToolCalls": true
+  },
+  "memory": {
+    "enabled": true,
+    "path": "/sdcard/AndroidForClaw/workspace/memory",
+    "autoSave": true,
+    "maxEntries": 1000
+  },
+  "session": {
+    "defaultKey": "default",
+    "storagePath": "/data/data/com.xiaomo.androidforclaw/files/sessions",
+    "autoSave": true,
+    "maxMessages": 100,
+    "compression": false
   }
 }

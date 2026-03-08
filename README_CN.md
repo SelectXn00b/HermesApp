@@ -56,9 +56,9 @@
 3. **配置 API**
    - 推送配置到设备:
      ```bash
-     adb push config/models.json /sdcard/AndroidForClaw/config/models.json
+     adb push config/openclaw.json /sdcard/AndroidForClaw/config/openclaw.json
      ```
-   - 或直接在手机上编辑: `/sdcard/AndroidForClaw/config/models.json`
+   - 或在手机上直接编辑: `/sdcard/AndroidForClaw/config/openclaw.json`
 
 4. **授予权限**
    - 打开应用并授予:
@@ -78,10 +78,10 @@
    cd AndroidForClaw
    ```
 
-2. **配置 API**
+2. **配置**
    ```bash
-   cp config/models.json.example config/models.json
-   # 编辑 config/models.json，填入你的 API Key
+   cp config/openclaw.json.example config/openclaw.json
+   # 编辑 config/openclaw.json，填入你的 API Keys
    ```
 
 3. **构建安装**
@@ -134,34 +134,69 @@
 
 ## 🛠️ 配置说明
 
-**配置文件**: `/sdcard/AndroidForClaw/config/models.json` (唯一配置文件)
+**配置文件**: `/sdcard/AndroidForClaw/config/openclaw.json` (单一配置文件,与 OpenClaw 对齐)
 
-AndroidForClaw 使用单一配置文件 `models.json`，包含 LLM providers、Agent 设置、渠道、工具等所有配置。
+**配置包含**:
+- Agent 设置 (maxIterations, defaultModel, timeout, mode)
+- Thinking 配置 (enabled, budgetTokens, showInUI)
+- Skills 配置 (paths, autoLoad, disabled)
+- Tools 配置 (screenshot, accessibility, exec, browser)
+- Gateway 配置 (port, security, channels)
+- Models 配置 (LLM providers 和模型定义)
+- 飞书/Discord 配置
+- UI 配置 (theme, language, floatingWindow)
+- 日志配置
 
 **配置示例**:
 
 ```json
 {
-  "mode": "merge",
-  "providers": {
-    "openrouter": {
-      "baseUrl": "https://openrouter.ai/api/v1",
-      "apiKey": "${OPENROUTER_API_KEY}",
-      "api": "openai-completions",
-      "models": [
-        {
-          "id": "anthropic/claude-opus-4",
-          "name": "Claude Opus 4",
-          "reasoning": true,
-          "contextWindow": 200000
-        }
-      ]
+  "version": "1.0.0",
+  "agent": {
+    "name": "androidforclaw",
+    "defaultModel": "claude-opus-4-6",
+    "maxIterations": 50
+  },
+  "thinking": {
+    "enabled": true,
+    "budgetTokens": 10000
+  },
+  "skills": {
+    "bundledPath": "assets://skills/",
+    "workspacePath": "/sdcard/AndroidForClaw/workspace/skills/",
+    "autoLoad": ["mobile-operations"]
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com/v1",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "api": "anthropic",
+        "models": [
+          {
+            "id": "claude-opus-4-6",
+            "name": "Claude Opus 4.6",
+            "reasoning": true,
+            "contextWindow": 200000
+          }
+        ]
+      }
+    }
+  },
+  "gateway": {
+    "enabled": true,
+    "port": 8080,
+    "feishu": {
+      "enabled": true,
+      "appId": "${FEISHU_APP_ID}",
+      "appSecret": "${FEISHU_APP_SECRET}"
     }
   }
 }
 ```
 
-**注意**: AndroidForClaw 不使用 `openclaw.json`。完整配置选项参考 [config/models.json.example](config/models.json.example)。
+完整配置选项参考 [config/openclaw.json.example](config/openclaw.json.example)。
 
 ---
 
@@ -169,13 +204,24 @@ AndroidForClaw 使用单一配置文件 `models.json`，包含 LLM providers、A
 
 ### 通过飞书
 
-1. 在 `openclaw.json` 中配置飞书机器人
+1. 在 `/sdcard/AndroidForClaw/config/openclaw.json` 中配置飞书机器人:
+   ```json
+   {
+     "gateway": {
+       "feishu": {
+         "enabled": true,
+         "appId": "your_app_id",
+         "appSecret": "your_app_secret"
+       }
+     }
+   }
+   ```
 2. 将机器人添加到群聊
 3. 发送消息: `@Bot 帮我打开微信`
 
 ### 通过 Discord
 
-1. 在 `openclaw.json` 中配置 Discord 机器人
+1. 在 `/sdcard/AndroidForClaw/config/openclaw.json` 中配置 Discord 机器人
 2. 邀请机器人到服务器
 3. 发送消息: `@Bot 打开微信`
 

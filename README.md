@@ -56,9 +56,9 @@
 3. **Configure API**
    - Push config to device:
      ```bash
-     adb push config/models.json /sdcard/AndroidForClaw/config/models.json
+     adb push config/openclaw.json /sdcard/AndroidForClaw/config/openclaw.json
      ```
-   - Or edit directly on phone: `/sdcard/AndroidForClaw/config/models.json`
+   - Or edit directly on phone: `/sdcard/AndroidForClaw/config/openclaw.json`
 
 4. **Grant Permissions**
    - Open app and grant:
@@ -80,8 +80,8 @@
 
 2. **Configure**
    ```bash
-   cp config/models.json.example config/models.json
-   # Edit config/models.json, fill in your API Key
+   cp config/openclaw.json.example config/openclaw.json
+   # Edit config/openclaw.json, fill in your API Keys
    ```
 
 3. **Build & Install**
@@ -134,34 +134,69 @@
 
 ## 🛠️ Configuration
 
-**Config File**: `/sdcard/AndroidForClaw/config/models.json` (single config file)
+**Config File**: `/sdcard/AndroidForClaw/config/openclaw.json` (single config file, aligned with OpenClaw)
 
-AndroidForClaw uses a single configuration file `models.json` for LLM providers, agent settings, channels, tools, and all other configurations.
+**Configuration includes**:
+- Agent settings (maxIterations, defaultModel, timeout, mode)
+- Thinking configuration (enabled, budgetTokens, showInUI)
+- Skills configuration (paths, autoLoad, disabled)
+- Tools configuration (screenshot, accessibility, exec, browser)
+- Gateway configuration (port, security, channels)
+- Models configuration (LLM providers and model definitions)
+- Feishu/Discord configuration
+- UI configuration (theme, language, floatingWindow)
+- Logging configuration
 
-**Example Configuration**:
+**Example configuration**:
 
 ```json
 {
-  "mode": "merge",
-  "providers": {
-    "openrouter": {
-      "baseUrl": "https://openrouter.ai/api/v1",
-      "apiKey": "${OPENROUTER_API_KEY}",
-      "api": "openai-completions",
-      "models": [
-        {
-          "id": "anthropic/claude-opus-4",
-          "name": "Claude Opus 4",
-          "reasoning": true,
-          "contextWindow": 200000
-        }
-      ]
+  "version": "1.0.0",
+  "agent": {
+    "name": "androidforclaw",
+    "defaultModel": "claude-opus-4-6",
+    "maxIterations": 50
+  },
+  "thinking": {
+    "enabled": true,
+    "budgetTokens": 10000
+  },
+  "skills": {
+    "bundledPath": "assets://skills/",
+    "workspacePath": "/sdcard/AndroidForClaw/workspace/skills/",
+    "autoLoad": ["mobile-operations"]
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com/v1",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "api": "anthropic",
+        "models": [
+          {
+            "id": "claude-opus-4-6",
+            "name": "Claude Opus 4.6",
+            "reasoning": true,
+            "contextWindow": 200000
+          }
+        ]
+      }
+    }
+  },
+  "gateway": {
+    "enabled": true,
+    "port": 8080,
+    "feishu": {
+      "enabled": true,
+      "appId": "${FEISHU_APP_ID}",
+      "appSecret": "${FEISHU_APP_SECRET}"
     }
   }
 }
 ```
 
-**Note**: AndroidForClaw does not use `openclaw.json`. See [config/models.json.example](config/models.json.example) for full options.
+See [config/openclaw.json.example](config/openclaw.json.example) for full options.
 
 ---
 
@@ -169,13 +204,24 @@ AndroidForClaw uses a single configuration file `models.json` for LLM providers,
 
 ### Via Feishu (Lark)
 
-1. Configure Feishu bot in `openclaw.json`
+1. Configure Feishu bot in `/sdcard/AndroidForClaw/config/openclaw.json`:
+   ```json
+   {
+     "gateway": {
+       "feishu": {
+         "enabled": true,
+         "appId": "your_app_id",
+         "appSecret": "your_app_secret"
+       }
+     }
+   }
+   ```
 2. Add bot to group chat
 3. Send message: `@Bot 帮我打开微信`
 
 ### Via Discord
 
-1. Configure Discord bot in `openclaw.json`
+1. Configure Discord bot in `/sdcard/AndroidForClaw/config/openclaw.json`
 2. Invite bot to server
 3. Send message: `@Bot open WeChat`
 

@@ -20,7 +20,7 @@
 
 ### 🔗 与 OpenClaw 对齐
 
-**重要原则**: 当前 Android 项目功能和底层逻辑要尽量向 OpenClaw 对齐
+**重要原则**: 当前 Android 项目功能和底层逻辑要尽量向 OpenClaw 对齐, 实施的时候不要偷懒
 
 **OpenClaw 路径**: `~/file/forclaw/OpenClaw`
 
@@ -78,44 +78,83 @@
 
 ### 配置文件说明
 
-**重要区别**:
-- **OpenClaw**: 使用两个配置文件
-  - `~/.openclaw/config/models.json` - LLM providers
-  - `~/.openclaw/config/openclaw.json` - Agent/Gateway/Skills/Tools
-- **AndroidForClaw**: 仅使用 `models.json` (包含所有配置)
+**与 OpenClaw 对齐**: AndroidForClaw 使用与 OpenClaw 相同的单配置文件结构
 
-**配置文件位置**: `/sdcard/AndroidForClaw/config/models.json`
+**配置文件**: `/sdcard/AndroidForClaw/config/openclaw.json` (唯一配置文件)
 
-### 模型配置格式
+包含所有配置:
+- **Agent 配置**: maxIterations, defaultModel, timeout, mode
+- **Thinking 配置**: enabled, budgetTokens, showInUI
+- **Skills 配置**: paths, autoLoad, disabled
+- **Tools 配置**: screenshot, accessibility, exec, browser
+- **Gateway 配置**: port, security, channels
+- **Channels 配置**: Feishu, Discord 等
+- **Models 配置**: LLM Providers 和模型定义
+- **UI 配置**: theme, language, floatingWindow
+- **Logging 配置**: level, logToFile, logPath
 
-AndroidForClaw 的 `models.json` 格式与 OpenClaw 的 `models.json` 相同。
+**注意**:
+- `models.json` 仅用于向后兼容,不推荐使用
+- 新项目应将所有配置放在 `openclaw.json` 中
+
+### 配置格式
 
 **配置示例**:
 ```json
 {
-  "mode": "merge",
-  "providers": {
-    "openai": {
-      "baseUrl": "https://api.openai.com/v1",
-      "apiKey": "${OPENAI_API_KEY}",
-      "api": "openai-completions",
-      "models": [
-        {
-          "id": "claude-opus-4-6",
-          "name": "Claude Opus 4.6",
-          "reasoning": true,
-          "input": ["text", "image"],
-          "contextWindow": 200000,
-          "maxTokens": 16384
-        }
-      ]
+  "version": "1.0.0",
+  "agent": {
+    "name": "androidforclaw",
+    "defaultModel": "claude-opus-4-6",
+    "maxIterations": 50,
+    "timeout": 300000,
+    "mode": "exploration"
+  },
+  "thinking": {
+    "enabled": true,
+    "budgetTokens": 10000,
+    "showInUI": true
+  },
+  "skills": {
+    "bundledPath": "assets://skills/",
+    "workspacePath": "/sdcard/AndroidForClaw/workspace/skills/",
+    "autoLoad": ["mobile-operations"]
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com/v1",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "api": "anthropic",
+        "models": [
+          {
+            "id": "claude-opus-4-6",
+            "name": "Claude Opus 4.6",
+            "reasoning": true,
+            "input": ["text", "image"],
+            "contextWindow": 200000,
+            "maxTokens": 16384
+          }
+        ]
+      }
+    }
+  },
+  "gateway": {
+    "enabled": true,
+    "port": 8080,
+    "feishu": {
+      "enabled": true,
+      "appId": "${FEISHU_APP_ID}",
+      "appSecret": "${FEISHU_APP_SECRET}"
     }
   }
 }
 ```
 
 **主要特性**:
-- ✅ JSON 配置格式 (与 OpenClaw 相同)
+- ✅ JSON 配置格式 (与 OpenClaw 100% 对齐)
+- ✅ 单配置文件 (openclaw.json)
 - ✅ 环境变量支持 (`${VAR_NAME}`)
 - ✅ 多 provider 支持
 - ✅ 模型级配置 (reasoning, context window, cost)
@@ -123,7 +162,8 @@ AndroidForClaw 的 `models.json` 格式与 OpenClaw 的 `models.json` 相同。
 - ✅ 热重载支持
 
 **配置类**:
-- `app/src/main/java/com/xiaomo/androidforclaw/config/ModelConfig.kt` - 数据类
+- `app/src/main/java/com/xiaomo/androidforclaw/config/OpenClawConfig.kt` - OpenClaw 配置数据类
+- `app/src/main/java/com/xiaomo/androidforclaw/config/ModelConfig.kt` - 模型配置数据类 (嵌套在 OpenClawConfig 中)
 - `app/src/main/java/com/xiaomo/androidforclaw/config/ConfigLoader.kt` - 配置加载器
 
 **代码使用**:
@@ -131,16 +171,19 @@ AndroidForClaw 的 `models.json` 格式与 OpenClaw 的 `models.json` 相同。
 val configLoader = ConfigLoader(context)
 
 // 加载配置
-val config = configLoader.loadModelsConfig()
+val config = configLoader.loadOpenClawConfig()
 
 // 获取特定 provider
-val providerConfig = configLoader.getProviderConfig("openai")
+val providerConfig = config.providers["anthropic"]
 
 // 获取特定模型
-val model = configLoader.getModelDefinition("openai", "claude-opus-4-6")
+val model = configLoader.getModelDefinition("anthropic", "claude-opus-4-6")
 
 // 列出所有模型
 val allModels = configLoader.listAllModels()
+
+// 获取 Feishu 配置
+val feishuConfig = configLoader.getFeishuConfig()
 ```
 
 **详见**: [模型配置指南](doc/模型配置指南.md)

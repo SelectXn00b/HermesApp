@@ -213,6 +213,8 @@ dependencies {
     testImplementation "io.mockk:mockk:1.13.5"
 
     // Feishu Official SDK (needed for direct testing)
+    // 注意:飞书SDK内部包含旧版protobuf,会导致测试环境冲突
+    // 测试时会通过configurations排除此依赖
     implementation 'com.larksuite.oapi:oapi-sdk:2.4.4'
 
     // MultiDex support
@@ -248,5 +250,14 @@ dependencies {
 
     // Fragment 测试
     debugImplementation 'androidx.fragment:fragment-testing:1.6.0'
+}
 
+// 测试时排除飞书SDK以避免protobuf冲突
+configurations.all {
+    resolutionStrategy {
+        // 在androidTest中排除飞书SDK
+        if (name.contains('AndroidTest')) {
+            exclude group: 'com.larksuite.oapi', module: 'oapi-sdk'
+        }
+    }
 }
