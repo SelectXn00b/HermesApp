@@ -2,6 +2,35 @@
 
 本文件为 Claude Code 提供在此代码库中工作的指导。
 
+## 📁 项目数据目录
+
+**重要**: AndroidForClaw 使用 `/sdcard/.androidforclaw/` 作为项目数据根目录，所有用户数据都存储在此，方便通过文件管理器访问。
+
+```
+/sdcard/.androidforclaw/              ← 项目数据根目录 (对齐 ~/.openclaw/)
+├── config/                           ← 配置文件
+│   └── openclaw.json                 ← 主配置文件
+├── workspace/                        ← 用户工作区 (可 Git 管理)
+│   ├── .androidforclaw/              ← 工作区元数据
+│   │   └── workspace-state.json
+│   ├── skills/                       ← 用户自定义 Skills
+│   │   ├── my-custom-skill/
+│   │   │   └── SKILL.md
+│   │   └── wechat-automation/
+│   │       └── SKILL.md
+│   ├── sessions/                     ← Session 历史记录 (JSONL 格式)
+│   └── memory/                       ← 持久化记忆 (未来)
+├── skills/                           ← 托管 Skills (通过包管理器安装)
+└── logs/                             ← 日志文件
+```
+
+**与 OpenClaw 对齐**:
+- AndroidForClaw: `/sdcard/.androidforclaw/`
+- OpenClaw Desktop: `~/.openclaw/`
+- 目录结构 100% 对齐，支持跨平台
+
+---
+
 ## 🎯 项目概览
 
 **androidforclaw** (原 AndroidForClaw) 是 [forClaw](../README.md) 项目家族的一部分,这是一个**手机版的 OpenClaw** - 在 Android 平台上实现 [OpenClaw](https://github.com/openclaw/openclaw) 的完整功能。

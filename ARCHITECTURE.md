@@ -1,5 +1,31 @@
 # AndroidForClaw 架构文档
 
+## 📁 项目目录结构
+
+AndroidForClaw 使用 `/sdcard/.androidforclaw/` 作为项目数据根目录，所有用户数据、配置、Skills 都存储在此：
+
+```
+/sdcard/.androidforclaw/              ← 项目数据根目录 (对齐 OpenClaw ~/.openclaw/)
+├── config/                           ← 配置文件目录
+│   └── openclaw.json                 ← 主配置文件 (单一配置文件)
+├── workspace/                        ← 用户工作区
+│   ├── .androidforclaw/              ← 工作区元数据
+│   │   └── workspace-state.json
+│   ├── skills/                       ← 用户自定义 Skills (优先级最高)
+│   ├── sessions/                     ← 会话历史记录 (JSONL 格式)
+│   └── memory/                       ← 持久化记忆
+├── skills/                           ← 托管 Skills (通过包管理器安装)
+└── logs/                             ← 日志文件
+```
+
+**特点**:
+- ✅ 用户可通过文件管理器直接访问所有文件
+- ✅ 与 OpenClaw Desktop 目录结构 100% 对齐
+- ✅ 支持 Git 版本控制 (workspace 目录)
+- ✅ 多层 Skills 优先级: workspace > managed > bundled
+
+---
+
 ## 🏗️ 总体架构
 
 AndroidForClaw 采用三层设计,与 [OpenClaw](https://github.com/openclaw/openclaw) 架构对齐度约 85%:

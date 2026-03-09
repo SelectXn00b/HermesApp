@@ -258,6 +258,26 @@ curl -X POST http://phone-ip:8080/gateway \
 
 ---
 
+## 📁 Project Directory Structure
+
+AndroidForClaw uses `/sdcard/.androidforclaw/` as the project data root directory, fully aligned with OpenClaw Desktop's `~/.openclaw/`:
+
+```
+/sdcard/.androidforclaw/              ← Project data root directory
+├── config/                           ← Configuration files
+│   └── openclaw.json                 ← Main configuration file
+├── workspace/                        ← User workspace (accessible via File Manager)
+│   ├── skills/                       ← Custom Skills
+│   ├── sessions/                     ← Session history (JSONL format)
+│   └── memory/                       ← Persistent memory
+├── skills/                           ← Managed Skills (installed via package manager)
+└── logs/                             ← Log files
+```
+
+All files are accessible and editable through your phone's file manager!
+
+---
+
 ## 🛠️ Configuration
 
 **Config File**: `/sdcard/.androidforclaw/config/openclaw.json` (single config file, aligned with OpenClaw)

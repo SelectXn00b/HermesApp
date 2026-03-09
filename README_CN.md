@@ -249,6 +249,26 @@ curl -X POST http://手机IP:8080/gateway \
 
 ---
 
+## 📁 项目目录结构
+
+AndroidForClaw 使用 `/sdcard/.androidforclaw/` 作为项目数据根目录，与 OpenClaw Desktop 的 `~/.openclaw/` 完全对齐：
+
+```
+/sdcard/.androidforclaw/              ← 项目数据根目录
+├── config/                           ← 配置文件
+│   └── openclaw.json                 ← 主配置文件
+├── workspace/                        ← 用户工作区 (可通过文件管理器访问)
+│   ├── skills/                       ← 用户自定义 Skills
+│   ├── sessions/                     ← 会话历史 (JSONL 格式)
+│   └── memory/                       ← 持久化记忆
+├── skills/                           ← 托管 Skills (包管理器安装)
+└── logs/                             ← 日志文件
+```
+
+所有文件都可以通过手机文件管理器访问和编辑！
+
+---
+
 ## 🛠️ 配置说明
 
 **配置文件**: `/sdcard/.androidforclaw/config/openclaw.json` (单一配置文件,与 OpenClaw 对齐)
