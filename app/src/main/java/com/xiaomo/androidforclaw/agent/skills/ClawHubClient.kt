@@ -69,13 +69,14 @@ class ClawHubClient {
             val skills = resultsArray.map { element ->
                 val obj = element.asJsonObject
                 SkillSearchEntry(
-                    slug = obj.get("slug").asString,
-                    name = obj.get("displayName")?.asString ?: obj.get("slug").asString,
-                    description = obj.get("summary")?.asString ?: "",
-                    version = obj.get("version")?.asString ?: "latest",
+                    slug = obj.get("slug")?.asString ?: "",
+                    name = obj.get("displayName")?.takeIf { !it.isJsonNull }?.asString
+                        ?: obj.get("slug")?.asString ?: "",
+                    description = obj.get("summary")?.takeIf { !it.isJsonNull }?.asString ?: "",
+                    version = obj.get("version")?.takeIf { !it.isJsonNull }?.asString ?: "latest",
                     author = null,  // v1 API 不返回 author
                     downloads = 0,  // v1 API 不返回 downloads
-                    rating = obj.get("score")?.asFloat
+                    rating = obj.get("score")?.takeIf { !it.isJsonNull }?.asFloat
                 )
             }
 
