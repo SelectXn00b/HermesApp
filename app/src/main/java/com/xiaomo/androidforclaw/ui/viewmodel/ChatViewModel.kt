@@ -227,7 +227,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
             com.xiaomo.androidforclaw.core.MainEntryNew.runWithSession(
                 userInput = content,
-                sessionId = if (isBackendSession(sessionId)) sessionId else "default",
+                sessionId = sessionId,  // 直接使用当前 session ID，不转换为 "default"
                 application = getApplication()
             )
 
