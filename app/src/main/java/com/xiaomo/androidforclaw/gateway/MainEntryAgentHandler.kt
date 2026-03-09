@@ -143,6 +143,11 @@ class MainEntryAgentHandler(
                 "number" to update.number
             )
 
+            is ProgressUpdate.Thinking -> mapOf(
+                "type" to "thinking",
+                "iteration" to update.iteration
+            )
+
             is ProgressUpdate.Reasoning -> mapOf(
                 "type" to "reasoning",
                 "content" to update.content,

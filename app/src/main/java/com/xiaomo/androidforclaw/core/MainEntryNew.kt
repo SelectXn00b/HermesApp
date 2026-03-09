@@ -387,6 +387,14 @@ object MainEntryNew {
                 )
             }
 
+            is ProgressUpdate.Thinking -> {
+                Log.d(TAG, "💭 Thinking: 正在处理第 ${update.iteration} 步...")
+                SessionFloatWindow.updateSessionInfo(
+                    title = "正在思考",
+                    content = "正在处理第 ${update.iteration} 步..."
+                )
+            }
+
             is ProgressUpdate.Reasoning -> {
                 Log.d(TAG, "🧠 Reasoning (${update.content.length} chars, ${update.llmDuration}ms)")
                 SessionFloatWindow.updateSessionInfo(

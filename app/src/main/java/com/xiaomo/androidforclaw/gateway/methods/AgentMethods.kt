@@ -181,6 +181,14 @@ Instructions:
                                 "iteration" to progress.number
                             ))
                         }
+                        is ProgressUpdate.Thinking -> {
+                            // 中间反馈: 正在思考第 X 步
+                            broadcastEvent("agent.thinking", mapOf(
+                                "runId" to runId,
+                                "iteration" to progress.iteration,
+                                "message" to "正在处理第 ${progress.iteration} 步..."
+                            ))
+                        }
                         is ProgressUpdate.ToolCall -> {
                             broadcastEvent("agent.tool_call", mapOf(
                                 "runId" to runId,

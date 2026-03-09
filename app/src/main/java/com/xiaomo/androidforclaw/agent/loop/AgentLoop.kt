@@ -51,6 +51,8 @@ class AgentLoop(
     companion object {
         private const val TAG = "AgentLoop"
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // 对齐 OpenClaw
+        private const val LLM_TIMEOUT_MS = 60_000L  // LLM 单次调用超时: 60 秒
+        private const val MAX_CONSECUTIVE_ERRORS = 3  // 连续相同错误阈值: 3 次
     }
 
     private val gson = Gson()
@@ -80,6 +82,34 @@ class AgentLoop(
 
     // 循环检测器状态
     private val loopDetectionState = ToolLoopDetection.SessionState()
+
+    // 错误追踪: 用于检测连续相同错误
+    private val errorTracker = mutableListOf<String>()
+
+    /**
+     * 记录错误并检查是否达到阈值
+     * @return true 如果应该停止执行
+     */
+    private fun trackError(errorMessage: String): Boolean {
+        errorTracker.add(errorMessage)
+
+        // 只保留最近的错误记录
+        if (errorTracker.size > MAX_CONSECUTIVE_ERRORS) {
+            errorTracker.removeAt(0)
+        }
+
+        // 检查最近的错误是否都相同
+        if (errorTracker.size >= MAX_CONSECUTIVE_ERRORS) {
+            val allSame = errorTracker.all { it == errorMessage }
+            if (allSame) {
+                writeLog("🚨 连续 $MAX_CONSECUTIVE_ERRORS 次相同错误，停止执行")
+                writeLog("   错误: $errorMessage")
+                return true
+            }
+        }
+
+        return false
+    }
 
     /**
      * 写入日志到文件和缓冲区
@@ -220,16 +250,46 @@ class AgentLoop(
                 writeLog("📤 调用 UnifiedLLMProvider.chatWithTools...")
                 writeLog("   Messages: ${messages.size}, Tools+Skills: ${allToolDefinitions.size}")
 
+                // 🔔 发送中间反馈: 正在思考第 X 步
+                _progressFlow.emit(ProgressUpdate.Thinking(iteration))
+
                 val llmStartTime = System.currentTimeMillis()
-                val response = llmProvider.chatWithTools(
-                    messages = messages,
-                    tools = allToolDefinitions,
-                    modelRef = modelRef,
-                    reasoningEnabled = reasoningEnabled
-                )
+
+                // ⏱️ 添加超时保护
+                val response = try {
+                    kotlinx.coroutines.withTimeout(LLM_TIMEOUT_MS) {
+                        llmProvider.chatWithTools(
+                            messages = messages,
+                            tools = allToolDefinitions,
+                            modelRef = modelRef,
+                            reasoningEnabled = reasoningEnabled
+                        )
+                    }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    val errorMsg = "LLM 调用超时 (${LLM_TIMEOUT_MS}ms)"
+                    writeLog("❌ $errorMsg")
+                    Log.e(TAG, errorMsg)
+
+                    // 记录超时错误
+                    if (trackError(errorMsg)) {
+                        shouldStop = true
+                        finalContent = "任务失败: $errorMsg"
+                        break
+                    }
+
+                    // 添加超时错误消息，让 LLM 知道
+                    messages.add(userMessage("系统提示: LLM 调用超时，请尝试简化任务或分步执行"))
+                    continue
+                }
+
                 val llmDuration = System.currentTimeMillis() - llmStartTime
 
                 writeLog("✅ LLM 响应已收到 [耗时: ${llmDuration}ms]")
+
+                // ⚠️ 如果响应时间过长，记录警告
+                if (llmDuration > 30_000) {
+                    writeLog("⚠️ LLM 响应耗时较长: ${llmDuration}ms")
+                }
 
                 // 4.2 显示 reasoning 思考过程
                 response.thinkingContent?.let { reasoning ->
@@ -371,6 +431,34 @@ class AgentLoop(
 
                         writeLog("   Result: ${result.success}, ${result.content.take(200)}")
                         writeLog("   ⏱️ 执行耗时: ${execDuration}ms")
+
+                        // 🔍 追踪工具执行错误
+                        if (!result.success) {
+                            val errorMsg = result.content
+                            writeLog("   ⚠️ 工具执行失败: $errorMsg")
+
+                            // 检查是否达到错误阈值
+                            if (trackError("$functionName: $errorMsg")) {
+                                shouldStop = true
+                                finalContent = "任务失败: 连续 $MAX_CONSECUTIVE_ERRORS 次相同错误 - $errorMsg"
+
+                                // 添加错误消息
+                                messages.add(
+                                    toolMessage(
+                                        toolCallId = toolCall.id,
+                                        content = finalContent ?: "",
+                                        name = functionName
+                                    )
+                                )
+                                break
+                            }
+                        } else {
+                            // 成功执行，清空错误追踪
+                            if (errorTracker.isNotEmpty()) {
+                                writeLog("   ✅ 工具执行成功，清空错误追踪")
+                                errorTracker.clear()
+                            }
+                        }
 
                         // 记录工具调用结果 (用于循环检测)
                         ToolLoopDetection.recordToolCallOutcome(
@@ -539,6 +627,9 @@ data class AgentResult(
 sealed class ProgressUpdate {
     /** 开始新迭代 */
     data class Iteration(val number: Int) : ProgressUpdate()
+
+    /** 正在思考第 X 步（中间反馈） */
+    data class Thinking(val iteration: Int) : ProgressUpdate()
 
     /** Reasoning 思考过程 */
     data class Reasoning(val content: String, val llmDuration: Long) : ProgressUpdate()
