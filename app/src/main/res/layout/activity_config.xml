@@ -51,7 +51,6 @@
                             android:id="@+id/et_api_key"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:enabled="false"
                             android:inputType="textPassword"
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -66,7 +65,6 @@
                             android:id="@+id/et_api_base"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:enabled="false"
                             android:inputType="textUri"
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -74,7 +72,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="* API 配置在 AppConstants.kt 中设置"
+                        android:text="* 配置保存到 /sdcard/.androidforclaw/config/openclaw.json"
                         android:textSize="12sp"
                         android:textColor="#999999"
                         android:layout_marginTop="8dp" />
@@ -208,9 +206,8 @@
                             android:id="@+id/et_gateway_port"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:enabled="false"
                             android:inputType="number"
-                            android:text="8765"
+                            android:text="8080"
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
 

@@ -59,7 +59,8 @@ class ConfigActivity : AppCompatActivity() {
                     Log.d(TAG, "First provider: ${firstProvider.key}, baseUrl: ${providerConfig.baseUrl}")
 
                     etApiBase.setText(providerConfig.baseUrl)
-                    etApiKey.setText("*** (已配置)")
+                    // Show actual API key for editing (not masked)
+                    etApiKey.setText(providerConfig.apiKey)
 
                     // Display first model
                     if (providerConfig.models.isNotEmpty()) {
@@ -128,13 +129,61 @@ class ConfigActivity : AppCompatActivity() {
     }
 
     private fun saveConfig() {
-        mmkv?.apply {
-            encode("reasoning_enabled", binding.switchReasoning.isChecked)
-            encode("exploration_mode", binding.switchExploration.isChecked)
-        }
+        try {
+            // Load current config
+            val config = configLoader.loadOpenClawConfig()
 
-        Toast.makeText(this, "配置已保存", Toast.LENGTH_SHORT).show()
-        finish()
+            // Get UI values
+            val apiKey = binding.etApiKey.text.toString()
+            val apiBase = binding.etApiBase.text.toString()
+            val gatewayPort = binding.etGatewayPort.text.toString().toIntOrNull() ?: 8080
+            val reasoningEnabled = binding.switchReasoning.isChecked
+            val explorationMode = binding.switchExploration.isChecked
+
+            // Create updated config with new values
+            val updatedThinking = config.thinking.copy(enabled = reasoningEnabled)
+            val updatedAgent = config.agent.copy(
+                mode = if (explorationMode) "exploration" else "planning"
+            )
+            val updatedGateway = config.gateway.copy(port = gatewayPort)
+
+            // Update first provider's configuration
+            val updatedModels = config.models?.let { models ->
+                val updatedProviders = models.providers.toMutableMap()
+                if (updatedProviders.isNotEmpty()) {
+                    val firstProviderKey = updatedProviders.keys.first()
+                    val oldProvider = updatedProviders[firstProviderKey]!!
+                    updatedProviders[firstProviderKey] = oldProvider.copy(
+                        apiKey = apiKey,
+                        baseUrl = apiBase
+                    )
+                }
+                models.copy(providers = updatedProviders)
+            }
+
+            // Create new config object with updated values
+            val updatedConfig = config.copy(
+                thinking = updatedThinking,
+                agent = updatedAgent,
+                gateway = updatedGateway,
+                models = updatedModels
+            )
+
+            // Save to openclaw.json
+            configLoader.saveOpenClawConfig(updatedConfig)
+
+            // Also save to MMKV for backward compatibility
+            mmkv?.apply {
+                encode("reasoning_enabled", reasoningEnabled)
+                encode("exploration_mode", explorationMode)
+            }
+
+            Toast.makeText(this, "配置已保存到 openclaw.json", Toast.LENGTH_SHORT).show()
+            finish()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save config", e)
+            Toast.makeText(this, "保存配置失败: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun resetToDefault() {

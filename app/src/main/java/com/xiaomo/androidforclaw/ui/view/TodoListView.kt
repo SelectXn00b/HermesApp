@@ -52,7 +52,7 @@ class TodosView @JvmOverloads constructor(
         progressContent = findViewById(R.id.progressContent)
 
         // Set initial state
-        updateProgressDisplay(“等待任务开始...”)
+        updateProgressDisplay("Waiting")
 
         // Append an “Expected after operation” card after progress content (static, not continuously updated)
         val parentContainer = progressContent.parent as? LinearLayout ?: this
