@@ -17,7 +17,7 @@
 
       "openrouter": {
         "baseUrl": "https://openrouter.ai/api/v1",
-        "apiKey": "sk-or-v1-xxx",
+        "apiKey": "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",
         "api": "openai-completions",
         "models": [
           {
@@ -37,7 +37,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/anthropic/claude-opus-4-6"
+        "primary": "openrouter/free"
       }
     }
   },
