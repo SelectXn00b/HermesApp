@@ -1,7 +1,7 @@
 # 📱 AndroidForClaw — OpenClaw for Android, Now Available
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v1.0.0)
+[![Release](https://img.shields.io/badge/Release-v2.4.4-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4)
 [![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://www.android.com/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-blue.svg)](https://kotlinlang.org/)
 
@@ -157,7 +157,7 @@ curl -X POST http://phone-ip:8080/gateway \
 
 ### Method 1: Download Pre-built APK (Recommended)
 
-**📥 Latest Release**: [v1.0.0](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v1.0.0) | **📦 Browse Files**: [releases/](https://github.com/xiaomochn/AndroidForClaw/tree/main/releases)
+**📥 Latest Release**: [v2.4.4](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4) | **📦 Browse Files**: [releases/](https://github.com/xiaomochn/AndroidForClaw/tree/main/releases)
 
 1. **Download APK**
    ```
@@ -508,7 +508,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📋 Version History
 
-### Latest Release: v1.0.0 (2026-03-09)
+### Latest Release: v2.4.4 (2026-03-09)
+
+**🔧 Bug Fixes - API Authentication**
+
+**Key Fixes**:
+- ✅ Fixed OpenRouter API authentication - Authorization header now correctly added
+- ✅ Replaced GSON with JSONObject for config parsing to ensure proper default values
+- ✅ Fixed `authHeader` default value issue (false → true when field missing)
+- ✅ Session data now correctly saves to external storage workspace
+- ✅ Enhanced error message display with detailed debugging info
+
+**Technical Details**:
+- GSON would set missing boolean fields to `false` instead of using code defaults
+- Now using `org.json.JSONObject` with `optBoolean("authHeader", true)` for correct defaults
+- Authorization header format: `Bearer <token>` for OpenAI-compatible APIs
+- Added debug logging to track authentication header generation
+
+**📥 Download**: [v2.4.4 Release](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4)
+
+---
+
+### Previous Release: v1.0.0 (2026-03-09)
 
 **🎉 Major Release - Production Ready**
 

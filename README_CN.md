@@ -1,7 +1,7 @@
 # 📱 AndroidForClaw — OpenClaw 的手机版，来了
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v1.0.0)
+[![Release](https://img.shields.io/badge/Release-v2.4.4-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4)
 [![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://www.android.com/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-blue.svg)](https://kotlinlang.org/)
 
