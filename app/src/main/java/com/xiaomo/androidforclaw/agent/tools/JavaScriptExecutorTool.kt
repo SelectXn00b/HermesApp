@@ -8,21 +8,21 @@ import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.quickjs.QuickJSExecutor
 
 /**
- * JavaScript 执行器 Tool - 基于 QuickJS Module
+ * JavaScript Executor Tool - Based on QuickJS Module
  *
- * 提供完整的 JavaScript 运行时环境，支持:
- * - ES6+ 语法 (const, let, arrow functions, etc.)
- * - async/await 异步编程
+ * Provides complete JavaScript runtime environment with support for:
+ * - ES6+ syntax (const, let, arrow functions, etc.)
+ * - async/await asynchronous programming
  * - Promise
- * - 内置工具库 (lodash-like)
- * - Android 桥接 (文件、HTTP、系统调用)
+ * - Built-in utility library (lodash-like)
+ * - Android bridge (file, HTTP, system calls)
  *
- * 使用场景:
- * - 数据处理和分析 (JSON, CSV, etc.)
- * - 字符串操作和文本处理
- * - 数组和对象操作
- * - 简单的网络请求
- * - 文件读写
+ * Use cases:
+ * - Data processing and analysis (JSON, CSV, etc.)
+ * - String manipulation and text processing
+ * - Array and object operations
+ * - Simple network requests
+ * - File read/write
  */
 class JavaScriptExecutorTool(private val context: Context) : Tool {
     override val name = "javascript_exec"
@@ -69,7 +69,7 @@ class JavaScriptExecutorTool(private val context: Context) : Tool {
     }
 
     /**
-     * 清理资源
+     * Cleanup resources
      */
     fun cleanup() {
         executor.cleanup()

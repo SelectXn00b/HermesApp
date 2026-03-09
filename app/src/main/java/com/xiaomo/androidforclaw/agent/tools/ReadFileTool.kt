@@ -8,8 +8,8 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * Read File Tool - 读取文件内容
- * 参考 nanobot 的 ReadFileTool
+ * Read File Tool - Read file content
+ * Reference: nanobot's ReadFileTool
  */
 class ReadFileTool(
     private val workspace: File? = null,
@@ -50,7 +50,7 @@ class ReadFileTool(
         return try {
             val file = resolvePath(path)
 
-            // 权限检查
+            // Permission check
             if (allowedDir != null) {
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
@@ -76,7 +76,7 @@ class ReadFileTool(
     }
 
     /**
-     * 解析路径（相对路径基于 workspace）
+     * Resolve path (relative paths are based on workspace)
      */
     private fun resolvePath(path: String): File {
         val file = File(path)

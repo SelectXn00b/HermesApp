@@ -8,8 +8,8 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * Write File Tool - 写入文件
- * 参考 nanobot 的 WriteFileTool
+ * Write File Tool - Write to file
+ * Reference: nanobot's WriteFileTool
  */
 class WriteFileTool(
     private val workspace: File? = null,
@@ -52,7 +52,7 @@ class WriteFileTool(
         return try {
             val file = resolvePath(path)
 
-            // 权限检查
+            // Permission check
             if (allowedDir != null) {
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
@@ -61,10 +61,10 @@ class WriteFileTool(
                 }
             }
 
-            // 创建父目录
+            // Create parent directory
             file.parentFile?.mkdirs()
 
-            // 写入文件
+            // Write file
             file.writeText(content, Charsets.UTF_8)
 
             ToolResult.success("Successfully wrote ${content.length} bytes to ${file.absolutePath}")
@@ -75,7 +75,7 @@ class WriteFileTool(
     }
 
     /**
-     * 解析路径（相对路径基于 workspace）
+     * Resolve path (relative paths are based on workspace)
      */
     private fun resolvePath(path: String): File {
         val file = File(path)

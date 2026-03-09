@@ -8,8 +8,8 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * Edit File Tool - 编辑文件（替换文本）
- * 参考 nanobot 的 EditFileTool
+ * Edit File Tool - Edit file (replace text)
+ * Reference: nanobot's EditFileTool
  */
 class EditFileTool(
     private val workspace: File? = null,
@@ -54,7 +54,7 @@ class EditFileTool(
         return try {
             val file = resolvePath(path)
 
-            // 权限检查
+            // Permission check
             if (allowedDir != null) {
                 val canonicalFile = file.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
@@ -69,18 +69,18 @@ class EditFileTool(
 
             val content = file.readText(Charsets.UTF_8)
 
-            // 检查 old_text 是否存在
+            // Check if old_text exists
             if (!content.contains(oldText)) {
                 return ToolResult.error("old_text not found in file: $path")
             }
 
-            // 检查是否有多个匹配
+            // Check for multiple matches
             val count = content.split(oldText).size - 1
             if (count > 1) {
                 return ToolResult.error("old_text appears $count times. Please provide more context to make it unique.")
             }
 
-            // 替换
+            // Replace
             val newContent = content.replace(oldText, newText)
             file.writeText(newContent, Charsets.UTF_8)
 
@@ -92,7 +92,7 @@ class EditFileTool(
     }
 
     /**
-     * 解析路径（相对路径基于 workspace）
+     * Resolve path (relative paths are based on workspace)
      */
     private fun resolvePath(path: String): File {
         val file = File(path)

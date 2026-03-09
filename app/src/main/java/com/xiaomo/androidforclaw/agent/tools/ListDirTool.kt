@@ -8,8 +8,8 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * List Directory Tool - 列出目录内容
- * 参考 nanobot 的 ListDirTool
+ * List Directory Tool - List directory contents
+ * Reference: nanobot's ListDirTool
  */
 class ListDirTool(
     private val workspace: File? = null,
@@ -50,7 +50,7 @@ class ListDirTool(
         return try {
             val dir = resolvePath(path)
 
-            // 权限检查
+            // Permission check
             if (allowedDir != null) {
                 val canonicalDir = dir.canonicalFile
                 val canonicalAllowed = allowedDir.canonicalFile
@@ -86,7 +86,7 @@ class ListDirTool(
     }
 
     /**
-     * 解析路径（相对路径基于 workspace）
+     * Resolve path (relative paths are based on workspace)
      */
     private fun resolvePath(path: String): File {
         val file = File(path)

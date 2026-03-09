@@ -12,8 +12,8 @@ import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
 /**
- * Web Fetch Tool - 获取网页内容
- * 参考 nanobot 的 WebFetchTool
+ * Web Fetch Tool - Fetch web page content
+ * Reference: nanobot's WebFetchTool
  */
 class WebFetchTool(
     private val maxChars: Int = 50000
@@ -58,7 +58,7 @@ class WebFetchTool(
             return ToolResult.error("Missing required parameter: url")
         }
 
-        // URL 验证
+        // URL validation
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             return ToolResult.error("URL must start with http:// or https://")
         }
@@ -80,23 +80,23 @@ class WebFetchTool(
                 val contentType = response.header("Content-Type") ?: ""
                 val body = response.body?.string() ?: ""
 
-                // 简单的内容提取（移除 HTML 标签）
+                // Simple content extraction (strip HTML tags)
                 val content = when {
                     contentType.contains("application/json", ignoreCase = true) -> {
-                        // JSON 内容直接返回
+                        // Return JSON content directly
                         body
                     }
                     contentType.contains("text/html", ignoreCase = true) -> {
-                        // HTML 内容简单清理
+                        // Simple HTML cleanup
                         stripHtmlTags(body)
                     }
                     else -> {
-                        // 其他文本内容
+                        // Other text content
                         body
                     }
                 }
 
-                // 截断过长内容
+                // Truncate overly long content
                 val finalContent = if (content.length > maxCharsParam) {
                     content.take(maxCharsParam) + "\n... (truncated, ${content.length - maxCharsParam} more chars)"
                 } else {
@@ -112,7 +112,7 @@ class WebFetchTool(
     }
 
     /**
-     * 简单的 HTML 标签清理
+     * Simple HTML tag cleanup
      */
     private fun stripHtmlTags(html: String): String {
         return html

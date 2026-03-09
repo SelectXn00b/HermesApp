@@ -11,12 +11,12 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * memory_search 工具
- * 对齐 OpenClaw memory-tool.ts
+ * memory_search tool
+ * Aligned with OpenClaw memory-tool.ts
  *
- * 搜索记忆文件中的相关内容
- * 当前版本：基于关键词的文本搜索
- * TODO: 未来添加向量嵌入和语义搜索
+ * Search for relevant content in memory files
+ * Current version: Keyword-based text search
+ * TODO: Add vector embedding and semantic search in the future
  */
 class MemorySearchSkill(
     private val memoryManager: MemoryManager,
@@ -25,7 +25,7 @@ class MemorySearchSkill(
     companion object {
         private const val TAG = "MemorySearchSkill"
         private const val DEFAULT_MAX_RESULTS = 6
-        private const val CONTEXT_LINES = 2  // 上下文行数
+        private const val CONTEXT_LINES = 2  // Number of context lines
     }
 
     override val name = "memory_search"
@@ -74,7 +74,7 @@ class MemorySearchSkill(
                 )
             }
 
-            // 格式化结果
+            // Format results
             val formatted = results.mapIndexed { index, result ->
                 """
                 ## Result ${index + 1} (${result.file}, lines ${result.startLine}-${result.endLine})
@@ -96,7 +96,7 @@ class MemorySearchSkill(
     }
 
     /**
-     * 搜索结果
+     * Search result
      */
     private data class SearchResult(
         val file: String,
@@ -107,24 +107,24 @@ class MemorySearchSkill(
     )
 
     /**
-     * 搜索记忆文件
+     * Search memory files
      */
     private suspend fun searchMemoryFiles(query: String, maxResults: Int): List<SearchResult> {
         val results = mutableListOf<SearchResult>()
         val queryLower = query.lowercase()
         val queryWords = queryLower.split(Regex("\\s+")).filter { it.length > 2 }
 
-        // 获取所有记忆文件
+        // Get all memory files
         val memoryFiles = memoryManager.listMemoryFiles()
 
-        // 添加今天和昨天的日志
+        // Add today's and yesterday's logs
         val workspaceDir = File(workspacePath)
         val todayLog = File(workspaceDir, "memory/${java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())}.md")
         if (todayLog.exists()) {
             memoryFiles.toMutableList().add(todayLog.absolutePath)
         }
 
-        // 搜索每个文件
+        // Search each file
         for (filePath in memoryFiles) {
             try {
                 val file = File(filePath)
@@ -133,27 +133,27 @@ class MemorySearchSkill(
                 val lines = file.readLines()
                 val relativePath = file.relativeTo(File(workspacePath)).path
 
-                // 搜索每一行及其上下文
+                // Search each line with its context
                 for (i in lines.indices) {
                     val line = lines[i]
                     val lineLower = line.lowercase()
 
-                    // 计算匹配分数
+                    // Calculate match score
                     var score = 0.0
 
-                    // 完整查询匹配
+                    // Full query match
                     if (lineLower.contains(queryLower)) {
                         score += 10.0
                     }
 
-                    // 单词匹配
+                    // Word match
                     for (word in queryWords) {
                         if (lineLower.contains(word)) {
                             score += 1.0
                         }
                     }
 
-                    // 如果有匹配，提取上下文
+                    // If there's a match, extract context
                     if (score > 0) {
                         val startLine = (i - CONTEXT_LINES).coerceAtLeast(0)
                         val endLine = (i + CONTEXT_LINES + 1).coerceAtMost(lines.size)
@@ -175,7 +175,7 @@ class MemorySearchSkill(
             }
         }
 
-        // 按分数排序并返回前 N 个结果
+        // Sort by score and return top N results
         return results.sortedByDescending { it.score }.take(maxResults)
     }
 }

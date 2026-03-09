@@ -10,10 +10,10 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
 import java.io.File
 
 /**
- * memory_get 工具
- * 对齐 OpenClaw memory-tool.ts
+ * memory_get tool
+ * Aligned with OpenClaw memory-tool.ts
  *
- * 读取指定的记忆文件或日志
+ * Read specific memory file or log
  */
 class MemoryGetSkill(
     private val memoryManager: MemoryManager,
@@ -58,33 +58,33 @@ class MemoryGetSkill(
         val lineCount = (args["line_count"] as? Number)?.toInt()
 
         return try {
-            // 验证路径安全性（防止目录遍历攻击）
+            // Validate path security (prevent directory traversal attacks)
             if (path.contains("..") || path.startsWith("/")) {
                 return SkillResult.error("Invalid path: path must be relative and cannot contain '..'")
             }
 
-            // 构建完整路径
+            // Build full path
             val file = File(workspacePath, path)
 
-            // 验证文件在 workspace 内
+            // Verify file is within workspace
             if (!file.canonicalPath.startsWith(File(workspacePath).canonicalPath)) {
                 return SkillResult.error("Invalid path: file must be within workspace")
             }
 
-            // 验证文件存在
+            // Verify file exists
             if (!file.exists()) {
                 return SkillResult.error("File not found: $path")
             }
 
-            // 验证是 Markdown 文件
+            // Verify is Markdown file
             if (!file.name.endsWith(".md")) {
                 return SkillResult.error("Invalid file type: only .md files are allowed")
             }
 
-            // 读取文件内容
+            // Read file content
             val content = file.readText()
 
-            // 如果指定了行范围，提取对应行
+            // If line range specified, extract corresponding lines
             val result = if (startLine != null) {
                 val lines = content.lines()
                 val start = (startLine - 1).coerceIn(0, lines.size)
