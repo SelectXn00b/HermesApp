@@ -64,6 +64,7 @@ No computer needed. No Gateway needed. No pairing needed. Install the APK, grant
 
 #### 💬 Messaging Channels
 - ✅ **Feishu (Lark)** — Native Feishu message channel
+- ✅ **Discord** — Discord Bot integration with WebSocket Gateway
 - ✅ **On-Device Chat** — Built-in chat interface
 - 🔜 **More channels** continuously being integrated
 
