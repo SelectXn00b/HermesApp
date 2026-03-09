@@ -101,3 +101,7 @@ __pycache__/
 # 清理临时文件
 .cleanup_list
 .claude/worktrees/skill
+
+# npm/ClawHub 测试文件
+*.tgz
+package/
