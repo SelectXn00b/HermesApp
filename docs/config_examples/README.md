@@ -1,14 +1,18 @@
-# 配置文件示例
+# 配置文件说明
 
-本目录包含 androidforclaw 的配置文件示例，从实际运行设备同步而来。
+## 配置文件位置
 
-## 文件说明
+**设备路径**: `/sdcard/.androidforclaw/openclaw.json`
 
-### openclaw.json
+应用启动时会自动从 `app/src/main/assets/openclaw.json.default` 复制默认配置到此位置。
 
-唯一配置文件，包含所有配置：Agent、Models、Skills、Tools、Gateway 等。
+## 默认配置
 
-**设备路径**: `/sdcard/AndroidForClaw/config/openclaw.json`
+参考文件: [app/src/main/assets/openclaw.json.default](../../app/src/main/assets/openclaw.json.default)
+
+```json
+// 完整配置请查看上述文件，以下为关键配置说明
+```
 
 **主要配置块**:
 
@@ -170,7 +174,7 @@ adb push openclaw.json /sdcard/AndroidForClaw/config/
 
 ⚠️ **路径说明**:
 - `/sdcard/.androidforclaw/`: 应用外部存储根目录（用户可访问）
-- `/sdcard/.androidforclaw/config/`: 配置文件目录
+- `/sdcard/.androidforclaw/openclaw.json`: 主配置文件（从 assets/openclaw.json.default 复制）
 - `/sdcard/.androidforclaw/workspace/`: 工作区目录（sessions、skills、memory 等）
 
 ## 更多信息
