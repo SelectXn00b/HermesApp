@@ -16,7 +16,7 @@ class HomeSkill : Skill {
     }
 
     override val name = "home"
-    override val description = "按下 Home 键返回主屏幕。用于退出当前应用回到桌面。"
+    override val description = "Press Home button to return to launcher"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

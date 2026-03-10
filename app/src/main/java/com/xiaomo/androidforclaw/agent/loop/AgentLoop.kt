@@ -415,17 +415,28 @@ class AgentLoop(
 
                         // ✅ Search universal tools first, then Android tools
                         val execStartTime = System.currentTimeMillis()
-                        val result = if (toolRegistry.contains(functionName)) {
-                            writeLog("   → Universal tool")
-                            toolRegistry.execute(functionName, args)
-                        } else if (androidToolRegistry.contains(functionName)) {
-                            writeLog("   → Android tool")
-                            androidToolRegistry.execute(functionName, args)
-                        } else {
-                            writeLog("   ❌ Unknown function: $functionName")
-                            Log.e(TAG, "   ❌ Unknown function: $functionName")
-                            SkillResult.error("Unknown function: $functionName")
+
+                        // Add timeout protection for tool execution (max 30 seconds)
+                        val result = try {
+                            kotlinx.coroutines.withTimeout(30_000L) {
+                                if (toolRegistry.contains(functionName)) {
+                                    writeLog("   → Universal tool")
+                                    toolRegistry.execute(functionName, args)
+                                } else if (androidToolRegistry.contains(functionName)) {
+                                    writeLog("   → Android tool")
+                                    androidToolRegistry.execute(functionName, args)
+                                } else {
+                                    writeLog("   ❌ Unknown function: $functionName")
+                                    Log.e(TAG, "   ❌ Unknown function: $functionName")
+                                    SkillResult.error("Unknown function: $functionName")
+                                }
+                            }
+                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                            writeLog("   ⏰ Tool execution timeout after 30s")
+                            Log.e(TAG, "Tool execution timeout: $functionName after 30s")
+                            SkillResult.error("Tool execution timeout after 30 seconds. The tool may be blocked or unresponsive.")
                         }
+
                         val execDuration = System.currentTimeMillis() - execStartTime
                         totalExecDuration += execDuration
 

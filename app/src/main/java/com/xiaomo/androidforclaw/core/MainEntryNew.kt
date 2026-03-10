@@ -141,16 +141,20 @@ object MainEntryNew {
             val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
             Log.d(TAG, "✓ ContextManager initialized")
 
+            // Load maxIterations from config
+            val config = configLoader.loadOpenClawConfig()
+            val maxIterations = config.agent.maxIterations
+
             // 7. Initialize AgentLoop
             agentLoop = AgentLoop(
                 llmProvider = llmProvider,
                 toolRegistry = toolRegistry,
                 androidToolRegistry = androidToolRegistry,
                 contextManager = contextManager,
-                maxIterations = 40,
+                maxIterations = maxIterations,
                 modelRef = null  // Use default model
             )
-            Log.d(TAG, "✓ AgentLoop initialized")
+            Log.d(TAG, "✓ AgentLoop initialized (maxIterations: $maxIterations)")
 
             Log.d(TAG, "========== Initialization Complete ==========")
 
@@ -207,6 +211,7 @@ object MainEntryNew {
                     userGoal = userInput,
                     packageName = "",
                     testMode = "chat"
+                    // Use default FULL mode to align with OpenClaw
                 )
                 Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")
 
@@ -360,6 +365,7 @@ object MainEntryNew {
                     userGoal = userInput,
                     packageName = packageName,
                     testMode = testMode
+                    // Use default FULL mode to align with OpenClaw
                 )
 
                 Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")

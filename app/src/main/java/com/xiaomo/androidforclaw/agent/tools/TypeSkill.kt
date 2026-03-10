@@ -23,7 +23,7 @@ class TypeSkill(private val context: Context) : Skill {
             val isAccessibilityEnabled = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true &&
                                         com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isServiceReady()
             val statusNote = if (!isAccessibilityEnabled) " ⚠️ **不可用**-无障碍服务未连接" else " ✅"
-            return "在输入框中输入文本。**重要**: 使用前必须先用 tap() 点击输入框让其获得焦点并弹出键盘，然后才能使用 type() 输入文本。如果输入框没有焦点，输入会失败。$statusNote"
+            return "Type text into focused input field (must tap input first)$statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {

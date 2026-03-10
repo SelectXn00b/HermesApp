@@ -16,7 +16,7 @@ class LogSkill : Skill {
     }
 
     override val name = "log"
-    override val description = "记录日志信息。用于输出调试信息或记录重要事件。"
+    override val description = "Record log information"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

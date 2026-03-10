@@ -23,7 +23,7 @@ class FeishuSendImageSkill(private val context: Context) : Skill {
     }
 
     override val name = "send_image"
-    override val description = "Send an image to the user via Feishu. Use this after taking a screenshot."
+    override val description = "Send image to user via Feishu"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

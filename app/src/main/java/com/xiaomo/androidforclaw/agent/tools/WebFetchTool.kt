@@ -30,7 +30,7 @@ class WebFetchTool(
         .build()
 
     override val name = "web_fetch"
-    override val description = "获取指定 URL 的网页内容。返回网页文本。"
+    override val description = "Fetch and extract content from a URL"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

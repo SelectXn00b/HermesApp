@@ -18,7 +18,7 @@ class StartActivityTool(private val context: Context) : Skill {
     }
 
     override val name = "start_activity"
-    override val description = "Start an Android Activity by component name. Provide 'component' (e.g. 'info.plateaukao.einkbro/.activity.BrowserActivity') or both 'package' and 'activity'. Use this to start a specific Activity that is not the launcher Activity."
+    override val description = "Start Android Activity by component name"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

@@ -33,7 +33,7 @@ class AdbImeInputSkill(private val context: Context) : Skill {
                 !isConnected -> " ⚠️ **不可用** - AdbIME 未连接 (键盘未弹出)"
                 else -> " ✅ AdbIME 已就绪"
             }
-            return "使用 AdbIME 输入法输入文本。**使用流程**: 1) 先用 tap() 点击输入框让其获得焦点 2) 等待 300-500ms 让键盘弹出 3) 使用此工具输入文本。支持中文、英文、emoji 等所有字符。$statusNote"
+            return "Input text via AdbIME (supports all characters including Chinese)$statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {

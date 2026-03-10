@@ -17,7 +17,7 @@ class WaitSkill : Skill {
     }
 
     override val name = "wait"
-    override val description = "等待指定的时间。用于等待页面加载、动画完成等场景。"
+    override val description = "Wait for specified duration in seconds"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

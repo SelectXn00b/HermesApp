@@ -32,7 +32,7 @@ class ExecTool(
     }
 
     override val name = "exec"
-    override val description = "Execute shell commands on Android. Only Android built-in commands available (ls, cat, echo, grep, find, etc.). No npm, python, git, curl. No root access. Supported: file ops (ls, cat, cp, mv, mkdir, rm), text processing (grep, sed, awk), system info (getprop, ps, df). For app control use tap/swipe/type/open_app."
+    override val description = "Run shell commands (Android built-in only: ls, cat, grep, find, getprop)"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

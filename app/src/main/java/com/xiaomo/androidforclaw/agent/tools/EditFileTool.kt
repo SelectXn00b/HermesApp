@@ -20,7 +20,7 @@ class EditFileTool(
     }
 
     override val name = "edit_file"
-    override val description = "通过查找并替换文本来编辑文件。old_text 必须在文件中精确存在。"
+    override val description = "Make precise edits to files"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

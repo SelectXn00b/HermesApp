@@ -20,7 +20,7 @@ class ListDirTool(
     }
 
     override val name = "list_dir"
-    override val description = "列出指定目录的内容。返回文件和子目录列表。"
+    override val description = "List directory contents"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

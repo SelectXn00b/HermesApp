@@ -19,7 +19,7 @@ class ListInstalledAppsSkill(private val context: Context) : Skill {
     }
 
     override val name = "list_installed_apps"
-    override val description = "Get list of installed applications on the device. Returns app package names, labels, and whether they are system apps. Useful for finding package names to use with open_app() or start_activity()."
+    override val description = "List installed apps with package names"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

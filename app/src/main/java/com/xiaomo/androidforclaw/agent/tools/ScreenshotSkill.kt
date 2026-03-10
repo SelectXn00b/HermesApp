@@ -24,23 +24,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
     }
 
     override val name = "screenshot"
-    override val description = """
-        截取当前屏幕截图（可选：附带 UI 树信息）。
-
-        **开销较大，请优先使用 get_view_tree**。
-
-        返回内容：
-        1. 屏幕截图（用于视觉分析）
-        2. UI 树信息（如果无障碍服务可用，用于定位元素）
-
-        适用场景：
-        - 需要查看颜色、图标、图片等视觉信息
-        - 操作失败，需要视觉确认当前状态
-        - UI 树无法提供足够信息
-        - 需要 OCR 识别文本
-
-        普通情况请用 get_view_tree（更快、更轻量）。
-    """.trimIndent()
+    override val description = "Capture screen image with UI tree (prefer get_view_tree for most cases)"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

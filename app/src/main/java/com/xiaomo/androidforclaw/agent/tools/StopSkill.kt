@@ -17,7 +17,7 @@ class StopSkill(private val taskDataManager: TaskDataManager) : Skill {
     }
 
     override val name = "stop"
-    override val description = "停止当前任务的执行。用于完成任务或遇到无法继续的情况时。"
+    override val description = "Stop current task execution"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

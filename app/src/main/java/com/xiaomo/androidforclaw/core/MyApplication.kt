@@ -1144,12 +1144,18 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 )
                 val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(this@MyApplication)
                 val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
+
+                // Load maxIterations from config
+                val configLoader = ConfigLoader(this@MyApplication)
+                val config = configLoader.loadOpenClawConfig()
+                val maxIterations = config.agent.maxIterations
+
                 val agentLoop = AgentLoop(
                     llmProvider = llmProvider,
                     toolRegistry = toolRegistry,
                     androidToolRegistry = androidToolRegistry,
                     contextManager = contextManager,
-                    maxIterations = 40,
+                    maxIterations = maxIterations,
                     modelRef = null
                 )
 

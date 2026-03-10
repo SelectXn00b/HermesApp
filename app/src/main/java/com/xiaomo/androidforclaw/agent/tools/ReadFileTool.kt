@@ -20,7 +20,7 @@ class ReadFileTool(
     }
 
     override val name = "read_file"
-    override val description = "读取指定路径的文件内容。支持文本文件。"
+    override val description = "Read file contents"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

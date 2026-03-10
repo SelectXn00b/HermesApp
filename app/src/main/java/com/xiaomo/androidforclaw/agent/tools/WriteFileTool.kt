@@ -20,7 +20,7 @@ class WriteFileTool(
     }
 
     override val name = "write_file"
-    override val description = "将内容写入指定路径的文件。如果目录不存在会自动创建。"
+    override val description = "Create or overwrite files"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
