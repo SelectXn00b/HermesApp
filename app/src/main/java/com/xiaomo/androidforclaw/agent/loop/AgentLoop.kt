@@ -199,6 +199,46 @@ class AgentLoop(
         contextHistory: List<Message> = emptyList(),
         reasoningEnabled: Boolean = true
     ): AgentResult {
+        // 🛡️ 全局错误兜底: 确保任何未捕获的错误都能返回给用户
+        return try {
+            runInternal(systemPrompt, userMessage, contextHistory, reasoningEnabled)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ AgentLoop 未捕获的错误", e)
+            LayoutExceptionLogger.log("AgentLoop#run", e)
+
+            // 返回友好的错误信息给用户
+            val errorMessage = buildString {
+                append("❌ Agent 执行失败\n\n")
+                append("**错误信息**: ${e.message ?: "未知错误"}\n\n")
+                append("**错误类型**: ${e.javaClass.simpleName}\n\n")
+                append("**建议**: \n")
+                append("- 请检查网络连接\n")
+                append("- 如果问题持续,请使用 /new 重新开始对话\n")
+                append("- 查看日志获取更多详细信息")
+            }
+
+            AgentResult(
+                finalContent = errorMessage,
+                toolsUsed = emptyList(),
+                messages = listOf(
+                    systemMessage(systemPrompt),
+                    userMessage(userMessage),
+                    assistantMessage(errorMessage)
+                ),
+                iterations = 0
+            )
+        }
+    }
+
+    /**
+     * AgentLoop 主执行逻辑 (内部)
+     */
+    private suspend fun runInternal(
+        systemPrompt: String,
+        userMessage: String,
+        contextHistory: List<Message>,
+        reasoningEnabled: Boolean
+    ): AgentResult {
         shouldStop = false
         val messages = mutableListOf<Message>()
 

@@ -1292,7 +1292,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 }
             } else {
                 // No screenshot, send text directly (use Markdown rendering)
-                val result = sender.sendTextMessage(
+                var result = sender.sendTextMessage(
                     receiveId = event.chatId,
                     text = cleanContent,
                     receiveIdType = "chat_id",
@@ -1303,7 +1303,32 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     val sendResult = result.getOrNull()
                     Log.i(TAG, "✅ 回复发送成功: ${sendResult?.messageId}")
                 } else {
-                    Log.e(TAG, "❌ 回复发送失败: ${result.exceptionOrNull()?.message}")
+                    val errorMsg = result.exceptionOrNull()?.message ?: "未知错误"
+                    Log.e(TAG, "❌ 回复发送失败 (Markdown): $errorMsg")
+
+                    // Fallback: 如果 Markdown 卡片失败(如表格过多),降级为纯文本
+                    if (errorMsg.contains("table number over limit") || errorMsg.contains("230099") || errorMsg.contains("HTTP 400")) {
+                        Log.w(TAG, "⚠️ 降级为纯文本模式重试...")
+                        result = sender.sendTextMessage(
+                            receiveId = event.chatId,
+                            text = "⚠️ 内容格式过于复杂,以下为纯文本版本:\n\n$cleanContent",
+                            receiveIdType = "chat_id",
+                            renderMode = com.xiaomo.feishu.messaging.RenderMode.TEXT  // 强制纯文本
+                        )
+
+                        if (result.isSuccess) {
+                            Log.i(TAG, "✅ 纯文本回复发送成功")
+                        } else {
+                            // 最终兜底:至少告诉用户失败了
+                            Log.e(TAG, "❌ 纯文本回复也失败,发送错误提示...")
+                            sender.sendTextMessage(
+                                receiveId = event.chatId,
+                                text = "❌ 回复发送失败: $errorMsg\n\n请检查飞书日志或稍后重试。",
+                                receiveIdType = "chat_id",
+                                renderMode = com.xiaomo.feishu.messaging.RenderMode.TEXT
+                            )
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {

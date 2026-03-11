@@ -89,9 +89,9 @@ config/models.json
 nanobot/
 OpenClaw/
 
-# 本地工作区
-workspace/
-.workspace/
+# 本地工作区 (只忽略根目录的 workspace, 不影响源代码中的 workspace 包)
+/workspace/
+/.workspace/
 
 # Python 缓存
 __pycache__/

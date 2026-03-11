@@ -476,21 +476,45 @@ class FeishuSender(
         }
 
         // 检测 Markdown 表格 |...|
+        val tableCount = countMarkdownTables(text)
+        if (tableCount > 0) {
+            // 飞书卡片表格数量限制检查
+            if (tableCount > config.maxTablesPerCard) {
+                Log.w(TAG, "⚠️ 表格数量 ($tableCount) 超过飞书限制 (${config.maxTablesPerCard}),将使用纯文本")
+                return false  // 超过限制,降级为纯文本
+            }
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * 统计 Markdown 中的表格数量
+     */
+    private fun countMarkdownTables(text: String): Int {
+        var tableCount = 0
         val lines = text.lines()
+        var inTable = false
+
         for (i in 0 until lines.size - 1) {
             val line = lines[i]
             val nextLine = lines.getOrNull(i + 1) ?: continue
 
             // 检查是否是表格行（包含 |）
-            if (line.contains("|")) {
+            if (line.contains("|") && !inTable) {
                 // 检查下一行是否是分隔符（如 |---|---| 或 |:-:|:-:|）
                 if (nextLine.matches(Regex("^\\s*\\|[-:| ]+\\|\\s*$"))) {
-                    return true
+                    tableCount++
+                    inTable = true
                 }
+            } else if (inTable && !line.contains("|")) {
+                // 表格结束
+                inTable = false
             }
         }
 
-        return false
+        return tableCount
     }
 
     /**
