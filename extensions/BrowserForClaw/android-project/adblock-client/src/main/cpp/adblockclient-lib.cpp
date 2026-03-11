@@ -56,8 +56,9 @@ Java_io_github_edsuns_adblockclient_AdBlockClient_loadBasicData(JNIEnv *env,
                                                                 jbyteArray data,
                                                                 jboolean preserveRules) {
     int dataLength = env->GetArrayLength(data);
-    char *dataChars = new char[dataLength];
+    char *dataChars = new char[dataLength + 1];
     env->GetByteArrayRegion(data, 0, dataLength, reinterpret_cast<jbyte *>(dataChars));
+    dataChars[dataLength] = '\0';
 
     auto *client = (AdBlockClient *) clientPointer;
     client->parse(dataChars, preserveRules);
