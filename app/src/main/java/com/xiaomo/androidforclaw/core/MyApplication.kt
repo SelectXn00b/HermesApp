@@ -1359,7 +1359,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                         receiveId = event.chatId,
                         text = textContent,
                         receiveIdType = "chat_id",
-                        renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO
+                        renderMode = com.xiaomo.feishu.messaging.RenderMode.TEXT
                     )
 
                     if (result.isSuccess) {
@@ -1370,12 +1370,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     }
                 }
             } else {
-                // No screenshot, send text directly (use Markdown rendering)
+                // No screenshot, send as plain text (not markdown card)
                 var result = sender.sendTextMessage(
                     receiveId = event.chatId,
                     text = cleanContent,
                     receiveIdType = "chat_id",
-                    renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO  // Auto-detect code blocks and tables
+                    renderMode = com.xiaomo.feishu.messaging.RenderMode.TEXT
                 )
 
                 if (result.isSuccess) {
