@@ -95,7 +95,7 @@ class McpClient(
             if (response.isSuccess) {
                 val result = response.getOrNull()!!
                 val resultMap = result.result as? Map<*, *>
-                val toolsList = (resultMap?.get("tools") as? List<*>) ?: emptyList()
+                val toolsList = (resultMap?.get("tools") as? List<*>) ?: emptyList<Any>()
 
                 val tools = toolsList.mapNotNull { toolData ->
                     val toolMap = toolData as? Map<*, *> ?: return@mapNotNull null
@@ -139,7 +139,7 @@ class McpClient(
                 val resultMap = result.result as? Map<*, *>
 
                 if (resultMap != null) {
-                    val contentList = (resultMap["content"] as? List<*>) ?: emptyList()
+                    val contentList = (resultMap["content"] as? List<*>) ?: emptyList<Any>()
                     val isError = resultMap["isError"] as? Boolean ?: false
 
                     val content = contentList.mapNotNull { contentData ->
