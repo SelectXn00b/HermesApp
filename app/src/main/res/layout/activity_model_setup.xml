@@ -116,7 +116,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="OpenRouter API Key"
-                        app:endIconMode="password_toggle"
                         app:helperText="以 sk-or- 开头"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -124,7 +123,7 @@
                             android:id="@+id/et_setup_api_key"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="textPassword"
+                            android:inputType="textUri|textNoSuggestions"
                             android:textSize="14sp" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
