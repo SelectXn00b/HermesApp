@@ -44,8 +44,8 @@ class ModelSetupActivity : AppCompatActivity() {
                 }
                 return !hasRealKey
             } catch (e: Exception) {
-                Log.w(TAG, "Error checking setup need", e)
-                return false
+                Log.w(TAG, "Error checking setup need, assuming needed", e)
+                return true  // Config parse error → probably not configured properly → show setup
             }
         }
 
@@ -57,7 +57,8 @@ class ModelSetupActivity : AppCompatActivity() {
                 api = "openai-completions",
                 hint = "OpenRouter 聚合了 Claude、GPT、Gemini 等多个模型，一个 Key 即可使用全部。\n注册即可免费使用，无需充值！",
                 models = listOf(
-                    ModelPreset("openrouter/free", "🆓 免费自动路由 (默认，无需充值)"),
+                    ModelPreset("openrouter/hunter-alpha", "🏹 Hunter Alpha (默认，免费，1M上下文)"),
+                    ModelPreset("openrouter/free", "🆓 免费自动路由 (无需充值)"),
                     ModelPreset("qwen/qwen3-coder:free", "🆓 Qwen3 Coder (免费，262K)"),
                     ModelPreset("deepseek/deepseek-r1:free", "🆓 DeepSeek R1 (免费，推理)"),
                     ModelPreset("anthropic/claude-sonnet-4", "Claude Sonnet 4 (付费，推荐)"),

@@ -28,7 +28,7 @@ class ModelsMethods(
                     contextWindow = modelDef.contextWindow ?: 200000,
                     maxTokens = modelDef.maxTokens ?: 16384,
                     reasoning = modelDef.reasoning ?: false,
-                    input = modelDef.input ?: listOf("text"),
+                    input = modelDef.input?.map { it.toString() } ?: listOf("text"),
                     cost = modelDef.cost?.let { c ->
                         ModelCost(
                             input = c.input,

@@ -67,7 +67,7 @@ data class ModelDefinition(
     val reasoning: Boolean = false,  // Whether supports reasoning/thinking (Extended Thinking)
 
     @SerializedName("input")
-    val input: List<String> = listOf("text"),  // Supported input types: ["text", "image"]
+    val input: List<Any> = listOf("text"),  // Supported input types: ["text", "image"] or [{"type":"text"}]
 
     @SerializedName("cost")
     val cost: CostConfig = CostConfig(),  // Cost configuration
