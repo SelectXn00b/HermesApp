@@ -8,6 +8,8 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.test.FeishuConnectionTest
+import kotlinx.coroutines.runBlocking
 import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -60,26 +62,16 @@ class FeishuChannelFlowUITest {
     }
 
     @Test
-    fun test03_saveFeishuConfigurationPersistsToOpenClawJson() {
+    fun test03_saveFeishuConfiguration_and_connectSuccessfully() {
         openSettingsTab()
         openChannelsPage()
         openFeishuPage()
 
-        // App ID / Secret 输入
-        val appIdField = device.findObject(By.text("App ID"))
-        assertNotNull(appIdField)
-        appIdField!!.click()
-        device.waitForIdle()
-        device.pressDelete()
-
-        val appIdInput = device.findObject(By.clazz("android.widget.EditText"))
-        assertNotNull(appIdInput)
-        appIdInput!!.text = "cli_test_feishu_001"
-
-        // 第二个 EditText 通常是 App Secret
+        // 使用真实可连接的飞书配置
         val edits = device.findObjects(By.clazz("android.widget.EditText"))
         assertTrue("Expected at least 2 EditText fields", edits.size >= 2)
-        edits[1].text = "secret_test_001"
+        edits[0].text = "cli_a410f5bdf3f8d062"
+        edits[1].text = "P5BBBqI49VfYj5R4QZoD3g1wFEAQzLZZ"
 
         // 点击保存
         val saveBtn = device.findObject(By.text("保存"))
@@ -90,9 +82,15 @@ class FeishuChannelFlowUITest {
         // 验证配置落盘
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val config = ConfigLoader(context).loadOpenClawConfig()
-        assertEquals("cli_test_feishu_001", config.channels.feishu.appId)
-        assertEquals("secret_test_001", config.channels.feishu.appSecret)
+        assertEquals("cli_a410f5bdf3f8d062", config.channels.feishu.appId)
+        assertEquals("P5BBBqI49VfYj5R4QZoD3g1wFEAQzLZZ", config.channels.feishu.appSecret)
         assertTrue(config.channels.feishu.enabled)
+
+        // 终点：飞书连接成功
+        val result = runBlocking {
+            FeishuConnectionTest(context).quickHealthCheck()
+        }
+        assertTrue("Expected Feishu connection success, got: ${result.message}", result.success)
     }
 
     private fun openSettingsTab() {
