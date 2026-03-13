@@ -64,9 +64,9 @@ data class FeishuChannelConfig(
     val webhookHost: String? = null,
     val webhookPort: Int? = null,
     // 策略
-    val dmPolicy: String = "pairing",
+    val dmPolicy: String = "open",
     val allowFrom: List<String> = emptyList(),
-    val groupPolicy: String = "allowlist",
+    val groupPolicy: String = "open",
     val groupAllowFrom: List<String> = emptyList(),
     val requireMention: Boolean = true,
     val groupSessionScope: String? = null,
