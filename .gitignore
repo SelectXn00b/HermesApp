@@ -107,6 +107,10 @@ package/
 
 # Release APKs (构建产物,不提交)
 release-apks/
+
+# 临时截图/调试目录
+tmp-screens/
+
 .github/workflows/
 .claude/
 .cursor/
