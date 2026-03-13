@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git clone https://github.com/OpenClaw/OpenClaw.git openclaw)"
-    ]
-  }
-}
