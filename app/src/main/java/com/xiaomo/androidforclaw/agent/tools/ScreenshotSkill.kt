@@ -71,10 +71,29 @@ class ScreenshotSkill(private val context: Context) : Skill {
             // ⚡ Optimization: reduce to 50ms
             delay(50)
 
-            // 3. Take screenshot
-            val screenshotResult = DeviceController.getScreenshot(context)
+            // 3. Take screenshot (MediaProjection → shell screencap fallback)
+            var screenshotResult = DeviceController.getScreenshot(context)
             if (screenshotResult == null) {
-                return SkillResult.error("Screenshot failed: result is null")
+                Log.w(TAG, "MediaProjection unavailable, trying shell screencap fallback...")
+                screenshotResult = try {
+                    val screenshotPath = "/sdcard/.androidforclaw/workspace/screenshots/screenshot_${System.currentTimeMillis()}.png"
+                    val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "screencap -p $screenshotPath"))
+                    process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+                    val file = java.io.File(screenshotPath)
+                    if (file.exists() && file.length() > 0) {
+                        val bitmap = android.graphics.BitmapFactory.decodeFile(screenshotPath)
+                        if (bitmap != null) {
+                            Log.d(TAG, "Shell screencap fallback succeeded: $screenshotPath")
+                            Pair(bitmap, screenshotPath)
+                        } else null
+                    } else null
+                } catch (e: Exception) {
+                    Log.w(TAG, "Shell screencap fallback failed: ${e.message}")
+                    null
+                }
+            }
+            if (screenshotResult == null) {
+                return SkillResult.error("Screenshot failed: MediaProjection not authorized and shell screencap unavailable. Please open the app and grant screen capture permission.")
             }
 
             val (bitmap, path) = screenshotResult
