@@ -52,8 +52,8 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         private const val POLL_INTERVAL_MS = 500L
     }
 
-    override val name = "termux_exec"
-    override val description = "Execute code in Termux (Python/Node.js/Shell)"
+    override val name = "exec"
+    override val description = "Run shell commands via Termux when available"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -64,34 +64,44 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
-                        "runtime" to PropertySchema(
+                        "command" to PropertySchema(
                             type = "string",
-                            description = "Execution runtime",
-                            enum = listOf("python", "nodejs", "shell")
+                            description = "Shell command to execute in Termux"
                         ),
-                        "code" to PropertySchema(
-                            type = "string",
-                            description = "Code to execute (for exec action only)"
-                        ),
-                        "action" to PropertySchema(
-                            type = "string",
-                            description = "Action type: exec (default) or setup_storage",
-                            enum = listOf("exec", "setup_storage")
-                        ),
-                        "cwd" to PropertySchema(
+                        "working_dir" to PropertySchema(
                             type = "string",
                             description = "Working directory (optional, default: Termux home)"
                         ),
                         "timeout" to PropertySchema(
                             type = "number",
                             description = "Execution timeout in seconds (optional, default: 60)"
+                        ),
+                        "action" to PropertySchema(
+                            type = "string",
+                            description = "Compatibility action: exec (default) or setup_storage",
+                            enum = listOf("exec", "setup_storage")
+                        ),
+                        "runtime" to PropertySchema(
+                            type = "string",
+                            description = "Backward-compatible runtime",
+                            enum = listOf("python", "nodejs", "shell")
+                        ),
+                        "code" to PropertySchema(
+                            type = "string",
+                            description = "Backward-compatible code string"
+                        ),
+                        "cwd" to PropertySchema(
+                            type = "string",
+                            description = "Backward-compatible working directory alias"
                         )
                     ),
-                    required = listOf("runtime", "code")
+                    required = listOf("command")
                 )
             )
         )
     }
+
+    fun isAvailable(): Boolean = isTermuxInstalled()
 
     /**
      * 检查 Termux 是否已安装
@@ -296,28 +306,35 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             }
         }
 
-        // 5. 处理 exec action - 解析参数
-        val runtime = args["runtime"] as? String ?: return ToolResult.error("Missing runtime parameter")
-        val code = args["code"] as? String ?: return ToolResult.error("Missing code parameter")
-        val cwd = args["cwd"] as? String
+        // 5. 处理 exec action - 对齐 OpenClaw exec(command, working_dir)
+        val command = args["command"] as? String
+        val runtime = args["runtime"] as? String
+        val code = args["code"] as? String
+        val cwd = (args["working_dir"] as? String) ?: (args["cwd"] as? String)
         val timeout = (args["timeout"] as? Number)?.toInt() ?: 60
 
-        if (runtime !in listOf("python", "nodejs", "shell")) {
-            return ToolResult.error("Invalid runtime: $runtime (use python/nodejs/shell)")
+        val (resolvedRuntime, resolvedCode) = when {
+            !command.isNullOrBlank() -> "shell" to command
+            !runtime.isNullOrBlank() && !code.isNullOrBlank() -> runtime to code
+            else -> return ToolResult.error("Missing required parameter: command")
+        }
+
+        if (resolvedRuntime !in listOf("python", "nodejs", "shell")) {
+            return ToolResult.error("Invalid runtime: $resolvedRuntime (use python/nodejs/shell)")
         }
 
         // 6. 构建请求
         val request = JSONObject().apply {
             put("action", "exec")
-            put("runtime", runtime)
-            put("code", code)
+            put("runtime", resolvedRuntime)
+            put("code", resolvedCode)
             put("args", JSONObject().apply {
                 if (cwd != null) put("cwd", cwd)
                 put("timeout", timeout)
             })
         }
 
-        Log.d(TAG, "Executing $runtime code (${code.length} chars)")
+        Log.d(TAG, "Executing via Termux runtime=$resolvedRuntime (${resolvedCode.length} chars)")
 
         // 7. 发送请求
         val response = sendRequest(request)
