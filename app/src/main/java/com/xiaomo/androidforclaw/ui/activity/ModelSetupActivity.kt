@@ -112,6 +112,11 @@ class ModelSetupActivity : AppCompatActivity() {
         binding = ActivityModelSetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            title = "模型设置"
+        }
+
         setupDefaultMode()
         setupAdvancedToggle()
         setupProviderSelection()
@@ -370,4 +375,9 @@ class ModelSetupActivity : AppCompatActivity() {
         val contextWindow: Int = 200000,
         val maxTokens: Int = 16384
     )
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
 }
