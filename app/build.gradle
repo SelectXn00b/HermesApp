@@ -220,6 +220,10 @@ dependencies {
     // ========== Extensions ==========
     implementation project(':extensions:feishu')
     implementation project(':extensions:discord')
+    implementation project(':extensions:telegram')
+    implementation project(':extensions:slack')
+    implementation project(':extensions:signal')
+    implementation project(':extensions:whatsapp')
     implementation project(':extensions:observer')
 
     // ========== Self-Control Module ==========
