@@ -28,6 +28,10 @@ import kotlinx.coroutines.delay
 class DeviceTool(private val context: Context) : Tool {
     companion object {
         private const val TAG = "DeviceTool"
+        // Aligned with Playwright Computer Use: wait after actions for UI to settle
+        private const val POST_ACTION_DELAY_MS = 800L  // after tap/type/press
+        private const val POST_OPEN_DELAY_MS = 1500L   // after opening apps
+        private const val POST_SCROLL_DELAY_MS = 500L   // after scroll
     }
 
     override val name = "device"
@@ -218,7 +222,7 @@ class DeviceTool(private val context: Context) : Tool {
 
         try {
             Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
-            delay(100)
+            delay(POST_ACTION_DELAY_MS)
             return ToolResult.success("Tapped${label?.let { " '$it'" } ?: ""} at ($x, $y)")
         } catch (e: Exception) {
             return ToolResult.error("Tap failed: ${e.message}")
@@ -233,7 +237,7 @@ class DeviceTool(private val context: Context) : Tool {
         if (resolved != null) {
             val (x, y, _) = resolved
             Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
-            delay(200)
+            delay(POST_ACTION_DELAY_MS)
         }
 
         // Type text via ADB IME or input text
@@ -275,7 +279,7 @@ class DeviceTool(private val context: Context) : Tool {
 
         try {
             Runtime.getRuntime().exec(arrayOf("sh", "-c", "input swipe $x $y $x $y 1000")).waitFor()
-            delay(100)
+            delay(POST_ACTION_DELAY_MS)
             return ToolResult.success("Long pressed${label?.let { " '$it'" } ?: ""} at ($x, $y)")
         } catch (e: Exception) {
             return ToolResult.error("Long press failed: ${e.message}")
@@ -300,7 +304,7 @@ class DeviceTool(private val context: Context) : Tool {
 
         try {
             Runtime.getRuntime().exec(arrayOf("sh", "-c", "input swipe $sx $sy $ex $ey 300")).waitFor()
-            delay(200)
+            delay(POST_SCROLL_DELAY_MS)
             return ToolResult.success("Scrolled $direction (amount=$amount)")
         } catch (e: Exception) {
             return ToolResult.error("Scroll failed: ${e.message}")
@@ -334,7 +338,7 @@ class DeviceTool(private val context: Context) : Tool {
 
     // ==================== open ====================
 
-    private fun executeOpen(args: Map<String, Any?>): ToolResult {
+    private suspend fun executeOpen(args: Map<String, Any?>): ToolResult {
         val packageName = args["package_name"] as? String
             ?: return ToolResult.error("Missing package_name")
 
@@ -348,6 +352,7 @@ class DeviceTool(private val context: Context) : Tool {
                         context.packageManager.getApplicationInfo(packageName, 0)
                     ).toString()
                 } catch (_: Exception) { packageName }
+                kotlinx.coroutines.delay(POST_OPEN_DELAY_MS)
                 ToolResult.success("Opened $appName ($packageName)")
             } else {
                 ToolResult.error("App not found: $packageName")
