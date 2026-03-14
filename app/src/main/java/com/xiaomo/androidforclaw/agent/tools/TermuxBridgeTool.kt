@@ -362,7 +362,16 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                         if (isNotEmpty()) appendLine()
                         appendLine("Exit code: $returncode")
                     }
-                }.ifEmpty { "(no output)" }
+                }.ifEmpty { "(no output)" },
+                metadata = mapOf(
+                    "backend" to "termux",
+                    "stdout" to stdout,
+                    "stderr" to stderr,
+                    "exitCode" to returncode,
+                    "runtime" to resolvedRuntime,
+                    "working_dir" to (cwd ?: ""),
+                    "command" to (command ?: "")
+                )
             )
         } else {
             ToolResult(
@@ -381,7 +390,17 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                         appendLine("STDOUT:")
                         appendLine(stdout.trim())
                     }
-                }
+                },
+                metadata = mapOf(
+                    "backend" to "termux",
+                    "stdout" to stdout,
+                    "stderr" to stderr,
+                    "exitCode" to returncode,
+                    "runtime" to resolvedRuntime,
+                    "working_dir" to (cwd ?: ""),
+                    "command" to (command ?: ""),
+                    "error" to error
+                )
             )
         }
     }
