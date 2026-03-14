@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: keep app/runtime alive in Android foreground service mode.
+ */
+
+
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager

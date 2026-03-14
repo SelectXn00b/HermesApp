@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: low-level file read tool.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -20,7 +28,7 @@ class ReadFileTool(
     }
 
     override val name = "read_file"
-    override val description = "读取指定路径的文件内容。支持文本文件。"
+    override val description = "Read file contents"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

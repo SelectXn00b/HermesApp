@@ -1,0 +1,44 @@
+{
+    "models": {
+        "providers": {
+            "openrouter": {
+                "baseUrl": "https://openrouter.ai/api/v1",
+                "apiKey": "${OPENROUTER_API_KEY}",
+                "models": [
+                    {
+                        "id": "openrouter/hunter-alpha",
+                        "name": "Hunter Alpha (免费)",
+                        "contextWindow": 1048576,
+                        "maxTokens": 65536
+                    }
+                ]
+            }
+        }
+    },
+    "agents": {
+        "defaults": {
+            "model": {
+                "primary": "openrouter/hunter-alpha"
+            }
+        }
+    },
+    "channels": {
+        "feishu": {
+            "enabled": true,
+            "appId": "${FEISHU_APP_ID}",
+            "appSecret": "${FEISHU_APP_SECRET}",
+            "domain": "feishu",
+            "connectionMode": "websocket"
+        }
+    },
+    "gateway": {
+        "port": 18789
+    },
+    "plugins": {
+        "entries": {
+            "feishu": {
+                "enabled": true
+            }
+        }
+    }
+}

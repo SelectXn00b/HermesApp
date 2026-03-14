@@ -1,5 +1,14 @@
 package com.xiaomo.androidforclaw.providers
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/pi-embedded-runner/(all)
+ *
+ * AndroidForClaw adaptation: provider auth/header/body request shaping.
+ */
+
+
+import android.util.Log
 import com.xiaomo.androidforclaw.config.ModelApi
 import com.xiaomo.androidforclaw.config.ModelDefinition
 import com.xiaomo.androidforclaw.config.ProviderConfig
@@ -170,14 +179,14 @@ object ApiAdapter {
             json.put("system", systemMessage)
         }
 
-        // Add tools
+        // Add tools (use buildToolJson for proper JSON escaping)
         if (!tools.isNullOrEmpty()) {
             val anthropicTools = JSONArray()
             tools.forEach { tool ->
                 val toolJson = JSONObject()
                 toolJson.put("name", tool.function.name)
                 toolJson.put("description", tool.function.description)
-                toolJson.put("input_schema", JSONObject(tool.function.parameters.toString()))
+                toolJson.put("input_schema", buildParametersJson(tool.function.parameters))
                 anthropicTools.put(toolJson)
             }
             json.put("tools", anthropicTools)
@@ -258,8 +267,16 @@ object ApiAdapter {
         json.put("model", model.id)
         json.put("temperature", temperature)
 
-        // maxTokens field name (based on compatibility config)
-        val maxTokensField = model.compat?.maxTokensField ?: "max_tokens"
+        // maxTokens field name (based on compatibility config + safe defaults)
+        val modelIdLower = model.id.lowercase()
+        val defaultMaxTokensField = when {
+            modelIdLower.startsWith("gpt-5") -> "max_completion_tokens"
+            modelIdLower.startsWith("o1") -> "max_completion_tokens"
+            modelIdLower.startsWith("o3") -> "max_completion_tokens"
+            modelIdLower.startsWith("gpt-4.1") -> "max_completion_tokens"
+            else -> "max_tokens"
+        }
+        val maxTokensField = model.compat?.maxTokensField ?: defaultMaxTokensField
         json.put(maxTokensField, maxTokens ?: model.maxTokens)
 
         // Convert message format
@@ -293,11 +310,11 @@ object ApiAdapter {
 
         json.put("messages", openaiMessages)
 
-        // Add tools
+        // Add tools (use Gson for proper JSON escaping — fixes description with special chars)
         if (!tools.isNullOrEmpty()) {
             val openaiTools = JSONArray()
             tools.forEach { tool ->
-                openaiTools.put(JSONObject(tool.toString()))
+                openaiTools.put(buildToolJson(tool))
             }
             json.put("tools", openaiTools)
         }
@@ -315,6 +332,21 @@ object ApiAdapter {
     private fun parseOpenAIResponse(responseBody: String): ParsedResponse {
         val json = JSONObject(responseBody)
 
+        // Handle API error responses that lack 'choices'
+        if (!json.has("choices")) {
+            val error = json.optJSONObject("error")
+            if (error != null) {
+                val msg = error.optString("message", "Unknown API error")
+                val code = error.optString("code", "")
+                Log.e("ApiAdapter", "API returned error instead of choices: [$code] $msg")
+                throw LLMException("API error: $msg")
+            }
+            // Log raw response for debugging
+            val truncated = if (responseBody.length > 500) responseBody.substring(0, 500) + "..." else responseBody
+            Log.e("ApiAdapter", "API response missing 'choices': $truncated")
+            throw LLMException("API response missing 'choices' field")
+        }
+
         val choices = json.getJSONArray("choices")
         if (choices.length() == 0) {
             return ParsedResponse(content = null)
@@ -323,7 +355,7 @@ object ApiAdapter {
         val choice = choices.getJSONObject(0)
         val message = choice.getJSONObject("message")
 
-        val content = message.optString("content", null)
+        val content = if (message.isNull("content")) null else message.optString("content", null)
         val toolCallsArray = message.optJSONArray("tool_calls")
         val toolCalls = if (toolCallsArray != null) {
             mutableListOf<ToolCall>().apply {
@@ -447,6 +479,70 @@ object ApiAdapter {
     ): JSONObject {
         // GitHub Copilot uses OpenAI compatible format
         return buildOpenAIRequest(model, messages, tools, temperature, maxTokens, false)
+    }
+
+    /**
+     * Build tool JSON with proper escaping (fixes description with special chars like quotes)
+     * Replaces the broken tool.toString() → JSONObject approach
+     */
+    private fun buildToolJson(tool: NewToolDefinition): JSONObject {
+        val json = JSONObject()
+        json.put("type", tool.type)
+
+        val funcJson = JSONObject()
+        funcJson.put("name", tool.function.name)
+        funcJson.put("description", tool.function.description)  // JSONObject.put handles escaping
+        val parametersJson = buildParametersJson(tool.function.parameters)
+        funcJson.put("parameters", parametersJson)
+
+        json.put("function", funcJson)
+        return json
+    }
+
+    /**
+     * Build parameters schema JSON with proper escaping
+     */
+    private fun buildParametersJson(params: com.xiaomo.androidforclaw.providers.llm.ParametersSchema): JSONObject {
+        val json = JSONObject()
+        json.put("type", params.type)
+
+        val propsJson = JSONObject()
+        params.properties.forEach { (key, prop) ->
+            val propJson = JSONObject()
+            propJson.put("type", prop.type)
+            propJson.put("description", prop.description)  // Properly escaped
+            prop.enum?.let { enumList ->
+                val enumArray = JSONArray()
+                enumList.forEach { enumArray.put(it) }
+                propJson.put("enum", enumArray)
+            }
+            prop.items?.let { items ->
+                val itemsJson = JSONObject()
+                itemsJson.put("type", items.type)
+                itemsJson.put("description", items.description)
+                propJson.put("items", itemsJson)
+            }
+            prop.properties?.let { nested ->
+                val nestedJson = JSONObject()
+                nested.forEach { (nk, nv) ->
+                    val nvJson = JSONObject()
+                    nvJson.put("type", nv.type)
+                    nvJson.put("description", nv.description)
+                    nestedJson.put(nk, nvJson)
+                }
+                propJson.put("properties", nestedJson)
+            }
+            propsJson.put(key, propJson)
+        }
+        json.put("properties", propsJson)
+
+        if (params.required.isNotEmpty()) {
+            val reqArray = JSONArray()
+            params.required.forEach { reqArray.put(it) }
+            json.put("required", reqArray)
+        }
+
+        return json
     }
 }
 

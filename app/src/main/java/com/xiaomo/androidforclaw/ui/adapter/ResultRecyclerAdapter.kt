@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.adapter
 
 import android.view.LayoutInflater

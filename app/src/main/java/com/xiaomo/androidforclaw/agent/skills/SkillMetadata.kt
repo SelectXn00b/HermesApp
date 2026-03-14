@@ -1,67 +1,15 @@
 package com.xiaomo.androidforclaw.agent.skills
 
 /**
- * OpenClaw Skills Metadata Definition
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/skills/(all)
  *
- * Fully aligns with OpenClaw's skills/types.ts
- * Used to parse metadata.openclaw field in SKILL.md
+ * AndroidForClaw adaptation: in-app skill metadata model.
  */
 
-/**
- * Skill Entry (aligns with SkillEntry)
- */
-data class SkillEntry(
-    val skill: Skill,
-    val frontmatter: ParsedSkillFrontmatter,
-    val metadata: OpenClawSkillMetadata? = null,
-    val invocation: SkillInvocationPolicy? = null
-)
 
 /**
- * Basic Skill Information (from pi-coding-agent)
- */
-data class Skill(
-    val name: String,
-    val description: String,
-    val content: String,
-    val filePath: String
-)
-
-/**
- * Parsed Frontmatter
- */
-data class ParsedSkillFrontmatter(
-    val name: String,
-    val description: String,
-    val metadata: Map<String, Any?>? = null
-)
-
-/**
- * OpenClaw Skill Metadata (aligns with OpenClawSkillMetadata)
- */
-data class OpenClawSkillMetadata(
-    val always: Boolean = false,
-    val skillKey: String? = null,
-    val primaryEnv: String? = null,
-    val emoji: String? = null,
-    val homepage: String? = null,
-    val os: List<String>? = null,              // darwin, linux, win32, android
-    val requires: SkillRequirements? = null,
-    val install: List<SkillInstallSpec>? = null
-)
-
-/**
- * Skill Requirements (aligns with requires field)
- */
-data class SkillRequirements(
-    val bins: List<String>? = null,            // Required binaries
-    val anyBins: List<String>? = null,         // At least one must exist
-    val env: List<String>? = null,             // Required environment variables
-    val config: List<String>? = null           // openclaw.json path checks
-)
-
-/**
- * Skill Install Specification (aligns with SkillInstallSpec)
+ * Skill Install Specification (aligns with OpenClaw SkillInstallSpec)
  */
 data class SkillInstallSpec(
     val id: String? = null,
@@ -100,22 +48,7 @@ enum class InstallKind {
 }
 
 /**
- * Skill Invocation Policy (aligns with SkillInvocationPolicy)
- */
-data class SkillInvocationPolicy(
-    val invocation: InvocationType? = null,
-    val acceptFiles: List<String>? = null,
-    val outputPaths: List<String>? = null
-)
-
-enum class InvocationType {
-    NEVER,
-    USER,
-    ALWAYS
-}
-
-/**
- * Skill Status Report (aligns with SkillStatusReport)
+ * Skill Status Report (aligns with OpenClaw SkillStatusReport)
  */
 data class SkillStatusReport(
     val workspaceDir: String,
@@ -124,7 +57,7 @@ data class SkillStatusReport(
 )
 
 /**
- * Skill Status Entry (aligns with SkillStatusEntry)
+ * Skill Status Entry (aligns with OpenClaw SkillStatusEntry)
  */
 data class SkillStatusEntry(
     val name: String,
@@ -141,13 +74,11 @@ data class SkillStatusEntry(
     val disabled: Boolean,
     val blockedByAllowlist: Boolean,
     val eligible: Boolean,
-    val requirements: SkillRequirements? = null,
-    val missing: SkillRequirements? = null,
+    val requirements: SkillRequires? = null,
+    val missing: SkillRequires? = null,
     val configChecks: List<SkillConfigCheck>,
     val install: List<SkillInstallOption>
 )
-
-// SkillSource already defined in SkillDocument.kt, removed here to avoid duplication
 
 /**
  * Config Check Result
@@ -175,7 +106,7 @@ data class SkillInstallOption(
 data class SkillsLimits(
     val maxCandidatesPerRoot: Int = 300,
     val maxSkillsLoadedPerSource: Int = 200,
-    val maxSkillsInPrompt: Int = 150,          // Can be reduced to 50-100 on Android
+    val maxSkillsInPrompt: Int = 150,
     val maxSkillsPromptChars: Int = 30_000,
     val maxSkillFileBytes: Int = 256_000
 )

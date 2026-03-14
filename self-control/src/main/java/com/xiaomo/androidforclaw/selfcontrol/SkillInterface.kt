@@ -1,6 +1,14 @@
 package com.xiaomo.androidforclaw.selfcontrol
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: self-control runtime support.
+ */
+
+
+/**
  * Skill 接口 (Self-Control Module 内部副本)
  *
  * 为了避免循环依赖，这里复制了 app module 中的 Skill 接口。

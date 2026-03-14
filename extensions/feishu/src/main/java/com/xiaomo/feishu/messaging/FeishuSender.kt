@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.messaging
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu messaging transport.
+ */
+
+
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -467,30 +475,67 @@ class FeishuSender(
 
     /**
      * 检测是否应该使用卡片格式
-     * 对齐 OpenClaw: /```[\s\S]*?```/.test(text) || /\|.+\|[\r\n]+\|[-:| ]+\|/.test(text)
+     * 对齐 OpenClaw: 任何 markdown 格式都用卡片渲染，避免原始符号暴露
      */
     private fun shouldUseCard(text: String): Boolean {
         // 检测代码块 ```
-        if (text.contains("```")) {
+        if (text.contains("```")) return true
+
+        // 检测 Markdown 表格 |...|
+        val tableCount = countMarkdownTables(text)
+        if (tableCount > 0) {
+            if (tableCount > config.maxTablesPerCard) {
+                Log.w(TAG, "⚠️ 表格数量 ($tableCount) 超过飞书限制 (${config.maxTablesPerCard}),将使用纯文本")
+                return false
+            }
             return true
         }
 
-        // 检测 Markdown 表格 |...|
+        // 检测常见 Markdown 格式（加粗、斜体、标题、列表、链接等）
+        val markdownPatterns = listOf(
+            Regex("\\*\\*.+?\\*\\*"),           // **bold**
+            Regex("\\*.+?\\*"),                  // *italic*
+            Regex("^#{1,6}\\s", RegexOption.MULTILINE),  // ## heading
+            Regex("^[-*+]\\s", RegexOption.MULTILINE),   // - list item
+            Regex("^\\d+\\.\\s", RegexOption.MULTILINE), // 1. ordered list
+            Regex("\\[.+?\\]\\(.+?\\)"),         // [link](url)
+            Regex("^>\\s", RegexOption.MULTILINE),       // > blockquote
+            Regex("`[^`]+`"),                     // `inline code`
+        )
+
+        for (pattern in markdownPatterns) {
+            if (pattern.containsMatchIn(text)) return true
+        }
+
+        return false
+    }
+
+    /**
+     * 统计 Markdown 中的表格数量
+     */
+    private fun countMarkdownTables(text: String): Int {
+        var tableCount = 0
         val lines = text.lines()
+        var inTable = false
+
         for (i in 0 until lines.size - 1) {
             val line = lines[i]
             val nextLine = lines.getOrNull(i + 1) ?: continue
 
             // 检查是否是表格行（包含 |）
-            if (line.contains("|")) {
+            if (line.contains("|") && !inTable) {
                 // 检查下一行是否是分隔符（如 |---|---| 或 |:-:|:-:|）
                 if (nextLine.matches(Regex("^\\s*\\|[-:| ]+\\|\\s*$"))) {
-                    return true
+                    tableCount++
+                    inTable = true
                 }
+            } else if (inTable && !line.contains("|")) {
+                // 表格结束
+                inTable = false
             }
         }
 
-        return false
+        return tableCount
     }
 
     /**

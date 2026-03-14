@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.functions
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: function/tool execution bridge.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.DeviceController

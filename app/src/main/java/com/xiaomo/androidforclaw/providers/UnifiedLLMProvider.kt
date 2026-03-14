@@ -1,5 +1,14 @@
 package com.xiaomo.androidforclaw.providers
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/pi-embedded-runner/(all)
+ * - ../openclaw/src/agents/model-(all)
+ *
+ * AndroidForClaw adaptation: unified provider dispatch for Android.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
@@ -74,7 +83,8 @@ class UnifiedLLMProvider(private val context: Context) {
             type = old.type,
             description = old.description,
             enum = old.enum,
-            items = old.items?.let { convertPropertySchema(it) }
+            items = old.items?.let { convertPropertySchema(it) },
+            properties = old.properties?.mapValues { (_, child) -> convertPropertySchema(child) }
         )
     }
 
@@ -183,12 +193,19 @@ class UnifiedLLMProvider(private val context: Context) {
                 }
             }
 
+            val finalRequestBody = normalizeOpenAiTokenField(model, requestBody)
+
             // Send request
             val request = Request.Builder()
                 .url(apiUrl)
                 .headers(headers)
-                .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
+                .post(finalRequestBody.toString().toRequestBody("application/json".toMediaType()))
                 .build()
+
+            // Log request details for debugging
+            val reqStr = finalRequestBody.toString()
+            val reqTrunc = if (reqStr.length > 1500) reqStr.substring(0, 1500) + "..." else reqStr
+            Log.d(TAG, "📤 Request to $apiUrl: $reqTrunc")
 
             val response = httpClient.newCall(request).execute()
 
@@ -202,6 +219,10 @@ class UnifiedLLMProvider(private val context: Context) {
                 ?: throw LLMException("Empty response body")
 
             Log.d(TAG, "✅ LLM Response received (${responseBody.length} bytes)")
+
+            // Log raw response for debugging (truncated)
+            val truncated = if (responseBody.length > 2000) responseBody.substring(0, 2000) + "..." else responseBody
+            Log.d(TAG, "📥 Raw response: $truncated")
 
             // Parse response
             val api = model.api ?: provider.api
@@ -231,6 +252,24 @@ class UnifiedLLMProvider(private val context: Context) {
             Log.e(TAG, "❌ LLM request failed", e)
             throw LLMException("LLM request failed: ${e.message}", e)
         }
+    }
+
+    private fun normalizeOpenAiTokenField(model: ModelDefinition, requestBody: JSONObject): JSONObject {
+        val modelIdLower = model.id.lowercase()
+        val requiresMaxCompletionTokens = modelIdLower.startsWith("gpt-5") ||
+            modelIdLower.startsWith("o1") ||
+            modelIdLower.startsWith("o3") ||
+            modelIdLower.startsWith("gpt-4.1")
+
+        if (!requiresMaxCompletionTokens) return requestBody
+        if (requestBody.has("max_tokens")) {
+            val value = requestBody.get("max_tokens")
+            requestBody.remove("max_tokens")
+            if (!requestBody.has("max_completion_tokens")) {
+                requestBody.put("max_completion_tokens", value)
+            }
+        }
+        return requestBody
     }
 
     /**

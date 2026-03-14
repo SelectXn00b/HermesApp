@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.config
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: bridge Feishu config into app channel model.
+ */
+
+
 import com.xiaomo.feishu.FeishuConfig
 
 /**
@@ -26,7 +34,7 @@ object FeishuConfigAdapter {
                 else -> FeishuConfig.ConnectionMode.WEBSOCKET
             },
             webhookPath = channelConfig.webhookPath,
-            webhookPort = channelConfig.webhookPort,
+            webhookPort = channelConfig.webhookPort ?: 8765,
             dmPolicy = when (channelConfig.dmPolicy) {
                 "open" -> FeishuConfig.DmPolicy.OPEN
                 "pairing" -> FeishuConfig.DmPolicy.PAIRING
@@ -42,13 +50,8 @@ object FeishuConfigAdapter {
             },
             groupAllowFrom = channelConfig.groupAllowFrom,
             requireMention = channelConfig.requireMention,
-            groupCommandMentionBypass = when (channelConfig.groupCommandMentionBypass) {
-                "never" -> FeishuConfig.MentionBypass.NEVER
-                "single_bot" -> FeishuConfig.MentionBypass.SINGLE_BOT
-                "always" -> FeishuConfig.MentionBypass.ALWAYS
-                else -> FeishuConfig.MentionBypass.NEVER
-            },
-            allowMentionlessInMultiBotGroup = channelConfig.allowMentionlessInMultiBotGroup,
+            groupCommandMentionBypass = FeishuConfig.MentionBypass.NEVER,
+            allowMentionlessInMultiBotGroup = false,
             topicSessionMode = when (channelConfig.topicSessionMode) {
                 "enabled" -> FeishuConfig.TopicSessionMode.ENABLED
                 "disabled" -> FeishuConfig.TopicSessionMode.DISABLED
@@ -63,15 +66,15 @@ object FeishuConfigAdapter {
                 else -> FeishuConfig.ChunkMode.LENGTH
             },
             mediaMaxMb = channelConfig.mediaMaxMb,
-            audioMaxDurationSec = channelConfig.audioMaxDurationSec,
-            enableDocTools = channelConfig.enableDocTools,
-            enableWikiTools = channelConfig.enableWikiTools,
-            enableDriveTools = channelConfig.enableDriveTools,
-            enableBitableTools = channelConfig.enableBitableTools,
-            enableTaskTools = channelConfig.enableTaskTools,
-            enableChatTools = channelConfig.enableChatTools,
-            enablePermTools = channelConfig.enablePermTools,
-            enableUrgentTools = channelConfig.enableUrgentTools,
+            audioMaxDurationSec = 300,
+            enableDocTools = channelConfig.tools.doc,
+            enableWikiTools = channelConfig.tools.wiki,
+            enableDriveTools = channelConfig.tools.drive,
+            enableBitableTools = channelConfig.tools.bitable,
+            enableTaskTools = channelConfig.tools.task,
+            enableChatTools = channelConfig.tools.chat,
+            enablePermTools = channelConfig.tools.perm,
+            enableUrgentTools = channelConfig.tools.urgent,
             typingIndicator = channelConfig.typingIndicator,
             reactionDedup = channelConfig.reactionDedup,
             debugMode = channelConfig.debugMode
@@ -108,12 +111,6 @@ object FeishuConfigAdapter {
             },
             groupAllowFrom = feishuConfig.groupAllowFrom,
             requireMention = feishuConfig.requireMention,
-            groupCommandMentionBypass = when (feishuConfig.groupCommandMentionBypass) {
-                FeishuConfig.MentionBypass.NEVER -> "never"
-                FeishuConfig.MentionBypass.SINGLE_BOT -> "single_bot"
-                FeishuConfig.MentionBypass.ALWAYS -> "always"
-            },
-            allowMentionlessInMultiBotGroup = feishuConfig.allowMentionlessInMultiBotGroup,
             topicSessionMode = when (feishuConfig.topicSessionMode) {
                 FeishuConfig.TopicSessionMode.ENABLED -> "enabled"
                 FeishuConfig.TopicSessionMode.DISABLED -> "disabled"
@@ -126,15 +123,16 @@ object FeishuConfigAdapter {
                 FeishuConfig.ChunkMode.NEWLINE -> "newline"
             },
             mediaMaxMb = feishuConfig.mediaMaxMb,
-            audioMaxDurationSec = feishuConfig.audioMaxDurationSec,
-            enableDocTools = feishuConfig.enableDocTools,
-            enableWikiTools = feishuConfig.enableWikiTools,
-            enableDriveTools = feishuConfig.enableDriveTools,
-            enableBitableTools = feishuConfig.enableBitableTools,
-            enableTaskTools = feishuConfig.enableTaskTools,
-            enableChatTools = feishuConfig.enableChatTools,
-            enablePermTools = feishuConfig.enablePermTools,
-            enableUrgentTools = feishuConfig.enableUrgentTools,
+            tools = FeishuToolsConfig(
+                doc = feishuConfig.enableDocTools,
+                wiki = feishuConfig.enableWikiTools,
+                drive = feishuConfig.enableDriveTools,
+                bitable = feishuConfig.enableBitableTools,
+                task = feishuConfig.enableTaskTools,
+                chat = feishuConfig.enableChatTools,
+                perm = feishuConfig.enablePermTools,
+                urgent = feishuConfig.enableUrgentTools
+            ),
             typingIndicator = feishuConfig.typingIndicator,
             reactionDedup = feishuConfig.reactionDedup,
             debugMode = feishuConfig.debugMode

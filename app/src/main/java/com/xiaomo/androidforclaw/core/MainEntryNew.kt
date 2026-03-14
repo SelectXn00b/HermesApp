@@ -1,5 +1,14 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: main agent execution entry for Android runtime.
+ */
+
+
 import android.app.Application
 import android.os.Build
 import android.text.TextUtils
@@ -21,6 +30,7 @@ import com.xiaomo.androidforclaw.service.PhoneAccessibilityService
 import com.xiaomo.androidforclaw.util.LayoutExceptionLogger
 import com.xiaomo.androidforclaw.util.MMKVKeys
 import com.xiaomo.androidforclaw.util.WakeLockManager
+import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
 import com.draco.ladb.BuildConfig
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +38,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import android.os.Environment
 import java.io.File
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +56,10 @@ import kotlinx.coroutines.launch
  */
 object MainEntryNew {
     private const val TAG = "MainEntryNew"
+    const val ACTION_AGENT_PROGRESS = "com.xiaomo.androidforclaw.ACTION_AGENT_PROGRESS"
+    const val EXTRA_PROGRESS_TYPE = "type"
+    const val EXTRA_PROGRESS_TITLE = "title"
+    const val EXTRA_PROGRESS_CONTENT = "content"
 
     // ================ Core Components ================
     private lateinit var application: Application
@@ -59,6 +75,10 @@ object MainEntryNew {
     private var currentTaskId: String? = null
     private var currentDocId: String? = null
     private var job: Job? = null
+    @Volatile
+    private var activeSessionId: String? = null  // For block reply broadcasting
+    @Volatile
+    private var lastBlockReplyText: String? = null  // Track last sent block reply to avoid duplicate final
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val taskDataManager: TaskDataManager = TaskDataManager.getInstance()
 
@@ -70,11 +90,27 @@ object MainEntryNew {
     private val _summaryFinished = MutableStateFlow(false)
     val summaryFinished = _summaryFinished.asStateFlow()
 
+    data class UiProgressEvent(
+        val type: String,
+        val title: String,
+        val content: String
+    )
+
+    private val _uiProgressFlow = MutableSharedFlow<UiProgressEvent>(extraBufferCapacity = 64)
+    val uiProgressFlow: SharedFlow<UiProgressEvent> = _uiProgressFlow
+
     /**
      * Get SessionManager (for Gateway use)
      */
     fun getSessionManager(): SessionManager? {
         return if (::sessionManager.isInitialized) sessionManager else null
+    }
+
+    /**
+     * Get ToolRegistry (for registering extension tools like feishu)
+     */
+    fun getToolRegistry(): ToolRegistry? {
+        return if (::toolRegistry.isInitialized) toolRegistry else null
     }
 
     /**
@@ -122,7 +158,8 @@ object MainEntryNew {
             contextBuilder = ContextBuilder(
                 context = application,
                 toolRegistry = toolRegistry,
-                androidToolRegistry = androidToolRegistry
+                androidToolRegistry = androidToolRegistry,
+                configLoader = configLoader
             )
             Log.d(TAG, "✓ ContextBuilder initialized")
 
@@ -141,16 +178,21 @@ object MainEntryNew {
             val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
             Log.d(TAG, "✓ ContextManager initialized")
 
+            // Load maxIterations from config
+            val config = configLoader.loadOpenClawConfig()
+            val maxIterations = config.agent.maxIterations
+
             // 7. Initialize AgentLoop
             agentLoop = AgentLoop(
                 llmProvider = llmProvider,
                 toolRegistry = toolRegistry,
                 androidToolRegistry = androidToolRegistry,
                 contextManager = contextManager,
-                maxIterations = 40,
-                modelRef = null  // Use default model
+                maxIterations = maxIterations,
+                modelRef = null,  // Use default model
+                configLoader = configLoader  // Gap 2: context window resolution
             )
-            Log.d(TAG, "✓ AgentLoop initialized")
+            Log.d(TAG, "✓ AgentLoop initialized (maxIterations: $maxIterations)")
 
             Log.d(TAG, "========== Initialization Complete ==========")
 
@@ -179,6 +221,8 @@ object MainEntryNew {
         }
 
         val effectiveSessionId = sessionId ?: "default"
+        activeSessionId = effectiveSessionId  // Set for block reply broadcasting
+        lastBlockReplyText = null  // Reset block reply tracking
         Log.d(TAG, "🆔 [Session] Session ID: $effectiveSessionId")
 
         // Get or create session
@@ -207,6 +251,7 @@ object MainEntryNew {
                     userGoal = userInput,
                     packageName = "",
                     testMode = "chat"
+                    // Use default FULL mode to align with OpenClaw
                 )
                 Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")
 
@@ -231,22 +276,31 @@ object MainEntryNew {
                     reasoningEnabled = true  // Reasoning enabled by default
                 )
 
+                val cleanFinalContent = ReasoningTagFilter.stripReasoningTags(result.finalContent)
                 Log.d(TAG, "========== AgentLoop Complete ==========")
                 Log.d(TAG, "Iterations: ${result.iterations}")
-                Log.d(TAG, "Final result: ${result.finalContent}")
+                Log.d(TAG, "Final result: ${cleanFinalContent}")
 
-                // 5. Broadcast AI response
-                if (result.finalContent.isNotEmpty()) {
-                    Log.d(TAG, "📤 [Broadcast] Broadcasting AI response...")
-                    com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
-                        effectiveSessionId, "assistant", result.finalContent
-                    )
+                // 5. Broadcast AI response (skip if already sent via block reply)
+                if (cleanFinalContent.isNotEmpty()) {
+                    if (lastBlockReplyText?.trim() == cleanFinalContent.trim()) {
+                        Log.d(TAG, "✅ Final content matches last block reply, skipping broadcast")
+                    } else {
+                        Log.d(TAG, "📤 [Broadcast] Broadcasting AI response...")
+                        com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
+                            effectiveSessionId, "assistant", cleanFinalContent
+                        )
+                    }
                 }
+                lastBlockReplyText = null  // Reset for next run
 
                 // 6. Save messages to session (convert back to legacy format)
                 Log.d(TAG, "💾 [Session] Saving messages to session...")
                 result.messages.forEach { message ->
-                    session.addMessage(message.toLegacyMessage())
+                    val sanitizedMessage = if (message.role == "assistant") {
+                        message.copy(content = ReasoningTagFilter.stripReasoningTags(message.content))
+                    } else message
+                    session.addMessage(sanitizedMessage.toLegacyMessage())
                 }
                 sessionManager.save(session)
                 Log.d(TAG, "✅ [Session] Session saved, total messages: ${session.messageCount()}")
@@ -360,6 +414,7 @@ object MainEntryNew {
                     userGoal = userInput,
                     packageName = packageName,
                     testMode = testMode
+                    // Use default FULL mode to align with OpenClaw
                 )
 
                 Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")
@@ -423,6 +478,10 @@ object MainEntryNew {
         )
     }
 
+    private fun emitProgressToUi(type: String, title: String, content: String) {
+        _uiProgressFlow.tryEmit(UiProgressEvent(type, title, content))
+    }
+
     /**
      * Handle progress update - Only update floating window display
      */
@@ -443,6 +502,7 @@ object MainEntryNew {
                     title = "正在思考",
                     content = "正在处理第 ${update.iteration} 步..."
                 )
+                emitProgressToUi("thinking", "正在思考", "正在处理第 ${update.iteration} 步...")
             }
 
             is ProgressUpdate.Reasoning -> {
@@ -468,6 +528,7 @@ object MainEntryNew {
                     title = "执行: ${update.name}",
                     content = argsText.take(100)
                 )
+                emitProgressToUi("tool_call", "执行: ${update.name}", argsText)
             }
 
             is ProgressUpdate.ToolResult -> {
@@ -476,6 +537,7 @@ object MainEntryNew {
                     title = "执行完成",
                     content = update.result.take(100) + if (update.result.length > 100) "..." else ""
                 )
+                emitProgressToUi("tool_result", "执行完成", update.result)
             }
 
             is ProgressUpdate.IterationComplete -> {
@@ -517,6 +579,23 @@ object MainEntryNew {
                     title = "错误",
                     content = update.message.take(100)
                 )
+                emitProgressToUi("error", "错误", update.message)
+            }
+
+            is ProgressUpdate.BlockReply -> {
+                Log.d(TAG, "📤 Block reply: ${update.text.take(200)}")
+                SessionFloatWindow.updateSessionInfo(
+                    title = "中间回复",
+                    content = update.text.take(100) + if (update.text.length > 100) "..." else ""
+                )
+                emitProgressToUi("block_reply", "中间回复", update.text)
+                // For Gateway WebUI sessions, broadcast intermediate text immediately
+                lastBlockReplyText = update.text
+                activeSessionId?.let { sessionId ->
+                    com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
+                        sessionId, "assistant", update.text
+                    )
+                }
             }
         }
     }

@@ -14,21 +14,13 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="@string/app_name"
-        android:theme="@style/Theme.AccessibilityService">
+>
 
         <!-- 权限请求 Activity -->
         <activity
             android:name=".PermissionActivity"
-            android:label="@string/app_name"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+                android:exported="true">
+</activity>
 
         <service
             android:name=".service.PhoneAccessibilityService"
@@ -52,20 +44,9 @@
         </service>
 
         <service
-            android:name=".ForegroundService"
+            android:name=".ObserverForegroundService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="com.xiaomo.androidforclaw.accessibility.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
-    </application>
+</application>
 
 </manifest>

@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: utility helpers.
+ */
 /*
  * AndroidDeviceInfoUtils.kt
  * 封装常用的设备与应用信息获取工具方法（Kotlin）

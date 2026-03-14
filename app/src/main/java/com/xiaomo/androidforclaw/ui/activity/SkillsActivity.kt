@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.content.Intent
@@ -126,7 +132,7 @@ class SkillsActivity : AppCompatActivity() {
         }
 
         // Check managed
-        val managedPath = "/sdcard/.androidforclaw/.skills/$skillName"
+        val managedPath = "/sdcard/.androidforclaw/skills/$skillName"
         if (File(managedPath).exists()) {
             return "managed" to managedPath
         }

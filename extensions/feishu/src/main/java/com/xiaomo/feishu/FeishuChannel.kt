@@ -1,5 +1,13 @@
 package com.xiaomo.feishu
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel runtime.
+ */
+
+
 import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +36,19 @@ class FeishuChannel(private val config: FeishuConfig) {
     private val gson = Gson()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val client = FeishuClient(config)
+
+    /**
+     * Feishu Tool Registry — all feishu extension tools (doc, wiki, drive, bitable, etc.)
+     * Aligned with OpenClaw: extension tools auto-register when channel starts
+     */
+    private val feishuToolRegistry by lazy {
+        com.xiaomo.feishu.tools.FeishuToolRegistry(config, client)
+    }
+
+    /**
+     * Get FeishuToolRegistry for bridging into main ToolRegistry
+     */
+    fun getToolRegistry(): com.xiaomo.feishu.tools.FeishuToolRegistry = feishuToolRegistry
 
     /**
      * FeishuSender - 支持 Markdown 卡片渲染

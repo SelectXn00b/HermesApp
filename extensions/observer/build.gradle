@@ -1,37 +1,13 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-parcelize'
 }
 
 android {
-    signingConfigs {
-        release {
-            keyAlias 'android'
-            keyPassword 'android'
-            storeFile project.rootProject.file('../keystore.jks')
-            storePassword 'android'
-            enableV1Signing true
-            enableV2Signing true
-            enableV3Signing true
-            enableV4Signing true
-        }
-        debug {
-            keyAlias 'android'
-            keyPassword 'android'
-            storeFile project.rootProject.file('../keystore.jks')
-            storePassword 'android'
-            enableV1Signing true
-            enableV2Signing true
-            enableV3Signing true
-            enableV4Signing true
-        }
-    }
-
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.xiaomo.androidforclaw.accessibility"
         minSdk 26
         targetSdk 34
         versionCode 1
@@ -40,12 +16,10 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            signingConfig signingConfigs.debug
         }
     }
 

@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: application init sequence and startup glue.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import java.io.File

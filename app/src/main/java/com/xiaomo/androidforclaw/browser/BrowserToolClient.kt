@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/browser/(all)
+ *
+ * AndroidForClaw adaptation: browser tool client.
+ */
 package com.xiaomo.androidforclaw.browser
 
 import android.content.Context

@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.content.Intent
@@ -41,11 +47,11 @@ fun ChannelListScreen(onBack: () -> Unit) {
     // Read channel enabled status from openclaw.json instead of MMKV
     val config = remember { configLoader.loadOpenClawConfig() }
     var feishuEnabled by remember {
-        mutableStateOf(config.gateway.feishu.enabled)
+        mutableStateOf(config.channels.feishu.enabled)
     }
 
     var discordEnabled by remember {
-        mutableStateOf(config.gateway.discord?.enabled ?: false)
+        mutableStateOf(config.channels.discord?.enabled ?: false)
     }
 
     Scaffold(

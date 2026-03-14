@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu connection debug tests.
+ */
 package com.xiaomo.androidforclaw.test
 
 import android.content.Context
@@ -98,7 +104,7 @@ class FeishuConnectionTest(private val context: Context) {
     private fun testConfigLoading(): TestResult {
         return try {
             val openClawConfig = configLoader.loadOpenClawConfig()
-            val feishuChannelConfig = openClawConfig.gateway.feishu
+            val feishuChannelConfig = openClawConfig.channels.feishu
 
             Log.i(TAG, "配置加载成功")
             Log.i(TAG, "  enabled: ${feishuChannelConfig.enabled}")
@@ -126,7 +132,7 @@ class FeishuConnectionTest(private val context: Context) {
     private fun testConfigValidation(): TestResult {
         return try {
             val openClawConfig = configLoader.loadOpenClawConfig()
-            val feishuChannelConfig = openClawConfig.gateway.feishu
+            val feishuChannelConfig = openClawConfig.channels.feishu
 
             // 检查必需字段
             if (!feishuChannelConfig.enabled) {
@@ -307,7 +313,7 @@ class FeishuConnectionTest(private val context: Context) {
         return try {
             // 1. 加载配置
             val openClawConfig = configLoader.loadOpenClawConfig()
-            val feishuChannelConfig = openClawConfig.gateway.feishu
+            val feishuChannelConfig = openClawConfig.channels.feishu
 
             if (!feishuChannelConfig.enabled) {
                 return TestResult(false, "Feishu Channel 未启用")

@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: utility helpers.
+ */
 package com.xiaomo.androidforclaw.util;
 
 import static android.content.pm.PackageInstaller.EXTRA_PACKAGE_NAME;

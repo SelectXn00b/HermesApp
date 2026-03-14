@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -32,7 +40,7 @@ class ExecTool(
     }
 
     override val name = "exec"
-    override val description = "Execute shell commands on Android. Only Android built-in commands available (ls, cat, echo, grep, find, etc.). No npm, python, git, curl. No root access. Supported: file ops (ls, cat, cp, mv, mkdir, rm), text processing (grep, sed, awk), system info (getprop, ps, df). For app control use tap/swipe/type/open_app."
+    override val description = "Run shell commands (Android built-in only: ls, cat, grep, find, getprop)"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -97,7 +105,7 @@ class ExecTool(
 
                     val exitCode = process.exitValue()
 
-                    buildString {
+                    val rendered = buildString {
                         if (stdout.isNotEmpty()) {
                             append(stdout)
                         }
@@ -110,17 +118,40 @@ class ExecTool(
                             append("Exit code: $exitCode")
                         }
                     }.ifEmpty { "(no output)" }
+
+                    mapOf(
+                        "rendered" to rendered,
+                        "stdout" to stdout,
+                        "stderr" to stderr,
+                        "exitCode" to exitCode
+                    )
                 }
+
+                @Suppress("UNCHECKED_CAST")
+                val rendered = result["rendered"] as String
+                val stdout = result["stdout"] as String
+                val stderr = result["stderr"] as String
+                val exitCode = result["exitCode"] as Int
 
                 // Truncate overly long output
                 val maxLen = 10000
-                val finalResult = if (result.length > maxLen) {
-                    result.take(maxLen) + "\n... (truncated, ${result.length - maxLen} more chars)"
+                val finalResult = if (rendered.length > maxLen) {
+                    rendered.take(maxLen) + "\n... (truncated, ${rendered.length - maxLen} more chars)"
                 } else {
-                    result
+                    rendered
                 }
 
-                ToolResult.success(finalResult)
+                ToolResult.success(
+                    finalResult,
+                    metadata = mapOf(
+                        "backend" to "android-internal",
+                        "stdout" to stdout,
+                        "stderr" to stderr,
+                        "exitCode" to exitCode,
+                        "working_dir" to (workDir ?: ""),
+                        "command" to command
+                    )
+                )
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 ToolResult.error("Command timed out after ${timeout}ms")
             } catch (e: Exception) {

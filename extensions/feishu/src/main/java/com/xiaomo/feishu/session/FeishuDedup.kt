@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.session
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel runtime.
+ */
+
+
 import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 

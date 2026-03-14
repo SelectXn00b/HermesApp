@@ -1,13 +1,20 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.activity
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
+import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -104,13 +111,26 @@ suspend fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
  */
 class MainActivityCompose : ComponentActivity() {
 
+    private fun launchObserverPermissionActivity() {
+        try {
+            startActivity(Intent().apply {
+                component = android.content.ComponentName(
+                    "com.xiaomo.androidforclaw",
+                    "com.xiaomo.androidforclaw.accessibility.PermissionActivity"
+                )
+            })
+        } catch (e: Exception) {
+            Log.w(TAG, "Observer PermissionActivity unavailable, fallback to local PermissionsActivity", e)
+            startActivity(Intent(this, PermissionsActivity::class.java))
+        }
+    }
+
     companion object {
         private const val TAG = "MainActivityCompose"
         private const val REQUEST_MANAGE_EXTERNAL_STORAGE = 1001
     }
 
     private var chatBroadcastReceiver: ChatBroadcastReceiver? = null
-    private var localBroadcastReceiver: BroadcastReceiver? = null
     private var chatViewModel: ChatViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,6 +138,12 @@ class MainActivityCompose : ComponentActivity() {
 
         // Check and request file management permission
         checkAndRequestStoragePermission()
+
+        // Check if model setup is needed (first run, no API key configured)
+        if (ModelSetupActivity.isNeeded(this)) {
+            Log.i(TAG, "🔧 首次启动，打开模型配置引导...")
+            startActivity(Intent(this, ModelSetupActivity::class.java))
+        }
 
         setContent {
             // Save ViewModel reference for BroadcastReceiver use
@@ -136,8 +162,8 @@ class MainActivityCompose : ComponentActivity() {
                     onNavigateToConfig = {
                         Log.d("MainActivityCompose", "Clicked model configuration")
                         try {
-                            startActivity(Intent(this, ConfigActivity::class.java))
-                            Log.d("MainActivityCompose", "Successfully started ConfigActivity")
+                            startActivity(Intent(this, ModelConfigActivity::class.java))
+                            Log.d("MainActivityCompose", "Successfully started ModelConfigActivity")
                         } catch (e: Exception) {
                             Log.e("MainActivityCompose", "Failed to start ConfigActivity", e)
                         }
@@ -152,7 +178,6 @@ class MainActivityCompose : ComponentActivity() {
 
         // Register ADB test interface
         registerChatBroadcastReceiver()
-        registerLocalBroadcastReceiver()
     }
 
     override fun onResume() {
@@ -170,7 +195,6 @@ class MainActivityCompose : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterChatBroadcastReceiver()
-        unregisterLocalBroadcastReceiver()
     }
 
     /**
@@ -207,41 +231,6 @@ class MainActivityCompose : ComponentActivity() {
         }
     }
 
-    /**
-     * Register local broadcast receiver - Receive messages from static BroadcastReceiver
-     */
-    private fun registerLocalBroadcastReceiver() {
-        localBroadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val message = intent?.getStringExtra("message")
-                if (!message.isNullOrBlank()) {
-                    Log.d(TAG, "📨 [LocalBroadcast] Received message: $message")
-                    chatViewModel?.sendMessage(message)
-                }
-            }
-        }
-
-        val filter = IntentFilter("com.xiaomo.androidforclaw.CHAT_MESSAGE_FROM_BROADCAST")
-        androidx.localbroadcastmanager.content.LocalBroadcastManager
-            .getInstance(this)
-            .registerReceiver(localBroadcastReceiver!!, filter)
-        Log.i(TAG, "✅ Registered local broadcast receiver")
-    }
-
-    /**
-     * Unregister local broadcast receiver
-     */
-    private fun unregisterLocalBroadcastReceiver() {
-        localBroadcastReceiver?.let {
-            try {
-                androidx.localbroadcastmanager.content.LocalBroadcastManager
-                    .getInstance(this)
-                    .unregisterReceiver(it)
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
 
     /**
      * Check and request file management permission
@@ -472,64 +461,80 @@ fun StatusTab(
 fun PermissionsCard(onClick: () -> Unit) {
     val context = LocalContext.current
 
-    // Use remember and LaunchedEffect to load permission status asynchronously
     var accessibility by remember { mutableStateOf(false) }
     var overlay by remember { mutableStateOf(false) }
     var screenCapture by remember { mutableStateOf(false) }
-
-    // Prevent duplicate connection attempts
     var isConnecting by remember { mutableStateOf(false) }
 
-    // Periodically refresh permission status (every 3 seconds)
+    suspend fun refreshPermissionState() {
+        withContext(Dispatchers.IO) {
+            try {
+                overlay = Settings.canDrawOverlays(context)
+                val proxy = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
+                val isConnected = proxy.isConnected.value ?: false
+                if (!isConnected && !isConnecting) {
+                    isConnecting = true
+                    proxy.bindService(context)
+                    delay(300)
+                    isConnecting = false
+                }
+                val ready = (proxy.isConnected.value == true) && proxy.isServiceReadyAsync()
+                accessibility = ready
+                screenCapture = if (ready) proxy.isMediaProjectionGranted() else false
+                Log.d("PermissionsCard", "Permission status: accessibility=$accessibility, overlay=$overlay, screenCapture=$screenCapture")
+            } catch (e: Exception) {
+                Log.e("PermissionsCard", "Error checking permissions", e)
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
-        while (true) {
-            // Check permissions in background thread
-            withContext(Dispatchers.IO) {
-                try {
-                    // Check overlay permission
-                    overlay = Settings.canDrawOverlays(context)
+        refreshPermissionState()
+    }
 
-                    // Check S4Claw (observer) accessibility service
-                    accessibility = isS4ClawAccessibilityEnabled(context)
-
-                    // Check screenshot permission - query observer APK permission status
-                    screenCapture = try {
-                        // If connection is disconnected and not connecting, try to reconnect
-                        val isConnected = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value ?: false
-                        if (!isConnected && !isConnecting) {
-                            isConnecting = true
-                            Log.d("PermissionsCard", "AccessibilityProxy not connected, starting connection...")
-                            com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.bindService(context)
-
-                            // Wait a short time to see if quick connection succeeds
-                            delay(300)
-                            val quickConnect = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value ?: false
-                            if (quickConnect) {
-                                Log.d("PermissionsCard", "AccessibilityProxy quick connection succeeded")
-                            }
-                            isConnecting = false
-                        }
-
-                        // Return current status immediately
-                        if (com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value == true) {
-                            com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.getMediaProjectionStatus() == "已授权"
-                        } else {
-                            false
-                        }
-                    } catch (e: Exception) {
-                        Log.e("PermissionsCard", "Failed to check screen capture permission", e)
-                        isConnecting = false
-                        false
-                    }
-
-                    Log.d("PermissionsCard", "Permission status: accessibility=$accessibility, overlay=$overlay, screenCapture=$screenCapture")
-                } catch (e: Exception) {
-                    Log.e("PermissionsCard", "Error checking permissions", e)
+    DisposableEffect(context) {
+        val accessibilityObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                    refreshPermissionState()
                 }
             }
+        }
 
-            // Refresh every 3 seconds
-            delay(3000)
+        val overlayObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                    refreshPermissionState()
+                }
+            }
+        }
+
+        context.contentResolver.registerContentObserver(
+            Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES),
+            false,
+            accessibilityObserver
+        )
+        context.contentResolver.registerContentObserver(
+            Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED),
+            false,
+            accessibilityObserver
+        )
+        context.contentResolver.registerContentObserver(
+            Settings.Secure.getUriFor("enabled_accessibility_services"),
+            false,
+            accessibilityObserver
+        )
+        context.contentResolver.registerContentObserver(
+            Settings.canDrawOverlays(context).let { Settings.System.CONTENT_URI },
+            true,
+            overlayObserver
+        )
+
+        onDispose {
+            context.contentResolver.unregisterContentObserver(accessibilityObserver)
+            context.contentResolver.unregisterContentObserver(overlayObserver)
         }
     }
 

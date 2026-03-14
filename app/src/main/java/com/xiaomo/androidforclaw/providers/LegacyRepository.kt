@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.providers
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: legacy model/provider compatibility bridge.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader

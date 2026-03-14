@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: observer service layer.
+ */
 package com.xiaomo.androidforclaw.aidl;
 
 import android.os.Parcel;

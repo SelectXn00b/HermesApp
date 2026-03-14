@@ -1,6 +1,14 @@
 package com.xiaomo.feishu
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel runtime.
+ */
+
+
+/**
  * 飞书配置
  * 对齐 OpenClaw feishu plugin 配置结构
  */
@@ -41,6 +49,7 @@ data class FeishuConfig(
     // ===== 消息分块 =====
     val textChunkLimit: Int = 4000,
     val chunkMode: ChunkMode = ChunkMode.LENGTH,
+    val maxTablesPerCard: Int = 3,  // 飞书卡片最多支持的表格数量 (根据 API 限制)
 
     // ===== 媒体配置 =====
     val mediaMaxMb: Double = 20.0,

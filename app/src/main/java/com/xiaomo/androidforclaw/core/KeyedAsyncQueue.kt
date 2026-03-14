@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: serialized keyed async work queue.
+ */
+
+
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.memory
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: manage local memory lifecycle and summarization.
+ */
+
+
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

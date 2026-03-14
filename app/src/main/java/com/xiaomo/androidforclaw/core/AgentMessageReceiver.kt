@@ -1,9 +1,18 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/(all)
+ *
+ * AndroidForClaw adaptation: bridge inbound external messages into app agent flow.
+ */
+
+
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.tencent.mmkv.MMKV
 
 /**
  * Agent Message Broadcast Receiver
@@ -27,12 +36,13 @@ class AgentMessageReceiver : BroadcastReceiver() {
         }
 
         val message = intent.getStringExtra("message")
-        val sessionId = intent.getStringExtra("sessionId")
+        val explicitSessionId = intent.getStringExtra("sessionId")
+        val resolvedSessionId = explicitSessionId ?: MMKV.defaultMMKV()?.decodeString("last_session_id")
 
         Log.e(TAG, "📨 [Receiver] Received Agent execution request:")
         Log.e(TAG, "  💬 Message: $message")
-        Log.e(TAG, "  🆔 Session ID: $sessionId")
-        System.out.println("📨 Message: $message, SessionID: $sessionId")
+        Log.e(TAG, "  🆔 Session ID: $resolvedSessionId (explicit=$explicitSessionId)")
+        System.out.println("📨 Message: $message, SessionID: $resolvedSessionId")
 
         if (message.isNullOrEmpty()) {
             Log.e(TAG, "⚠️ [Receiver] Message is empty, ignoring")
@@ -52,7 +62,7 @@ class AgentMessageReceiver : BroadcastReceiver() {
         Log.e(TAG, "🚀 [Receiver] Starting Agent execution...")
         MainEntryNew.runWithSession(
             userInput = message,
-            sessionId = sessionId,
+            sessionId = resolvedSessionId,
             application = context.applicationContext as android.app.Application
         )
         Log.e(TAG, "✅ [Receiver] Agent execution started")

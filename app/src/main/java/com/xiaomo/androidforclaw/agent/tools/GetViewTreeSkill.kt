@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.DeviceController
@@ -21,21 +29,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
     }
 
     override val name = "get_view_tree"
-    override val description = """
-        获取当前屏幕的 UI 树信息（已优化处理，去除重复和无用节点）。
-
-        **优先使用此工具**来理解界面结构和查找可交互元素。
-
-        特点：
-        - 轻量、快速（无需截图）
-        - 返回清理后的 UI 元素列表
-        - 包含位置、文本、描述、是否可点击等信息
-
-        只有在以下情况才使用 screenshot：
-        - 需要查看颜色、图标等视觉信息
-        - UI 树信息不足以完成任务
-        - 操作失败需要视觉确认
-    """.trimIndent()
+    override val description = "Get screen UI tree with element positions (preferred for screen operations)"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

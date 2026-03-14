@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -16,7 +24,7 @@ class HomeSkill : Skill {
     }
 
     override val name = "home"
-    override val description = "按下 Home 键返回主屏幕。用于退出当前应用回到桌面。"
+    override val description = "Press Home button to return to launcher"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

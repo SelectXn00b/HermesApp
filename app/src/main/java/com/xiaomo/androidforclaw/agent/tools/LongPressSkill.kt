@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -17,7 +25,7 @@ class LongPressSkill : Skill {
     }
 
     override val name = "long_press"
-    override val description = "长按屏幕上的坐标位置。用于触发长按菜单、删除项目等需要长按操作的场景。"
+    override val description = "长按屏幕上的坐标位置。用于触发长按菜单、删除项目等需要长按操作的场景。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -53,7 +61,16 @@ class LongPressSkill : Skill {
 
         Log.d(TAG, "Long pressing at ($x, $y)")
         return try {
-            val success = AccessibilityProxy.longPress(x, y)
+            // Add timeout to prevent indefinite blocking
+            val success = kotlinx.coroutines.withTimeoutOrNull(3000L) {
+                AccessibilityProxy.longPress(x, y)
+            }
+
+            if (success == null) {
+                Log.e(TAG, "Long press timeout after 3s")
+                return SkillResult.error("Long press operation timeout after 3s. Accessibility service may be unresponsive.")
+            }
+
             if (!success) {
                 return SkillResult.error("Long press operation failed")
             }

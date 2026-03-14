@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -25,7 +33,7 @@ class TapSkill : Skill {
             } else {
                 "\n✅ **当前状态：可用**"
             }
-            return "点击屏幕上的坐标位置。用于点击按钮、输入框、列表项等可交互元素。$statusNote"
+            return "点击屏幕上的坐标位置。用于点击按钮、输入框、列表项等可交互元素。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。$statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {
@@ -60,7 +68,16 @@ class TapSkill : Skill {
 
         Log.d(TAG, "Tapping at ($x, $y)")
         return try {
-            val success = AccessibilityProxy.tap(x, y)
+            // Add timeout to prevent indefinite blocking on AIDL calls
+            val success = kotlinx.coroutines.withTimeoutOrNull(3000L) {
+                AccessibilityProxy.tap(x, y)
+            }
+
+            if (success == null) {
+                Log.e(TAG, "Tap timeout after 3s")
+                return SkillResult.error("Tap operation timeout after 3s. Accessibility service may be unresponsive.")
+            }
+
             if (!success) {
                 return SkillResult.error("Tap operation failed")
             }

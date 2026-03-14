@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
 import com.xiaomo.feishu.tools.bitable.FeishuBitableTools

@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.memory
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: estimate token usage for Android agent context.
+ */
+
+
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 
 /**

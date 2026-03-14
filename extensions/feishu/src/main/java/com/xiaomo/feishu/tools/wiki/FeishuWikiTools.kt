@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools.wiki
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -45,7 +53,7 @@ class WikiCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 "description" to description
             )
 
-            val result = client.post("/open-api/wiki/v2/spaces", body)
+            val result = client.post("/open-apis/wiki/v2/spaces", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -92,7 +100,7 @@ class WikiReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(
         try {
             val spaceId = args["space_id"] as? String ?: return@withContext ToolResult.error("Missing space_id")
 
-            val result = client.get("/open-api/wiki/v2/spaces/$spaceId")
+            val result = client.get("/open-apis/wiki/v2/spaces/$spaceId")
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -154,7 +162,7 @@ class WikiUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 return@withContext ToolResult.error("No update fields provided")
             }
 
-            val result = client.patch("/open-api/wiki/v2/spaces/$spaceId", body)
+            val result = client.patch("/open-apis/wiki/v2/spaces/$spaceId", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -204,7 +212,7 @@ class WikiListTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(
                 params.add("parent_node_token=$parentNodeToken")
             }
 
-            val path = "/open-api/wiki/v2/spaces/$spaceId/nodes?" + params.joinToString("&")
+            val path = "/open-apis/wiki/v2/spaces/$spaceId/nodes?" + params.joinToString("&")
             val result = client.get(path)
 
             if (result.isFailure) {

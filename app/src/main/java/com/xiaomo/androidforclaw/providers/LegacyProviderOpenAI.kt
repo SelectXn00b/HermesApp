@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.providers
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/model-(all)
+ *
+ * AndroidForClaw adaptation: legacy OpenAI provider compatibility layer.
+ */
+
+
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -61,7 +69,7 @@ class LegacyProviderOpenAI(
             toolChoice = if (tools != null && tools.isNotEmpty()) "auto" else null
         )
 
-        val jsonBody = gson.toJson(requestBody)
+        val jsonBody = normalizeOpenAiTokenField(model, gson.toJson(requestBody))
         val endpoint = "$apiBase/chat/completions"
         Log.d(TAG, "Request to $endpoint")
         Log.d(TAG, "Model: $model")
@@ -125,6 +133,16 @@ class LegacyProviderOpenAI(
             Log.e(TAG, "Request failed", e)
             throw LLMException("Network error: ${e.message}", cause = e)
         }
+    }
+
+    private fun normalizeOpenAiTokenField(model: String, jsonBody: String): String {
+        val modelIdLower = model.lowercase()
+        val requiresMaxCompletionTokens = modelIdLower.startsWith("gpt-5") ||
+            modelIdLower.startsWith("o1") ||
+            modelIdLower.startsWith("o3") ||
+            modelIdLower.startsWith("gpt-4.1")
+        if (!requiresMaxCompletionTokens) return jsonBody
+        return jsonBody.replace("\"max_tokens\":", "\"max_completion_tokens\":")
     }
 
     /**

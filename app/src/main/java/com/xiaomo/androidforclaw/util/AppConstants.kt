@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: utility helpers.
+ */
 package com.xiaomo.androidforclaw.util
 
 import okhttp3.logging.HttpLoggingInterceptor

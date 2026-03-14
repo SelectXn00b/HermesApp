@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools.chat
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -48,7 +56,7 @@ class ChatCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 body["user_ids"] = userIds
             }
 
-            val result = client.post("/open-api/im/v1/chats", body)
+            val result = client.post("/open-apis/im/v1/chats", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -78,7 +86,7 @@ class ChatCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 properties = mapOf(
                     "name" to PropertySchema("string", "群聊名称"),
                     "description" to PropertySchema("string", "群聊描述（可选）"),
-                    "user_ids" to PropertySchema("array", "初始成员ID列表（可选）")
+                    "user_ids" to PropertySchema("array", "初始成员ID列表（可选）", items = PropertySchema("string", "用户ID"))
                 ),
                 required = listOf("name")
             )
@@ -99,7 +107,7 @@ class ChatInfoTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(
         try {
             val chatId = args["chat_id"] as? String ?: return@withContext ToolResult.error("Missing chat_id")
 
-            val result = client.get("/open-api/im/v1/chats/$chatId")
+            val result = client.get("/open-apis/im/v1/chats/$chatId")
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -155,7 +163,7 @@ class ChatAddMemberTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
 
             val body = mapOf("id_list" to userIds)
 
-            val result = client.post("/open-api/im/v1/chats/$chatId/members", body)
+            val result = client.post("/open-apis/im/v1/chats/$chatId/members", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -180,7 +188,7 @@ class ChatAddMemberTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
             parameters = ParametersSchema(
                 properties = mapOf(
                     "chat_id" to PropertySchema("string", "群聊ID"),
-                    "user_ids" to PropertySchema("array", "要添加的用户ID列表")
+                    "user_ids" to PropertySchema("array", "要添加的用户ID列表", items = PropertySchema("string", "用户ID"))
                 ),
                 required = listOf("chat_id", "user_ids")
             )
@@ -205,7 +213,7 @@ class ChatRemoveMemberTool(config: FeishuConfig, client: FeishuClient) : FeishuT
 
             // DELETE 请求通常不带 body，使用 query params 或单独的 API
             // 这里简化处理，实际可能需要调整
-            val result = client.delete("/open-api/im/v1/chats/$chatId/members")
+            val result = client.delete("/open-apis/im/v1/chats/$chatId/members")
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -230,7 +238,7 @@ class ChatRemoveMemberTool(config: FeishuConfig, client: FeishuClient) : FeishuT
             parameters = ParametersSchema(
                 properties = mapOf(
                     "chat_id" to PropertySchema("string", "群聊ID"),
-                    "user_ids" to PropertySchema("array", "要移除的用户ID列表")
+                    "user_ids" to PropertySchema("array", "要移除的用户ID列表", items = PropertySchema("string", "用户ID"))
                 ),
                 required = listOf("chat_id", "user_ids")
             )

@@ -1,11 +1,26 @@
 package com.xiaomo.androidforclaw.agent.loop
 
+import com.xiaomo.androidforclaw.util.ReasoningTagFilter
+
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: iterative agent loop, tool calling, progress updates.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.agent.context.ContextErrors
 import com.xiaomo.androidforclaw.agent.context.ContextManager
 import com.xiaomo.androidforclaw.agent.context.ContextRecoveryResult
+import com.xiaomo.androidforclaw.agent.context.ContextWindowGuard
+import com.xiaomo.androidforclaw.agent.context.ToolResultContextGuard
+import com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
 import com.xiaomo.androidforclaw.providers.llm.Message
@@ -46,16 +61,47 @@ class AgentLoop(
     private val androidToolRegistry: AndroidToolRegistry,
     private val contextManager: ContextManager? = null,  // Optional context manager
     private val maxIterations: Int = 40,
-    private val modelRef: String? = null
+    private val modelRef: String? = null,
+    private val configLoader: ConfigLoader? = null  // For context window resolution (Gap 2)
 ) {
     companion object {
         private const val TAG = "AgentLoop"
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw
-        private const val LLM_TIMEOUT_MS = 60_000L  // LLM single call timeout: 60 seconds
+        private const val LLM_TIMEOUT_MS = 180_000L  // LLM single call timeout: 180 seconds (free models can be slow)
         private const val MAX_CONSECUTIVE_ERRORS = 3  // Consecutive same error threshold: 3 times
+
+        // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
+        private const val SOFT_TRIM_RATIO = 0.3f
+        private const val HARD_CLEAR_RATIO = 0.5f
+        private const val MIN_PRUNABLE_TOOL_CHARS = 50_000
+        private const val KEEP_LAST_ASSISTANTS = 3
+        private const val SOFT_TRIM_MAX_CHARS = 4_000
+        private const val SOFT_TRIM_HEAD_CHARS = 1_500
+        private const val SOFT_TRIM_TAIL_CHARS = 1_500
+        private const val HARD_CLEAR_PLACEHOLDER = "[Old tool result content cleared]"
     }
 
     private val gson = Gson()
+    private val toolCallDispatcher = ToolCallDispatcher(toolRegistry, androidToolRegistry)
+
+    /**
+     * Resolve context window tokens from config (Gap 2).
+     * Uses ContextWindowGuard for proper resolution with warn/block thresholds.
+     */
+    private fun resolveContextWindowTokens(): Int {
+        if (configLoader == null) return ContextWindowGuard.DEFAULT_CONTEXT_WINDOW_TOKENS
+
+        // Parse provider/model from modelRef (format: "provider/model" or just "model")
+        val parts = modelRef?.split("/", limit = 2)
+        val providerName = if (parts != null && parts.size == 2) parts[0] else null
+        val modelId = if (parts != null && parts.size == 2) parts[1] else modelRef
+
+        val guard = ContextWindowGuard.resolveAndEvaluate(configLoader, providerName, modelId)
+        if (guard.shouldWarn) {
+            Log.w(TAG, "Context window below recommended: ${guard.tokens} tokens")
+        }
+        return guard.tokens
+    }
 
     // Log file configuration
     private val logDir = File("/sdcard/.androidforclaw/workspace/logs")
@@ -199,6 +245,46 @@ class AgentLoop(
         contextHistory: List<Message> = emptyList(),
         reasoningEnabled: Boolean = true
     ): AgentResult {
+        // 🛡️ 全局错误兜底: 确保任何未捕获的错误都能返回给用户
+        return try {
+            runInternal(systemPrompt, userMessage, contextHistory, reasoningEnabled)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ AgentLoop 未捕获的错误", e)
+            LayoutExceptionLogger.log("AgentLoop#run", e)
+
+            // 返回友好的错误信息给用户
+            val errorMessage = buildString {
+                append("❌ Agent 执行失败\n\n")
+                append("**错误信息**: ${e.message ?: "未知错误"}\n\n")
+                append("**错误类型**: ${e.javaClass.simpleName}\n\n")
+                append("**建议**: \n")
+                append("- 请检查网络连接\n")
+                append("- 如果问题持续,请使用 /new 重新开始对话\n")
+                append("- 查看日志获取更多详细信息")
+            }
+
+            AgentResult(
+                finalContent = errorMessage,
+                toolsUsed = emptyList(),
+                messages = listOf(
+                    systemMessage(systemPrompt),
+                    userMessage(userMessage),
+                    assistantMessage(errorMessage)
+                ),
+                iterations = 0
+            )
+        }
+    }
+
+    /**
+     * AgentLoop 主执行逻辑 (内部)
+     */
+    private suspend fun runInternal(
+        systemPrompt: String,
+        userMessage: String,
+        contextHistory: List<Message>,
+        reasoningEnabled: Boolean
+    ): AgentResult {
         shouldStop = false
         val messages = mutableListOf<Message>()
 
@@ -220,10 +306,15 @@ class AgentLoop(
         messages.add(systemMessage(systemPrompt))
         writeLog("✅ System prompt added (${systemPrompt.length} chars)")
 
-        // 2. Add conversation history
-        messages.addAll(contextHistory)
+        // 2. Add conversation history (sanitized — aligned with OpenClaw)
         if (contextHistory.isNotEmpty()) {
-            writeLog("✅ Context history added: ${contextHistory.size} messages")
+            val sanitized = HistorySanitizer.sanitize(contextHistory, maxTurns = 20)
+            messages.addAll(sanitized)
+            if (sanitized.size != contextHistory.size) {
+                writeLog("✅ Context history sanitized: ${contextHistory.size} → ${sanitized.size} messages")
+            } else {
+                writeLog("✅ Context history added: ${sanitized.size} messages")
+            }
         }
 
         // 3. Add user message
@@ -246,6 +337,43 @@ class AgentLoop(
                 writeLog("📢 发送迭代进度更新...")
                 _progressFlow.emit(ProgressUpdate.Iteration(iteration))
                 writeLog("✅ 迭代进度已发送")
+
+                // ===== Context Management (aligned with OpenClaw) =====
+                val contextWindowTokens = resolveContextWindowTokens()
+
+                // Step 1: Limit history turns — drop old user/assistant turn pairs
+                // Aligned with OpenClaw limitHistoryTurns
+                // Default 30 turns, or use config historyLimit
+                val maxTurns = try {
+                    configLoader?.loadOpenClawConfig()?.channels?.feishu?.historyLimit ?: 30
+                } catch (_: Exception) { 30 }
+
+                val systemMsg = messages.firstOrNull { it.role == "system" }
+                val nonSystemMessages = messages.filter { it.role != "system" }.toMutableList()
+                val limitedNonSystem = HistorySanitizer.limitHistoryTurns(nonSystemMessages, maxTurns)
+                if (limitedNonSystem.size < nonSystemMessages.size) {
+                    val dropped = nonSystemMessages.size - limitedNonSystem.size
+                    messages.clear()
+                    if (systemMsg != null) messages.add(systemMsg)
+                    messages.addAll(limitedNonSystem)
+                    writeLog("🔄 History limited: dropped $dropped old messages (kept $maxTurns turns)")
+                }
+
+                // Step 2: Context pruning — soft trim old large tool results
+                // Aligned with OpenClaw context-pruning cache-ttl mode
+                pruneOldToolResults(messages, contextWindowTokens)
+
+                // Step 3: Enforce tool result context budget (truncate + compact)
+                // Aligned with OpenClaw tool-result-context-guard.ts
+                ToolResultContextGuard.enforceContextBudget(messages, contextWindowTokens)
+
+                // Step 4: Final budget check — if still over, aggressively trim
+                val totalChars = ToolResultContextGuard.estimateContextChars(messages)
+                val budgetChars = (contextWindowTokens * 4 * 0.75).toInt()
+                if (totalChars > budgetChars) {
+                    writeLog("⚠️ Context still over budget ($totalChars / $budgetChars chars), aggressive trim...")
+                    aggressiveTrimMessages(messages, budgetChars)
+                }
 
                 writeLog("📤 调用 UnifiedLLMProvider.chatWithTools...")
                 writeLog("   Messages: ${messages.size}, Tools+Skills: ${allToolDefinitions.size}")
@@ -301,6 +429,14 @@ class AgentLoop(
                 // 4.3 Check if there are function calls
                 if (response.toolCalls != null && response.toolCalls.isNotEmpty()) {
                     writeLog("Function calls: ${response.toolCalls.size}")
+
+                    // ✅ Block Reply: emit intermediate text immediately
+                    // Aligned with OpenClaw blockReplyBreak="text_end"
+                    val intermediateText = response.content?.trim()
+                    if (!intermediateText.isNullOrEmpty()) {
+                        writeLog("📤 Block reply (intermediate text): ${intermediateText.take(200)}...")
+                        _progressFlow.emit(ProgressUpdate.BlockReply(intermediateText, iteration))
+                    }
 
                     // Add assistant message (containing function calls)
                     messages.add(
@@ -415,17 +551,24 @@ class AgentLoop(
 
                         // ✅ Search universal tools first, then Android tools
                         val execStartTime = System.currentTimeMillis()
-                        val result = if (toolRegistry.contains(functionName)) {
-                            writeLog("   → Universal tool")
-                            toolRegistry.execute(functionName, args)
-                        } else if (androidToolRegistry.contains(functionName)) {
-                            writeLog("   → Android tool")
-                            androidToolRegistry.execute(functionName, args)
-                        } else {
-                            writeLog("   ❌ Unknown function: $functionName")
-                            Log.e(TAG, "   ❌ Unknown function: $functionName")
-                            SkillResult.error("Unknown function: $functionName")
+
+                        // Add timeout protection for tool execution (max 30 seconds)
+                        val result = try {
+                            kotlinx.coroutines.withTimeout(30_000L) {
+                                val target = toolCallDispatcher.resolve(functionName)
+                                when (target) {
+                                    is ToolCallDispatcher.DispatchTarget.Universal -> writeLog("   → Universal tool")
+                                    is ToolCallDispatcher.DispatchTarget.Android -> writeLog("   → Android tool")
+                                    null -> writeLog("   ❌ Unknown function: $functionName")
+                                }
+                                toolCallDispatcher.execute(functionName, args)
+                            }
+                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                            writeLog("   ⏰ Tool execution timeout after 30s")
+                            Log.e(TAG, "Tool execution timeout: $functionName after 30s")
+                            SkillResult.error("Tool execution timeout after 30 seconds. The tool may be blocked or unresponsive.")
                         }
+
                         val execDuration = System.currentTimeMillis() - execStartTime
                         totalExecDuration += execDuration
 
@@ -507,7 +650,8 @@ class AgentLoop(
                 }
 
                 // 4.4 No tool calls, meaning LLM provided final answer
-                finalContent = response.content
+                finalContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
+                    ?: response.content
                 messages.add(assistantMessage(content = finalContent))
 
                 writeLog("Final content received (finish_reason: ${response.finishReason})")
@@ -639,6 +783,92 @@ class AgentLoop(
         return result
     }
 
+    // ===== Context Pruning (aligned with OpenClaw context-pruning cache-ttl) =====
+
+    /**
+     * Soft-trim and hard-clear old large tool results.
+     * Aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS:
+     * - softTrimRatio: 0.3 (start trimming when 30% of context is used)
+     * - hardClearRatio: 0.5 (hard clear when 50% is used)
+     * - minPrunableToolChars: 50000
+     * - keepLastAssistants: 3
+     * - softTrim.maxChars: 4000, headChars: 1500, tailChars: 1500
+     * - hardClear.placeholder: "[Old tool result content cleared]"
+     */
+    private fun pruneOldToolResults(
+        messages: MutableList<Message>,
+        contextWindowTokens: Int
+    ) {
+        val budgetChars = (contextWindowTokens * 4 * 0.75).toInt()
+        val currentChars = ToolResultContextGuard.estimateContextChars(messages)
+        val usageRatio = currentChars.toFloat() / budgetChars.toFloat()
+
+        if (usageRatio < SOFT_TRIM_RATIO) return  // Under 30%, no action needed
+
+        // Find the last 3 assistant messages (keep their tool results untouched)
+        val keepAfterIndex = findKeepBoundaryIndex(messages, KEEP_LAST_ASSISTANTS)
+
+        var trimmed = 0
+        var cleared = 0
+
+        for (i in messages.indices) {
+            if (i >= keepAfterIndex) break  // Don't touch recent messages
+            val msg = messages[i]
+            if (msg.role != "tool") continue
+
+            val content = msg.content ?: continue
+            if (content.length < MIN_PRUNABLE_TOOL_CHARS) continue
+
+            if (usageRatio >= HARD_CLEAR_RATIO) {
+                // Hard clear
+                messages[i] = msg.copy(content = HARD_CLEAR_PLACEHOLDER)
+                cleared++
+            } else {
+                // Soft trim: keep head + tail
+                if (content.length > SOFT_TRIM_MAX_CHARS) {
+                    val head = content.take(SOFT_TRIM_HEAD_CHARS)
+                    val tail = content.takeLast(SOFT_TRIM_TAIL_CHARS)
+                    val trimmedContent = "$head\n\n[...${content.length - SOFT_TRIM_HEAD_CHARS - SOFT_TRIM_TAIL_CHARS} chars trimmed...]\n\n$tail"
+                    messages[i] = msg.copy(content = trimmedContent)
+                    trimmed++
+                }
+            }
+        }
+
+        if (trimmed > 0 || cleared > 0) {
+            writeLog("🔄 Context pruning: soft-trimmed $trimmed, hard-cleared $cleared tool results")
+        }
+    }
+
+    /**
+     * Find the message index before which we can prune.
+     * Keep the last N assistant messages and their tool results untouched.
+     */
+    private fun findKeepBoundaryIndex(messages: List<Message>, keepCount: Int): Int {
+        var assistantCount = 0
+        for (i in messages.indices.reversed()) {
+            if (messages[i].role == "assistant") {
+                assistantCount++
+                if (assistantCount >= keepCount) return i
+            }
+        }
+        return 0  // Keep everything if fewer than keepCount assistants
+    }
+
+    /**
+     * Aggressive trim when still over budget after pruning + guard.
+     * Drops oldest non-system, non-last-user messages until under budget.
+     */
+    private fun aggressiveTrimMessages(messages: MutableList<Message>, budgetChars: Int) {
+        // Keep: system prompt (first), last user message, last assistant message
+        while (ToolResultContextGuard.estimateContextChars(messages) > budgetChars && messages.size > 3) {
+            // Find first non-system message to remove
+            val removeIdx = messages.indexOfFirst { it.role != "system" }
+            if (removeIdx < 0 || removeIdx >= messages.size - 2) break  // Don't remove last 2 messages
+            messages.removeAt(removeIdx)
+        }
+    }
+
     /**
      * Stop Agent Loop
      */
@@ -696,4 +926,14 @@ sealed class ProgressUpdate {
         val message: String,
         val critical: Boolean
     ) : ProgressUpdate()
+
+    /**
+     * Intermediate text reply (block reply).
+     *
+     * Aligned with OpenClaw's blockReplyBreak="text_end" mechanism:
+     * When LLM returns text + tool_calls in the same response,
+     * the text is emitted immediately as an intermediate reply
+     * (not held until the final answer).
+     */
+    data class BlockReply(val text: String, val iteration: Int) : ProgressUpdate()
 }

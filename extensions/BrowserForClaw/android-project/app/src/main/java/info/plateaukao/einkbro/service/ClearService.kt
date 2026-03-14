@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android service layer.
+ */
 package info.plateaukao.einkbro.service
 
 import android.app.Service

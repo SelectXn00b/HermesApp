@@ -1,6 +1,14 @@
 package com.xiaomo.androidforclaw.agent.context
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: agent context construction and budget control.
+ */
+
+
+/**
  * Context Error Detection Utilities
  * Aligned with OpenClaw's errors.ts implementation
  */

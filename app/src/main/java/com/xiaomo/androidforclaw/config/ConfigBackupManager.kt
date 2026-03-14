@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.config
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/config/(all)
+ *
+ * AndroidForClaw adaptation: config backup/restore helpers.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import java.io.File

@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: accessibility integration.
+ */
 package com.xiaomo.androidforclaw.accessibility
 
 import android.content.ComponentName
@@ -62,7 +68,7 @@ object AccessibilityProxy {
     fun bindService(context: Context): Boolean {
         val intent = Intent().apply {
             component = ComponentName(
-                "com.xiaomo.androidforclaw.accessibility",
+                "com.xiaomo.androidforclaw",
                 "com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService"
             )
             action = "com.xiaomo.androidforclaw.ACCESSIBILITY_BIND"

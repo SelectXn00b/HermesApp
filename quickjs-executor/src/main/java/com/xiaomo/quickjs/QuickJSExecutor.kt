@@ -1,5 +1,13 @@
 package com.xiaomo.quickjs
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: QuickJS execution support.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import app.cash.quickjs.QuickJs

@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -17,7 +25,7 @@ class WaitSkill : Skill {
     }
 
     override val name = "wait"
-    override val description = "等待指定的时间。用于等待页面加载、动画完成等场景。"
+    override val description = "Wait for specified duration in seconds"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

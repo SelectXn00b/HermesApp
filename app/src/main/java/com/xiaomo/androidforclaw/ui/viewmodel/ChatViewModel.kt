@@ -1,6 +1,13 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.viewmodel
 
 import android.app.Application
+import com.xiaomo.androidforclaw.core.MainEntryNew
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +35,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         private const val TAG = "ChatViewModel"
         private const val SYNC_INTERVAL = 3000L // 3 seconds
+        private const val THINKING_SYNC_POLL_INTERVAL = 500L
+        private const val THINKING_MAX_WAIT_MS = 60_000L
     }
 
     // Single data source: SessionManager
@@ -61,11 +70,39 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             initialize()
         }
 
+        observeAgentProgress()
+
         // Periodically sync messages from backend (smart sync, only update when new messages arrive)
         viewModelScope.launch {
             while (true) {
                 delay(SYNC_INTERVAL)
                 syncFromBackend()
+            }
+        }
+    }
+
+    private var lastProgressContent: String? = null
+    private var thinkingShownForCurrentRun: Boolean = false
+
+    private fun observeAgentProgress() {
+        viewModelScope.launch {
+            MainEntryNew.uiProgressFlow.collect { event ->
+                val rendered = when (event.type) {
+                    "iteration" -> ""
+                    "thinking" -> "正在思考..."
+                    "tool_call" -> "${event.title}\n${event.content}"
+                    "tool_result" -> "${event.title}\n${event.content}"
+                    "block_reply" -> event.content
+                    "error" -> "${event.title}\n${event.content}"
+                    else -> "${event.title}\n${event.content}"
+                }.trim()
+
+                if (rendered.isBlank() || rendered == lastProgressContent) return@collect
+                lastProgressContent = rendered
+
+                uiSessionManager.addMessageToCurrentSession(
+                    ChatMessage(content = rendered, isUser = false, status = MessageStatus.SENT)
+                )
             }
         }
     }
@@ -200,6 +237,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (content.isBlank()) return
 
         Log.d(TAG, "💬 [Send] $content")
+        thinkingShownForCurrentRun = false
+        lastProgressContent = null
 
         // Record inbound
         channelManager.recordInbound()
@@ -223,20 +262,31 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         // Call MainEntryNew to execute
         viewModelScope.launch {
             val sessionId = currentSession.value.id
+            val startSyncedCount = sessionSyncState[sessionId] ?: 0
+            _isLoading.value = true
             Log.d(TAG, "🚀 [MainEntryNew] Execute (session: $sessionId)...")
 
-            com.xiaomo.androidforclaw.core.MainEntryNew.runWithSession(
-                userInput = content,
-                sessionId = sessionId,  // 直接使用当前 session ID，不转换为 "default"
-                application = getApplication()
-            )
+            try {
+                com.xiaomo.androidforclaw.core.MainEntryNew.runWithSession(
+                    userInput = content,
+                    sessionId = sessionId,  // 直接使用当前 session ID，不转换为 "default"
+                    application = getApplication()
+                )
 
-            // Wait a moment before removing thinking message
-            delay(500)
-            uiSessionManager.removeMessageFromCurrentSession(thinkingMessage.id)
-
-            // Force sync from backend to get AI response
-            syncFromBackend()
+                val startedAt = System.currentTimeMillis()
+                while (System.currentTimeMillis() - startedAt < THINKING_MAX_WAIT_MS) {
+                    syncFromBackend()
+                    val currentSyncedCount = sessionSyncState[sessionId] ?: 0
+                    if (currentSyncedCount > startSyncedCount) {
+                        break
+                    }
+                    delay(THINKING_SYNC_POLL_INTERVAL)
+                }
+            } finally {
+                uiSessionManager.removeMessageFromCurrentSession(thinkingMessage.id)
+                _isLoading.value = false
+                syncFromBackend()
+            }
         }
 
         // Auto-generate session title

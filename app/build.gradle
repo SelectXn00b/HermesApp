@@ -39,8 +39,8 @@ android {
         applicationId "com.xiaomo.androidforclaw"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 3
+        versionName "1.0.2"
 
         ndk {
             abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
@@ -122,7 +122,8 @@ android {
                 'META-INF/NOTICE.txt',
                 'META-INF/NOTICE.md',
                 'META-INF/ASL2.0',
-                'META-INF/*.kotlin_module'
+                'META-INF/*.kotlin_module',
+                'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
             ]
         }
     }
@@ -138,6 +139,34 @@ android {
     }
 
     namespace 'com.draco.ladb'
+
+    // 配置 APK 输出路径到根目录的 releases/
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                // 生成文件名: AndroidForClaw-v1.0.0-release.apk
+                def fileName = "AndroidForClaw-v${defaultConfig.versionName}-${variant.buildType.name}.apk"
+
+                // 输出到项目根目录的 releases/
+                def releasesDir = project.rootProject.file("releases")
+                releasesDir.mkdirs()
+
+                // 设置输出文件
+                outputFileName = fileName
+
+                // 复制到 releases 目录
+                variant.assemble.doLast {
+                    copy {
+                        from output.outputFile
+                        into releasesDir
+                        rename { fileName }
+                    }
+                    println "✅ APK copied to: ${releasesDir}/${fileName}"
+                }
+            }
+        }
+    }
 }
 
 // 解决Protobuf版本冲突: 飞书SDK使用protobuf-java 3.25.5, 测试框架使用protobuf-lite 3.0.1
@@ -180,12 +209,18 @@ dependencies {
     // ========== WorkManager (定时任务) ==========
     implementation 'androidx.work:work-runtime-ktx:2.8.1'
 
+    // ========== SSH (Termux bridge) ==========
+    implementation 'com.hierynomus:sshj:0.38.0'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
+
     // ========== EasyFloat 悬浮窗 ==========
     implementation 'com.github.princekin-f:EasyFloat:2.0.4'
 
     // ========== Extensions ==========
     implementation project(':extensions:feishu')
     implementation project(':extensions:discord')
+    implementation project(':extensions:observer')
 
     // ========== Self-Control Module ==========
     implementation project(':self-control')

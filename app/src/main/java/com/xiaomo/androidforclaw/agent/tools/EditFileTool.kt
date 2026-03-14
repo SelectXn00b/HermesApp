@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: surgical file edit tool.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -20,7 +28,7 @@ class EditFileTool(
     }
 
     override val name = "edit_file"
-    override val description = "通过查找并替换文本来编辑文件。old_text 必须在文件中精确存在。"
+    override val description = "Make precise edits to files"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

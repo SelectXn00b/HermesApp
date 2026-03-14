@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: low-level file write tool.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -20,7 +28,7 @@ class WriteFileTool(
     }
 
     override val name = "write_file"
-    override val description = "将内容写入指定路径的文件。如果目录不存在会自动创建。"
+    override val description = "Create or overwrite files"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

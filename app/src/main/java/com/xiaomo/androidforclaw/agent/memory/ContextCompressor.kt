@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.memory
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: compress message history to fit context windows.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.providers.LegacyRepository

@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: device control.
+ */
 package com.xiaomo.androidforclaw
 
 import android.accessibilityservice.AccessibilityService

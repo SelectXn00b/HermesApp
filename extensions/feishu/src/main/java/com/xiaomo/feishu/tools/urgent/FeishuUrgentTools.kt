@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools.urgent
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -43,7 +51,7 @@ class UrgentSendTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 "user_id_list" to userIds
             )
 
-            val result = client.post("/open-api/im/v1/messages/$messageId/urgent_app", body)
+            val result = client.post("/open-apis/im/v1/messages/$messageId/urgent_app", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -68,7 +76,7 @@ class UrgentSendTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
             parameters = ParametersSchema(
                 properties = mapOf(
                     "message_id" to PropertySchema("string", "要加急的消息ID"),
-                    "user_ids" to PropertySchema("array", "要提醒的用户ID列表")
+                    "user_ids" to PropertySchema("array", "要提醒的用户ID列表", items = PropertySchema("string", "用户ID"))
                 ),
                 required = listOf("message_id", "user_ids")
             )
@@ -97,7 +105,7 @@ class UrgentAppTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
                 "urgent_type" to urgentType
             )
 
-            val result = client.post("/open-api/im/v1/messages/$messageId/urgent_app", body)
+            val result = client.post("/open-apis/im/v1/messages/$messageId/urgent_app", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -123,7 +131,7 @@ class UrgentAppTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             parameters = ParametersSchema(
                 properties = mapOf(
                     "message_id" to PropertySchema("string", "要加急的消息ID"),
-                    "user_ids" to PropertySchema("array", "要提醒的用户ID列表"),
+                    "user_ids" to PropertySchema("array", "要提醒的用户ID列表", items = PropertySchema("string", "用户ID")),
                     "urgent_type" to PropertySchema(
                         "string",
                         "加急类型（app/sms/phone，默认app）",

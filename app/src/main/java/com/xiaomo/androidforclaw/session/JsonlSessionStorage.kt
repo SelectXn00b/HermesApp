@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: session persistence.
+ */
 package com.xiaomo.androidforclaw.session
 
 import android.content.Context

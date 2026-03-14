@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -21,7 +29,7 @@ class SwipeSkill : Skill {
         get() {
             val isAccessibilityEnabled = AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isServiceReady()
             val statusNote = if (!isAccessibilityEnabled) " ⚠️ **不可用**-无障碍服务未连接" else " ✅"
-            return "在屏幕上滑动。用于滚动页面、切换标签页等场景。支持上下左右滑动。$statusNote"
+            return "在屏幕上滑动。用于滚动页面、切换标签页等场景。支持上下左右滑动。**注意**: 操作屏幕前使用 get_view_tree() 获取 UI 元素信息即可，不需要再调用 screenshot()。$statusNote"
         }
 
     override fun getToolDefinition(): ToolDefinition {
@@ -62,7 +70,16 @@ class SwipeSkill : Skill {
 
         Log.d(TAG, "Swiping from ($startX, $startY) to ($endX, $endY) in ${duration}ms")
         return try {
-            val success = AccessibilityProxy.swipe(startX, startY, endX, endY, duration)
+            // Add timeout to prevent indefinite blocking
+            val success = kotlinx.coroutines.withTimeoutOrNull(5000L) {
+                AccessibilityProxy.swipe(startX, startY, endX, endY, duration)
+            }
+
+            if (success == null) {
+                Log.e(TAG, "Swipe timeout after 5s")
+                return SkillResult.error("Swipe operation timeout after 5s. Accessibility service may be unresponsive.")
+            }
+
             if (!success) {
                 return SkillResult.error("Swipe operation failed")
             }

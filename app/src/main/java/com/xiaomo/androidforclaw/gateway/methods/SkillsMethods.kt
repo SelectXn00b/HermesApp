@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: gateway server and RPC methods.
+ */
 package com.xiaomo.androidforclaw.gateway.methods
 
 import android.content.Context
@@ -304,7 +310,7 @@ class SkillsMethods(private val context: Context) {
                 addProperty("skillKey", skillKey)
                 add("config", JsonObject().apply {
                     addProperty("enabled", updatedConfig.enabled)
-                    updatedConfig.apiKey?.let { addProperty("apiKey", it) }
+                    updatedConfig.apiKey?.let { add("apiKey", com.google.gson.Gson().toJsonTree(it)) }
                     updatedConfig.env?.let { add("env", com.google.gson.Gson().toJsonTree(it)) }
                 })
             }

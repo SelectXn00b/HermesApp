@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.session
 
 import com.xiaomo.androidforclaw.ui.compose.ChatMessage
@@ -75,6 +81,15 @@ class SessionManager {
             ),
             isActive = true
         )
+    }
+
+    /**
+     * Whether a session is just the startup placeholder with no real conversation yet.
+     */
+    private fun isEphemeralDefaultSession(session: Session): Boolean {
+        return session.title == "新对话" &&
+            session.messages.size == 1 &&
+            session.messages.firstOrNull()?.isUser == false
     }
 
     /**
@@ -276,28 +291,30 @@ class SessionManager {
             }
 
             if (backendSessions.isNotEmpty()) {
-                // Keep current UI sessions (created by new conversation button)
+                // Keep real UI-only sessions, but drop the startup placeholder session
                 val uiOnlySessions = _sessions.value.filter { session ->
-                    !backendSessionKeys.contains(session.id)
+                    !backendSessionKeys.contains(session.id) && !isEphemeralDefaultSession(session)
                 }
 
-                // Merge: backend sessions + UI sessions
+                // Merge: backend sessions + real UI sessions
                 val allSessions = (backendSessions + uiOnlySessions).sortedByDescending { it.createdAt }
 
-                _sessions.value = allSessions
-
-                // 🔄 Restore last used session
                 val lastSessionId = mmkv.decodeString(PREF_LAST_SESSION_ID)
-                if (lastSessionId != null) {
-                    val lastSession = allSessions.find { it.id == lastSessionId }
-                    if (lastSession != null) {
-                        // Update active status
-                        _sessions.value = allSessions.map {
-                            it.copy(isActive = it.id == lastSessionId)
-                        }
-                        _currentSession.value = lastSession.copy(isActive = true)
-                        android.util.Log.d("SessionManager", "✅ Restored last session: $lastSessionId")
+                val restoredSession = lastSessionId?.let { id -> allSessions.find { it.id == id } }
+                val targetSession = restoredSession ?: allSessions.firstOrNull()
+
+                if (targetSession != null) {
+                    _sessions.value = allSessions.map {
+                        it.copy(isActive = it.id == targetSession.id)
                     }
+                    _currentSession.value = targetSession.copy(isActive = true)
+                    mmkv.encode(PREF_LAST_SESSION_ID, targetSession.id)
+                    android.util.Log.d("SessionManager", "✅ Restored session: ${targetSession.id}")
+                } else {
+                    val defaultSession = createDefaultSession()
+                    _sessions.value = listOf(defaultSession)
+                    _currentSession.value = defaultSession
+                    mmkv.encode(PREF_LAST_SESSION_ID, defaultSession.id)
                 }
 
                 android.util.Log.d("SessionManager", "✅ Loaded ${backendSessions.size} sessions from backend")
@@ -386,7 +403,12 @@ class SessionManager {
      */
     fun replaceCurrentSessionMessages(messages: List<ChatMessage>) {
         val current = _currentSession.value
-        val updatedSession = current.copy(messages = messages)
+
+        // Merge with current local messages and dedupe by semantic identity
+        val merged = (current.messages + messages)
+            .distinctBy { Triple(it.isUser, it.status, it.content.trim()) }
+
+        val updatedSession = current.copy(messages = merged)
 
         // Update session list
         _sessions.value = _sessions.value.map {

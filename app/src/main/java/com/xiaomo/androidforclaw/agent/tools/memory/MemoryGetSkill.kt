@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools.memory
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import com.xiaomo.androidforclaw.agent.memory.MemoryManager
 import com.xiaomo.androidforclaw.agent.tools.Skill
 import com.xiaomo.androidforclaw.agent.tools.SkillResult

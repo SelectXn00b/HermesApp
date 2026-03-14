@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: directory listing tool.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -20,7 +28,7 @@ class ListDirTool(
     }
 
     override val name = "list_dir"
-    override val description = "列出指定目录的内容。返回文件和子目录列表。"
+    override val description = "List directory contents"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

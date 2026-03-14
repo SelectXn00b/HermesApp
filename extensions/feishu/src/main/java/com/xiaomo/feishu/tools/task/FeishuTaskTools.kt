@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools.task
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -50,7 +58,7 @@ class TaskCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 body["collaborator_ids"] = collaborators
             }
 
-            val result = client.post("/open-api/task/v2/tasks", body)
+            val result = client.post("/open-apis/task/v2/tasks", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -82,7 +90,7 @@ class TaskCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                     "summary" to PropertySchema("string", "任务标题"),
                     "description" to PropertySchema("string", "任务描述（可选）"),
                     "due_date" to PropertySchema("string", "截止时间戳（可选）"),
-                    "collaborators" to PropertySchema("array", "协作者ID列表（可选）")
+                    "collaborators" to PropertySchema("array", "协作者ID列表（可选）", items = PropertySchema("string", "协作者ID"))
                 ),
                 required = listOf("summary")
             )
@@ -115,7 +123,7 @@ class TaskUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
                 return@withContext ToolResult.error("No update fields provided")
             }
 
-            val result = client.patch("/open-api/task/v2/tasks/$taskId", body)
+            val result = client.patch("/open-apis/task/v2/tasks/$taskId", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -166,7 +174,7 @@ class TaskListTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(
                 params.add("completed=$completed")
             }
 
-            val path = "/open-api/task/v2/tasks?" + params.joinToString("&")
+            val path = "/open-apis/task/v2/tasks?" + params.joinToString("&")
             val result = client.get(path)
 
             if (result.isFailure) {
@@ -226,7 +234,7 @@ class TaskCompleteTool(config: FeishuConfig, client: FeishuClient) : FeishuToolB
                 "completed_at" to System.currentTimeMillis().toString()
             )
 
-            val result = client.patch("/open-api/task/v2/tasks/$taskId", body)
+            val result = client.patch("/open-apis/task/v2/tasks/$taskId", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")

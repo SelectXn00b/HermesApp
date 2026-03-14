@@ -1,5 +1,14 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ * - ../openclaw/src/channels/(all)
+ *
+ * AndroidForClaw adaptation: application bootstrap, channel startup, global lifecycle.
+ */
+
+
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -50,6 +59,7 @@ import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
 import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
 
 /**
@@ -661,12 +671,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
                 val configLoader = ConfigLoader(this@MyApplication)
                 val openClawConfig = configLoader.loadOpenClawConfig()
-                val feishuConfig = openClawConfig.gateway.feishu
+                val feishuConfig = openClawConfig.channels.feishu
 
                 if (!feishuConfig.enabled) {
                     Log.i(TAG, "⏭️  Feishu Channel 未启用，跳过初始化")
                     Log.i(TAG, "   配置路径: /sdcard/.androidforclaw/openclaw.json")
-                    Log.i(TAG, "   设置 gateway.feishu.enabled = true 以启用")
+                    Log.i(TAG, "   设置 channels.feishu.enabled = true 以启用")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
@@ -720,6 +730,21 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     Log.i(TAG, "✅ Feishu Channel 启动成功!")
                     Log.i(TAG, "   现在可以接收飞书消息了")
                     Log.i(TAG, "========================================")
+
+                    // Register feishu tools into MainEntryNew's ToolRegistry
+                    // (so broadcast/gateway messages also get feishu tools)
+                    try {
+                        val mainToolRegistry = MainEntryNew.getToolRegistry()
+                        val ftr = feishuChannel?.getToolRegistry()
+                        if (mainToolRegistry != null && ftr != null) {
+                            val count = com.xiaomo.androidforclaw.agent.tools.registerFeishuTools(mainToolRegistry, ftr)
+                            Log.i(TAG, "🔧 已注册 $count 个飞书工具到 MainEntryNew ToolRegistry")
+                        } else {
+                            Log.w(TAG, "⚠️ MainEntryNew 未初始化，飞书工具将在首次消息处理时注册")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "飞书工具注册到 MainEntryNew 失败: ${e.message}")
+                    }
 
                     // Subscribe to event flow, handle received messages
                     scope.launch(Dispatchers.IO) {
@@ -801,14 +826,14 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             val openClawConfig = configLoader.loadOpenClawConfig()
 
             // Read Feishu queue config
-            val queueMode = openClawConfig.gateway.feishu.queueMode ?: "followup"
+            val queueMode = openClawConfig.channels.feishu.queueMode ?: "followup"
 
             // Set both queue capacity and drop policy
             val queueKey = "feishu:$chatId"
             messageQueueManager.setQueueSettings(
                 key = queueKey,
-                cap = openClawConfig.gateway.feishu.queueCap,
-                dropPolicy = when (openClawConfig.gateway.feishu.queueDropPolicy.lowercase()) {
+                cap = openClawConfig.channels.feishu.queueCap,
+                dropPolicy = when (openClawConfig.channels.feishu.queueDropPolicy.lowercase()) {
                     "new" -> MessageQueueManager.DropPolicy.NEW
                     "summarize" -> MessageQueueManager.DropPolicy.SUMMARIZE
                     else -> MessageQueueManager.DropPolicy.OLD
@@ -850,7 +875,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             // 1. Add "typing" reaction (Typing Indicator)
             val configLoader = ConfigLoader(this@MyApplication)
             val openClawConfig = configLoader.loadOpenClawConfig()
-            val typingIndicatorEnabled = openClawConfig.gateway.feishu.typingIndicator
+            val typingIndicatorEnabled = openClawConfig.channels.feishu.typingIndicator
 
             if (typingIndicatorEnabled) {
                 Log.d(TAG, "⌨️  添加输入中表情...")
@@ -881,8 +906,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 feishuChannel?.removeReaction(event.messageId, typingReactionId)
             }
 
-            // 4. Send reply to Feishu
-            sendFeishuReply(event, response)
+            // 4. Send final reply to Feishu (skip if already sent via block reply)
+            if (response == "\u0000BLOCK_REPLY_ALREADY_SENT") {
+                Log.d(TAG, "✅ Final reply already sent via block reply, skipping")
+            } else {
+                sendFeishuReply(event, response)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "处理飞书消息失败", e)
             // Ensure reaction is removed (even if error occurs)
@@ -908,9 +937,13 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         response: String,
         queuedMessage: MessageQueueManager.QueuedMessage
     ): Boolean {
-        // 1. Check if response contains noReply marker
-        if (response.contains("[noReply]", ignoreCase = true) ||
-            response.contains("no_reply", ignoreCase = true)) {
+        // 1. Check if response is a silent reply (aligned with OpenClaw SILENT_REPLY_TOKEN = "NO_REPLY")
+        val trimmed = response.trim()
+        if (trimmed.equals(ContextBuilder.SILENT_REPLY_TOKEN, ignoreCase = true) ||
+            trimmed.startsWith(ContextBuilder.SILENT_REPLY_TOKEN, ignoreCase = true) ||
+            trimmed.endsWith(ContextBuilder.SILENT_REPLY_TOKEN, ignoreCase = true) ||
+            trimmed.contains("[noReply]", ignoreCase = true)) {
+            Log.d(TAG, "Silent reply detected, skipping: ${trimmed.take(50)}")
             return true
         }
 
@@ -956,7 +989,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 try {
                     val configLoader = ConfigLoader(this@MyApplication)
                     val openClawConfig = configLoader.loadOpenClawConfig()
-                    val feishuConfig = openClawConfig.gateway.feishu
+                    val feishuConfig = openClawConfig.channels.feishu
 
                     // Check DM Policy (private chat permission)
                     if (event.chatType == "p2p") {
@@ -973,7 +1006,26 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                                 // Check allowlist
                                 val allowFrom = feishuConfig.allowFrom
                                 if (allowFrom.isEmpty() || event.senderId !in allowFrom) {
-                                    Log.d(TAG, "❌ DM from ${event.senderId} not in allowlist, ignoring")
+                                    Log.d(TAG, "❌ DM from ${event.senderId} not in allowlist, sending reject message")
+
+                                    // Send rejection message in coroutine
+                                    val sender = feishuChannel?.sender
+                                    if (sender != null) {
+                                        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                            try {
+                                                val rejectMessage = "⚠️ 抱歉，你的账号不在白名单中，无法使用此机器人。\n\n你的飞书 User ID: `${event.senderId}`\n\n如需使用，请联系管理员将你的 User ID 添加到白名单。"
+                                                sender.sendTextMessage(
+                                                    receiveId = event.chatId,
+                                                    text = rejectMessage,
+                                                    receiveIdType = "chat_id",
+                                                    renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO
+                                                )
+                                                Log.i(TAG, "✅ 已发送白名单拒绝提示")
+                                            } catch (e: Exception) {
+                                                Log.e(TAG, "❌ 发送白名单拒绝提示失败: ${e.message}")
+                                            }
+                                        }
+                                    }
                                     return
                                 }
                                 Log.d(TAG, "✅ DM allowed (sender in allowlist)")
@@ -1118,28 +1170,78 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     context = this@MyApplication,
                     taskDataManager = taskDataManager
                 )
+
+                // Register feishu tools into ToolRegistry (aligned with OpenClaw extension tools)
+                val fc = feishuChannel
+                if (fc != null) {
+                    try {
+                        val feishuToolRegistry = fc.getToolRegistry()
+                        if (feishuToolRegistry != null) {
+                            val feishuToolCount = com.xiaomo.androidforclaw.agent.tools.registerFeishuTools(toolRegistry, feishuToolRegistry)
+                            Log.i(TAG, "🔧 已注册 $feishuToolCount 个飞书工具到 ToolRegistry")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "飞书工具注册失败: ${e.message}")
+                    }
+                }
+
+                val configLoader = ConfigLoader(this@MyApplication)
                 val contextBuilder = ContextBuilder(
                     context = this@MyApplication,
                     toolRegistry = toolRegistry,
-                    androidToolRegistry = androidToolRegistry
+                    androidToolRegistry = androidToolRegistry,
+                    configLoader = configLoader
                 )
                 val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(this@MyApplication)
                 val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
+
+                // Load maxIterations from config
+                val config = configLoader.loadOpenClawConfig()
+                val maxIterations = config.agent.maxIterations
+
                 val agentLoop = AgentLoop(
                     llmProvider = llmProvider,
                     toolRegistry = toolRegistry,
                     androidToolRegistry = androidToolRegistry,
                     contextManager = contextManager,
-                    maxIterations = 40,
+                    maxIterations = maxIterations,
                     modelRef = null
                 )
 
-                // Build system prompt
+                // Build system prompt (with channel context for messaging awareness)
+                val channelCtx = ContextBuilder.ChannelContext(
+                    channel = "feishu",
+                    chatId = event.chatId,
+                    chatType = event.chatType,
+                    senderId = event.senderId,
+                    messageId = event.messageId
+                )
                 val systemPrompt = contextBuilder.buildSystemPrompt(
                     userGoal = event.content,
                     packageName = "",
-                    testMode = "chat"
+                    testMode = "chat",
+                    channelContext = channelCtx
                 )
+
+                // ✅ Block Reply: send intermediate replies as they happen
+                // Aligned with OpenClaw's blockReplyBreak="text_end" mechanism
+                val blockRepliesSent = mutableListOf<String>()
+                val progressJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                    agentLoop.progressFlow.collect { update ->
+                        if (update is ProgressUpdate.BlockReply) {
+                            val text = update.text.trim()
+                            if (text.isNotEmpty()) {
+                                Log.i(TAG, "📤 Block reply (intermediate): ${text.take(100)}...")
+                                try {
+                                    sendFeishuReply(event, text)
+                                    blockRepliesSent.add(text)
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "发送中间回复失败: ${e.message}")
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // Run AgentLoop (convert history messages)
                 val result = agentLoop.run(
@@ -1148,6 +1250,9 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     contextHistory = contextHistory.map { it.toNewMessage() },
                     reasoningEnabled = true
                 )
+
+                // Stop progress listener
+                progressJob.cancel()
 
                 // Save messages to session (convert back to old format)
                 result.messages.forEach { message ->
@@ -1159,9 +1264,17 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "✅ Agent 处理完成")
                 Log.i(TAG, "   迭代次数: ${result.iterations}")
                 Log.i(TAG, "   使用工具: ${result.toolsUsed.joinToString(", ")}")
+                Log.i(TAG, "   中间回复: ${blockRepliesSent.size} 条")
 
-                // Return result
-                result.finalContent ?: "抱歉，我无法处理这个请求。"
+                // Return final result
+                // If block replies were sent and final content matches last block reply, skip it
+                val finalContent = result.finalContent ?: "抱歉，我无法处理这个请求。"
+                if (blockRepliesSent.isNotEmpty() && blockRepliesSent.last().trim() == finalContent.trim()) {
+                    Log.i(TAG, "📤 Final content matches last block reply, marking as already sent")
+                    "\u0000BLOCK_REPLY_ALREADY_SENT"  // Sentinel value, caller will check
+                } else {
+                    finalContent
+                }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Agent 处理失败", e)
@@ -1266,19 +1379,44 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     }
                 }
             } else {
-                // No screenshot, send text directly (use Markdown rendering)
-                val result = sender.sendTextMessage(
+                // Auto: markdown content → card, plain text → text message
+                var result = sender.sendTextMessage(
                     receiveId = event.chatId,
                     text = cleanContent,
                     receiveIdType = "chat_id",
-                    renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO  // Auto-detect code blocks and tables
+                    renderMode = com.xiaomo.feishu.messaging.RenderMode.AUTO
                 )
 
                 if (result.isSuccess) {
                     val sendResult = result.getOrNull()
                     Log.i(TAG, "✅ 回复发送成功: ${sendResult?.messageId}")
                 } else {
-                    Log.e(TAG, "❌ 回复发送失败: ${result.exceptionOrNull()?.message}")
+                    val errorMsg = result.exceptionOrNull()?.message ?: "未知错误"
+                    Log.e(TAG, "❌ 回复发送失败 (Markdown): $errorMsg")
+
+                    // Fallback: 如果 Markdown 卡片失败(如表格过多),降级为纯文本
+                    if (errorMsg.contains("table number over limit") || errorMsg.contains("230099") || errorMsg.contains("HTTP 400")) {
+                        Log.w(TAG, "⚠️ 降级为纯文本模式重试...")
+                        result = sender.sendTextMessage(
+                            receiveId = event.chatId,
+                            text = "⚠️ 内容格式过于复杂,以下为纯文本版本:\n\n$cleanContent",
+                            receiveIdType = "chat_id",
+                            renderMode = com.xiaomo.feishu.messaging.RenderMode.TEXT  // 强制纯文本
+                        )
+
+                        if (result.isSuccess) {
+                            Log.i(TAG, "✅ 纯文本回复发送成功")
+                        } else {
+                            // 最终兜底:至少告诉用户失败了
+                            Log.e(TAG, "❌ 纯文本回复也失败,发送错误提示...")
+                            sender.sendTextMessage(
+                                receiveId = event.chatId,
+                                text = "❌ 回复发送失败: $errorMsg\n\n请检查飞书日志或稍后重试。",
+                                receiveIdType = "chat_id",
+                                renderMode = com.xiaomo.feishu.messaging.RenderMode.TEXT
+                            )
+                        }
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -1412,12 +1550,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
 
                 val configLoader = ConfigLoader(this@MyApplication)
                 val openClawConfig = configLoader.loadOpenClawConfig()
-                val discordConfigData = openClawConfig.gateway.discord
+                val discordConfigData = openClawConfig.channels.discord
 
                 if (discordConfigData == null || !discordConfigData.enabled) {
                     Log.i(TAG, "⏭️  Discord Channel 未启用，跳过初始化")
                     Log.i(TAG, "   配置路径: /sdcard/.androidforclaw/openclaw.json")
-                    Log.i(TAG, "   设置 gateway.discord.enabled = true 以启用")
+                    Log.i(TAG, "   设置 channels.discord.enabled = true 以启用")
                     Log.i(TAG, "========================================")
                     return@launch
                 }
@@ -1425,7 +1563,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 val token = discordConfigData.token
                 if (token.isNullOrBlank()) {
                     Log.w(TAG, "⚠️  Discord Bot Token 未配置，跳过启动")
-                    Log.i(TAG, "   请在配置中设置 gateway.discord.token")
+                    Log.i(TAG, "   请在配置中设置 channels.discord.token")
                     Log.i(TAG, "========================================")
                     return@launch
                 }

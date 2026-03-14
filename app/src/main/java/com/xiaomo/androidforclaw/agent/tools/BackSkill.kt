@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -16,7 +24,7 @@ class BackSkill : Skill {
     }
 
     override val name = "back"
-    override val description = "按下返回键。用于返回上一页面或退出当前界面。"
+    override val description = "Press Back button to go to previous screen"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

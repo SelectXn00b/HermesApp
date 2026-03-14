@@ -2,7 +2,9 @@
 
 Pre-built APK packages, ready to use.
 
-## 📦 Latest Version: v2.4.3
+**📥 Latest Release**: [v2.5.0](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.5.0)
+
+## 📦 Latest Version: v2.5.0 (2026-03-11)
 
 ### Download Files
 

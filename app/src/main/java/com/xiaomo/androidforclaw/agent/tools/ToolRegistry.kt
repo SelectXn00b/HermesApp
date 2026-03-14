@@ -1,9 +1,19 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: register app, android, config, and extension tools.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
 import java.io.File
 
 /**
@@ -53,15 +63,30 @@ class ToolRegistry(
         // register(MemoryGetTool(workspace = workspace))
 
         // === Shell tools ===
-        register(ExecTool(workingDir = workspace.absolutePath))
+        // Single exec entry with backend routing (auto/termux/internal).
+        register(ExecFacadeTool(context, workingDir = workspace.absolutePath))
 
         // === Network tools ===
         register(WebFetchTool())
 
+        // === Config tools ===
+        val configMethods = ConfigMethods(context)
+        register(ConfigGetTool(configMethods))
+        register(ConfigSetTool(configMethods))
+
         // === JavaScript execution tools ===
         register(JavaScriptTool(context))
 
-        Log.d(TAG, "✅ Registered ${tools.size} universal tools (incl. memory_search, memory_get)")
+        // === Local code execution backends ===
+        // Termux is closer to OpenClaw's universal execution backends than Android UI skills.
+        register(TermuxBridgeTool(context))
+
+        // === ClawHub skill hub tools ===
+        // Aligned with OpenClaw gateway RPC: skills.search / skills.install
+        register(SkillsSearchTool())
+        register(SkillsInstallTool(context))
+
+        Log.d(TAG, "✅ Registered ${tools.size} universal tools (incl. memory_search, memory_get, skills_search, skills_install)")
     }
 
     /**

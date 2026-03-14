@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/discord/(all)
+ *
+ * AndroidForClaw adaptation: Discord channel runtime.
+ */
 package com.xiaomo.discord
 
 import com.google.gson.annotations.SerializedName

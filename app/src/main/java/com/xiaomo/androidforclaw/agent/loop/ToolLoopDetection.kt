@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.loop
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: detect repetitive tool loops.
+ */
+
+
 import android.util.Log
 import com.google.gson.Gson
 import java.security.MessageDigest

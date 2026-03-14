@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/(all)
+ *
+ * AndroidForClaw adaptation: channel management.
+ */
 package com.xiaomo.androidforclaw.channel
 
 /**

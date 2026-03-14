@@ -1,6 +1,14 @@
 package com.xiaomo.feishu.messaging
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu messaging transport.
+ */
+
+
+/**
  * 飞书 @提及 处理
  * 对齐 OpenClaw mention.ts
  *

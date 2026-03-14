@@ -41,7 +41,7 @@ cd phoneforclaw
 ```bash
 mkdir -p config
 cp config/models.json.example config/models.json
-cp config/openclaw.json.example config/openclaw.json
+cp config/openclaw.json.default.txt config/openclaw.json
 ```
 
 编辑 `config/models.json`，填入你的 API Key：

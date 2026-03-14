@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: gateway server and RPC methods.
+ */
 package com.xiaomo.androidforclaw.gateway
 
 import android.app.Application
@@ -196,6 +202,11 @@ class MainEntryAgentHandler(
             is ProgressUpdate.Error -> mapOf(
                 "type" to "error",
                 "message" to update.message
+            )
+            is ProgressUpdate.BlockReply -> mapOf(
+                "type" to "block_reply",
+                "text" to update.text,
+                "iteration" to update.iteration
             )
         }
     }

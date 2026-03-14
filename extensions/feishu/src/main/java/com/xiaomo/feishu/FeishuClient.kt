@@ -1,5 +1,13 @@
 package com.xiaomo.feishu
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel runtime.
+ */
+
+
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -206,7 +214,20 @@ class FeishuClient(private val config: FeishuConfig) {
                 return@withContext Result.failure(Exception("HTTP ${response.code}"))
             }
 
-            val json = gson.fromJson(responseBody, JsonObject::class.java)
+            // Defensive JSON parsing — handle non-JSON or non-Object responses
+            val jsonElement = try {
+                gson.fromJson(responseBody, com.google.gson.JsonElement::class.java)
+            } catch (e: Exception) {
+                Log.e(TAG, "Response is not valid JSON: $responseBody")
+                return@withContext Result.failure(Exception("Invalid JSON response from $method $path"))
+            }
+
+            if (jsonElement == null || !jsonElement.isJsonObject) {
+                Log.e(TAG, "Response is not a JSON object: $responseBody")
+                return@withContext Result.failure(Exception("Expected JSON object from $method $path, got: ${jsonElement?.javaClass?.simpleName ?: "null"}"))
+            }
+
+            val json = jsonElement.asJsonObject
             val code = json.get("code")?.asInt ?: 0
 
             if (code != 0) {

@@ -74,7 +74,6 @@ yarn.lock
 *.swo
 
 # 测试产物
-/app/src/test/
 *.hprof
 
 # 配置文件（包含敏感信息）
@@ -89,9 +88,9 @@ config/models.json
 nanobot/
 OpenClaw/
 
-# 本地工作区
-workspace/
-.workspace/
+# 本地工作区 (只忽略根目录的 workspace, 不影响源代码中的 workspace 包)
+/workspace/
+/.workspace/
 
 # Python 缓存
 __pycache__/
@@ -105,3 +104,16 @@ __pycache__/
 # npm/ClawHub 测试文件
 *.tgz
 package/
+
+# Release APKs (构建产物,不提交)
+release-apks/
+
+# 临时截图/调试目录
+tmp-screens/
+
+.github/workflows/
+.claude/
+.cursor/
+.windsurf/
+.roo/
+/app/src/androidTest/java/com/xiaomo/androidforclaw/ui/FeishuChannelFlowUITest.kt

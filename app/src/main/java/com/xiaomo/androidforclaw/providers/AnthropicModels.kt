@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.providers
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/docs/providers/(all)
+ *
+ * AndroidForClaw adaptation: Anthropic model catalog constants.
+ */
+
+
 import com.google.gson.annotations.SerializedName
 
 /**

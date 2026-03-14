@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.skills
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/skills/(all)
+ *
+ * AndroidForClaw adaptation: browser-related packaged skill integration.
+ */
+
+
 import android.content.Context
 import com.xiaomo.androidforclaw.agent.tools.Skill
 import com.xiaomo.androidforclaw.agent.tools.SkillResult
@@ -60,8 +68,8 @@ class BrowserForClawSkill(private val context: Context) : Skill {
                         "clear" to PropertySchema("boolean", "Clear field before typing"),
                         "submit" to PropertySchema("boolean", "Submit form after typing"),
                         "fullPage" to PropertySchema("boolean", "Capture full page screenshot"),
-                        "cookies" to PropertySchema("array", "Cookie list for set_cookies"),
-                        "values" to PropertySchema("array", "Values for select operation"),
+                        "cookies" to PropertySchema("array", "Cookie list for set_cookies", items = PropertySchema("string", "Cookie string")),
+                        "values" to PropertySchema("array", "Values for select operation", items = PropertySchema("string", "Select value")),
                         "x" to PropertySchema("integer", "X coordinate for scroll"),
                         "y" to PropertySchema("integer", "Y coordinate for scroll")
                     ),

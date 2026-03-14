@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: JavaScript execution tool.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -28,7 +36,7 @@ class JavaScriptTool(private val context: Context) : Tool {
     private val executor = QuickJSExecutor(context)
 
     override val name = "javascript"
-    override val description = "Execute JavaScript code using QuickJS engine. Supports ES6+ syntax, array methods (map, filter, reduce), object manipulation, JSON processing, string operations, and math calculations. The last expression value is automatically returned."
+    override val description = "Execute JavaScript code for data processing"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(

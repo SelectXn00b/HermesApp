@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: common agent tool interface.
+ */
+
+
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 
 /**

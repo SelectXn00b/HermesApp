@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: gateway server and RPC methods.
+ */
 package com.xiaomo.androidforclaw.gateway.methods
 
 import android.content.Context
@@ -241,6 +247,13 @@ Instructions:
                         is ProgressUpdate.Error -> {
                             // Error already sent via agent.error event
                             Log.w(TAG, "Progress error: ${progress.message}")
+                        }
+                        is ProgressUpdate.BlockReply -> {
+                            Log.d(TAG, "📤 Block reply: ${progress.text.take(100)}")
+                            com.xiaomo.androidforclaw.gateway.GatewayServer.getInstance()?.broadcast("agent.block_reply", mapOf(
+                                "text" to progress.text,
+                                "iteration" to progress.iteration
+                            ))
                         }
                     }
                 }

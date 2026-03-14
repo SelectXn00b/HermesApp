@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.accessibility.service
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: in-app accessibility/observer service layer.
+ */
+
+
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder

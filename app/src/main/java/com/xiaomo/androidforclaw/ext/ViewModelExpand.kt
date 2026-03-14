@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: Kotlin extensions.
+ */
 package com.xiaomo.androidforclaw.ext
 
 import androidx.lifecycle.ViewModel

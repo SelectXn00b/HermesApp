@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.skills
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/skills/(all)
+ *
+ * AndroidForClaw adaptation: remote skill hub client.
+ */
+
+
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.agent.tools
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/tools/(all)
+ *
+ * AndroidForClaw adaptation: agent tool implementation.
+ */
+
+
 import android.content.Context
 import android.util.Log
 import com.xiaomo.androidforclaw.agent.memory.MemoryManager
@@ -59,6 +67,7 @@ class AndroidToolRegistry(
 
         // === App management tools (App Management) ===
         register(ListInstalledAppsSkill(context))  // List apps
+        register(InstallAppSkill(context))         // Install APK
         register(StartActivityTool(context))       // Start Activity
 
         // === Control tools (Control) ===
@@ -146,7 +155,7 @@ class AndroidToolRegistry(
                 "观察" to listOf("screenshot", "get_view_tree"),
                 "交互" to listOf("tap", "swipe", "type", "long_press"),
                 "导航" to listOf("home", "back", "open_app"),
-                "应用管理" to listOf("list_installed_apps", "start_activity"),
+                "应用管理" to listOf("list_installed_apps", "install_app", "start_activity"),
                 "控制" to listOf("wait", "stop", "log"),
                 "浏览器" to listOf("browser")
             )

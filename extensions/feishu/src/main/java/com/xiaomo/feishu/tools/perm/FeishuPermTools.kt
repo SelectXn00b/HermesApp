@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools.perm
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -39,7 +47,7 @@ class PermCheckTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val token = args["token"] as? String ?: return@withContext ToolResult.error("Missing token")
             val type = args["type"] as? String ?: "doc" // doc, sheet, bitable, etc.
 
-            val result = client.get("/open-api/drive/v1/permissions/$token/public?type=$type")
+            val result = client.get("/open-apis/drive/v1/permissions/$token/public?type=$type")
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -102,7 +110,7 @@ class PermGrantTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
                 "perm" to perm
             )
 
-            val result = client.post("/open-api/drive/v1/permissions/$token/members", body)
+            val result = client.post("/open-apis/drive/v1/permissions/$token/members", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -155,7 +163,7 @@ class PermRevokeTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBas
             val memberType = args["member_type"] as? String ?: "user"
             val memberId = args["member_id"] as? String ?: return@withContext ToolResult.error("Missing member_id")
 
-            val path = "/open-api/drive/v1/permissions/$token/members/$memberId?type=$type&member_type=$memberType"
+            val path = "/open-apis/drive/v1/permissions/$token/members/$memberId?type=$type&member_type=$memberType"
             val result = client.delete(path)
 
             if (result.isFailure) {

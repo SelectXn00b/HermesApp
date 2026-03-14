@@ -1,11 +1,22 @@
 package com.xiaomo.androidforclaw.agent.session
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: persist and restore agent sessions on Android.
+ */
+
+
 import android.util.Log
 import com.xiaomo.androidforclaw.agent.memory.ContextCompressor
 import com.xiaomo.androidforclaw.agent.memory.TokenEstimator
 import com.xiaomo.androidforclaw.providers.LegacyMessage
+import com.xiaomo.androidforclaw.providers.LegacyToolCall
+import com.xiaomo.androidforclaw.providers.LegacyFunction
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +27,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * Session Manager
@@ -59,6 +73,10 @@ class SessionManager(
     private val sessions = mutableMapOf<String, Session>()
     private val sessionIndex = mutableMapOf<String, SessionMetadata>()
 
+    // Session write lock — prevents concurrent writes corrupting JSONL files
+    // Aligned with OpenClaw's acquireSessionWriteLock
+    private val sessionWriteLock = ReentrantReadWriteLock()
+
     init {
         loadIndex()
     }
@@ -81,33 +99,35 @@ class SessionManager(
     }
 
     /**
-     * Save session
+     * Save session (with write lock — aligned with OpenClaw acquireSessionWriteLock)
      */
     fun save(session: Session) {
-        val nowMs = System.currentTimeMillis()
-        session.updatedAt = currentTimestamp()
-        sessions[session.key] = session
+        sessionWriteLock.write {
+            val nowMs = System.currentTimeMillis()
+            session.updatedAt = currentTimestamp()
+            sessions[session.key] = session
 
-        // Persist to JSONL file
-        try {
-            saveSessionMessages(session)
+            // Persist to JSONL file
+            try {
+                saveSessionMessages(session)
 
-            // Update index
-            val metadata = sessionIndex.getOrPut(session.key) {
-                SessionMetadata(
-                    sessionId = session.sessionId,
-                    updatedAt = nowMs,
-                    sessionFile = getSessionJSONLFile(session.sessionId).absolutePath,
-                    compactionCount = session.compactionCount
-                )
+                // Update index
+                val metadata = sessionIndex.getOrPut(session.key) {
+                    SessionMetadata(
+                        sessionId = session.sessionId,
+                        updatedAt = nowMs,
+                        sessionFile = getSessionJSONLFile(session.sessionId).absolutePath,
+                        compactionCount = session.compactionCount
+                    )
+                }
+                metadata.updatedAt = nowMs
+                metadata.compactionCount = session.compactionCount
+                saveIndex()
+
+                Log.d(TAG, "Session saved: ${session.key}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save session: ${session.key}", e)
             }
-            metadata.updatedAt = nowMs
-            metadata.compactionCount = session.compactionCount
-            saveIndex()
-
-            Log.d(TAG, "Session saved: ${session.key}")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to save session: ${session.key}", e)
         }
     }
 
@@ -319,7 +339,7 @@ class SessionManager(
     }
 
     /**
-     * Load session
+     * Load session (with JSONL repair — aligned with OpenClaw repairSessionFileIfNeeded)
      */
     private fun loadSession(sessionKey: String): Session? {
         val metadata = sessionIndex[sessionKey] ?: return null
@@ -334,11 +354,18 @@ class SessionManager(
             val messages = mutableListOf<LegacyMessage>()
             var createdAt = currentTimestamp()
             var updatedAt = currentTimestamp()
+            var droppedLines = 0
 
             jsonlFile.forEachLine { line ->
                 if (line.isBlank()) return@forEachLine
 
-                val event = JsonParser.parseString(line).asJsonObject
+                val event = try {
+                    JsonParser.parseString(line).asJsonObject
+                } catch (e: Exception) {
+                    droppedLines++
+                    Log.w(TAG, "Dropped malformed JSONL line: ${line.take(80)}")
+                    return@forEachLine
+                }
                 val type = event.get("type")?.asString ?: return@forEachLine
 
                 when (type) {
@@ -348,13 +375,45 @@ class SessionManager(
                     "message" -> {
                         val role = event.get("role")?.asString ?: return@forEachLine
                         val content = event.get("content")?.asString ?: ""
+                        val name = event.get("name")?.asString
+                        val toolCallId = event.get("tool_call_id")?.asString
+
+                        // Parse tool_calls array (for assistant messages)
+                        val toolCalls = if (event.has("tool_calls") && !event.get("tool_calls").isJsonNull) {
+                            try {
+                                val arr = event.getAsJsonArray("tool_calls")
+                                arr.map { tc ->
+                                    val obj = tc.asJsonObject
+                                    val fnObj = obj.getAsJsonObject("function")
+                                    LegacyToolCall(
+                                        id = obj.get("id")?.asString ?: "",
+                                        type = obj.get("type")?.asString ?: "function",
+                                        function = LegacyFunction(
+                                            name = fnObj.get("name")?.asString ?: "",
+                                            arguments = fnObj.get("arguments")?.asString ?: "{}"
+                                        )
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Failed to parse tool_calls: ${e.message}")
+                                null
+                            }
+                        } else null
 
                         messages.add(LegacyMessage(
                             role = role,
-                            content = content
+                            content = content,
+                            name = name,
+                            toolCallId = toolCallId,
+                            toolCalls = toolCalls
                         ))
                     }
                 }
+            }
+
+            // Repair report (aligned with OpenClaw session-file-repair.ts)
+            if (droppedLines > 0) {
+                Log.w(TAG, "⚠️ Session file repaired: dropped $droppedLines malformed lines (${jsonlFile.name})")
             }
 
             val session = Session(
@@ -375,16 +434,21 @@ class SessionManager(
     }
 
     /**
-     * Save session messages to JSONL
+     * Save session messages to JSONL — records full tool blocks
+     * Aligned with OpenClaw's session JSONL format:
+     * - assistant messages include tool_calls array
+     * - tool messages include tool_call_id and name
+     * - thinking content preserved as metadata
      */
     private fun saveSessionMessages(session: Session) {
         val jsonlFile = getSessionJSONLFile(session.sessionId)
+        val tmpFile = File(jsonlFile.parentFile, "${jsonlFile.name}.tmp-${System.currentTimeMillis()}")
 
         try {
             Log.d(TAG, "💾 Saving session messages to: ${jsonlFile.absolutePath}")
 
-            // Rewrite entire file
-            FileOutputStream(jsonlFile, false).use { out ->
+            // Write to temp file first, then atomic rename (prevents corruption)
+            FileOutputStream(tmpFile, false).use { out ->
                 // 1. Session header
                 val header = mapOf(
                     "type" to "session",
@@ -395,22 +459,57 @@ class SessionManager(
                 )
                 out.write((gson.toJson(header) + "\n").toByteArray())
 
-                // 2. Messages
+                // 2. Messages — full tool block recording
                 for (msg in session.messages) {
-                    val event = mapOf(
-                        "type" to "message",
-                        "id" to UUID.randomUUID().toString(),
-                        "role" to msg.role,
-                        "content" to msg.content,
-                        "timestamp" to currentTimestamp()
-                    )
+                    val event = JsonObject()
+                    event.addProperty("type", "message")
+                    event.addProperty("id", UUID.randomUUID().toString())
+                    event.addProperty("role", msg.role)
+
+                    // Content (can be string or complex)
+                    when (val content = msg.content) {
+                        is String -> event.addProperty("content", content)
+                        else -> event.addProperty("content", content?.toString() ?: "")
+                    }
+
+                    // Tool call ID (for tool role messages)
+                    msg.toolCallId?.let { event.addProperty("tool_call_id", it) }
+
+                    // Tool name (for tool role messages)
+                    msg.name?.let { event.addProperty("name", it) }
+
+                    // Tool calls array (for assistant messages with tool invocations)
+                    msg.toolCalls?.let { toolCalls ->
+                        val tcArray = JsonArray()
+                        for (tc in toolCalls) {
+                            val tcObj = JsonObject()
+                            tcObj.addProperty("id", tc.id)
+                            tcObj.addProperty("type", tc.type)
+                            val fnObj = JsonObject()
+                            fnObj.addProperty("name", tc.function.name)
+                            fnObj.addProperty("arguments", tc.function.arguments)
+                            tcObj.add("function", fnObj)
+                            tcArray.add(tcObj)
+                        }
+                        event.add("tool_calls", tcArray)
+                    }
+
+                    event.addProperty("timestamp", currentTimestamp())
                     out.write((gson.toJson(event) + "\n").toByteArray())
                 }
             }
 
+            // Atomic rename
+            if (jsonlFile.exists()) {
+                jsonlFile.delete()
+            }
+            tmpFile.renameTo(jsonlFile)
+
             Log.d(TAG, "✅ Session messages saved: ${session.messages.size} messages to ${jsonlFile.name}")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to save session messages: ${e.message}", e)
+            // Clean up temp file on failure
+            tmpFile.delete()
         }
     }
 

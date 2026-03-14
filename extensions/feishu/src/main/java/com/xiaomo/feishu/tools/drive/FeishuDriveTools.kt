@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.tools.drive
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel tool definitions.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -56,7 +64,7 @@ class DriveUploadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
                 "file" to file
             )
 
-            val result = client.post("/open-api/drive/v1/files/upload_all", body)
+            val result = client.post("/open-apis/drive/v1/files/upload_all", body)
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -109,7 +117,7 @@ class DriveDownloadTool(config: FeishuConfig, client: FeishuClient) : FeishuTool
             val fileToken = args["file_token"] as? String ?: return@withContext ToolResult.error("Missing file_token")
             val savePath = args["save_path"] as? String ?: return@withContext ToolResult.error("Missing save_path")
 
-            val result = client.get("/open-api/drive/v1/files/$fileToken/download")
+            val result = client.get("/open-apis/drive/v1/files/$fileToken/download")
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
@@ -161,7 +169,7 @@ class DriveListTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase
             val folderToken = args["folder_token"] as? String ?: "0"
             val pageSize = (args["page_size"] as? Number)?.toInt() ?: 50
 
-            val path = "/open-api/drive/v1/files?folder_token=$folderToken&page_size=$pageSize"
+            val path = "/open-apis/drive/v1/files?folder_token=$folderToken&page_size=$pageSize"
             val result = client.get(path)
 
             if (result.isFailure) {
@@ -219,7 +227,7 @@ class DriveDeleteTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBa
             val fileToken = args["file_token"] as? String ?: return@withContext ToolResult.error("Missing file_token")
             val type = args["type"] as? String ?: "file"
 
-            val result = client.delete("/open-api/drive/v1/files/$fileToken?type=$type")
+            val result = client.delete("/open-apis/drive/v1/files/$fileToken?type=$type")
 
             if (result.isFailure) {
                 return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")

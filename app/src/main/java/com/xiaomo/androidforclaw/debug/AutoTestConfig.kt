@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: debug and test runners.
+ */
 package com.xiaomo.androidforclaw.core
 
 /**

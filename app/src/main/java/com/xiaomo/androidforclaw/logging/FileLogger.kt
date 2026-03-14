@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: file logging.
+ */
 package com.xiaomo.androidforclaw.logging
 
 import android.content.Context

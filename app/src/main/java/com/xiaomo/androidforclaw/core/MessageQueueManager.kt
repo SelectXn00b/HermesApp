@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.core
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/(all)
+ *
+ * AndroidForClaw adaptation: queue and dispatch inbound/outbound channel messages.
+ */
+
+
 import android.util.Log
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap

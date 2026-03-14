@@ -1,7 +1,20 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.compose
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,12 +33,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xiaomo.androidforclaw.ui.session.SessionManager
@@ -36,11 +58,12 @@ import java.util.*
 /**
  * Chat interface - Inspired by Stream Chat Android UI design style
  *
- * Design reference:
- * - Message bubbles: Rounded corners, different alignment for left and right
- * - Color theme: User messages blue, AI messages white/gray
- * - Input box: Rounded rectangle with send button
- * - Avatar: Circular, distinguishing between user and AI
+ * Features:
+ * - Markdown rendering (headings, bold, italic, code blocks, lists, quotes)
+ * - Long message collapse/expand
+ * - Long press to copy
+ * - Wider message bubbles
+ * - Auto-scroll to bottom
  */
 
 data class ChatMessage(
@@ -57,13 +80,15 @@ enum class MessageStatus {
     ERROR
 }
 
+/** Max chars before collapsing */
+private const val COLLAPSE_THRESHOLD = 300
+
 @Composable
 fun ChatScreen(
     messages: List<ChatMessage>,
     onSendMessage: (String) -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
-    // Session-related parameters
     sessions: List<SessionManager.Session> = emptyList(),
     currentSession: SessionManager.Session? = null,
     onSessionChange: (String) -> Unit = {},
@@ -85,9 +110,9 @@ fun ChatScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White) // Stream Chat style: white background
+            .background(Color(0xFFF5F5F5))
     ) {
-        // Session control bar (reference OpenClaw)
+        // Session control bar
         if (sessions.isNotEmpty()) {
             SessionControlBar(
                 sessions = sessions,
@@ -113,10 +138,7 @@ fun ChatScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "👋",
-                        style = TextStyle(fontSize = 48.sp)
-                    )
+                    Text(text = "👋", style = TextStyle(fontSize = 48.sp))
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "开始聊天",
@@ -129,10 +151,7 @@ fun ChatScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "向 AI 助手发送消息来控制手机",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            color = Color(0xFF999999)
-                        )
+                        style = TextStyle(fontSize = 14.sp, color = Color(0xFF999999))
                     )
                 }
             } else {
@@ -148,42 +167,10 @@ fun ChatScreen(
                 }
             }
 
-            // Loading indicator
-            if (isLoading) {
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 8.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = Color.Black.copy(alpha = 0.7f)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "AI 正在思考...",
-                            style = TextStyle(
-                                color = Color.White,
-                                fontSize = 13.sp
-                            )
-                        )
-                    }
-                }
-            }
         }
 
         // Divider
-        Divider(
-            color = Color(0xFFE0E0E0),
-            thickness = 1.dp
-        )
+        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
         // Message input box
         MessageComposer(
@@ -200,15 +187,24 @@ fun ChatScreen(
     }
 }
 
+// ============================================================================
+// Message Item with Markdown + Collapse + Long-press Copy
+// ============================================================================
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageItem(
     message: ChatMessage,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val isLong = message.content.length > COLLAPSE_THRESHOLD
+    var expanded by remember { mutableStateOf(false) }
+    var showCopyHint by remember { mutableStateOf(false) }
+
     val alignment = if (message.isUser) Alignment.End else Alignment.Start
-    // Stream Chat style colors
-    val backgroundColor = if (message.isUser) Color(0xFF005FFF) else Color(0xFFEFEFEF)
-    val textColor = if (message.isUser) Color.White else Color(0xFF000000)
+    val backgroundColor = if (message.isUser) Color(0xFF005FFF) else Color.White
+    val textColor = if (message.isUser) Color.White else Color(0xFF1A1A1A)
 
     Row(
         modifier = modifier
@@ -234,30 +230,85 @@ fun MessageItem(
                 shape = RoundedCornerShape(
                     topStart = 18.dp,
                     topEnd = 18.dp,
-                    bottomStart = if (message.isUser) 18.dp else 2.dp,
-                    bottomEnd = if (message.isUser) 2.dp else 18.dp
+                    bottomStart = if (message.isUser) 18.dp else 4.dp,
+                    bottomEnd = if (message.isUser) 4.dp else 18.dp
                 ),
                 color = backgroundColor,
                 shadowElevation = if (message.isUser) 0.dp else 1.dp,
-                tonalElevation = if (message.isUser) 0.dp else 0.dp,
                 modifier = Modifier
-                    .widthIn(max = 260.dp)
+                    .widthIn(max = 320.dp) // Wider bubbles
+                    .animateContentSize()
             ) {
                 Column(
-                    modifier = Modifier.padding(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = {
+                                copyToClipboard(context, message.content)
+                                showCopyHint = true
+                            }
+                        )
                 ) {
                     // Message content
-                    Text(
-                        text = message.content,
-                        style = TextStyle(
-                            color = textColor,
-                            fontSize = 15.sp,
-                            lineHeight = 20.sp
+                    val displayContent = if (isLong && !expanded) {
+                        message.content.take(COLLAPSE_THRESHOLD) + "..."
+                    } else {
+                        message.content
+                    }
+
+                    if (message.isUser) {
+                        // User messages: plain text
+                        Text(
+                            text = displayContent,
+                            style = TextStyle(
+                                color = textColor,
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp
+                            )
                         )
-                    )
+                    } else {
+                        // AI messages: render Markdown
+                        Text(
+                            text = parseMarkdown(displayContent, textColor),
+                            style = TextStyle(
+                                color = textColor,
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp
+                            )
+                        )
+                    }
+
+                    // Expand/Collapse toggle for long messages
+                    if (isLong) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (expanded) "收起 ▲" else "展开 ▼",
+                            style = TextStyle(
+                                color = if (message.isUser) Color.White.copy(alpha = 0.8f)
+                                else Color(0xFF005FFF),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.clickable { expanded = !expanded }
+                        )
+                    }
+
+                    // Copy hint
+                    if (showCopyHint) {
+                        LaunchedEffect(showCopyHint) {
+                            kotlinx.coroutines.delay(1500)
+                            showCopyHint = false
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "✅ 已复制",
+                            style = TextStyle(
+                                color = textColor.copy(alpha = 0.6f),
+                                fontSize = 11.sp
+                            )
+                        )
+                    }
 
                     // Timestamp and status
                     Row(
@@ -269,7 +320,7 @@ fun MessageItem(
                         Text(
                             text = formatTimestamp(message.timestamp),
                             style = TextStyle(
-                                color = textColor.copy(alpha = 0.6f),
+                                color = textColor.copy(alpha = 0.5f),
                                 fontSize = 11.sp
                             )
                         )
@@ -294,9 +345,185 @@ fun MessageItem(
     }
 }
 
+// ============================================================================
+// Markdown Parser (AnnotatedString based)
+// ============================================================================
+
 /**
- * Circular avatar component
+ * Simple Markdown to AnnotatedString parser.
+ *
+ * Supports:
+ * - ## Headings (H1-H3)
+ * - **bold**
+ * - *italic*
+ * - `inline code`
+ * - ```code blocks```
+ * - - list items
+ * - > blockquotes
  */
+@Composable
+fun parseMarkdown(text: String, textColor: Color): AnnotatedString {
+    return buildAnnotatedString {
+        val lines = text.split("\n")
+        var inCodeBlock = false
+        var codeBlockContent = StringBuilder()
+
+        for ((idx, line) in lines.withIndex()) {
+            if (idx > 0 && !inCodeBlock) append("\n")
+
+            // Code block start/end
+            if (line.trimStart().startsWith("```")) {
+                if (inCodeBlock) {
+                    // End code block
+                    withStyle(SpanStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 13.sp,
+                        color = textColor.copy(alpha = 0.9f),
+                        background = textColor.copy(alpha = 0.08f)
+                    )) {
+                        append(codeBlockContent.toString())
+                    }
+                    codeBlockContent = StringBuilder()
+                    inCodeBlock = false
+                } else {
+                    // Start code block
+                    inCodeBlock = true
+                }
+                continue
+            }
+
+            if (inCodeBlock) {
+                if (codeBlockContent.isNotEmpty()) codeBlockContent.append("\n")
+                codeBlockContent.append(line)
+                continue
+            }
+
+            // Headings
+            when {
+                line.startsWith("### ") -> {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp)) {
+                        appendInlineMarkdown(line.removePrefix("### "), textColor)
+                    }
+                }
+                line.startsWith("## ") -> {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                        appendInlineMarkdown(line.removePrefix("## "), textColor)
+                    }
+                }
+                line.startsWith("# ") -> {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 20.sp)) {
+                        appendInlineMarkdown(line.removePrefix("# "), textColor)
+                    }
+                }
+                // Blockquote
+                line.startsWith("> ") -> {
+                    withStyle(SpanStyle(
+                        color = textColor.copy(alpha = 0.7f),
+                        fontStyle = FontStyle.Italic
+                    )) {
+                        append("│ ")
+                        appendInlineMarkdown(line.removePrefix("> "), textColor.copy(alpha = 0.7f))
+                    }
+                }
+                // List items
+                line.trimStart().startsWith("- ") -> {
+                    val indent = line.length - line.trimStart().length
+                    append(" ".repeat(indent))
+                    append("• ")
+                    appendInlineMarkdown(line.trimStart().removePrefix("- "), textColor)
+                }
+                line.trimStart().matches(Regex("^\\d+\\.\\s.*")) -> {
+                    appendInlineMarkdown(line, textColor)
+                }
+                // Regular paragraph
+                else -> {
+                    appendInlineMarkdown(line, textColor)
+                }
+            }
+        }
+
+        // Unclosed code block
+        if (inCodeBlock && codeBlockContent.isNotEmpty()) {
+            withStyle(SpanStyle(
+                fontFamily = FontFamily.Monospace,
+                fontSize = 13.sp,
+                color = textColor.copy(alpha = 0.9f),
+                background = textColor.copy(alpha = 0.08f)
+            )) {
+                append(codeBlockContent.toString())
+            }
+        }
+    }
+}
+
+/**
+ * Parse inline markdown: **bold**, *italic*, `code`
+ */
+private fun AnnotatedString.Builder.appendInlineMarkdown(text: String, textColor: Color) {
+    var i = 0
+    while (i < text.length) {
+        when {
+            // Bold: **text**
+            text.startsWith("**", i) -> {
+                val end = text.indexOf("**", i + 2)
+                if (end > 0) {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(text.substring(i + 2, end))
+                    }
+                    i = end + 2
+                } else {
+                    append(text[i])
+                    i++
+                }
+            }
+            // Inline code: `code`
+            text[i] == '`' -> {
+                val end = text.indexOf('`', i + 1)
+                if (end > 0) {
+                    withStyle(SpanStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 13.sp,
+                        background = textColor.copy(alpha = 0.1f)
+                    )) {
+                        append(text.substring(i + 1, end))
+                    }
+                    i = end + 1
+                } else {
+                    append(text[i])
+                    i++
+                }
+            }
+            // Italic: *text* (but not **)
+            text[i] == '*' && (i + 1 < text.length && text[i + 1] != '*') -> {
+                val end = text.indexOf('*', i + 1)
+                if (end > 0) {
+                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                        append(text.substring(i + 1, end))
+                    }
+                    i = end + 1
+                } else {
+                    append(text[i])
+                    i++
+                }
+            }
+            else -> {
+                append(text[i])
+                i++
+            }
+        }
+    }
+}
+
+// ============================================================================
+// Shared Components
+// ============================================================================
+
+private fun copyToClipboard(context: Context, text: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText("message", text))
+    Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+}
+
 @Composable
 fun Avatar(
     text: String,
@@ -331,13 +558,9 @@ fun StatusIndicator(
         MessageStatus.SENT -> "✓"
         MessageStatus.ERROR -> "⚠"
     }
-
     Text(
         text = iconText,
-        style = TextStyle(
-            color = color.copy(alpha = 0.7f),
-            fontSize = 10.sp
-        )
+        style = TextStyle(color = color.copy(alpha = 0.7f), fontSize = 10.sp)
     )
 }
 
@@ -351,8 +574,7 @@ fun MessageComposer(
     Surface(
         modifier = modifier,
         color = Color.White,
-        shadowElevation = 4.dp,
-        tonalElevation = 0.dp
+        shadowElevation = 4.dp
     ) {
         Row(
             modifier = Modifier
@@ -360,7 +582,7 @@ fun MessageComposer(
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            // Input box - Stream Chat style
+            // Input box
             Surface(
                 modifier = Modifier
                     .weight(1f)
@@ -384,14 +606,10 @@ fun MessageComposer(
                         color = Color.Black,
                         lineHeight = 20.sp
                     ),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Send
-                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(
                         onSend = {
-                            if (value.isNotBlank()) {
-                                onSend()
-                            }
+                            if (value.isNotBlank()) onSend()
                         }
                     ),
                     decorationBox = { innerTextField ->
@@ -402,10 +620,7 @@ fun MessageComposer(
                             if (value.isEmpty()) {
                                 Text(
                                     text = "发送消息",
-                                    style = TextStyle(
-                                        fontSize = 15.sp,
-                                        color = Color(0xFF999999)
-                                    )
+                                    style = TextStyle(fontSize = 15.sp, color = Color(0xFF999999))
                                 )
                             }
                             innerTextField()
@@ -416,7 +631,7 @@ fun MessageComposer(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Send button - Stream Chat style
+            // Send button
             Surface(
                 modifier = Modifier
                     .size(44.dp)
@@ -424,14 +639,10 @@ fun MessageComposer(
                 shape = CircleShape,
                 color = if (value.isNotBlank()) Color(0xFF005FFF) else Color(0xFFE0E0E0),
                 onClick = {
-                    if (value.isNotBlank()) {
-                        onSend()
-                    }
+                    if (value.isNotBlank()) onSend()
                 }
             ) {
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "发送",
@@ -449,14 +660,10 @@ private fun formatTimestamp(timestamp: Long): String {
     return sdf.format(Date(timestamp))
 }
 
-/**
- * Session control bar - Reference OpenClaw design
- *
- * Features:
- * - Display current session
- * - Dropdown selector to switch sessions
- * - New session button
- */
+// ============================================================================
+// Session Control Bar
+// ============================================================================
+
 @Composable
 fun SessionControlBar(
     sessions: List<SessionManager.Session>,
@@ -479,10 +686,7 @@ fun SessionControlBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Session selector (similar to OpenClaw's select)
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {
+            Box(modifier = Modifier.weight(1f)) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -495,11 +699,9 @@ fun SessionControlBar(
                     )
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Session title
                         Text(
                             text = currentSession?.title ?: "新对话",
                             style = TextStyle(
@@ -511,8 +713,6 @@ fun SessionControlBar(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-
-                        // Dropdown icon
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "选择会话",
@@ -522,7 +722,6 @@ fun SessionControlBar(
                     }
                 }
 
-                // Dropdown menu
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
@@ -536,21 +735,15 @@ fun SessionControlBar(
                                         text = session.title,
                                         style = TextStyle(
                                             fontSize = 14.sp,
-                                            fontWeight = if (session.id == currentSession?.id) {
-                                                FontWeight.Bold
-                                            } else {
-                                                FontWeight.Normal
-                                            }
+                                            fontWeight = if (session.id == currentSession?.id)
+                                                FontWeight.Bold else FontWeight.Normal
                                         ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
                                         text = formatSessionTime(session.createdAt),
-                                        style = TextStyle(
-                                            fontSize = 11.sp,
-                                            color = Color(0xFF999999)
-                                        )
+                                        style = TextStyle(fontSize = 11.sp, color = Color(0xFF999999))
                                     )
                                 }
                             },
@@ -559,11 +752,8 @@ fun SessionControlBar(
                                 expanded = false
                             },
                             modifier = Modifier.background(
-                                if (session.id == currentSession?.id) {
-                                    Color(0xFFF0F0F0)
-                                } else {
-                                    Color.Transparent
-                                }
+                                if (session.id == currentSession?.id) Color(0xFFF0F0F0)
+                                else Color.Transparent
                             )
                         )
                     }
@@ -572,16 +762,13 @@ fun SessionControlBar(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // New Session button
             Surface(
                 modifier = Modifier.size(40.dp),
                 shape = CircleShape,
                 color = Color(0xFF005FFF),
                 onClick = onNewSession
             ) {
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "新建会话",
@@ -594,13 +781,9 @@ fun SessionControlBar(
     }
 }
 
-/**
- * Format Session creation time
- */
 private fun formatSessionTime(timestamp: Long): String {
     val now = System.currentTimeMillis()
     val diff = now - timestamp
-
     return when {
         diff < 60_000 -> "刚刚"
         diff < 3600_000 -> "${diff / 60_000} 分钟前"
@@ -611,5 +794,3 @@ private fun formatSessionTime(timestamp: Long): String {
         }
     }
 }
-
-// Preview functionality removed, use in actual Activity

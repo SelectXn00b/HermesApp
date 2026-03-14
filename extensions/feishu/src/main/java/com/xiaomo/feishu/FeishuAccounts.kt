@@ -1,5 +1,13 @@
 package com.xiaomo.feishu
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu channel runtime.
+ */
+
+
 import android.util.Log
 
 /**

@@ -1,5 +1,13 @@
 package com.xiaomo.androidforclaw.selfcontrol
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: self-control runtime support.
+ */
+
+
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent

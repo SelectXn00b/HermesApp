@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: data models.
+ */
 package com.xiaomo.androidforclaw.data.repository
 
 import android.os.Parcelable

@@ -48,6 +48,7 @@
         tools:ignore="ProtectedPermissions" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -89,6 +90,20 @@
         <!-- 主页 - 旧版XML (备用) -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
+        <!-- 模型配置引导页（首次启动） -->
+        <activity
+            android:name="com.xiaomo.androidforclaw.ui.activity.ModelSetupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
+        <!-- 模型配置页面（两页式） -->
+        <activity
+            android:name="com.xiaomo.androidforclaw.ui.activity.ModelConfigActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />

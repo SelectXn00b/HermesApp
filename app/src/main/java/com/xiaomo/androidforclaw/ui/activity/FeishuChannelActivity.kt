@@ -1,6 +1,13 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -14,7 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import kotlinx.coroutines.launch
@@ -26,6 +32,13 @@ import kotlinx.coroutines.launch
 class FeishuChannelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 禁止截屏
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
+
         setContent {
             MaterialTheme {
                 FeishuChannelScreen(
@@ -44,19 +57,16 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
 
     // 加载配置
     val openClawConfig = remember { configLoader.loadOpenClawConfig() }
-    val savedConfig = remember { openClawConfig.gateway.feishu }
+    val savedConfig = remember { openClawConfig.channels.feishu }
 
     // 状态变量（对齐 clawdbot-feishu 配置）
     var enabled by remember { mutableStateOf(savedConfig.enabled) }
     var appId by remember { mutableStateOf(savedConfig.appId) }
     var appSecret by remember { mutableStateOf(savedConfig.appSecret) }
-    var connectionMode by remember { mutableStateOf(savedConfig.connectionMode) }
     var dmPolicy by remember { mutableStateOf(savedConfig.dmPolicy) }
     var groupPolicy by remember { mutableStateOf(savedConfig.groupPolicy) }
     var requireMention by remember { mutableStateOf(savedConfig.requireMention) }
     var groupAllowFrom by remember { mutableStateOf(savedConfig.groupAllowFrom.joinToString("\n")) }
-    var historyLimit by remember { mutableStateOf(savedConfig.historyLimit.toString()) }
-    var dmHistoryLimit by remember { mutableStateOf(savedConfig.dmHistoryLimit.toString()) }
 
     var showSaveSuccess by remember { mutableStateOf(false) }
 
@@ -77,25 +87,25 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                                 val currentConfig = configLoader.loadOpenClawConfig()
 
                                 // 更新 feishu 配置
-                                val updatedFeishuConfig = currentConfig.gateway.feishu.copy(
+                                val updatedFeishuConfig = currentConfig.channels.feishu.copy(
                                     enabled = enabled,
                                     appId = appId,
                                     appSecret = appSecret,
-                                    connectionMode = connectionMode,
+                                    connectionMode = currentConfig.channels.feishu.connectionMode,
                                     dmPolicy = dmPolicy,
                                     groupPolicy = groupPolicy,
                                     requireMention = requireMention,
                                     groupAllowFrom = groupAllowFrom.split("\n").filter { it.isNotBlank() },
-                                    historyLimit = historyLimit.toIntOrNull() ?: 20,
-                                    dmHistoryLimit = dmHistoryLimit.toIntOrNull() ?: 100
+                                    historyLimit = currentConfig.channels.feishu.historyLimit,
+                                    dmHistoryLimit = currentConfig.channels.feishu.dmHistoryLimit
                                 )
 
                                 // 更新完整配置
-                                val updatedGatewayConfig = currentConfig.gateway.copy(
+                                val updatedChannelsConfig = currentConfig.channels.copy(
                                     feishu = updatedFeishuConfig
                                 )
                                 val updatedConfig = currentConfig.copy(
-                                    gateway = updatedGatewayConfig
+                                    channels = updatedChannelsConfig
                                 )
 
                                 // 保存到 openclaw.json
@@ -171,8 +181,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 label = { Text("App ID") },
                 placeholder = { Text("cli_xxxxxx") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation()
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -181,33 +190,8 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 label = { Text("App Secret") },
                 placeholder = { Text("输入 App Secret") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation()
+                singleLine = true
             )
-
-            // 连接模式
-            Text(
-                text = "连接模式",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = connectionMode == "websocket",
-                    onClick = { connectionMode = "websocket" },
-                    label = { Text("WebSocket") },
-                    modifier = Modifier.weight(1f)
-                )
-                FilterChip(
-                    selected = connectionMode == "webhook",
-                    onClick = { connectionMode = "webhook" },
-                    label = { Text("Webhook") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
 
             // DM 策略
             Text(
@@ -312,35 +296,9 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
                 }
             }
 
-            // 历史记录限制
-            Text(
-                text = "历史记录",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            OutlinedTextField(
-                value = historyLimit,
-                onValueChange = { historyLimit = it },
-                label = { Text("群聊历史记录条数") },
-                placeholder = { Text("20") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = dmHistoryLimit,
-                onValueChange = { dmHistoryLimit = it },
-                label = { Text("私聊历史记录条数") },
-                placeholder = { Text("100") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true
-            )
-
             // 配置文件路径提示
             Text(
-                text = "配置保存在:\n/sdcard/.androidforclaw/openclaw.json (gateway.feishu)",
+                text = "配置保存在:\n/sdcard/.androidforclaw/openclaw.json (channels.feishu)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 8.dp)

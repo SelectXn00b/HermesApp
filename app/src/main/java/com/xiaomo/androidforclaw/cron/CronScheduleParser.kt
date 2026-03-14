@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/cron/(all)
+ *
+ * AndroidForClaw adaptation: cron scheduling.
+ */
 package com.xiaomo.androidforclaw.cron
 
 import android.util.Log

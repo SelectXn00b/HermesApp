@@ -1,5 +1,13 @@
 package com.xiaomo.feishu.messaging
 
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/channels/feishu/(all)
+ *
+ * AndroidForClaw adaptation: Feishu messaging transport.
+ */
+
+
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import kotlinx.coroutines.Dispatchers

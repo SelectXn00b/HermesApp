@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/agents/(all)
+ *
+ * AndroidForClaw adaptation: data models.
+ */
 package info.plateaukao.einkbro.view.data
 
 import android.content.Intent

@@ -1,562 +1,263 @@
-# 📱 AndroidForClaw — OpenClaw for Android, Now Available
+# 📱 AndroidForClaw — OpenClaw 的手机版，来了
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/badge/Release-v2.4.4-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://www.android.com/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-blue.svg)](https://kotlinlang.org/)
 
-**[中文文档](README_CN.md)** | **[📖 Documentation](docs/README.md)** | **[🚀 Quick Start](#-quick-start)** | **[🤝 Contributing](CONTRIBUTING.md)**
-
----
-
-## 🌟 From OpenClaw to AndroidForClaw
-
-You may already know **[OpenClaw](https://github.com/openclaw/openclaw)** — the open-source AI assistant framework with 280k+ GitHub stars. It connects AI to 20+ messaging channels, controls browsers, executes code, and manages schedules. It's the hottest personal AI Agent project right now.
-
-**But OpenClaw has a natural limitation:**
-
-It's designed for desktops. Android is just a "remote node" in its architecture.
-Your phone needs to connect to a Gateway on your computer to work. The AI can't see your phone screen, can't touch WeChat, TikTok, or Taobao.
-
-**So we built AndroidForClaw.**
-
-## 🎯 What is AndroidForClaw?
-
-**In one sentence:** OpenClaw's native Android version.
-
-**98% identical architecture** — Same Tool Calling protocol, same Agent Loop, same Bootstrap config system, same Skill extension mechanism.
-
-**The difference:** The AI lives directly on your phone, with full device control through Accessibility Service.
-
-No computer needed. No Gateway needed. No pairing needed. Install the APK, grant permissions, start using.
+**[English](README_EN.md)** | **[📖 飞书文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[🚀 快速开始](#-快速开始)** | **[🤝 参与贡献](#-参与贡献)**
 
 ---
 
-## ✨ What We Support
+## 📥 下载安装
 
-### I. Core Capabilities Aligned with OpenClaw
+### 最新版本: [v1.0.0](https://github.com/xiaomochn/AndroidForClaw/releases/latest)
 
-#### 🧠 Agent Core
-- ✅ **Tool Calling Protocol** — Standard function calling, fully compatible with OpenClaw
-- ✅ **Agent Loop** — Observe → Think → Act → Verify cycle
-- ✅ **Bootstrap Config** — Complete IDENTITY / AGENTS / SOUL / TOOLS configuration system
-- ✅ **Memory Persistence** — Long-term memory, retains important information across sessions
-- ✅ **Skill Extensions** — Custom skill directory, flexible Agent capability expansion
-- ✅ **ClawHub Integration** — Native support for discovering and installing skills from ClawHub (npm coming soon)
-- ✅ **Multi-Model Support** — Claude / GPT / Gemini and other mainstream LLMs
-- ✅ **Exploration Mode** — Dynamic decision-making, AI autonomously explores
-- ✅ **Planning Mode** — Plan first, execute later, suitable for fixed workflows
+| APK | 说明 | 大小 |
+|-----|------|------|
+| **[AndroidForClaw](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | 主应用 (必装) | ~22MB |
+| **[S4Claw](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | 无障碍服务+截图 (必装) | ~4.4MB |
+| **[BrowserForClaw](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | AI 浏览器 (可选) | ~8.4MB |
+| **[Termux](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | 终端环境 (可选) | ~32MB |
+| **[Termux-API](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | 终端 API (可选) | ~6.8MB |
 
-#### 🔧 Universal Tool Chain
-- ✅ **File Operations** — read_file / write_file / edit_file
-- ✅ **Directory Browsing** — list_dir
-- ✅ **Shell Commands** — Basic commands (ls / cat / grep / find / sed / awk, etc.)
-- 🚧 **Full Terminal Support** — Termux integration (in development) for complete shell environment
-- ✅ **Web Scraping** — web_fetch
-- ✅ **JavaScript Engine** — Built-in QuickJS, ES6+ support
-
-#### 🌐 Browser Automation
-- ✅ **Web Navigation** — Open any URL
-- ✅ **Element Clicking** — Precise CSS selector targeting
-- ✅ **Form Filling** — Auto text input
-- ✅ **Page Scrolling** — Up / Down / Top / Bottom
-- ✅ **JS Execution** — Execute JavaScript in web pages
-- ✅ **Content Extraction** — text / HTML / Markdown
-- ✅ **Cookie Management** — Read and set cookies
-- ✅ **Screenshot** — Full page screenshot support
-
-#### 💬 Messaging Channels
-- ✅ **Feishu (Lark)** — Native Feishu message channel
-- ✅ **Discord** — Discord Bot integration with WebSocket Gateway
-- ✅ **On-Device Chat** — Built-in chat interface
-- 🔜 **More channels** continuously being integrated
+> 💡 首次启动会弹出引导页，只需输入一个 [OpenRouter API Key](https://openrouter.ai/keys)（注册免费）即可开始使用！
 
 ---
 
-### II. Android's Superpowers 🔥 (What OpenClaw Can't Do)
+## 📖 飞书文档
 
-#### 👁️ Screen Awareness
-- ✅ **Real-time Screenshot** — Capture screen anytime, AI "sees" through vision models
-- ✅ **UI Tree Parsing** — Complete View hierarchy, precisely locate every element
-- ✅ **State Detection** — AI knows which app, which page you're on
+**详细的功能演示和使用教程：**
 
-#### ✋ Touch Operations
-- ✅ **Tap** — tap(x, y), precisely tap any screen location
-- ✅ **Swipe** — Up/down/left/right, customizable duration
-- ✅ **Long Press** — Trigger long-press menus
-- ✅ **Text Input** — Type in any input field
+👉 **[https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)**
 
-#### 📱 App Control
-- ✅ **Launch Apps** — Open any installed app by package name
-- ✅ **Activity Navigation** — Jump directly to specific app pages
-- ✅ **App List** — Get all installed applications
-- ✅ **System Navigation** — Home / Back / Recent Tasks
+文档包含：
+- 🎬 **功能演示视频** — 看 AI 实际控制手机
+- 📋 **详细配置教程** — 飞书/Discord/模型配置步骤
+- 💡 **使用技巧** — 最佳实践和常见问题
 
-#### 🔥 Any App Control (Core Difference!)
+---
 
-Through Accessibility Service, any app you can manually operate, AI can operate:
+## 🌟 从 OpenClaw 说起
 
-| App | What AI Can Do |
-|-----|----------------|
-| 📱 WeChat | Send messages, browse Moments, transfer money |
-| 📱 Alipay | Check bills, scan to pay |
-| 📱 TikTok | Search videos, browse content |
-| 📱 Taobao | Search products, compare prices |
-| 📱 Amap | Search routes, start navigation |
+你可能已经知道 **[OpenClaw](https://github.com/openclaw/openclaw)** — GitHub 280k+ Star 的开源 AI 助手框架。它让 AI 连接 20+ 消息渠道、控制浏览器、执行代码、管理日程。
 
-#### 🔗 Cross-App Workflows
+**但 OpenClaw 有一个天然的局限：它是为桌面设计的。**
 
-Chain multiple apps for complex tasks:
+手机需要连电脑上的 Gateway 才能工作，AI 看不到手机屏幕，碰不到微信、抖音、淘宝。
 
-**"Got an address in WeChat, navigate me there"**
-→ Open WeChat → Recognize address → Copy → Open Amap → Paste & search → Start navigation
+**所以我们做了 AndroidForClaw。**
 
-#### 🧪 App Testing
-- ✅ Functional testing / UI testing / Regression testing / Exploratory testing
-- ✅ Auto screenshot for every operation
+---
 
-#### 🎁 ClawHub Integration (Unique Feature!)
+## 🎯 AndroidForClaw 是什么？
 
-Native support for ClawHub skill marketplace:
+**一句话：** OpenClaw 的 Android 原生版本。
 
-- **🔍 Search Skills**: `skills.search` - Discover skills from ClawHub
-- **📥 Install Skills**: `skills.install` - One-command install from ClawHub or URL
-- **🔄 Update Skills**: `skills.update` - Keep skills up-to-date
-- **📋 Skill Status**: Complete visibility into installed/bundled/available skills
-- **🔒 Lock File**: `skill.lock.json` tracks installed versions
+底层架构与 OpenClaw 98% 一致 — 同样的 Tool Calling 协议、Agent Loop、Bootstrap 配置、Skill 扩展。
 
-**Example**:
+**不同的是：** AI 直接住在你的手机里，通过 Accessibility Service 获得完整的设备控制能力。
+
+不需要电脑，不需要 Gateway，不需要配对。装上 APK，授权，开始用。
+
+---
+
+## ✨ 核心能力
+
+### 与 OpenClaw 一致的底层
+
+| 能力 | 说明 |
+|------|------|
+| 🧠 Agent Loop | 观察 → 思考 → 行动 → 验证 循环 |
+| 🔧 Tool Calling | 标准函数调用，与 OpenClaw 完全兼容 |
+| 📝 Bootstrap | IDENTITY / AGENTS / SOUL / TOOLS 配置体系 |
+| 🧩 Skill 扩展 | 五层优先级加载 + ClawHub 技能市场 |
+| 💬 多渠道 | 飞书 / Discord / 设备内对话 |
+| 🤖 多模型 | Claude / GPT / Gemini / DeepSeek 等 |
+| 🌐 浏览器 | 导航、点击、填表、截图、JS 执行 |
+| 📁 文件系统 | 读写文件、目录浏览、Shell 命令 |
+
+### Android 独有的超能力 🔥
+
+| 能力 | 说明 |
+|------|------|
+| 👁️ 屏幕感知 | 实时截图 + UI 树解析，AI 能「看懂」屏幕 |
+| ✋ 触控操作 | 点击、滑动、长按、文本输入 |
+| 📱 应用控制 | 启动任意应用、Activity 跳转、系统导航 |
+| 🔗 跨应用 | 串联多个 App 完成复杂任务 |
+
+#### 🔥 任意 App 操控
+
+通过 Accessibility Service，任何你能手动操作的应用，AI 都能操作：
+
+| App | AI 能做什么 |
+|-----|-------------|
+| 📱 微信 | 发消息、看朋友圈、转账 |
+| 📱 支付宝 | 查账单、扫码付款 |
+| 📱 抖音 | 搜索视频、浏览内容 |
+| 📱 淘宝 | 搜商品、比价格 |
+| 📱 高德 | 搜路线、开导航 |
+
+**跨应用示例：**「微信收到一个地址，帮我导航过去」
+→ 打开微信 → 识别地址 → 复制 → 打开高德 → 粘贴搜索 → 开始导航
+
+---
+
+## ⚡ 快速开始
+
+### 方法 1: 下载 APK（推荐）
+
+1. **下载** — 从 [Release 页面](https://github.com/xiaomochn/AndroidForClaw/releases/latest) 下载 APK
+2. **安装** — 安装 AndroidForClaw + S4Claw（必装），BrowserForClaw（可选）
+3. **配置** — 首次启动自动弹出引导页，输入 [OpenRouter API Key](https://openrouter.ai/keys) 即可
+4. **授权** — 打开 S4Claw，启用无障碍服务 + 录屏权限
+5. **开始** — 在飞书/Discord 发消息，或直接在 app 里对话
+
+### 方法 2: 从源码构建
+
 ```bash
-# Search for Twitter skills
-curl -X POST http://phone-ip:8080/gateway \
-  -d '{"method":"skills.search","params":{"query":"twitter"}}'
+git clone https://github.com/xiaomochn/AndroidForClaw.git
+cd AndroidForClaw
 
-# Install a skill from ClawHub
-curl -X POST http://phone-ip:8080/gateway \
-  -d '{"method":"skills.install","params":{"name":"x-twitter","installId":"download"}}'
+# 构建主应用
+./gradlew :app:assembleRelease
+adb install app/build/outputs/apk/release/app-release.apk
+
+# 构建 S4Claw
+./gradlew :extensions:observer:assembleRelease
+adb install extensions/observer/build/outputs/apk/release/observer-release.apk
 ```
 
-**📚 Detailed Guide**: [CLAWHUB_GUIDE.md](CLAWHUB_GUIDE.md) - Complete ClawHub integration documentation
-
-⚠️ **Important**: ClawHub API (`clawhub.ai`) is fully operational, even if the website (`clawhub.com`) shows 404.
-
-*📦 npm registry support coming soon!*
-
 ---
 
-## 💡 One-Sentence Summary
-
-**OpenClaw** lets AI chat, browse web, and write code.
-**AndroidForClaw** on the same foundation, lets AI use your phone like you do.
-
-🤖 **98% OpenClaw underneath, covering your entire phone.**
-
----
-
-## ⚡ Quick Start
-
-### Method 1: Download Pre-built APK (Recommended)
-
-**📥 Latest Release**: [v2.4.4](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4) | **📦 Browse Files**: [releases/](https://github.com/xiaomochn/AndroidForClaw/tree/main/releases)
-
-1. **Download APK**
-   ```
-   AndroidForClaw-v1.0.0-release.apk   (Main app, ~31MB)
-   Screen4Claw-v1.0.0-release.apk      (S4Claw: Accessibility & Screenshot, ~4.4MB)
-   BClaw-v1.0.0-release.apk            (Browser4Claw: Browser for AI, ~8.4MB, Optional)
-   ```
-
-   **📖 Detailed Installation Guide**: See [releases/README.md](releases/README.md) for complete setup instructions.
-
-2. **Install**
-   ```bash
-   adb install AndroidForClaw-v1.0.0-release.apk
-   adb install Screen4Claw-v1.0.0-release.apk
-   adb install BClaw-v1.0.0-release.apk  # Optional
-   ```
-
-3. **Configure API**
-   - Push config to device:
-     ```bash
-     adb push config/openclaw.json /sdcard/.androidforclaw/openclaw.json
-     ```
-   - Or edit directly on phone: `/sdcard/.androidforclaw/openclaw.json`
-
-4. **Grant Permissions**
-   - Open **S4Claw** app and enable:
-     - ✅ Accessibility Service (Required for device control)
-     - ✅ Media Projection (Required for screenshots)
-   - Open **Main app** and grant:
-     - ✅ Display Over Apps (Required for floating window)
-
-**Get Started**: Send messages in Feishu/Discord to control your phone!
-
----
-
-### Method 2: Build from Source
-
-1. **Clone**
-   ```bash
-   git clone https://github.com/xiaomochn/AndroidForClaw.git
-   cd AndroidForClaw
-   ```
-
-2. **Build & Install**
-   ```bash
-   # Build Release APKs (signed automatically)
-   ./gradlew :app:assembleRelease :extensions:observer:assembleRelease
-   adb install app/build/outputs/apk/release/app-release.apk
-   adb install extensions/observer/build/outputs/apk/release/observer-release.apk
-
-   # Optional: Build B4Claw browser
-   cd extensions/BrowserForClaw/android-project
-   ./gradlew assembleRelease
-   adb install app/build/outputs/apk/release/app-universal-release.apk
-   ```
-
-   **Note**: For debug builds during development, replace `assembleRelease` with `assembleDebug`.
-
-3. **Configure API Keys**
-
-   The app will create default config at `/sdcard/.androidforclaw/openclaw.json` on first launch.
-
-   Edit the config file on device:
-   ```bash
-   # Pull config from device
-   adb pull /sdcard/.androidforclaw/openclaw.json
-
-   # Edit openclaw.json and fill in your API Keys
-   # Then push back to device
-   adb push openclaw.json /sdcard/.androidforclaw/openclaw.json
-   ```
-
-   Or edit directly via app's Config Activity (Settings → Configuration).
-
----
-
-## 🏗️ Architecture
+## 🏗️ 架构设计
 
 ```
 ┌─────────────────────────────────────┐
-│      Gateway (Planned)              │  Multi-channel, Sessions, Security
+│      Gateway                         │  飞书 / Discord / HTTP
 ├─────────────────────────────────────┤
-│      Agent Runtime (Core)           │  AgentLoop, Skills, Tools
+│      Agent Runtime                   │  AgentLoop / Skills / Tools
 ├─────────────────────────────────────┤
-│      Android Platform               │  Accessibility, ADB, UI
+│      Android Platform                │  Accessibility / ADB / UI
 └─────────────────────────────────────┘
 ```
 
-### Key Components
-
-- **Agent Loop**: Core execution loop (LLM → Tools → Observation)
-- **Skills System**: Markdown-based knowledge (like OpenClaw)
-- **Tool Registry**: Android-specific tools (screenshot, tap, swipe, etc.)
-- **Gateway**: Multi-channel access (Feishu, Discord, HTTP API)
-- **Session Manager**: Conversation history and context management
-
----
-
-## 📦 Tech Stack
-
-- **Language**: Kotlin + Java
-- **Architecture**: MVVM + Repository Pattern
-- **LLM API**: OpenAI-compatible (Claude Opus 4.6)
-- **Android Services**: Accessibility Service, MediaProjection
-- **Storage**: MMKV (configuration and state)
-- **UI**: Jetpack Compose
-- **JavaScript Runtime**: QuickJS
-
----
-
-## 📁 Project Directory Structure
-
-AndroidForClaw uses `/sdcard/.androidforclaw/` as the project data root directory, fully aligned with OpenClaw Desktop's `~/.openclaw/`:
+### 项目结构
 
 ```
-/sdcard/.androidforclaw/              ← Project data root directory
-├── config/                           ← Configuration files
-│   └── openclaw.json                 ← Main configuration file
-├── workspace/                        ← User workspace (accessible via File Manager)
-│   ├── skills/                       ← Custom Skills
-│   ├── sessions/                     ← Session history (JSONL format)
-│   └── memory/                       ← Persistent memory
-├── skills/                           ← Managed Skills (installed via package manager)
-└── logs/                             ← Log files
+AndroidForClaw/
+├── app/                          # 主应用
+│   ├── src/main/java/
+│   │   ├── agent/               # Agent 运行时 (AgentLoop, Tools, Skills)
+│   │   ├── gateway/             # Gateway 服务器
+│   │   ├── providers/           # LLM 提供商
+│   │   └── ui/                  # 用户界面
+│   └── src/main/assets/skills/  # 内置 Skills
+├── extensions/
+│   ├── observer/                # S4Claw (无障碍服务)
+│   ├── feishu/                  # 飞书渠道
+│   ├── discord/                 # Discord 渠道
+│   └── BrowserForClaw/          # AI 浏览器
+└── releases/                    # 预编译 APK
 ```
 
-All files are accessible and editable through your phone's file manager!
+### 数据目录
+
+```
+/sdcard/.androidforclaw/              ← 对齐 OpenClaw 的 ~/.openclaw/
+├── openclaw.json                     ← 主配置文件
+├── workspace/                        ← 用户工作区
+│   ├── skills/                       ← 用户自定义 Skills
+│   ├── memory/                       ← 持久化记忆
+│   └── sessions/                     ← 会话历史
+├── skills/                           ← 托管 Skills
+└── logs/                             ← 日志
+```
 
 ---
 
-## 🛠️ Configuration
+## 🛠️ 配置
 
-**Config File**: `/sdcard/.androidforclaw/openclaw.json` (single config file, aligned with OpenClaw)
+配置文件：`/sdcard/.androidforclaw/openclaw.json`
 
-**Configuration includes**:
-- Agent settings (maxIterations, defaultModel, timeout, mode)
-- Thinking configuration (enabled, budgetTokens, showInUI)
-- Skills configuration (paths, autoLoad, disabled)
-- Tools configuration (screenshot, accessibility, exec, browser)
-- Gateway configuration (port, security, channels)
-- Models configuration (LLM providers and model definitions)
-- Feishu/Discord configuration
-- UI configuration (theme, language, floatingWindow)
-- Logging configuration
-
-**Example configuration**:
+首次启动自动生成最小配置，只需填入 API Key。高级配置参考飞书文档。
 
 ```json
 {
-  "version": "1.0.0",
-  "agent": {
-    "name": "androidforclaw",
-    "defaultModel": "claude-opus-4-6",
-    "maxIterations": 50
-  },
-  "thinking": {
-    "enabled": true,
-    "budgetTokens": 10000
-  },
-  "skills": {
-    "bundledPath": "assets://skills/",
-    "workspacePath": "/sdcard/.androidforclaw/workspace/skills/",
-    "autoLoad": ["mobile-operations"]
-  },
   "models": {
-    "mode": "merge",
     "providers": {
-      "anthropic": {
-        "baseUrl": "https://api.anthropic.com/v1",
-        "apiKey": "${ANTHROPIC_API_KEY}",
-        "api": "anthropic",
-        "models": [
-          {
-            "id": "claude-opus-4-6",
-            "name": "Claude Opus 4.6",
-            "reasoning": true,
-            "contextWindow": 200000
-          }
-        ]
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "sk-or-v1-你的key"
       }
     }
   },
-  "gateway": {
-    "enabled": true,
-    "port": 8080,
+  "agents": {
+    "defaults": {
+      "model": { "primary": "openrouter/hunter-alpha" }
+    }
+  },
+  "channels": {
     "feishu": {
       "enabled": true,
-      "appId": "${FEISHU_APP_ID}",
-      "appSecret": "${FEISHU_APP_SECRET}"
+      "appId": "你的飞书appId",
+      "appSecret": "你的飞书appSecret"
     }
   }
 }
 ```
 
-See [config/openclaw.json.example](config/openclaw.json.example) for full options.
+---
+
+## 🤝 参与贡献
+
+欢迎贡献！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
+
+- **Bug 报告**: 包含设备型号、Android 版本和日志
+- **功能请求**: 描述使用场景和预期行为
 
 ---
 
-## 📱 Usage
-
-### Via Feishu (Lark)
-
-1. Configure Feishu bot in `/sdcard/.androidforclaw/openclaw.json`:
-   ```json
-   {
-     "gateway": {
-       "feishu": {
-         "enabled": true,
-         "appId": "your_app_id",
-         "appSecret": "your_app_secret"
-       }
-     }
-   }
-   ```
-2. Add bot to group chat
-3. Send message: `@Bot 帮我打开微信`
-
-### Via Discord
-
-1. Configure Discord bot in `/sdcard/.androidforclaw/openclaw.json`
-2. Invite bot to server
-3. Send message: `@Bot open WeChat`
-
-### Via HTTP API
-
-```bash
-curl -X POST http://phone-ip:8080/api/agent/run \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Take a screenshot"}'
-```
-
-### Via ADB (Testing)
-
-```bash
-adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT \
-  --es message "打开微信"
-```
-
----
-
-## 🔧 Development
-
-### Project Structure
-
-```
-AndroidForClaw/
-├── app/                          # Main application
-│   ├── src/main/java/
-│   │   ├── agent/               # Agent runtime
-│   │   │   ├── loop/            # AgentLoop
-│   │   │   ├── tools/           # Tool registry
-│   │   │   └── skills/          # Skills loader
-│   │   ├── gateway/             # Gateway server
-│   │   ├── providers/           # LLM providers
-│   │   └── ui/                  # User interface
-│   └── src/main/assets/skills/  # Bundled skills
-├── accessibility-service/        # Accessibility service APK
-├── extensions/
-│   ├── feishu/                  # Feishu channel
-│   └── discord/                 # Discord channel
-└── config/                       # Configuration examples
-```
-
-### Build Commands
-
-```bash
-# Build release APK (recommended for production)
-./gradlew assembleRelease
-
-# Build debug APK (for development)
-./gradlew assembleDebug
-
-# Build accessibility service (observer module)
-./gradlew :extensions:observer:assembleRelease
-
-# Run tests
-./gradlew test
-
-# Clean
-./gradlew clean
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-### Reporting Issues
-
-- **Bug reports**: Include device model, Android version, and logs
-- **Feature requests**: Describe use case and expected behavior
-- **Questions**: Check [docs/](docs/) first, then open an issue
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- **[OpenClaw](https://github.com/openclaw/openclaw)** - Architecture and design inspiration
-- **[Claude](https://www.anthropic.com/claude)** - AI reasoning and tool use capabilities
-- **[AgentSkills.io](https://agentskills.io)** - Skills format standard
-
----
-
-## 📞 Contact & Community
-
-### Join Our Community - Try AI Phone Control! 🚀
+## 📞 社区
 
 <div align="center">
 
-#### Feishu Group (飞书群)
+#### 飞书群
 
-[![Join Feishu Group](docs/images/feishu-qrcode.jpg)](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)
+[![加入飞书群](docs/images/feishu-qrcode.jpg)](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)
 
-**[Click to Join Feishu Group](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)**
-
----
-
-#### Discord Server
-
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/k9NKrXUN)
-
-**[Join Discord Server](https://discord.gg/k9NKrXUN)** - Experience AI phone control in the community!
+**[点击加入飞书群](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)**
 
 ---
 
-#### WeChat Group (微信群)
+#### Discord
 
-<img src="docs/images/wechat-qrcode.png" width="300" alt="WeChat Group QR Code">
+[![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/k9NKrXUN)
 
-**扫码加入微信群** - 该二维码7天内有效，重新进入将更新
+**[加入 Discord](https://discord.gg/k9NKrXUN)**
+
+---
+
+#### 微信群
+
+<img src="docs/images/wechat-qrcode.png" width="300" alt="微信群二维码">
+
+**扫码加入微信群** - 7天内有效
 
 </div>
 
-### Other Channels
+---
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/xiaomochn/AndroidForClaw/issues)
-- **Discussions**: [Join the conversation](https://github.com/xiaomochn/AndroidForClaw/discussions)
+## 📄 开源协议
+
+MIT License - 详见 [LICENSE](LICENSE)
+
+## 🙏 致谢
+
+- **[OpenClaw](https://github.com/openclaw/openclaw)** - 架构灵感
+- **[Claude](https://www.anthropic.com/claude)** - AI 推理能力
 
 ---
 
-## 📋 Version History
+⭐ **觉得有用？给个 Star 支持一下！** ⭐
 
-### Latest Release: v2.4.4 (2026-03-09)
-
-**🔧 Bug Fixes - API Authentication**
-
-**Key Fixes**:
-- ✅ Fixed OpenRouter API authentication - Authorization header now correctly added
-- ✅ Replaced GSON with JSONObject for config parsing to ensure proper default values
-- ✅ Fixed `authHeader` default value issue (false → true when field missing)
-- ✅ Session data now correctly saves to external storage workspace
-- ✅ Enhanced error message display with detailed debugging info
-
-**Technical Details**:
-- GSON would set missing boolean fields to `false` instead of using code defaults
-- Now using `org.json.JSONObject` with `optBoolean("authHeader", true)` for correct defaults
-- Authorization header format: `Bearer <token>` for OpenAI-compatible APIs
-- Added debug logging to track authentication header generation
-
-**📥 Download**: [v2.4.4 Release](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.4)
-
----
-
-### Previous Release: v1.0.0 (2026-03-09)
-
-**🎉 Major Release - Production Ready**
-
-**Core Features**:
-- ✅ Complete S4Claw refactor - Fixed foreground service and screenshot crashes
-- ✅ Fixed Feishu image upload (HTTP 400 → HTTP 200)
-- ✅ Full ClawHub integration
-- ✅ Stable screenshot and accessibility system
-- ✅ Complete permission management UI
-
-**S4Claw (Accessibility Service)**:
-- Foreground service auto-start success rate: ~70% → ~99%
-- Screenshot crash rate: ~30% → <1%
-- UI responsiveness: 50% improvement
-- Added storage permission management
-
-**Feishu Integration**:
-- Fixed image upload with corrected `image_type` parameter
-- Added FeishuImageUploadTool with retry mechanism
-- Complete file validation and detailed logging
-
-**📥 Download**: [v1.0.0 Release](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v1.0.0)
-
----
-
-**Previous Releases**: [View All Releases](https://github.com/xiaomochn/AndroidForClaw/releases)
-
----
-
-**AndroidForClaw** - Give AI the power to use phones 🦞📱
+**AndroidForClaw** - 赋予 AI 使用手机的能力 🦞📱

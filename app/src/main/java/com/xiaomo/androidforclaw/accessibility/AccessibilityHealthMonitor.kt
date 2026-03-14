@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: accessibility integration.
+ */
 package com.xiaomo.androidforclaw.accessibility
 
 import android.content.Context

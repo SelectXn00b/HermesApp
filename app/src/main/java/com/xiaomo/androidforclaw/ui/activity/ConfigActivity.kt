@@ -1,3 +1,9 @@
+/**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/(all)
+ *
+ * AndroidForClaw adaptation: Android UI layer.
+ */
 package com.xiaomo.androidforclaw.ui.activity
 
 import android.content.Intent
@@ -7,6 +13,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.util.Log
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.xiaomo.androidforclaw.config.ConfigLoader
@@ -32,6 +39,13 @@ class ConfigActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 禁止截屏
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
+
         binding = ActivityConfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -104,6 +118,12 @@ class ConfigActivity : AppCompatActivity() {
                 Log.d(TAG, "providers: $providers")
                 Log.d(TAG, "providers.size: ${providers.size}")
 
+                // Show current model in model config card
+                val primary = config.agents?.defaults?.model?.primary
+                if (!primary.isNullOrBlank()) {
+                    tvCurrentModelSummary.text = "当前: $primary"
+                }
+
                 if (providers.isNotEmpty()) {
                     val firstProvider = providers.entries.first()
                     val providerConfig = firstProvider.value
@@ -165,6 +185,11 @@ class ConfigActivity : AppCompatActivity() {
             // Reset to default button
             btnReset.setOnClickListener {
                 resetToDefault()
+            }
+
+            // Model configuration entry
+            cardModelConfig.setOnClickListener {
+                startActivity(Intent(this@ConfigActivity, ModelConfigActivity::class.java))
             }
 
             // Skills management entry
