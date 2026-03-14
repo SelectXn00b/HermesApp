@@ -68,7 +68,8 @@ class DeviceTool(private val context: Context) : Tool {
                         ),
                         "coordinate" to PropertySchema(
                             type = "array",
-                            description = "Fallback [x, y] coordinate when ref not available"
+                            description = "Fallback [x, y] coordinate when ref not available",
+                            items = PropertySchema(type = "integer", description = "coordinate value")
                         ),
                         "direction" to PropertySchema(
                             type = "string",
