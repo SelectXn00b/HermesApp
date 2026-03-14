@@ -63,13 +63,8 @@ class ToolRegistry(
         // register(MemoryGetTool(workspace = workspace))
 
         // === Shell tools ===
-        // Prefer Termux-backed exec when Termux is installed; otherwise fall back to internal exec.
-        val termuxExec = TermuxBridgeTool(context)
-        if (termuxExec.isAvailable()) {
-            register(termuxExec)
-        } else {
-            register(ExecTool(workingDir = workspace.absolutePath))
-        }
+        // Single exec entry with backend routing (auto/termux/internal).
+        register(ExecFacadeTool(context, workingDir = workspace.absolutePath))
 
         // === Network tools ===
         register(WebFetchTool())
