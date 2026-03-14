@@ -76,6 +76,10 @@ class ToolRegistry(
         // === JavaScript execution tools ===
         register(JavaScriptTool(context))
 
+        // === Local code execution backends ===
+        // Termux is closer to OpenClaw's universal execution backends than Android UI skills.
+        register(TermuxBridgeTool(context))
+
         Log.d(TAG, "✅ Registered ${tools.size} universal tools (incl. memory_search, memory_get)")
     }
 

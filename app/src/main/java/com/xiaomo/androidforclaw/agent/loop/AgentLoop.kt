@@ -20,6 +20,7 @@ import com.xiaomo.androidforclaw.agent.session.HistorySanitizer
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
 import com.xiaomo.androidforclaw.providers.llm.Message
@@ -71,6 +72,7 @@ class AgentLoop(
     }
 
     private val gson = Gson()
+    private val toolCallDispatcher = ToolCallDispatcher(toolRegistry, androidToolRegistry)
 
     /**
      * Resolve context window tokens from config (Gap 2).
@@ -510,17 +512,13 @@ class AgentLoop(
                         // Add timeout protection for tool execution (max 30 seconds)
                         val result = try {
                             kotlinx.coroutines.withTimeout(30_000L) {
-                                if (toolRegistry.contains(functionName)) {
-                                    writeLog("   → Universal tool")
-                                    toolRegistry.execute(functionName, args)
-                                } else if (androidToolRegistry.contains(functionName)) {
-                                    writeLog("   → Android tool")
-                                    androidToolRegistry.execute(functionName, args)
-                                } else {
-                                    writeLog("   ❌ Unknown function: $functionName")
-                                    Log.e(TAG, "   ❌ Unknown function: $functionName")
-                                    SkillResult.error("Unknown function: $functionName")
+                                val target = toolCallDispatcher.resolve(functionName)
+                                when (target) {
+                                    is ToolCallDispatcher.DispatchTarget.Universal -> writeLog("   → Universal tool")
+                                    is ToolCallDispatcher.DispatchTarget.Android -> writeLog("   → Android tool")
+                                    null -> writeLog("   ❌ Unknown function: $functionName")
                                 }
+                                toolCallDispatcher.execute(functionName, args)
                             }
                         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                             writeLog("   ⏰ Tool execution timeout after 30s")

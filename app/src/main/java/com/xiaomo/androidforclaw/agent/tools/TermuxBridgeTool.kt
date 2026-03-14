@@ -35,7 +35,7 @@ import java.io.File
  * - nodejs: Node.js
  * - shell: Bash shell
  */
-class TermuxBridgeTool(private val context: Context) : Skill {
+class TermuxBridgeTool(private val context: Context) : Tool {
     companion object {
         private const val TAG = "TermuxBridgeTool"
         private const val TERMUX_PACKAGE = "com.termux"

@@ -82,9 +82,6 @@ class AndroidToolRegistry(
         // === Feishu tools (Feishu) ===
         register(FeishuSendImageSkill(context))
 
-        // === Termux tools (Local code execution) ===
-        register(TermuxBridgeTool(context))
-
         Log.d(TAG, "✅ Registered ${tools.size} Android platform tools")
     }
 
