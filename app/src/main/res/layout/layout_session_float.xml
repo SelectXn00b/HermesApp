@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:minWidth="200dp"
-    android:maxWidth="280dp"
-    app:cardBackgroundColor="#E0FFFFFF"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="8dp">
+    android:minWidth="220dp"
+    android:maxWidth="300dp"
+    app:cardBackgroundColor="#B3000000"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,15 +16,25 @@
         android:padding="12dp">
 
         <TextView
+            android:id="@+id/tv_float_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🤖 AndroidClaw"
+            android:textColor="#CCFFFFFF"
+            android:textSize="11sp"
+            android:maxLines="1" />
+
+        <TextView
             android:id="@+id/tv_session_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="等待会话信息..."
-            android:textColor="#FF000000"
+            android:text=""
+            android:textColor="#FFFFFFFF"
             android:textSize="13sp"
-            android:maxLines="5"
+            android:maxLines="2"
             android:ellipsize="end"
-            android:lineSpacingMultiplier="1.2" />
+            android:lineSpacingMultiplier="1.2"
+            android:layout_marginTop="4dp" />
 
     </LinearLayout>
 

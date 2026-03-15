@@ -35,6 +35,8 @@ object SessionFloatWindow {
     private var isEnabled = false
     private var isMainActivityVisible = true
     private var sessionInfoTextView: TextView? = null
+    private var titleTextView: TextView? = null
+    private var latestMessage: String = ""
 
     /**
      * Initialize floating window configuration
@@ -103,8 +105,18 @@ object SessionFloatWindow {
      */
     @SuppressLint("SetTextI18n")
     fun updateSessionInfo(title: String, content: String) {
-        sessionInfoTextView?.text = "$title\n$content"
-        Log.d(TAG, "Updated session info: $title")
+        latestMessage = content
+        titleTextView?.text = "🤖 $title"
+        sessionInfoTextView?.text = content.take(100)
+        Log.d(TAG, "Updated session info: $title — ${content.take(30)}")
+    }
+
+    /**
+     * Update with latest chat message (called from AgentLoop/ChatViewModel)
+     */
+    fun updateLatestMessage(message: String) {
+        latestMessage = message
+        sessionInfoTextView?.text = message.take(100)
     }
 
     /**
@@ -122,12 +134,15 @@ object SessionFloatWindow {
             EasyFloat.with(context)
                 .setTag(FLOAT_TAG)
                 .setLayout(R.layout.layout_session_float) { view ->
-                    // Initialize view
+                    titleTextView = view.findViewById(R.id.tv_float_title)
                     sessionInfoTextView = view.findViewById(R.id.tv_session_info)
-                    sessionInfoTextView?.text = "等待会话信息..."
+                    // Show latest message if available
+                    if (latestMessage.isNotEmpty()) {
+                        sessionInfoTextView?.text = latestMessage.take(100)
+                    }
                 }
-                .setGravity(Gravity.END or Gravity.CENTER_VERTICAL, 0, 0)
-                .setShowPattern(ShowPattern.CURRENT_ACTIVITY)
+                .setGravity(Gravity.END or Gravity.BOTTOM, -16, -200)
+                .setShowPattern(ShowPattern.ALL_TIME)
                 .setSidePattern(SidePattern.RESULT_SIDE)
                 .setDragEnable(true)
                 .show()

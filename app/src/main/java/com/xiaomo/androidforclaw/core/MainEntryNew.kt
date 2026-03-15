@@ -320,6 +320,9 @@ object MainEntryNew {
 
                 // 5. Broadcast AI response (skip if already sent via block reply)
                 if (cleanFinalContent.isNotEmpty()) {
+                    // Update floating window with latest AI response
+                    com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.updateLatestMessage(cleanFinalContent)
+
                     if (lastBlockReplyText?.trim() == cleanFinalContent.trim()) {
                         Log.d(TAG, "✅ Final content matches last block reply, skipping broadcast")
                     } else {
