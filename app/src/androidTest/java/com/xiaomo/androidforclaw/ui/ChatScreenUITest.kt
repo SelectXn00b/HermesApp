@@ -347,13 +347,13 @@ fun hello() = println("world")
     @Test
     fun test60_loading_showsIndicator() {
         setContent(messages = sampleMessages(), isLoading = true)
-        composeTestRule.onNodeWithText("AI 正在思考...").assertIsDisplayed()
+        composeTestRule.onNodeWithText("正在思考...").assertIsDisplayed()
     }
 
     @Test
     fun test61_loading_hiddenWhenNotLoading() {
         setContent(messages = sampleMessages(), isLoading = false)
-        composeTestRule.onNodeWithText("AI 正在思考...").assertDoesNotExist()
+        composeTestRule.onNodeWithText("正在思考...").assertDoesNotExist()
     }
 
     // ========================================================================

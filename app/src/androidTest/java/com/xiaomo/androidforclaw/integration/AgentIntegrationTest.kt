@@ -140,9 +140,9 @@ class AgentIntegrationTest {
 
     @Test
     fun testToolRegistry_hasWaitSkill() {
-        val hasWait = toolRegistry.contains("wait")
+        val hasWait = toolRegistry.contains("device")
 
-        assertTrue("应该包含 wait skill", hasWait)
+        assertTrue("应该包含 device skill", hasWait)
     }
 
     @Test
@@ -181,7 +181,7 @@ class AgentIntegrationTest {
         val startTime = System.currentTimeMillis()
 
         // WaitSkill使用seconds参数
-        val result = toolRegistry.execute("wait", mapOf("seconds" to 0.1))
+        val result = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "wait", "timeMs" to 100))
 
         val elapsed = System.currentTimeMillis() - startTime
 
@@ -215,7 +215,7 @@ class AgentIntegrationTest {
     fun testMultipleSkills_executeSequentially() = runBlocking {
         // 执行多个技能
         val result1 = toolRegistry.execute("log", mapOf("message" to "第一个"))
-        val result2 = toolRegistry.execute("wait", mapOf("seconds" to 0.05))
+        val result2 = toolRegistry.execute("device", mapOf("action" to "act", "kind" to "wait", "timeMs" to 50))
         val result3 = toolRegistry.execute("log", mapOf("message" to "第二个"))
 
         assertTrue("所有技能应该成功", result1.success && result2.success && result3.success)
@@ -224,7 +224,7 @@ class AgentIntegrationTest {
     @Test
     fun testSkill_withInvalidArguments() = runBlocking {
         // 测试缺少必需参数
-        val result = toolRegistry.execute("wait", emptyMap())
+        val result = toolRegistry.execute("device", mapOf("action" to "invalid_action"))
 
         assertFalse("缺少参数应该失败", result.success)
         // WaitSkill返回 "Missing required parameter: seconds"
