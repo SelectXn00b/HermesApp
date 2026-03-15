@@ -719,8 +719,8 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                         else -> FeishuConfig.GroupPolicy.ALLOWLIST
                     },
                     requireMention = feishuConfig.requireMention,
-                    historyLimit = feishuConfig.historyLimit,
-                    dmHistoryLimit = feishuConfig.dmHistoryLimit
+                    historyLimit = feishuConfig.historyLimit ?: 0,
+                    dmHistoryLimit = feishuConfig.dmHistoryLimit ?: 0
                 )
 
                 // Create and start FeishuChannel

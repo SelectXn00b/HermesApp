@@ -81,9 +81,9 @@ data class FeishuChannelConfig(
     val groupSessionScope: String? = null,
     val topicSessionMode: String = "disabled",
     val replyInThread: String = "disabled",
-    // 历史
-    val historyLimit: Int = 20,
-    val dmHistoryLimit: Int = 100,
+    // 历史 (aligned with OpenClaw: optional, no limit if not configured)
+    val historyLimit: Int? = null,
+    val dmHistoryLimit: Int? = null,
     // 消息
     val textChunkLimit: Int = 4000,
     val chunkMode: String = "length",

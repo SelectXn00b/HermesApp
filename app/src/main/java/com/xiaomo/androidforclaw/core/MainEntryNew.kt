@@ -244,14 +244,28 @@ object MainEntryNew {
         // 1. Fetch all session messages
         // 2. Apply limitHistoryTurns with configurable dmHistoryLimit
         // 3. Context pruning in AgentLoop handles the rest
-        // Aligned with OpenClaw: limitHistoryTurns by user turn count
-        // Default: 5 user turns (≈10 messages) — fast on mobile/free models
-        // OpenClaw: configurable via dmHistoryLimit, context pruning handles the rest
-        val maxUserTurns = 5
-        val rawMessages = session.getRecentMessages(maxUserTurns * 4).map { it.toNewMessage() }
-        val contextHistory = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
-            .limitHistoryTurns(rawMessages.toMutableList(), maxUserTurns)
-        Log.d(TAG, "📥 [History] raw=${rawMessages.size} → limited=${contextHistory.size} ($maxUserTurns turns)")
+        // Aligned with OpenClaw: getHistoryLimitFromSessionKey → limitHistoryTurns
+        // 1. Read dmHistoryLimit from config (per-channel, per-user)
+        // 2. If not configured → no truncation (undefined → limitHistoryTurns returns all)
+        // 3. AgentLoop's context pruning (soft trim / hard clear) handles oversized context
+        val dmHistoryLimit: Int? = try {
+            val openClawConfig = configLoader?.loadOpenClawConfig()
+            // Check channels.feishu.dmHistoryLimit (or channels.android.dmHistoryLimit)
+            openClawConfig?.channels?.feishu?.dmHistoryLimit
+        } catch (_: Exception) { null }
+
+        val allMessages = session.getRecentMessages(
+            if (dmHistoryLimit != null) dmHistoryLimit * 4 else session.messages.size
+        ).map { it.toNewMessage() }
+
+        val contextHistory = if (dmHistoryLimit != null && dmHistoryLimit > 0) {
+            com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+                .limitHistoryTurns(allMessages.toMutableList(), dmHistoryLimit)
+        } else {
+            // No limit configured → send all history, AgentLoop context pruning handles the rest
+            allMessages
+        }
+        Log.d(TAG, "📥 [History] total=${session.messages.size} raw=${allMessages.size} → context=${contextHistory.size} (dmHistoryLimit=${dmHistoryLimit ?: "unlimited"})")
         Log.d(TAG, "📥 [Session] Loaded context: ${contextHistory.size} messages")
 
         if (TextUtils.isEmpty(user)) {

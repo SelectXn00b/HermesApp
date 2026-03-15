@@ -57,8 +57,8 @@ object FeishuConfigAdapter {
                 "disabled" -> FeishuConfig.TopicSessionMode.DISABLED
                 else -> FeishuConfig.TopicSessionMode.DISABLED
             },
-            historyLimit = channelConfig.historyLimit,
-            dmHistoryLimit = channelConfig.dmHistoryLimit,
+            historyLimit = channelConfig.historyLimit ?: 0,
+            dmHistoryLimit = channelConfig.dmHistoryLimit ?: 0,
             textChunkLimit = channelConfig.textChunkLimit,
             chunkMode = when (channelConfig.chunkMode) {
                 "length" -> FeishuConfig.ChunkMode.LENGTH
