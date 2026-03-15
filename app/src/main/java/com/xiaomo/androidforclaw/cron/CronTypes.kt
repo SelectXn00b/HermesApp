@@ -98,7 +98,7 @@ data class CronConfig(
 )
 
 data class CronRetryConfig(
-    val backoffMs: List<Long> = listOf(30000, 60000, 300000, 900000, 3600000)
+    val backoffMs: List<Long> = listOf(30000, 60000, 300000)  // aligned with OpenClaw default
 )
 
 data class CronRunLogConfig(
