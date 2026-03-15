@@ -345,7 +345,7 @@ Bot 可以连接但无法接收消息内容。
 
 如有问题，请查看：
 - [Discord API 文档](https://discord.com/developers/docs)
-- [项目 Issues](https://github.com/xiaomochn/AndroidForClaw/issues)
+- [项目 Issues](https://github.com/SelectXn00b/AndroidForClaw/issues)
 - [COMPLETED.md](./COMPLETED.md) - 实现文档
 
 ---

@@ -1143,7 +1143,7 @@ fun AboutCard() {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    val githubUrl = "https://github.com/xiaomochn/AndroidForClaw"
+                    val githubUrl = "https://github.com/SelectXn00b/AndroidForClaw"
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
                     try {
                         context.startActivity(intent)

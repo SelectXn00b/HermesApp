@@ -27,7 +27,7 @@ class DiscordClient(
     companion object {
         private const val TAG = "DiscordClient"
         private const val BASE_URL = "https://discord.com/api/v10"
-        private const val USER_AGENT = "AndroidForClaw (https://github.com/xiaomochn/AndroidForClaw, 3.0)"
+        private const val USER_AGENT = "AndroidForClaw (https://github.com/SelectXn00b/AndroidForClaw, 3.0)"
     }
 
     private val client = OkHttpClient.Builder()

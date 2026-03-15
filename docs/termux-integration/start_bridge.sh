@@ -78,7 +78,7 @@ install_server() {
         echo "  $SERVER_SCRIPT"
         echo ""
         echo "Or download from:"
-        echo "  https://github.com/xiaomochn/AndroidForClaw/raw/main/docs/termux-integration/phoneforclaw_server.py"
+        echo "  https://github.com/SelectXn00b/AndroidForClaw/raw/main/docs/termux-integration/phoneforclaw_server.py"
         exit 1
     fi
 

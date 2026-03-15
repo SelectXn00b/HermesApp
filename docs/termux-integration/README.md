@@ -87,7 +87,7 @@ pip3 install requests beautifulsoup4 pandas
 
 在 Termux 中运行:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xiaomochn/AndroidForClaw/main/docs/termux-integration/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/SelectXn00b/AndroidForClaw/main/docs/termux-integration/install.sh | bash
 ```
 
 **方式 B: 手动安装**
@@ -98,10 +98,10 @@ mkdir -p ~/.termux
 
 # 下载服务器脚本
 cd ~/.termux
-curl -O https://raw.githubusercontent.com/xiaomochn/AndroidForClaw/main/docs/termux-integration/phoneforclaw_server.py
+curl -O https://raw.githubusercontent.com/SelectXn00b/AndroidForClaw/main/docs/termux-integration/phoneforclaw_server.py
 
 # 下载启动脚本
-curl -O https://raw.githubusercontent.com/xiaomochn/AndroidForClaw/main/docs/termux-integration/start_bridge.sh
+curl -O https://raw.githubusercontent.com/SelectXn00b/AndroidForClaw/main/docs/termux-integration/start_bridge.sh
 
 # 设置执行权限
 chmod +x phoneforclaw_server.py start_bridge.sh
@@ -274,7 +274,7 @@ exec({
     code: `
 import requests
 
-resp = requests.get('https://api.github.com/repos/xiaomochn/AndroidForClaw')
+resp = requests.get('https://api.github.com/repos/SelectXn00b/AndroidForClaw')
 data = resp.json()
 print(f"⭐ Stars: {data['stargazers_count']}")
 print(f"🍴 Forks: {data['forks_count']}")
@@ -449,7 +449,7 @@ Bridge Server 可以访问:
 **更新 Bridge Server**:
 ```bash
 cd ~/.termux
-curl -O https://raw.githubusercontent.com/xiaomochn/AndroidForClaw/main/docs/termux-integration/phoneforclaw_server.py
+curl -O https://raw.githubusercontent.com/SelectXn00b/AndroidForClaw/main/docs/termux-integration/phoneforclaw_server.py
 ```
 
 **更新 Termux**:
@@ -516,14 +516,14 @@ exec({
 - [Termux:API Documentation](https://wiki.termux.com/wiki/Termux:API)
 - [Python in Termux](https://wiki.termux.com/wiki/Python)
 - [Node.js in Termux](https://wiki.termux.com/wiki/Node.js)
-- [AndroidForClaw Docs](https://github.com/xiaomochn/AndroidForClaw)
+- [AndroidForClaw Docs](https://github.com/SelectXn00b/AndroidForClaw)
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 PR！
 
-- GitHub: https://github.com/xiaomochn/AndroidForClaw
-- Issues: https://github.com/xiaomochn/AndroidForClaw/issues
+- GitHub: https://github.com/SelectXn00b/AndroidForClaw
+- Issues: https://github.com/SelectXn00b/AndroidForClaw/issues
 
 ## 📄 许可
 

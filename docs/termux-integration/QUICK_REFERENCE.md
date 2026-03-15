@@ -20,8 +20,8 @@ pip3 install requests beautifulsoup4 pandas
 ### 4. Install Bridge Server
 ```bash
 cd ~/.termux
-curl -O https://raw.githubusercontent.com/xiaomochn/AndroidForClaw/main/docs/termux-integration/phoneforclaw_server.py
-curl -O https://raw.githubusercontent.com/xiaomochn/AndroidForClaw/main/docs/termux-integration/start_bridge.sh
+curl -O https://raw.githubusercontent.com/SelectXn00b/AndroidForClaw/main/docs/termux-integration/phoneforclaw_server.py
+curl -O https://raw.githubusercontent.com/SelectXn00b/AndroidForClaw/main/docs/termux-integration/start_bridge.sh
 chmod +x start_bridge.sh
 ```
 

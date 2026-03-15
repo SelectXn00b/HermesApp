@@ -1,7 +1,7 @@
 # 📱 AndroidForClaw — OpenClaw for Android, Now Available
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://www.android.com/)
 
 **[中文文档](README.md)** | **[📖 Feishu Docs](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[🚀 Quick Start](#-quick-start)** | **[🤝 Contributing](#-contributing)**
@@ -10,15 +10,15 @@
 
 ## 📥 Download
 
-### Latest Release: [v1.0.0](https://github.com/xiaomochn/AndroidForClaw/releases/latest)
+### Latest Release: [v1.0.0](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 
 | APK | Description | Size |
 |-----|-------------|------|
-| **[AndroidForClaw](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | Main app (required) | ~22MB |
-| **[S4Claw](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | Accessibility + Screenshot (required) | ~4.4MB |
-| **[BrowserForClaw](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | AI Browser (optional) | ~8.4MB |
-| **[Termux](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | Terminal environment (optional) | ~32MB |
-| **[Termux-API](https://github.com/xiaomochn/AndroidForClaw/releases/latest)** | Terminal API (optional) | ~6.8MB |
+| **[AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Main app (required) | ~22MB |
+| **[S4Claw](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Accessibility + Screenshot (required) | ~4.4MB |
+| **[BrowserForClaw](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | AI Browser (optional) | ~8.4MB |
+| **[Termux](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Terminal environment (optional) | ~32MB |
+| **[Termux-API](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)** | Terminal API (optional) | ~6.8MB |
 
 > 💡 First launch shows a setup wizard — just enter an [OpenRouter API Key](https://openrouter.ai/keys) (free to register) and you're good to go!
 
@@ -92,7 +92,7 @@ Via Accessibility Service — anything you can do manually, AI can do too:
 
 ### Option 1: Download APK (Recommended)
 
-1. **Download** from [Release page](https://github.com/xiaomochn/AndroidForClaw/releases/latest)
+1. **Download** from [Release page](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 2. **Install** AndroidForClaw + S4Claw (required), BrowserForClaw (optional)
 3. **Configure** — First launch shows setup wizard, enter [OpenRouter API Key](https://openrouter.ai/keys)
 4. **Authorize** — Open S4Claw, enable Accessibility Service + Screen Capture
@@ -101,7 +101,7 @@ Via Accessibility Service — anything you can do manually, AI can do too:
 ### Option 2: Build from Source
 
 ```bash
-git clone https://github.com/xiaomochn/AndroidForClaw.git
+git clone https://github.com/SelectXn00b/AndroidForClaw.git
 cd AndroidForClaw
 
 ./gradlew :app:assembleRelease
@@ -183,7 +183,7 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 - **[Feishu Group](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)**
 - **[Discord](https://discord.gg/k9NKrXUN)**
-- **[GitHub Issues](https://github.com/xiaomochn/AndroidForClaw/issues)**
+- **[GitHub Issues](https://github.com/SelectXn00b/AndroidForClaw/issues)**
 
 ---
 

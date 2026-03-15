@@ -62,13 +62,13 @@ cat > $RELEASE_DIR/RELEASE_NOTES.md << EOF
 ### 国内镜像加速 (推荐)
 \`\`\`bash
 # 主应用
-curl -LO "https://ghproxy.com/https://github.com/xiaomochn/AndroidForClaw/releases/download/$VERSION/AndroidForClaw.apk"
+curl -LO "https://ghproxy.com/https://github.com/SelectXn00b/AndroidForClaw/releases/download/$VERSION/AndroidForClaw.apk"
 
 # 无障碍服务
-curl -LO "https://ghproxy.com/https://github.com/xiaomochn/AndroidForClaw/releases/download/$VERSION/ObserverService.apk"
+curl -LO "https://ghproxy.com/https://github.com/SelectXn00b/AndroidForClaw/releases/download/$VERSION/ObserverService.apk"
 
 # 浏览器
-curl -LO "https://ghproxy.com/https://github.com/xiaomochn/AndroidForClaw/releases/download/$VERSION/BrowserForClaw.apk"
+curl -LO "https://ghproxy.com/https://github.com/SelectXn00b/AndroidForClaw/releases/download/$VERSION/BrowserForClaw.apk"
 \`\`\`
 
 ## ✨ 更新内容
@@ -97,11 +97,11 @@ $(cat $RELEASE_DIR/SHA256SUMS.txt)
 
 首次使用需要配置 \`/sdcard/.androidforclaw/openclaw.json\`
 
-详见: https://github.com/xiaomochn/AndroidForClaw#configuration
+详见: https://github.com/SelectXn00b/AndroidForClaw#configuration
 
 ---
 
-**完整文档**: https://github.com/xiaomochn/AndroidForClaw
+**完整文档**: https://github.com/SelectXn00b/AndroidForClaw
 EOF
 
 echo -e "\n${GREEN}✅ Release package ready in $RELEASE_DIR/${NC}"
@@ -109,4 +109,4 @@ echo -e "${GREEN}✅ Release notes created${NC}"
 echo -e "\n${YELLOW}Next steps:${NC}"
 echo -e "1. Review release notes: ${GREEN}$RELEASE_DIR/RELEASE_NOTES.md${NC}"
 echo -e "2. Create GitHub release: ${GREEN}gh release create $VERSION $RELEASE_DIR/*.apk --notes-file $RELEASE_DIR/RELEASE_NOTES.md${NC}"
-echo -e "3. Or manually upload to: ${GREEN}https://github.com/xiaomochn/AndroidForClaw/releases/new${NC}"
+echo -e "3. Or manually upload to: ${GREEN}https://github.com/SelectXn00b/AndroidForClaw/releases/new${NC}"

@@ -31,8 +31,8 @@ import kotlin.coroutines.resume
  * 2. Compares version with current app version
  * 3. If newer: downloadAndInstall() → DownloadManager + install intent
  *
- * GitHub Release URL: https://github.com/xiaomochn/AndroidForClaw/releases
- * API: https://api.github.com/repos/xiaomochn/AndroidForClaw/releases/latest
+ * GitHub Release URL: https://github.com/SelectXn00b/AndroidForClaw/releases
+ * API: https://api.github.com/repos/SelectXn00b/AndroidForClaw/releases/latest
  */
 class AppUpdater(private val context: Context) {
 

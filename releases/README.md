@@ -2,7 +2,7 @@
 
 Pre-built APK packages, ready to use.
 
-**📥 Latest Release**: [v2.5.0](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.5.0)
+**📥 Latest Release**: [v2.5.0](https://github.com/SelectXn00b/AndroidForClaw/releases/tag/v2.5.0)
 
 ## 📦 Latest Version: v2.5.0 (2026-03-11)
 
@@ -136,7 +136,7 @@ All APKs are signed with unified keystore for compatibility:
 - BrowserForClaw uses port 8765 (not 8766)
 - Don't use open_app for browser operations, use browser tool directly
 
-**📥 Download:** [GitHub Releases](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.3)
+**📥 Download:** [GitHub Releases](https://github.com/SelectXn00b/AndroidForClaw/releases/tag/v2.4.3)
 
 **🔗 Related Docs:**
 - [CLAWHUB_GUIDE.md](../CLAWHUB_GUIDE.md) - ClawHub integration guide
@@ -148,8 +148,8 @@ All APKs are signed with unified keystore for compatibility:
 Having issues?
 
 1. Check [Documentation](../docs/README.md)
-2. Search [Known Issues](https://github.com/xiaomochn/AndroidForClaw/issues)
-3. Submit [New Issue](https://github.com/xiaomochn/AndroidForClaw/issues/new)
+2. Search [Known Issues](https://github.com/SelectXn00b/AndroidForClaw/issues)
+3. Submit [New Issue](https://github.com/SelectXn00b/AndroidForClaw/issues/new)
 
 ## 📚 More Resources
 

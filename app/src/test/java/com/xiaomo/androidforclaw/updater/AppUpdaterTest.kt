@@ -16,8 +16,8 @@ class AppUpdaterTest {
         assertEquals("xiaomochn", AppUpdater.GITHUB_OWNER)
         assertEquals("AndroidForClaw", AppUpdater.GITHUB_REPO)
         assertTrue(AppUpdater.GITHUB_API_LATEST.contains("api.github.com"))
-        assertTrue(AppUpdater.GITHUB_API_LATEST.contains("xiaomochn/AndroidForClaw"))
-        assertTrue(AppUpdater.GITHUB_RELEASES_URL.contains("github.com/xiaomochn/AndroidForClaw/releases"))
+        assertTrue(AppUpdater.GITHUB_API_LATEST.contains("SelectXn00b/AndroidForClaw"))
+        assertTrue(AppUpdater.GITHUB_RELEASES_URL.contains("github.com/SelectXn00b/AndroidForClaw/releases"))
     }
 
     @Test
