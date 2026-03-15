@@ -94,14 +94,17 @@ class ExecTool(
 
                 val process = processBuilder.start()
 
-                // Wait with timeout
-                val result = withTimeout(timeout) {
-                    val stdout = BufferedReader(InputStreamReader(process.inputStream))
-                        .readText()
-                    val stderr = BufferedReader(InputStreamReader(process.errorStream))
-                        .readText()
+                // Wait with real process timeout (blocking IO immune to coroutine cancellation)
+                val timeoutSec = (timeout / 1000).coerceAtLeast(5)
+                val finished = process.waitFor(timeoutSec, java.util.concurrent.TimeUnit.SECONDS)
+                if (!finished) {
+                    process.destroyForcibly()
+                    return@withContext ToolResult.error("Command timed out after ${timeoutSec}s")
+                }
 
-                    process.waitFor()
+                val result = run {
+                    val stdout = process.inputStream.bufferedReader().readText()
+                    val stderr = process.errorStream.bufferedReader().readText()
 
                     val exitCode = process.exitValue()
 
