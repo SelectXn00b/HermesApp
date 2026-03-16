@@ -31,6 +31,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool
+import com.xiaomo.androidforclaw.agent.tools.TermuxStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,12 +56,14 @@ class TermuxSetupActivity : ComponentActivity() {
 fun TermuxSetupScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val bridge = remember { TermuxBridgeTool(context) }
 
     // Status checks
     var termuxInstalled by remember { mutableStateOf(false) }
+    var termuxApiInstalled by remember { mutableStateOf(false) }
     var sshReachable by remember { mutableStateOf(false) }
     var sshConfigured by remember { mutableStateOf(false) }
-    var pythonAvailable by remember { mutableStateOf(false) }
+    var statusMessage by remember { mutableStateOf("等待检测...") }
     var checking by remember { mutableStateOf(true) }
 
     // Generate setup command
@@ -73,103 +77,12 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
     fun checkStatus() {
         scope.launch {
             withContext(Dispatchers.IO) {
-                // Check Termux installed
-                termuxInstalled = try {
-                    context.packageManager.getPackageInfo("com.termux", 0)
-                    true
-                } catch (_: Exception) { false }
-
-                // Check SSH reachable
-                sshReachable = try {
-                    Socket().use { socket ->
-                        socket.connect(java.net.InetSocketAddress("127.0.0.1", 8022), 1000)
-                        true
-                    }
-                } catch (_: Exception) { false }
-
-                // Check SSH config exists
-                sshConfigured = try {
-                    val file = File("/sdcard/.androidforclaw/termux_ssh.json")
-                    file.exists() && file.readText().contains("user")
-                } catch (_: Exception) { false }
-
-                // Auto-configure: if SSH reachable but config not written, do it now
-                if (sshReachable && !sshConfigured) {
-                    try {
-                        // Try to detect username via SSH and write config automatically
-                        val keyFile = "/sdcard/.androidforclaw/.ssh/id_ed25519"
-                        if (File(keyFile).exists()) {
-                            // Try common Termux usernames
-                            val sshj = net.schmizz.sshj.SSHClient(net.schmizz.sshj.DefaultConfig())
-                            sshj.addHostKeyVerifier(net.schmizz.sshj.transport.verification.PromiscuousVerifier())
-                            sshj.connectTimeout = 5000
-                            sshj.connect("127.0.0.1", 8022)
-
-                            var detectedUser: String? = null
-                            for (tryUser in listOf("shell", "u0_a408", "u0_a100", "u0_a200", "u0_a300")) {
-                                try {
-                                    val keys = sshj.loadKeys(keyFile)
-                                    sshj.authPublickey(tryUser, keys)
-                                    detectedUser = tryUser
-                                    break
-                                } catch (_: Exception) { continue }
-                            }
-
-                            if (detectedUser == null) {
-                                // Brute-force: try u0_a{100..500}
-                                for (i in 100..500) {
-                                    try {
-                                        val reconnect = net.schmizz.sshj.SSHClient(net.schmizz.sshj.DefaultConfig())
-                                        reconnect.addHostKeyVerifier(net.schmizz.sshj.transport.verification.PromiscuousVerifier())
-                                        reconnect.connectTimeout = 2000
-                                        reconnect.connect("127.0.0.1", 8022)
-                                        val keys = reconnect.loadKeys(keyFile)
-                                        reconnect.authPublickey("u0_a$i", keys)
-                                        detectedUser = "u0_a$i"
-                                        reconnect.disconnect()
-                                        break
-                                    } catch (_: Exception) { }
-                                }
-                            } else {
-                                // Get actual username via whoami
-                                try {
-                                    val session = sshj.startSession()
-                                    val cmd = session.exec("whoami")
-                                    cmd.join(3, java.util.concurrent.TimeUnit.SECONDS)
-                                    val whoami = cmd.inputStream.bufferedReader().readText().trim()
-                                    if (whoami.isNotBlank()) detectedUser = whoami
-                                    session.close()
-                                } catch (_: Exception) { }
-                                sshj.disconnect()
-                            }
-
-                            if (detectedUser != null) {
-                                val config = """{"user":"$detectedUser","key_file":"$keyFile"}"""
-                                File("/sdcard/.androidforclaw/termux_ssh.json").writeText(config)
-                                sshConfigured = true
-                                android.util.Log.i("TermuxSetup", "Auto-configured SSH: user=$detectedUser")
-                            }
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.w("TermuxSetup", "Auto-config failed: ${e.message}")
-                    }
-                }
-
-                // Check keypair exists
-                val keyExists = File("/sdcard/.androidforclaw/.ssh/id_ed25519").exists()
-                if (!keyExists) {
-                    // Generate keypair
-                    try {
-                        val keyDir = File("/sdcard/.androidforclaw/.ssh")
-                        keyDir.mkdirs()
-                        val process = Runtime.getRuntime().exec(arrayOf(
-                            "sh", "-c",
-                            "ssh-keygen -t ed25519 -f /sdcard/.androidforclaw/.ssh/id_ed25519 -N '' -q 2>/dev/null"
-                        ))
-                        process.waitFor()
-                    } catch (_: Exception) {}
-                }
-
+                val status: TermuxStatus = bridge.getStatus()
+                termuxInstalled = status.termuxInstalled
+                termuxApiInstalled = status.termuxApiInstalled
+                sshReachable = status.sshReachable
+                sshConfigured = status.sshConfigPresent
+                statusMessage = status.message
                 checking = false
             }
         }
@@ -223,6 +136,17 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
 
             Divider()
 
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("当前状态", style = MaterialTheme.typography.titleSmall)
+                    Text("- Termux: ${if (termuxInstalled) "已安装" else "未安装"}")
+                    Text("- Termux:API: ${if (termuxApiInstalled) "已安装" else "未安装"}")
+                    Text("- SSH 8022: ${if (sshReachable) "可连接" else "不可连接"}")
+                    Text("- SSH 配置: ${if (sshConfigured) "已生成" else "未生成"}")
+                    Text("- 当前卡点: $statusMessage", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
             // Step 1: Install Termux
             StepCard(
                 step = 1,
@@ -246,7 +170,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
             StepCard(
                 step = 2,
                 title = "打开 Termux，粘贴一行命令",
-                description = "复制命令 → 打开 Termux → 长按粘贴 → 回车\n（SSH 密钥和配置文件由 APP 自动处理，无需手动操作）",
+                description = "复制命令 → 打开 Termux → 长按粘贴 → 回车\n（理想情况会逐步自动完成；如果失败，请看上面的具体卡点）",
                 done = sshReachable && sshConfigured
             )
 

@@ -6,6 +6,7 @@
  */
 package com.xiaomo.androidforclaw.agent.tools
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -37,6 +38,8 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     companion object {
         private const val TAG = "TermuxBridgeTool"
         private const val TERMUX_PACKAGE = "com.termux"
+        private const val TERMUX_API_PACKAGE = "com.termux.api"
+        private const val RUN_COMMAND_PERMISSION = "com.termux.permission.RUN_COMMAND"
         private const val SSH_HOST = "127.0.0.1"
         private const val SSH_PORT = 8022
         private const val DEFAULT_TIMEOUT_S = 60
@@ -96,6 +99,40 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     fun isAvailable(): Boolean = isTermuxInstalled() && isSSHReachable()
 
+    fun getStatus(): TermuxStatus {
+        val termuxInstalled = isTermuxInstalled()
+        val termuxApiInstalled = isTermuxApiInstalled()
+        val runCommandPermissionDeclared = isRunCommandPermissionDeclared()
+        val runCommandServiceAvailable = isRunCommandServiceAvailable()
+        val sshReachable = isSSHReachable()
+        val sshConfigPresent = File(SSH_CONFIG_FILE).exists()
+        val keypairPresent = File(PRIVATE_KEY).exists() && File(PUBLIC_KEY).exists()
+
+        val (step, message) = when {
+            !termuxInstalled -> TermuxSetupStep.TERMUX_NOT_INSTALLED to "Termux 未安装"
+            !termuxApiInstalled -> TermuxSetupStep.TERMUX_API_NOT_INSTALLED to "Termux:API 未安装"
+            !runCommandPermissionDeclared -> TermuxSetupStep.RUN_COMMAND_PERMISSION_DENIED to "App 未声明 RUN_COMMAND 权限"
+            !runCommandServiceAvailable -> TermuxSetupStep.RUN_COMMAND_SERVICE_MISSING to "Termux RUN_COMMAND 服务不可用"
+            !keypairPresent -> TermuxSetupStep.KEYPAIR_MISSING to "SSH 密钥对未生成"
+            !sshReachable && !sshConfigPresent -> TermuxSetupStep.SSHD_NOT_REACHABLE to "sshd 未启动，SSH 端口 8022 不可达"
+            !sshReachable -> TermuxSetupStep.SSHD_NOT_REACHABLE to "SSH 端口 8022 不可达"
+            !sshConfigPresent -> TermuxSetupStep.SSH_CONFIG_MISSING to "termux_ssh.json 未生成"
+            else -> TermuxSetupStep.READY to "Termux 已就绪"
+        }
+
+        return TermuxStatus(
+            termuxInstalled = termuxInstalled,
+            termuxApiInstalled = termuxApiInstalled,
+            runCommandPermissionDeclared = runCommandPermissionDeclared,
+            runCommandServiceAvailable = runCommandServiceAvailable,
+            sshReachable = sshReachable,
+            sshConfigPresent = sshConfigPresent,
+            keypairPresent = keypairPresent,
+            lastStep = step,
+            message = message
+        )
+    }
+
     private fun isTermuxInstalled(): Boolean {
         return try {
             context.packageManager.getPackageInfo(TERMUX_PACKAGE, 0)
@@ -103,6 +140,26 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         } catch (e: PackageManager.NameNotFoundException) {
             false
         }
+    }
+
+    private fun isTermuxApiInstalled(): Boolean {
+        return try {
+            context.packageManager.getPackageInfo(TERMUX_API_PACKAGE, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
+
+    private fun isRunCommandPermissionDeclared(): Boolean {
+        return context.packageManager.checkPermission(RUN_COMMAND_PERMISSION, context.packageName) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun isRunCommandServiceAvailable(): Boolean {
+        val intent = Intent("com.termux.RUN_COMMAND").apply {
+            component = ComponentName(TERMUX_PACKAGE, "com.termux.app.RunCommandService")
+        }
+        return context.packageManager.resolveService(intent, 0) != null
     }
 
     private fun isSSHReachable(): Boolean {
@@ -127,6 +184,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
      */
     private suspend fun ensureSSHReady(): Boolean {
         if (isSSHReachable() && hasCredentials()) return true
+        if (!isTermuxInstalled() || !isRunCommandPermissionDeclared() || !isRunCommandServiceAvailable()) return false
 
         Log.i(TAG, "SSH not ready, attempting auto-setup...")
 
@@ -396,11 +454,13 @@ class TermuxBridgeTool(private val context: Context) : Tool {
     // ==================== Tool Interface ====================
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        // 1. Check Termux installed
-        if (!isTermuxInstalled()) {
+        // 1. Check Termux status first
+        val initialStatus = getStatus()
+        if (!initialStatus.termuxInstalled) {
             return ToolResult(
                 success = false,
-                content = "Termux is not installed. Install from F-Droid: https://f-droid.org/packages/com.termux/"
+                content = "Termux is not installed. Install from F-Droid: https://f-droid.org/packages/com.termux/",
+                metadata = mapOf("backend" to "termux", "status" to initialStatus.message, "step" to initialStatus.lastStep.name)
             )
         }
 
@@ -427,9 +487,20 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         // 3. Ensure SSH is ready (auto-setup if needed)
         val sshReady = withContext(Dispatchers.IO) { ensureSSHReady() }
         if (!sshReady) {
+            val status = getStatus()
+            val fallback = when (status.lastStep) {
+                TermuxSetupStep.TERMUX_API_NOT_INSTALLED -> "Termux:API is not installed yet."
+                TermuxSetupStep.RUN_COMMAND_PERMISSION_DENIED -> "RUN_COMMAND permission is unavailable for this app build."
+                TermuxSetupStep.RUN_COMMAND_SERVICE_MISSING -> "Termux RUN_COMMAND service is unavailable."
+                TermuxSetupStep.KEYPAIR_MISSING -> "SSH keypair is missing."
+                TermuxSetupStep.SSHD_NOT_REACHABLE -> "sshd is not reachable on 127.0.0.1:8022."
+                TermuxSetupStep.SSH_CONFIG_MISSING -> "SSH config file was not generated."
+                else -> "Please open Termux and run: pkg install openssh && sshd"
+            }
             return ToolResult(
                 success = false,
-                content = "Termux is not ready. Please open Termux and run: pkg install openssh && sshd"
+                content = "Termux is not ready: ${status.message} $fallback",
+                metadata = mapOf("backend" to "termux", "status" to status.message, "step" to status.lastStep.name)
             )
         }
 
