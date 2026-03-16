@@ -46,6 +46,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
         private const val CONFIG_DIR = "/sdcard/.androidforclaw"
         private const val SSH_CONFIG_FILE = "$CONFIG_DIR/termux_ssh.json"
+        private const val STATUS_FILE = "$CONFIG_DIR/termux_setup_status.json"
         private const val KEY_DIR = "$CONFIG_DIR/.ssh"
         private const val PRIVATE_KEY = "$KEY_DIR/id_ed25519"
         private const val PUBLIC_KEY = "$KEY_DIR/id_ed25519.pub"
@@ -130,7 +131,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             keypairPresent = keypairPresent,
             lastStep = step,
             message = message
-        )
+        ).also { persistStatus(it) }
     }
 
     private fun isTermuxInstalled(): Boolean {
@@ -364,6 +365,29 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             json.optString("user", "").isNotEmpty() &&
                 (json.optString("password", "").isNotEmpty() || json.optString("key_file", "").isNotEmpty())
         } catch (e: Exception) { false }
+    }
+
+    private fun persistStatus(status: TermuxStatus) {
+        try {
+            val json = org.json.JSONObject().apply {
+                put("termuxInstalled", status.termuxInstalled)
+                put("termuxApiInstalled", status.termuxApiInstalled)
+                put("runCommandPermissionDeclared", status.runCommandPermissionDeclared)
+                put("runCommandServiceAvailable", status.runCommandServiceAvailable)
+                put("sshReachable", status.sshReachable)
+                put("sshConfigPresent", status.sshConfigPresent)
+                put("keypairPresent", status.keypairPresent)
+                put("lastStep", status.lastStep.name)
+                put("message", status.message)
+                put("ready", status.ready)
+                put("updatedAt", System.currentTimeMillis())
+            }
+            val file = File(STATUS_FILE)
+            file.parentFile?.mkdirs()
+            file.writeText(json.toString(2))
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to persist Termux status: ${e.message}")
+        }
     }
 
     // ==================== SSH Execution ====================
