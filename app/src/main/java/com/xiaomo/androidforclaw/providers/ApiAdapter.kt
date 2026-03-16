@@ -50,9 +50,11 @@ object ApiAdapter {
             ModelApi.ANTHROPIC_MESSAGES -> buildAnthropicRequest(
                 model, messages, tools, temperature, maxTokens, reasoningEnabled
             )
-            ModelApi.OPENAI_COMPLETIONS,
+            ModelApi.OPENAI_COMPLETIONS -> buildOpenAIRequest(
+                model, messages, tools, temperature, maxTokens, reasoningEnabled
+            )
             ModelApi.OPENAI_RESPONSES,
-            ModelApi.OPENAI_CODEX_RESPONSES -> buildOpenAIRequest(
+            ModelApi.OPENAI_CODEX_RESPONSES -> buildOpenAIResponsesRequest(
                 model, messages, tools, temperature, maxTokens, reasoningEnabled
             )
             ModelApi.GOOGLE_GENERATIVE_AI -> buildGeminiRequest(
@@ -122,10 +124,10 @@ object ApiAdapter {
         return when (api) {
             ModelApi.ANTHROPIC_MESSAGES -> parseAnthropicResponse(responseBody)
             ModelApi.OPENAI_COMPLETIONS,
-            ModelApi.OPENAI_RESPONSES,
-            ModelApi.OPENAI_CODEX_RESPONSES,
             ModelApi.OLLAMA,
             ModelApi.GITHUB_COPILOT -> parseOpenAIResponse(responseBody)
+            ModelApi.OPENAI_RESPONSES,
+            ModelApi.OPENAI_CODEX_RESPONSES -> parseOpenAIResponsesResponse(responseBody)
             ModelApi.GOOGLE_GENERATIVE_AI -> parseGeminiResponse(responseBody)
             else -> parseOpenAIResponse(responseBody)  // Parse as OpenAI format by default
         }
@@ -370,7 +372,7 @@ object ApiAdapter {
         val choice = choices.getJSONObject(0)
         val message = choice.getJSONObject("message")
 
-        val content = if (message.isNull("content")) null else message.optString("content", null)
+        val content = if (message.isNull("content")) null else message.optString("content")
         val toolCallsArray = message.optJSONArray("tool_calls")
         val toolCalls = if (toolCallsArray != null) {
             mutableListOf<ToolCall>().apply {
@@ -401,6 +403,204 @@ object ApiAdapter {
             toolCalls = toolCalls,
             usage = usage,
             finishReason = choice.optString("finish_reason")
+        )
+    }
+
+    private fun buildOpenAIResponsesRequest(
+        model: ModelDefinition,
+        messages: List<Message>,
+        tools: List<NewToolDefinition>?,
+        temperature: Double,
+        maxTokens: Int?,
+        reasoningEnabled: Boolean
+    ): JSONObject {
+        val json = JSONObject()
+        json.put("model", model.id)
+        json.put("temperature", temperature)
+        json.put("max_output_tokens", maxTokens ?: model.maxTokens)
+
+        val input = JSONArray()
+        messages.forEach { message ->
+            when (message.role) {
+                "system" -> {
+                    if (message.content.isNotBlank()) {
+                        input.put(JSONObject().apply {
+                            put("type", "message")
+                            put("role", "system")
+                            put("content", message.content)
+                        })
+                    }
+                }
+                "user" -> {
+                    if (message.content.isNotBlank()) {
+                        input.put(JSONObject().apply {
+                            put("type", "message")
+                            put("role", "user")
+                            put("content", message.content)
+                        })
+                    }
+                }
+                "assistant" -> {
+                    if (message.content.isNotBlank()) {
+                        input.put(JSONObject().apply {
+                            put("type", "message")
+                            put("role", "assistant")
+                            put("content", message.content)
+                        })
+                    }
+                    buildResponsesFunctionCallItems(message).forEach { input.put(it) }
+                }
+                "tool" -> {
+                    buildResponsesFunctionCallOutputItem(message)?.let { input.put(it) }
+                }
+            }
+        }
+        json.put("input", input)
+
+        if (!tools.isNullOrEmpty()) {
+            val responsesTools = JSONArray()
+            tools.forEach { tool ->
+                responsesTools.put(JSONObject().apply {
+                    put("type", "function")
+                    put("name", tool.function.name)
+                    put("description", tool.function.description)
+                    put("parameters", buildParametersJson(tool.function.parameters))
+                })
+            }
+            json.put("tools", responsesTools)
+        }
+
+        if (reasoningEnabled && model.reasoning && model.compat?.supportsReasoningEffort == true) {
+            json.put("reasoning", JSONObject().apply {
+                put("effort", "medium")
+            })
+        }
+
+        return json
+    }
+
+    internal data class ResponsesFunctionCallItem(
+        val type: String,
+        val callId: String,
+        val name: String,
+        val arguments: String
+    )
+
+    internal data class ResponsesFunctionCallOutputItem(
+        val type: String,
+        val callId: String,
+        val output: String
+    )
+
+    internal fun buildResponsesFunctionCallItemsSpec(message: Message): List<ResponsesFunctionCallItem> {
+        return message.toolCalls?.map { toolCall ->
+            ResponsesFunctionCallItem(
+                type = "function_call",
+                callId = toolCall.id,
+                name = toolCall.name,
+                arguments = toolCall.arguments
+            )
+        } ?: emptyList()
+    }
+
+    internal fun buildResponsesFunctionCallOutputItemSpec(message: Message): ResponsesFunctionCallOutputItem? {
+        if (message.role != "tool" || message.toolCallId.isNullOrBlank()) return null
+        return ResponsesFunctionCallOutputItem(
+            type = "function_call_output",
+            callId = message.toolCallId,
+            output = message.content
+        )
+    }
+
+    internal fun buildResponsesFunctionCallItems(message: Message): List<JSONObject> {
+        return buildResponsesFunctionCallItemsSpec(message).map { item ->
+            JSONObject().apply {
+                put("type", item.type)
+                put("call_id", item.callId)
+                put("name", item.name)
+                put("arguments", item.arguments)
+            }
+        }
+    }
+
+    internal fun buildResponsesFunctionCallOutputItem(message: Message): JSONObject? {
+        val item = buildResponsesFunctionCallOutputItemSpec(message) ?: return null
+        return JSONObject().apply {
+            put("type", item.type)
+            put("call_id", item.callId)
+            put("output", item.output)
+        }
+    }
+
+    private fun parseOpenAIResponsesResponse(responseBody: String): ParsedResponse {
+        val json = JSONObject(responseBody)
+
+        val error = json.optJSONObject("error")
+        if (error != null) {
+            val msg = error.optString("message", "Unknown API error")
+            throw LLMException("API error: $msg")
+        }
+
+        val output = json.optJSONArray("output") ?: JSONArray()
+        var content: String? = null
+        val toolCalls = mutableListOf<ToolCall>()
+
+        for (i in 0 until output.length()) {
+            val item = output.getJSONObject(i)
+            when (item.optString("type")) {
+                "message" -> {
+                    val role = item.optString("role")
+                    if (role == "assistant") {
+                        val contentArray = item.optJSONArray("content")
+                        if (contentArray != null) {
+                            val text = buildString {
+                                for (j in 0 until contentArray.length()) {
+                                    val part = contentArray.getJSONObject(j)
+                                    if (part.optString("type") == "output_text") {
+                                        append(part.optString("text"))
+                                    }
+                                }
+                            }.trim()
+                            if (text.isNotEmpty()) {
+                                content = if (content.isNullOrEmpty()) text else content + text
+                            }
+                        }
+                    }
+                }
+                "function_call" -> {
+                    val callId = item.optString("call_id")
+                    val name = item.optString("name")
+                    val arguments = item.optString("arguments", "{}")
+                    if (callId.isNotBlank() && name.isNotBlank()) {
+                        toolCalls.add(
+                            ToolCall(
+                                id = callId,
+                                name = name,
+                                arguments = arguments
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        val usage = json.optJSONObject("usage")?.let {
+            Usage(
+                promptTokens = it.optInt("input_tokens", 0),
+                completionTokens = it.optInt("output_tokens", 0)
+            )
+        }
+
+        val finishReason = when {
+            toolCalls.isNotEmpty() -> "tool_calls"
+            else -> json.optString("status")
+        }
+
+        return ParsedResponse(
+            content = content,
+            toolCalls = toolCalls.ifEmpty { null },
+            usage = usage,
+            finishReason = finishReason
         )
     }
 

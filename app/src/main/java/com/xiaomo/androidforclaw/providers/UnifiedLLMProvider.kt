@@ -387,9 +387,12 @@ class UnifiedLLMProvider(private val context: Context) {
             ModelApi.ANTHROPIC_MESSAGES -> {
                 "$baseUrl/messages"
             }
-            ModelApi.OPENAI_COMPLETIONS,
-            ModelApi.OPENAI_RESPONSES -> {
+            ModelApi.OPENAI_COMPLETIONS -> {
                 "$baseUrl/chat/completions"
+            }
+            ModelApi.OPENAI_RESPONSES,
+            ModelApi.OPENAI_CODEX_RESPONSES -> {
+                "$baseUrl/responses"
             }
             ModelApi.GOOGLE_GENERATIVE_AI -> {
                 "$baseUrl/models/${model.id}:generateContent"
