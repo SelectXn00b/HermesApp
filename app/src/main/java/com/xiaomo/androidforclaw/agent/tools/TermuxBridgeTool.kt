@@ -182,6 +182,13 @@ class TermuxBridgeTool(private val context: Context) : Tool {
      * 3. Deploy authorized_keys
      * 4. Start sshd
      */
+    suspend fun triggerAutoSetup(): TermuxStatus {
+        withContext(Dispatchers.IO) {
+            ensureSSHReady()
+        }
+        return getStatus()
+    }
+
     private suspend fun ensureSSHReady(): Boolean {
         if (isSSHReachable() && hasCredentials()) return true
         if (!isTermuxInstalled() || !isRunCommandPermissionDeclared() || !isRunCommandServiceAvailable()) return false

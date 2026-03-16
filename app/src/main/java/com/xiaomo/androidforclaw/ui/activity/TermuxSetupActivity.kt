@@ -37,8 +37,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.net.Socket
 
 class TermuxSetupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +63,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
     var sshConfigured by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("等待检测...") }
     var checking by remember { mutableStateOf(true) }
+    var autoSettingUp by remember { mutableStateOf(false) }
 
     // Generate setup command
     // Minimal command — only things that MUST run inside Termux
@@ -144,6 +143,30 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     Text("- SSH 8022: ${if (sshReachable) "可连接" else "不可连接"}")
                     Text("- SSH 配置: ${if (sshConfigured) "已生成" else "未生成"}")
                     Text("- 当前卡点: $statusMessage", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                autoSettingUp = true
+                                val status = withContext(Dispatchers.IO) { bridge.triggerAutoSetup() }
+                                termuxInstalled = status.termuxInstalled
+                                termuxApiInstalled = status.termuxApiInstalled
+                                sshReachable = status.sshReachable
+                                sshConfigured = status.sshConfigPresent
+                                statusMessage = status.message
+                                autoSettingUp = false
+                            }
+                        },
+                        enabled = termuxInstalled && !autoSettingUp && !(sshReachable && sshConfigured)
+                    ) {
+                        if (autoSettingUp) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                            Text("自动配置中...")
+                        } else {
+                            Text("尝试自动配置")
+                        }
+                    }
                 }
             }
 
