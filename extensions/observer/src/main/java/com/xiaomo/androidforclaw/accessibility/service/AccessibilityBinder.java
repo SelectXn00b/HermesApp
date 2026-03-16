@@ -37,11 +37,12 @@ public class AccessibilityBinder extends IAccessibilityService.Stub {
 
     @Override
     public boolean isServiceReady() {
-        if (service == null) {
-            Log.w(TAG, "isServiceReady: service is null");
+        PhoneAccessibilityService svc = waitForService();
+        if (svc == null) {
+            Log.w(TAG, "isServiceReady: service is null after wait");
             return false;
         }
-        return service.getRootInActiveWindow() != null;
+        return svc.getRootInActiveWindow() != null;
     }
 
     @Override
@@ -51,12 +52,13 @@ public class AccessibilityBinder extends IAccessibilityService.Stub {
 
     @Override
     public List<ViewNodeParcelable> dumpViewTree() {
-        if (service == null) {
-            Log.w(TAG, "dumpViewTree: service is null");
+        PhoneAccessibilityService svc = waitForService();
+        if (svc == null) {
+            Log.w(TAG, "dumpViewTree: service is null after wait");
             return new ArrayList<>();
         }
         try {
-            List<ViewNode> nodes = service.dumpView();
+            List<ViewNode> nodes = svc.dumpView();
             Log.d(TAG, "dumpViewTree: returning " + nodes.size() + " nodes");
 
             List<ViewNodeParcelable> result = new ArrayList<>();
@@ -88,14 +90,41 @@ public class AccessibilityBinder extends IAccessibilityService.Stub {
         }
     }
 
+    /**
+     * Wait for service to become available (up to 2s).
+     * Handles the timing issue where binder is created before PhoneAccessibilityService connects.
+     */
+    private PhoneAccessibilityService waitForService() {
+        if (service != null) return service;
+        // Service may not be set yet — wait briefly
+        for (int i = 0; i < 4; i++) {
+            try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+            // Check if service was updated via setService()
+            if (service != null) {
+                Log.i(TAG, "Service became available after " + ((i + 1) * 500) + "ms");
+                return service;
+            }
+            // Also check AccessibilityBinderService static instance
+            PhoneAccessibilityService instance = AccessibilityBinderService.Companion.getServiceInstance();
+            if (instance != null) {
+                this.service = instance;
+                Log.i(TAG, "Service resolved from static instance after " + ((i + 1) * 500) + "ms");
+                return instance;
+            }
+        }
+        Log.w(TAG, "Service still null after 2s wait");
+        return null;
+    }
+
     @Override
     public boolean performTap(int x, int y) {
-        if (service == null) {
-            Log.w(TAG, "performTap: service is null");
+        PhoneAccessibilityService svc = waitForService();
+        if (svc == null) {
+            Log.w(TAG, "performTap: service is null after wait");
             return false;
         }
         try {
-            return service.performClickAtSync(x, y, false);
+            return svc.performClickAtSync(x, y, false);
         } catch (Exception e) {
             Log.e(TAG, "Failed to perform tap at (" + x + ", " + y + ")", e);
             return false;
@@ -104,12 +133,13 @@ public class AccessibilityBinder extends IAccessibilityService.Stub {
 
     @Override
     public boolean performLongPress(int x, int y) {
-        if (service == null) {
-            Log.w(TAG, "performLongPress: service is null");
+        PhoneAccessibilityService svc = waitForService();
+        if (svc == null) {
+            Log.w(TAG, "performLongPress: service is null after wait");
             return false;
         }
         try {
-            return service.performClickAtSync(x, y, true);
+            return svc.performClickAtSync(x, y, true);
         } catch (Exception e) {
             Log.e(TAG, "Failed to perform long press at (" + x + ", " + y + ")", e);
             return false;
