@@ -26,6 +26,12 @@ import org.json.JSONObject
  */
 object ApiAdapter {
 
+    internal fun shouldUseNullContentForAssistantToolCall(message: Message): Boolean {
+        return message.role == "assistant" &&
+            !message.toolCalls.isNullOrEmpty() &&
+            message.content.isEmpty()
+    }
+
     /**
      * 构建请求体
      */
@@ -284,11 +290,20 @@ object ApiAdapter {
         messages.forEach { message ->
             val msg = JSONObject()
             msg.put("role", message.role)
-            msg.put("content", message.content)
 
-            if (message.toolCalls != null) {
+            val hasToolCalls = !message.toolCalls.isNullOrEmpty()
+            if (shouldUseNullContentForAssistantToolCall(message)) {
+                // OpenAI-compatible tool call turns should send content=null rather than empty string.
+                // Some providers reject the following tool result if the preceding assistant tool_calls
+                // message used content="", then report: tool result's tool id not found.
+                msg.put("content", JSONObject.NULL)
+            } else {
+                msg.put("content", message.content)
+            }
+
+            if (hasToolCalls) {
                 val toolCallsArray = JSONArray()
-                message.toolCalls.forEach { toolCall ->
+                message.toolCalls!!.forEach { toolCall ->
                     toolCallsArray.put(JSONObject().apply {
                         put("id", toolCall.id)
                         put("type", "function")
