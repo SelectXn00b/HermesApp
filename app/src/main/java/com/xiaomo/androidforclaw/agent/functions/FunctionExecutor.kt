@@ -16,7 +16,7 @@ import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
-import com.xiaomo.androidforclaw.service.PhoneAccessibilityService
+import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
 
@@ -162,8 +162,7 @@ class FunctionExecutor(
 
         Log.d(TAG, "Long pressing at ($x, $y) for ${duration}ms")
         return try {
-            // Use PhoneAccessibilityService's performClickAt method, isLongClick=true
-            val service = PhoneAccessibilityService.Accessibility
+            val service = AccessibilityBinderService.serviceInstance
             if (service != null) {
                 val success = service.performClickAt(x.toFloat(), y.toFloat(), isLongClick = true)
                 if (success) {
@@ -246,7 +245,7 @@ class FunctionExecutor(
         Log.d(TAG, "Checking UI")
         return try {
             // Get current UI info
-            val service = PhoneAccessibilityService.Accessibility
+            val service = AccessibilityBinderService.serviceInstance
             if (service != null) {
                 val viewNodes = service.dumpView()
                 val uiInfo = viewNodes.joinToString("\n") { node ->

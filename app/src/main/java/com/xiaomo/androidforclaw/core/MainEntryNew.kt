@@ -26,7 +26,7 @@ import com.xiaomo.androidforclaw.ext.mmkv
 import com.xiaomo.androidforclaw.ext.simpleSafeLaunch
 import com.xiaomo.androidforclaw.providers.llm.toNewMessage
 import com.xiaomo.androidforclaw.providers.llm.toLegacyMessage
-import com.xiaomo.androidforclaw.service.PhoneAccessibilityService
+import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
 import com.xiaomo.androidforclaw.util.LayoutExceptionLogger
 import com.xiaomo.androidforclaw.util.MMKVKeys
 import com.xiaomo.androidforclaw.util.WakeLockManager
@@ -684,7 +684,7 @@ object MainEntryNew {
 
     private fun safePressHome() {
         try {
-            PhoneAccessibilityService.Accessibility?.pressHomeButton()
+            AccessibilityBinderService.serviceInstance?.pressHomeButton()
         } catch (e: Exception) {
             LayoutExceptionLogger.log("MainEntryNew#safePressHome", e)
         }

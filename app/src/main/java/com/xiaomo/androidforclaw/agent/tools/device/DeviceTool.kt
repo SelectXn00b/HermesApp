@@ -123,13 +123,8 @@ class DeviceTool(private val context: Context) : Tool {
         val format = (args["format"] as? String) ?: "compact"
 
         val proxy = AccessibilityProxy
-        if (proxy.isConnected.value != true) {
-            // Try to bind
-            proxy.bindService(context)
-            delay(500)
-            if (proxy.isConnected.value != true) {
-                return ToolResult.error("无障碍服务未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限，才能获取屏幕元素。")
-            }
+        if (!proxy.isServiceReady()) {
+            return ToolResult.error("无障碍服务未开启。请到 设置 → 无障碍 → AndroidForClaw 开启无障碍权限，才能获取屏幕元素。")
         }
 
         val viewNodes = try {

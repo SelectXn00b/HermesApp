@@ -8,16 +8,14 @@ package com.xiaomo.androidforclaw
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
-import android.widget.Toast
 import android.graphics.BitmapFactory
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
+import com.xiaomo.androidforclaw.accessibility.service.ViewNode
+import com.xiaomo.androidforclaw.accessibility.service.Point
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -219,28 +217,4 @@ object DeviceController {
 
     // 已移除ADB依赖，不再提供shell命令执行
 
-
 }
-
-data class ViewNode(
-    val index: Int,
-    var text: String?,
-    val resourceId: String?,
-    val className: String?,
-    val packageName: String?,
-    val contentDesc: String?,
-    val clickable: Boolean,
-    val enabled: Boolean,
-    val focusable: Boolean,
-    val focused: Boolean,
-    val scrollable: Boolean,
-    val point: Point,
-    val left: Int,
-    val right: Int,
-    val top: Int,
-    val bottom: Int,
-    @Transient
-    val node: AccessibilityNodeInfo? = null
-)
-
-data class Point(val x: Int, val y: Int)

@@ -1,5 +1,7 @@
 package com.xiaomo.androidforclaw
 
+import com.xiaomo.androidforclaw.accessibility.service.ViewNode
+import com.xiaomo.androidforclaw.accessibility.service.Point
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test

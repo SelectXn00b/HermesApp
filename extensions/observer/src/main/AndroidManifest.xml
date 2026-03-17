@@ -37,11 +37,7 @@
 
         <service
             android:name=".service.AccessibilityBinderService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.xiaomo.androidforclaw.ACCESSIBILITY_BIND" />
-            </intent-filter>
-        </service>
+            android:exported="false" />
 
         <service
             android:name=".ObserverForegroundService"

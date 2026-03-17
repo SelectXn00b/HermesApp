@@ -232,9 +232,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         // 🪟 Initialize floating window manager
         com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.init(this)
 
-        // 🔌 Initialize AccessibilityProxy and start health monitoring
-        AccessibilityProxy.init(applicationContext)
-        AccessibilityProxy.bindService(applicationContext)
+        // 🔌 Start health monitoring (serviceInstance managed by observer lifecycle)
         healthMonitor = AccessibilityHealthMonitor(applicationContext)
         healthMonitor?.startMonitoring()
 

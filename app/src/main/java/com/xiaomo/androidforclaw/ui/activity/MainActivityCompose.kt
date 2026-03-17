@@ -32,7 +32,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.xiaomo.androidforclaw.service.PhoneAccessibilityService
 import com.xiaomo.androidforclaw.ui.compose.ChatScreen
 import com.xiaomo.androidforclaw.ui.viewmodel.ChatViewModel
 import com.xiaomo.androidforclaw.util.ChatBroadcastReceiver
@@ -77,19 +76,14 @@ suspend fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
             val isEnabled = enabledServices.contains(s4clawServiceName)
             Log.d("MainActivityCompose", "S4Claw accessibility service system status: $isEnabled")
 
-            // If system shows enabled, try to verify service is actually available via AIDL
+            // If system shows enabled, verify service is actually available
             if (isEnabled) {
                 try {
-                    // Ensure service is bound
-                    com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.bindService(context)
-                    kotlinx.coroutines.delay(300)  // Wait asynchronously for connection
-
-                    // Check using async method
                     val ready = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isServiceReadyAsync()
-                    Log.d("MainActivityCompose", "S4Claw accessibility service AIDL availability: $ready")
+                    Log.d("MainActivityCompose", "S4Claw accessibility service availability: $ready")
                     return@withContext ready
                 } catch (e: Exception) {
-                    Log.w("MainActivityCompose", "AIDL verification failed, using system settings result", e)
+                    Log.w("MainActivityCompose", "Service check failed, using system settings result", e)
                     return@withContext isEnabled
                 }
             }
@@ -580,22 +574,16 @@ fun PermissionsCard(onClick: () -> Unit) {
                     }
                 } catch (e: Exception) { false }
 
-                // Step 2: Try AIDL connection for full readiness
+                // Step 2: Check serviceInstance directly (covers shortcut-toggle case)
                 val proxy = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
-                val isConnected = proxy.isConnected.value ?: false
-                if (!isConnected && systemEnabled && !isConnecting) {
-                    isConnecting = true
-                    proxy.bindService(context)
-                    delay(500)
-                    isConnecting = false
-                }
-                val aidlReady = (proxy.isConnected.value == true) && proxy.isServiceReadyAsync()
+                val serviceReady = proxy.isServiceReadyAsync()
+                val serviceAvailable = com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService.serviceInstance != null
 
-                // Show as enabled if system settings say it's on (even if AIDL not connected yet)
-                accessibility = systemEnabled || aidlReady
-                screenCapture = if (aidlReady) proxy.isMediaProjectionGranted() else false
+                // Show as enabled if system settings or serviceInstance is available
+                accessibility = systemEnabled || serviceAvailable || serviceReady
+                screenCapture = if (serviceAvailable) proxy.isMediaProjectionGranted() else false
 
-                Log.d("PermissionsCard", "Permission status: accessibility=$accessibility (system=$systemEnabled, aidl=$aidlReady), overlay=$overlay, screenCapture=$screenCapture")
+                Log.d("PermissionsCard", "Permission status: accessibility=$accessibility (system=$systemEnabled, serviceAvailable=$serviceAvailable, serviceReady=$serviceReady), overlay=$overlay, screenCapture=$screenCapture")
             } catch (e: Exception) {
                 Log.e("PermissionsCard", "Error checking permissions", e)
             }

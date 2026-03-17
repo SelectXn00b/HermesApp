@@ -86,16 +86,11 @@ class TapE2ETest {
             Log.i(TAG, "Status file not found (app may not have run getStatus yet)")
         }
 
-        // 检查 accessibility proxy 连接状态
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.init(context)
-        com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.bindService(context)
-        Thread.sleep(1500)
-
-        val connected = com.xiaomo.androidforclaw.accessibility.AccessibilityProxy.isConnected.value ?: false
-        Log.i(TAG, "AccessibilityProxy connected (from test process): $connected")
-        Log.i(TAG, "Note: service=null in test process is EXPECTED (AIDL cross-process limitation)")
-        Log.i(TAG, "=== test03 result: connected=$connected ===")
+        // 检查 serviceInstance 状态
+        val serviceAvailable = com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService.serviceInstance != null
+        Log.i(TAG, "AccessibilityBinderService.serviceInstance available (from test process): $serviceAvailable")
+        Log.i(TAG, "Note: serviceInstance=null in test process is EXPECTED (same-process only)")
+        Log.i(TAG, "=== test03 result: serviceAvailable=$serviceAvailable ===")
     }
 
     @Test

@@ -91,7 +91,7 @@ class GetViewTreeSkill(private val context: Context) : Skill {
     /**
      * Format single node information
      */
-    private fun formatNode(node: com.xiaomo.androidforclaw.ViewNode): String {
+    private fun formatNode(node: com.xiaomo.androidforclaw.accessibility.service.ViewNode): String {
         return buildString {
             // Type (simplified)
             val simpleClass = node.className?.substringAfterLast('.') ?: "View"

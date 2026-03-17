@@ -7,7 +7,7 @@
 package com.xiaomo.androidforclaw.data.model
 
 import android.graphics.Bitmap
-import com.xiaomo.androidforclaw.ViewNode
+import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
 data class ResultBean(
     val action: String? = null,

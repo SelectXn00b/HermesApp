@@ -13,7 +13,6 @@ import android.accessibilityservice.GestureDescription
 import android.content.Intent
 import android.graphics.Path
 import android.graphics.Rect
-import android.os.IBinder
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -42,27 +41,18 @@ class PhoneAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         Log.d(TAG, "onServiceConnected - Accessibility service ready")
 
-        // 先设置 serviceInstance
+        // 设置 serviceInstance
         AccessibilityBinderService.serviceInstance = this
         Log.d(TAG, "✅ serviceInstance 已设置")
 
-        // 通知 AccessibilityBinderService serviceInstance 已准备好
-        AccessibilityBinderService.notifyServiceReady()
-        Log.d(TAG, "✅ notifyServiceReady 已调用")
-
-        // 如果 binder 已经创建（bind 在 start 之前发生），更新 binder 的 service 引用
-        AccessibilityBinderService.updateBinderService(this)
-        Log.d(TAG, "✅ binder service 引用已更新")
-
-        // 启动 AccessibilityBinderService，允许其他应用绑定
+        // 启动 AccessibilityBinderService
         try {
             val binderIntent = Intent(this, AccessibilityBinderService::class.java)
             val componentName = startService(binderIntent)
-            Log.e(TAG, "========== startService() returned: $componentName ==========")
-            if (componentName == null) {
-                Log.e(TAG, "❌ startService() returned null - service not started!")
-            } else {
+            if (componentName != null) {
                 Log.i(TAG, "✅ AccessibilityBinderService 已启动")
+            } else {
+                Log.e(TAG, "startService() returned null - service not started!")
             }
         } catch (e: Exception) {
             Log.e(TAG, "启动 AccessibilityBinderService 失败", e)
@@ -202,7 +192,8 @@ class PhoneAccessibilityService : AccessibilityService() {
             left = rect.left,
             right = rect.right,
             top = rect.top,
-            bottom = rect.bottom
+            bottom = rect.bottom,
+            node = node
         )
         nodesList.add(nodeInfo)
 
@@ -326,7 +317,9 @@ data class ViewNode(
     val left: Int,
     val right: Int,
     val top: Int,
-    val bottom: Int
+    val bottom: Int,
+    @Transient
+    val node: AccessibilityNodeInfo? = null
 )
 
 data class Point(val x: Int, val y: Int)

@@ -8,6 +8,7 @@ package com.xiaomo.androidforclaw.accessibility
 
 import android.content.Context
 import android.util.Log
+import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,11 +29,11 @@ class AccessibilityHealthMonitor(private val context: Context) {
         scope.launch {
             while (isActive) {
                 try {
-                    if (AccessibilityProxy.isConnected.value != true) {
-                        Log.d(TAG, "Service disconnected, attempting reconnect")
-                        AccessibilityProxy.bindService(context)
+                    val available = AccessibilityBinderService.serviceInstance != null
+                    if (!available) {
+                        Log.d(TAG, "serviceInstance is null, waiting for observer to start")
                     } else if (!AccessibilityProxy.isServiceReady()) {
-                        Log.w(TAG, "Service connected but not ready")
+                        Log.w(TAG, "Service instance exists but not ready")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Health check failed", e)

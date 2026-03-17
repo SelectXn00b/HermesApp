@@ -10,7 +10,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 import android.graphics.Rect
 import android.util.Log
-import com.xiaomo.androidforclaw.ViewNode
+import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
 object SnapshotBuilder {
     private const val TAG = "SnapshotBuilder"

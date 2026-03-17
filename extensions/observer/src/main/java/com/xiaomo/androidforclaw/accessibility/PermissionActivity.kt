@@ -511,7 +511,7 @@ class PermissionActivity : Activity() {
                 0
             ) == 1
 
-            val serviceShort = "${packageName}/.service.PhoneAccessibilityService"
+            val serviceShort = "${packageName}/.accessibility.service.PhoneAccessibilityService"
             val serviceFull = "${packageName}/com.xiaomo.androidforclaw.accessibility.service.PhoneAccessibilityService"
             val enabledServices = Settings.Secure.getString(
                 contentResolver,

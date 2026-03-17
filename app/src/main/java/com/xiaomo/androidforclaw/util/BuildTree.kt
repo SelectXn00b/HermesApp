@@ -8,7 +8,7 @@ package com.xiaomo.androidforclaw.util
 
 import android.graphics.Rect
 import android.view.accessibility.AccessibilityNodeInfo
-import com.xiaomo.androidforclaw.ViewNode
+import com.xiaomo.androidforclaw.accessibility.service.ViewNode
 
 object BuildTree {
     /**

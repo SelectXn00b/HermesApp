@@ -24,12 +24,8 @@ android {
     }
 
     buildFeatures {
-        aidl = true
         viewBinding = true
     }
-
-    // AIDL source sets are handled automatically by AGP
-    // No need to manually configure sourceSets for AIDL
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -46,8 +42,6 @@ android {
 
     namespace 'com.xiaomo.androidforclaw.accessibility'
 }
-
-// AIDL compilation is automatically handled by AGP and runs before Java/Kotlin compilation
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"

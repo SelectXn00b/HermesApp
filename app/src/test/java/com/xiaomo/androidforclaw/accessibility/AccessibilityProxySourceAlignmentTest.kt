@@ -6,9 +6,7 @@ import java.io.File
 
 class AccessibilityProxySourceAlignmentTest {
 
-    private val sourceFile = File(
-        "/Users/qiao/.openclaw/workspace-dev-androidclaw/AndroidForClaw/app/src/main/java/com/xiaomo/androidforclaw/accessibility/AccessibilityProxy.kt"
-    )
+    private val sourceFile = File("src/main/java/com/xiaomo/androidforclaw/accessibility/AccessibilityProxy.kt")
 
     @Test
     fun tapAndLongPress_waitForServiceReady_notJustBinderConnected() {
@@ -25,5 +23,12 @@ class AccessibilityProxySourceAlignmentTest {
         val src = sourceFile.readText()
         assertTrue(src.contains("private suspend fun ensureConnectedWithRetry(requireReady: Boolean = false)"))
         assertTrue(src.contains("checkServiceReadyOnce()"))
+    }
+
+    @Test
+    fun usesDirectServiceInstance_notAIDL() {
+        val src = sourceFile.readText()
+        assertTrue("Should use AccessibilityBinderService.serviceInstance", src.contains("AccessibilityBinderService.serviceInstance"))
+        assertTrue("Should not use IAccessibilityService", !src.contains("IAccessibilityService"))
     }
 }

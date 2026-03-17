@@ -9,7 +9,7 @@ package com.xiaomo.androidforclaw.channel
 import android.content.Context
 import android.provider.Settings
 import android.util.Log
-import com.xiaomo.androidforclaw.service.PhoneAccessibilityService
+import com.xiaomo.androidforclaw.accessibility.service.AccessibilityBinderService
 import com.xiaomo.androidforclaw.util.MediaProjectionHelper
 import java.util.UUID
 
@@ -89,7 +89,7 @@ class ChannelManager(private val context: Context) {
     fun updateAccountStatus(): ChannelAccount {
         val current = currentAccount ?: return currentAccount!!
 
-        val accessibilityEnabled = PhoneAccessibilityService.isAccessibilityServiceEnabled()
+        val accessibilityEnabled = AccessibilityBinderService.serviceInstance != null
         val overlayPermission = Settings.canDrawOverlays(context)
         val mediaProjection = MediaProjectionHelper.isMediaProjectionGranted()
 
