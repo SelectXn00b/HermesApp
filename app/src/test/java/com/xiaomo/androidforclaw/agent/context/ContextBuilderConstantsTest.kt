@@ -56,4 +56,27 @@ class ContextBuilderConstantsTest {
             .apply { isAccessible = true }
         assertEquals(0.2, field.getDouble(null), 0.001)
     }
+
+    @Test
+    @Suppress("UNCHECKED_CAST")
+    fun `BOOTSTRAP_FILES order matches OpenClaw loadWorkspaceBootstrapFiles`() {
+        // OpenClaw agent-scope-Cwa3GjIC.js: loadWorkspaceBootstrapFiles() loads:
+        // AGENTS → SOUL → TOOLS → IDENTITY → USER → HEARTBEAT → BOOTSTRAP → memory/*
+        // MEMORY.md is resolved dynamically in OpenClaw but statically appended here.
+        val field = ContextBuilder::class.java.getDeclaredField("BOOTSTRAP_FILES")
+            .apply { isAccessible = true }
+        val files = field.get(null) as List<String>
+
+        val expectedOrder = listOf(
+            "AGENTS.md",
+            "SOUL.md",
+            "TOOLS.md",
+            "IDENTITY.md",
+            "USER.md",
+            "HEARTBEAT.md",
+            "BOOTSTRAP.md",
+            "MEMORY.md"
+        )
+        assertEquals(expectedOrder, files)
+    }
 }

@@ -61,15 +61,17 @@ class ContextBuilder(
         private const val TAG = "ContextBuilder"
 
         // Bootstrap file list (complete OpenClaw 9 files)
+        // Bootstrap file load order — aligned with OpenClaw loadWorkspaceBootstrapFiles()
+        // OpenClaw order: AGENTS → SOUL → TOOLS → IDENTITY → USER → HEARTBEAT → BOOTSTRAP → memory/*
         private val BOOTSTRAP_FILES = listOf(
-            "IDENTITY.md",      // Identity definition
             "AGENTS.md",        // Agent list
             "SOUL.md",          // Personality and tone
             "TOOLS.md",         // Tool usage guide
+            "IDENTITY.md",      // Identity definition
             "USER.md",          // User information
             "HEARTBEAT.md",     // Heartbeat configuration
             "BOOTSTRAP.md",     // New workspace initialization
-            "MEMORY.md"         // Long-term memory
+            "MEMORY.md"         // Long-term memory (OpenClaw resolves dynamically via resolveMemoryBootstrapEntries)
         )
 
         // Bootstrap file budget (aligned with OpenClaw bootstrap-budget.ts)
