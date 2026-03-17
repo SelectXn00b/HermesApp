@@ -31,8 +31,8 @@ class ExecFacadeTool private constructor(
         internalExec = ExecTool(workingDir = workingDir),
         termuxExec = TermuxBridgeTool(context),
         termuxAvailable = {
-            val termux = TermuxBridgeTool(context)
-            termux.isAvailable()
+            // Fast check: use the persistent connection pool first, fall back to socket probe
+            TermuxSSHPool.isConnected || TermuxBridgeTool(context).isAvailable()
         }
     )
 

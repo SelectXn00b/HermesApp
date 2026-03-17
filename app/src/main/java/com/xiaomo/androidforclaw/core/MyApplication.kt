@@ -34,6 +34,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import com.xiaomo.androidforclaw.gateway.GatewayService
 import com.xiaomo.androidforclaw.gateway.MainEntryAgentHandler
 import com.xiaomo.androidforclaw.gateway.GatewayServer
@@ -244,6 +245,25 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 } else {
                     Log.w(TAG, "⚠️ 无障碍服务未连接")
                 }
+            }
+        }
+
+        // Termux SSH pre-warm (non-blocking, with timeout guard)
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                Log.i(TAG, "Termux SSH pre-warm: checking availability...")
+                val termux = com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool(applicationContext)
+                // triggerAutoSetup will generate keys, deploy, start sshd if needed
+                val status = termux.triggerAutoSetup()
+                if (status.ready) {
+                    // Always warm up the persistent pool connection
+                    com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
+                    Log.i(TAG, "Termux SSH pool warmed up")
+                } else {
+                    Log.i(TAG, "Termux SSH warm-up skipped: ${status.message} (step=${status.lastStep})")
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Termux SSH warm-up skipped: ${e.message}")
             }
         }
 

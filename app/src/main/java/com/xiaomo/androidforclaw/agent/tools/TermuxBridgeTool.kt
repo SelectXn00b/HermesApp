@@ -23,7 +23,6 @@ import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.DefaultConfig
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import java.io.File
-import java.io.IOException
 import java.security.Security
 import java.util.concurrent.TimeUnit
 
@@ -189,10 +188,20 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     private fun isSSHReachable(): Boolean {
         return try {
-            java.net.Socket().use { socket ->
-                socket.connect(java.net.InetSocketAddress(SSH_HOST, SSH_PORT), 1000)
-                true
+            // Use NIO SocketChannel for non-blocking connect with reliable timeout
+            val ch = java.nio.channels.SocketChannel.open()
+            ch.configureBlocking(false)
+            ch.connect(java.net.InetSocketAddress(SSH_HOST, SSH_PORT))
+            val connected = ch.finishConnect() || run {
+                // Wait up to 1 second for connection
+                val sel = java.nio.channels.Selector.open()
+                ch.register(sel, java.nio.channels.SelectionKey.OP_CONNECT)
+                val ready = sel.select(1000L) > 0 && ch.finishConnect()
+                sel.close()
+                ready
             }
+            ch.close()
+            connected
         } catch (e: Exception) {
             false
         }
@@ -281,6 +290,9 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
                 // Write config with key auth
                 writeSSHConfig()
+
+                // Pre-warm the persistent SSH connection pool
+                TermuxSSHPool.warmUp(context)
                 return true
             }
         }
@@ -337,9 +349,12 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             val pubB64 = android.util.Base64.encodeToString(pubBlob.toByteArray(), android.util.Base64.NO_WRAP)
             pubFile.writeText("ssh-ed25519 $pubB64 androidforclaw@device\n")
 
-            // Write private key as raw seed (64 bytes: seed + public) — simple but functional
-            // For full OpenSSH format we'd need more work; for now write seed so app can re-derive
-            privFile.writeBytes(privParams.encoded)
+            // Write private key in OpenSSH PEM format (sshj-compatible)
+            val privBlob = buildOpenSSHPrivateKey(privParams, pubParams)
+            privFile.writeBytes(privBlob)
+            // Set restrictive permissions (best-effort on Android)
+            privFile.setReadable(false, false)
+            privFile.setReadable(true, true)
 
             if (privFile.exists() && pubFile.exists()) {
                 Log.i(TAG, "Generated SSH keypair via BouncyCastle at $KEY_DIR")
@@ -350,6 +365,75 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         }
 
         Log.e(TAG, "All keypair generation strategies failed")
+    }
+
+    /**
+     * Build an OpenSSH-format private key blob for Ed25519.
+     *
+     * Format: "openssh-key-v1\0" magic, then:
+     *   ciphername="none", kdfname="none", kdf="", nkeys=1,
+     *   public key blob, private section (checkint×2 + keytype + pub + priv + comment + padding).
+     *
+     * This produces a file that sshj and standard `ssh` can read directly.
+     */
+    private fun buildOpenSSHPrivateKey(
+        privParams: org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters,
+        pubParams: org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
+    ): ByteArray {
+        val pubRaw = pubParams.encoded   // 32 bytes
+        val privRaw = privParams.encoded  // 32 bytes (seed)
+        val comment = "androidforclaw@device"
+
+        // SSH wire format helpers
+        fun sshPutInt(out: java.io.ByteArrayOutputStream, v: Int) {
+            out.write(byteArrayOf((v shr 24).toByte(), (v shr 16).toByte(), (v shr 8).toByte(), v.toByte()))
+        }
+        fun sshPutBytes(out: java.io.ByteArrayOutputStream, b: ByteArray) { sshPutInt(out, b.size); out.write(b) }
+        fun sshPutString(out: java.io.ByteArrayOutputStream, s: String) { sshPutBytes(out, s.toByteArray()) }
+
+        // --- public key blob (for the "public key" section) ---
+        val pubBlob = java.io.ByteArrayOutputStream().also { buf ->
+            sshPutString(buf, "ssh-ed25519")
+            sshPutBytes(buf, pubRaw)
+        }.toByteArray()
+
+        // --- private section (unencrypted) ---
+        val rng = java.security.SecureRandom()
+        val checkInt = rng.nextInt()
+        val privSection = java.io.ByteArrayOutputStream().also { buf ->
+            sshPutInt(buf, checkInt)
+            sshPutInt(buf, checkInt)
+            sshPutString(buf, "ssh-ed25519")
+            sshPutBytes(buf, pubRaw)
+            // Ed25519 private key in OpenSSH = 64 bytes: seed(32) || public(32)
+            sshPutBytes(buf, privRaw + pubRaw)
+            sshPutString(buf, comment)
+        }
+        // Pad to block size 8 (cipher "none" uses blocksize=8)
+        var pad = 1
+        while (privSection.size() % 8 != 0) {
+            privSection.write(pad++)
+        }
+        val privSectionBytes = privSection.toByteArray()
+
+        // --- assemble full blob ---
+        val out = java.io.ByteArrayOutputStream()
+        out.write("openssh-key-v1\u0000".toByteArray()) // AUTH_MAGIC
+        sshPutString(out, "none")       // ciphername
+        sshPutString(out, "none")       // kdfname
+        sshPutBytes(out, ByteArray(0))  // kdf (empty)
+        sshPutInt(out, 1)               // number of keys
+        sshPutBytes(out, pubBlob)       // public key
+        sshPutBytes(out, privSectionBytes) // private section
+
+        val raw = out.toByteArray()
+        val b64 = android.util.Base64.encodeToString(raw, android.util.Base64.NO_WRAP)
+        val pem = buildString {
+            appendLine("-----BEGIN OPENSSH PRIVATE KEY-----")
+            b64.chunked(70).forEach { appendLine(it) }
+            appendLine("-----END OPENSSH PRIVATE KEY-----")
+        }
+        return pem.toByteArray()
     }
 
     private fun writeSSHConfig() {
@@ -440,7 +524,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         }
     }
 
-    // ==================== SSH Execution ====================
+    // ==================== SSH Execution (delegated to TermuxSSHPool) ====================
 
     private fun ensureBouncyCastle() {
         if (bcRegistered) return
@@ -452,82 +536,6 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         } catch (e: Exception) {
             Log.w(TAG, "BouncyCastle registration: ${e.message}")
         }
-    }
-
-    private fun loadSSHConfig(): SSHConfig {
-        try {
-            val file = File(SSH_CONFIG_FILE)
-            if (file.exists()) {
-                val json = org.json.JSONObject(file.readText())
-                return SSHConfig(
-                    user = json.optString("user", ""),
-                    password = json.optString("password", ""),
-                    keyFile = json.optString("key_file", "")
-                )
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to load SSH config: ${e.message}")
-        }
-        return SSHConfig()
-    }
-
-    private fun createSSHClient(config: SSHConfig): SSHClient {
-        ensureBouncyCastle()
-
-        val client = SSHClient(DefaultConfig())
-        client.addHostKeyVerifier(PromiscuousVerifier())
-        client.connectTimeout = 10_000
-        client.connect(SSH_HOST, SSH_PORT)
-
-        when {
-            config.keyFile.isNotEmpty() && File(config.keyFile).exists() -> {
-                val keyProvider = client.loadKeys(config.keyFile)
-                client.authPublickey(config.user.ifEmpty { "shell" }, keyProvider)
-            }
-            config.password.isNotEmpty() -> {
-                client.authPassword(config.user, config.password)
-            }
-            else -> {
-                // Try default key locations
-                val keyPaths = listOf(PRIVATE_KEY, "$CONFIG_DIR/termux_id_rsa", "$CONFIG_DIR/id_rsa")
-                var authenticated = false
-                for (path in keyPaths) {
-                    try {
-                        if (File(path).exists()) {
-                            val keys = client.loadKeys(path)
-                            client.authPublickey(config.user.ifEmpty { "shell" }, keys)
-                            authenticated = true
-                            break
-                        }
-                    } catch (e: Exception) { continue }
-                }
-                if (!authenticated) {
-                    throw IOException("Termux connection not configured")
-                }
-            }
-        }
-        return client
-    }
-
-    private fun sshExec(command: String, cwd: String?, timeoutS: Int): ExecResult {
-        val config = loadSSHConfig()
-        val client = createSSHClient(config)
-        try {
-            val session = client.startSession()
-            try {
-                val fullCommand = if (cwd != null) {
-                    "cd ${shellEscape(cwd)} && $command"
-                } else {
-                    command
-                }
-                val cmd = session.exec(fullCommand)
-                cmd.join(timeoutS.toLong(), TimeUnit.SECONDS)
-                val stdout = cmd.inputStream.bufferedReader().readText()
-                val stderr = cmd.errorStream.bufferedReader().readText()
-                val exitCode = cmd.exitStatus ?: -1
-                return ExecResult(exitCode == 0, stdout, stderr, exitCode)
-            } finally { session.close() }
-        } finally { client.disconnect() }
     }
 
     private fun shellEscape(s: String) = "'" + s.replace("'", "'\\''") + "'"
@@ -576,11 +584,11 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             )
         }
 
-        // 4. Execute via SSH
+        // 4. Execute via SSH (persistent connection pool)
         return withContext(Dispatchers.IO) {
             try {
                 withTimeout(timeout * 1000L + 5000L) {
-                    val result = sshExec(resolvedCommand, cwd, timeout)
+                    val result = TermuxSSHPool.exec(resolvedCommand, cwd, timeout)
                     Log.d(TAG, "Exec completed: exitCode=${result.exitCode}, stdout=${result.stdout.length} chars")
 
                     ToolResult(
@@ -622,16 +630,4 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         }
     }
 
-    data class SSHConfig(
-        val user: String = "",
-        val password: String = "",
-        val keyFile: String = ""
-    )
-
-    data class ExecResult(
-        val success: Boolean,
-        val stdout: String,
-        val stderr: String,
-        val exitCode: Int
-    )
 }
