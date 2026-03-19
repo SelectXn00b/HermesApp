@@ -79,7 +79,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="1️⃣ 打开 openrouter.ai 注册账号（免费）\n2️⃣ 点击右上角头像 → Keys\n3️⃣ 点 Create Key → 复制 Key\n4️⃣ 粘贴到下方输入框\n\n💡 注册即可使用免费模型，无需充值！"
+                        android:text="1️⃣ 打开小米 MiMo 平台注册账号（免费）\n2️⃣ 点击右上角 → API Keys\n3️⃣ 创建 Key → 复制 Key\n4️⃣ 粘贴到下方输入框\n\n💡 完全免费使用！"
                         android:textSize="13sp"
                         android:textColor="#555555"
                         android:lineSpacingMultiplier="1.4" />
@@ -88,7 +88,7 @@
                         android:id="@+id/tv_open_openrouter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🔗 打开 openrouter.ai/keys"
+                        android:text="🔗 打开 platform.xiaomimimo.com"
                         android:textSize="13sp"
                         android:textColor="#1976D2"
                         android:layout_marginTop="8dp"
@@ -185,25 +185,26 @@
                     android:layout_marginBottom="12dp">
 
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_mimo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="小米 MiMo"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:checked="true" />
+
+                    <!-- <com.google.android.material.chip.Chip
                         android:id="@+id/chip_openrouter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="OpenRouter"
                         style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:checked="true" />
+                        android:checked="true" /> -->
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chip_anthropic"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Anthropic"
-                        style="@style/Widget.MaterialComponents.Chip.Choice" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_mimo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="小米 MiMo"
                         style="@style/Widget.MaterialComponents.Chip.Choice" />
 
                     <com.google.android.material.chip.Chip

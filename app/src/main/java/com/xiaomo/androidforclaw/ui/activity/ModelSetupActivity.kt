@@ -123,7 +123,7 @@ class ModelSetupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityModelSetupBinding
     private val configLoader by lazy { ConfigLoader(this) }
-    private var selectedProvider = "openrouter"
+    private var selectedProvider = "mimo"
     private var advancedExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,10 +148,13 @@ class ModelSetupActivity : AppCompatActivity() {
     private fun setupDefaultMode() {
         binding.tilModel.visibility = View.GONE
 
-        // "打开 openrouter.ai/keys" link
+        // 默认显示小米 MiMo 提示
+        applyProviderPreset("mimo")
+
+        // "打开 xiaomimimo.com" link
         binding.tvOpenOpenrouter.setOnClickListener {
             try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://openrouter.ai/keys")))
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.xiaomimimo.com/#/console/api-keys")))
             } catch (e: Exception) {
                 Toast.makeText(this, "无法打开浏览器", Toast.LENGTH_SHORT).show()
             }
@@ -171,11 +174,10 @@ class ModelSetupActivity : AppCompatActivity() {
                 "⚙️ 使用其他服务商（Anthropic / OpenAI / 自定义）"
             }
 
-            // If collapsing, reset to OpenRouter
-            if (!advancedExpanded && selectedProvider != "openrouter") {
-                selectedProvider = "openrouter"
-                binding.chipOpenrouter.isChecked = true
-                applyProviderPreset("openrouter")
+            // If collapsing, reset to MiMo
+            if (!advancedExpanded && selectedProvider != "mimo") {
+                selectedProvider = "mimo"
+                applyProviderPreset("mimo")
             }
         }
     }
@@ -184,11 +186,10 @@ class ModelSetupActivity : AppCompatActivity() {
         binding.chipGroupProvider.setOnCheckedStateChangeListener { _, checkedIds ->
             val provider = when {
                 checkedIds.contains(R.id.chip_mimo) -> "mimo"
-                checkedIds.contains(R.id.chip_openrouter) -> "openrouter"
                 checkedIds.contains(R.id.chip_anthropic) -> "anthropic"
                 checkedIds.contains(R.id.chip_openai) -> "openai"
                 checkedIds.contains(R.id.chip_custom) -> "custom"
-                else -> "openrouter"
+                else -> "mimo"
             }
             selectedProvider = provider
             applyProviderPreset(provider)
@@ -201,12 +202,14 @@ class ModelSetupActivity : AppCompatActivity() {
         binding.apply {
             // API Key hint
             tilApiKey.hint = when (providerKey) {
+                "mimo" -> "小米 MiMo API Key"
                 "openrouter" -> "OpenRouter API Key"
                 "anthropic" -> "Anthropic API Key"
                 "openai" -> "OpenAI API Key"
                 else -> "API Key"
             }
             (tilApiKey as? com.google.android.material.textfield.TextInputLayout)?.helperText = when (providerKey) {
+                "mimo" -> "免费使用，注册: platform.xiaomimimo.com"
                 "openrouter" -> "以 sk-or- 开头"
                 "anthropic" -> "以 sk-ant- 开头"
                 "openai" -> "以 sk- 开头"
@@ -259,9 +262,9 @@ class ModelSetupActivity : AppCompatActivity() {
     }
 
     private fun saveDefaultAndFinish() {
-        selectedProvider = "openrouter"
+        selectedProvider = "mimo"
         advancedExpanded = false
-        applyProviderPreset("openrouter")
+        applyProviderPreset("mimo")
         binding.etSetupApiKey.setText("")
         saveAndFinish()
     }
