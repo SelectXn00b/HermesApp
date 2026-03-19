@@ -233,7 +233,8 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             "cp /sdcard/.androidforclaw/.ssh/id_ed25519.pub \$HOME/.ssh/authorized_keys && " +
             "chmod 700 \$HOME/.ssh && " +
             "chmod 600 \$HOME/.ssh/authorized_keys && " +
-            "sshd && echo '✅ SSH configured'"
+            "chmod 644 /sdcard/.androidforclaw/.ssh/id_ed25519 && " +
+            "pkill sshd; sshd && echo '✅ SSH configured'"
 
         // Copy to clipboard
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager

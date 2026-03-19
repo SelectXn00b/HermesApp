@@ -90,7 +90,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
 
     // Generate setup command — uses cp instead of >> to avoid Android scoped storage issues
     val setupCommand = remember {
-        "export PREFIX=/data/data/com.termux/files/usr && export LD_LIBRARY_PATH=\$PREFIX/lib && export PATH=\$PREFIX/bin:\$PATH && export HOME=/data/data/com.termux/files/home && pkg install -y openssh && mkdir -p \$HOME/.ssh && rm -f \$HOME/.ssh/authorized_keys && cp /sdcard/.androidforclaw/.ssh/id_ed25519.pub \$HOME/.ssh/authorized_keys && chmod 700 \$HOME/.ssh && chmod 600 \$HOME/.ssh/authorized_keys && sshd && echo '✅ Done'"
+        "export PREFIX=/data/data/com.termux/files/usr && export LD_LIBRARY_PATH=\$PREFIX/lib && export PATH=\$PREFIX/bin:\$PATH && export HOME=/data/data/com.termux/files/home && pkg install -y openssh && mkdir -p \$HOME/.ssh && rm -f \$HOME/.ssh/authorized_keys && cp /sdcard/.androidforclaw/.ssh/id_ed25519.pub \$HOME/.ssh/authorized_keys && chmod 700 \$HOME/.ssh && chmod 600 \$HOME/.ssh/authorized_keys && chmod 644 /sdcard/.androidforclaw/.ssh/id_ed25519 && pkill sshd; sshd && echo '✅ Done'"
     }
 
     // Check status on launch and periodically
