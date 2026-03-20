@@ -291,8 +291,25 @@ object ApiAdapter {
         json.put(maxTokensField, maxTokens ?: model.maxTokens)
 
         // Convert message format
+        // Defensive: merge all system messages into one at position 0.
+        // OpenAI-compatible APIs require system message(s) at the beginning.
         val openaiMessages = JSONArray()
+        val systemContents = mutableListOf<String>()
+        val nonSystemMessages = mutableListOf<Message>()
         messages.forEach { message ->
+            if (message.role == "system") {
+                systemContents.add(message.content ?: "")
+            } else {
+                nonSystemMessages.add(message)
+            }
+        }
+        if (systemContents.isNotEmpty()) {
+            val mergedMsg = JSONObject()
+            mergedMsg.put("role", "system")
+            mergedMsg.put("content", systemContents.joinToString("\n\n"))
+            openaiMessages.put(mergedMsg)
+        }
+        nonSystemMessages.forEach { message ->
             val msg = JSONObject()
             msg.put("role", message.role)
 

@@ -72,6 +72,12 @@ object HistorySanitizer {
     ): List<Message> {
         var result = messages.toMutableList()
 
+        // 0. Drop system messages from context history
+        // The system prompt is always added by the caller (AgentLoop.runInternal).
+        // Keeping system messages in history causes "system message must be at the beginning"
+        // errors on OpenAI-compatible APIs (Kimi, DeepSeek, etc.)
+        result.removeAll { it.role == "system" }
+
         // 1. Strip leaked model control tokens (OpenClaw 2026.3.11)
         result = stripControlTokens(result)
 
