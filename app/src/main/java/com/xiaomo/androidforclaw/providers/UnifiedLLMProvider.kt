@@ -348,12 +348,34 @@ class UnifiedLLMProvider(private val context: Context) {
     private fun parseModelRef(modelRef: String?): Pair<String, String> {
         // If not specified, use default model
         if (modelRef == null) {
-            val defaultModel = configLoader.loadOpenClawConfig().resolveDefaultModel()
-            return parseModelRef(defaultModel)
+            val config = configLoader.loadOpenClawConfig()
+            val defaultModel = config.resolveDefaultModel()
+            // If the default model's provider exists, use it
+            val parsed = tryParseModelRef(defaultModel)
+            if (parsed != null) return parsed
+
+            // Fallback: use the first available provider/model
+            val providers = config.resolveProviders()
+            val firstEntry = providers.entries.firstOrNull()
+            if (firstEntry != null) {
+                val firstModel = firstEntry.value.models.firstOrNull()
+                if (firstModel != null) {
+                    Log.w(TAG, "⚠️ 默认模型 '$defaultModel' 的 provider 不存在，fallback 到 '${firstEntry.key}/${firstModel.id}'")
+                    return Pair(firstEntry.key, firstModel.id)
+                }
+            }
+            throw IllegalArgumentException("没有可用的模型配置，请先配置模型")
         }
 
+        return tryParseModelRef(modelRef)
+            ?: throw IllegalArgumentException("Invalid model reference: $modelRef")
+    }
+
+    /**
+     * 尝试解析模型引用，找不到时返回 null 而不是抛异常
+     */
+    private fun tryParseModelRef(modelRef: String): Pair<String, String>? {
         // Step 1: Try to find complete modelRef as model ID
-        // This supports cases where model ID itself contains "/" (eg "anthropic/claude-opus-4-6")
         val providerForFullId = configLoader.findProviderByModelId(modelRef)
         if (providerForFullId != null) {
             return Pair(providerForFullId, modelRef)
@@ -363,16 +385,16 @@ class UnifiedLLMProvider(private val context: Context) {
         val parts = modelRef.split("/", limit = 2)
         return when (parts.size) {
             2 -> {
-                // "provider/model-id" format (eg "openrouter/anthropic/claude-opus-4-6")
-                Pair(parts[0], parts[1])
+                // Verify provider exists
+                val providerConfig = configLoader.getProviderConfig(parts[0])
+                if (providerConfig != null) Pair(parts[0], parts[1]) else null
             }
             1 -> {
                 // "model-id" format, find corresponding provider
                 val providerName = configLoader.findProviderByModelId(parts[0])
-                    ?: throw IllegalArgumentException("Cannot find provider for model: ${parts[0]}")
-                Pair(providerName, parts[0])
+                if (providerName != null) Pair(providerName, parts[0]) else null
             }
-            else -> throw IllegalArgumentException("Invalid model reference: $modelRef")
+            else -> null
         }
     }
 
@@ -395,7 +417,8 @@ class UnifiedLLMProvider(private val context: Context) {
                 "$baseUrl/responses"
             }
             ModelApi.GOOGLE_GENERATIVE_AI -> {
-                "$baseUrl/models/${model.id}:generateContent"
+                val keyParam = if (provider.apiKey != null) "?key=${provider.apiKey}" else ""
+                "$baseUrl/models/${model.id}:generateContent$keyParam"
             }
             ModelApi.OLLAMA -> {
                 "$baseUrl/api/chat"

@@ -101,6 +101,9 @@ object ApiAdapter {
                     builder.add("x-api-key", provider.apiKey)
                     builder.add("anthropic-version", "2023-06-01")
                 }
+                ModelApi.GOOGLE_GENERATIVE_AI -> {
+                    // Google uses ?key= query param, not Authorization header
+                }
                 else -> {
                     // OpenAI-style Authorization header
                     builder.add("Authorization", "Bearer ${provider.apiKey}")

@@ -76,6 +76,17 @@ class ModelSetupActivity : AppCompatActivity() {
                 ),
                 authHeader = true
             ),
+            "google" to ProviderPreset(
+                name = "Google (Gemini)",
+                baseUrl = "https://generativelanguage.googleapis.com/v1beta",
+                api = "google-generative-ai",
+                hint = "Google Gemini API。注册: aistudio.google.com/apikey",
+                models = listOf(
+                    ModelPreset("gemini-2.5-pro", "Gemini 2.5 Pro (推荐，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 65536),
+                    ModelPreset("gemini-2.5-flash", "Gemini 2.5 Flash (快速，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 65536)
+                ),
+                authHeader = true
+            ),
             "anthropic" to ProviderPreset(
                 name = "Anthropic",
                 baseUrl = "https://api.anthropic.com/v1",
@@ -171,7 +182,7 @@ class ModelSetupActivity : AppCompatActivity() {
             binding.tvAdvanced.text = if (advancedExpanded) {
                 "⚙️ 收起高级选项"
             } else {
-                "⚙️ 使用其他服务商（Anthropic / OpenAI / 自定义）"
+                "⚙️ 使用其他服务商（Google / Anthropic / OpenAI / 自定义）"
             }
 
             // If collapsing, reset to MiMo
@@ -186,6 +197,7 @@ class ModelSetupActivity : AppCompatActivity() {
         binding.chipGroupProvider.setOnCheckedStateChangeListener { _, checkedIds ->
             val provider = when {
                 checkedIds.contains(R.id.chip_mimo) -> "mimo"
+                checkedIds.contains(R.id.chip_google) -> "google"
                 checkedIds.contains(R.id.chip_anthropic) -> "anthropic"
                 checkedIds.contains(R.id.chip_openai) -> "openai"
                 checkedIds.contains(R.id.chip_custom) -> "custom"
@@ -206,6 +218,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 "openrouter" -> "OpenRouter API Key"
                 "anthropic" -> "Anthropic API Key"
                 "openai" -> "OpenAI API Key"
+                "google" -> "Gemini API Key"
                 else -> "API Key"
             }
             (tilApiKey as? com.google.android.material.textfield.TextInputLayout)?.helperText = when (providerKey) {
@@ -213,6 +226,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 "openrouter" -> "以 sk-or- 开头"
                 "anthropic" -> "以 sk-ant- 开头"
                 "openai" -> "以 sk- 开头"
+                "google" -> "在 aistudio.google.com/apikey 获取"
                 else -> null
             }
 
