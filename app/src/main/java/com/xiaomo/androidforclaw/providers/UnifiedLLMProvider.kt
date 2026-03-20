@@ -56,6 +56,13 @@ class UnifiedLLMProvider(private val context: Context) {
         .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .addNetworkInterceptor { chain ->
+            chain.proceed(
+                chain.request().newBuilder()
+                    .header("User-Agent", "AndroidForClaw/${com.draco.ladb.BuildConfig.VERSION_NAME}")
+                    .build()
+            )
+        }
         .build()
 
     /**
