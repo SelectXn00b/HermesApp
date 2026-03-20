@@ -13,8 +13,8 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * File logging system
@@ -24,7 +24,7 @@ import kotlin.concurrent.withLock
  * - Structured logging (timestamp, level, tag, message)
  * - Log rotation (size limit)
  * - Categorized storage (app.log, gateway.log)
- * - Thread-safe
+ * - 异步写入：所有 I/O 在后台单线程执行，不阻塞调用方
  */
 class FileLogger(private val context: Context) {
 
@@ -39,26 +39,43 @@ class FileLogger(private val context: Context) {
         private const val MAX_ARCHIVED_LOGS = 5
     }
 
-    private val writeLock = ReentrantLock()
     private var loggingEnabled = true
+
+    /** 异步写入队列 */
+    private data class LogEntry(val filePath: String, val content: String)
+    private val writeQueue = LinkedBlockingQueue<LogEntry>()
+    private val running = AtomicBoolean(true)
+
+    /** 后台写入线程 */
+    private val writerThread = Thread({
+        while (running.get() || writeQueue.isNotEmpty()) {
+            try {
+                val entry = writeQueue.poll(500, java.util.concurrent.TimeUnit.MILLISECONDS)
+                    ?: continue
+                doAppendToFile(entry.filePath, entry.content)
+            } catch (_: InterruptedException) {
+                break
+            } catch (e: Exception) {
+                Log.e(TAG, "写入日志文件失败", e)
+            }
+        }
+    }, "FileLogger-Writer").apply {
+        isDaemon = true
+        priority = Thread.MIN_PRIORITY
+    }
 
     init {
         ensureDirectoryExists()
+        writerThread.start()
     }
 
     /**
-     * Log app logs
+     * Log app logs（不再调用 outputToLogcat，由 Log.kt 包装器负责 logcat 输出）
      */
     fun logApp(level: LogLevel, tag: String, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
-
         val logLine = formatLogLine(level, tag, message, error)
-
-        // Write to file
-        appendToFile(APP_LOG_FILE, logLine)
-
-        // Also output to logcat
-        outputToLogcat(level, tag, message, error)
+        writeQueue.offer(LogEntry(APP_LOG_FILE, logLine))
     }
 
     /**
@@ -66,14 +83,8 @@ class FileLogger(private val context: Context) {
      */
     fun logGateway(level: LogLevel, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
-
         val logLine = formatLogLine(level, "Gateway", message, error)
-
-        // Write to file
-        appendToFile(GATEWAY_LOG_FILE, logLine)
-
-        // Also output to logcat
-        outputToLogcat(level, "Gateway", message, error)
+        writeQueue.offer(LogEntry(GATEWAY_LOG_FILE, logLine))
     }
 
     /**
@@ -88,17 +99,26 @@ class FileLogger(private val context: Context) {
      * Clear log files
      */
     fun clearLogs(logType: LogType = LogType.ALL) {
-        writeLock.withLock {
+        writeQueue.offer(LogEntry(
             when (logType) {
-                LogType.APP -> File(APP_LOG_FILE).writeText("")
-                LogType.GATEWAY -> File(GATEWAY_LOG_FILE).writeText("")
-                LogType.ALL -> {
-                    File(APP_LOG_FILE).writeText("")
-                    File(GATEWAY_LOG_FILE).writeText("")
-                }
-            }
-            Log.i(TAG, "Clear logs: $logType")
+                LogType.APP -> APP_LOG_FILE
+                LogType.GATEWAY -> GATEWAY_LOG_FILE
+                LogType.ALL -> APP_LOG_FILE // clear both
+            },
+            "" // empty → special marker handled below
+        ))
+        if (logType == LogType.ALL) {
+            // Queue both clears
+            try { File(APP_LOG_FILE).writeText("") } catch (_: Exception) {}
+            try { File(GATEWAY_LOG_FILE).writeText("") } catch (_: Exception) {}
+        } else {
+            try { File(when (logType) {
+                LogType.APP -> APP_LOG_FILE
+                LogType.GATEWAY -> GATEWAY_LOG_FILE
+                else -> APP_LOG_FILE
+            }).writeText("") } catch (_: Exception) {}
         }
+        Log.i(TAG, "Clear logs: $logType")
     }
 
     /**
@@ -146,7 +166,6 @@ class FileLogger(private val context: Context) {
                 LogType.APP -> File(APP_LOG_FILE).copyTo(outputFile, overwrite = true)
                 LogType.GATEWAY -> File(GATEWAY_LOG_FILE).copyTo(outputFile, overwrite = true)
                 LogType.ALL -> {
-                    // 合并两个日志文件
                     val combined = File(APP_LOG_FILE).readText() +
                             "\n\n=== GATEWAY LOG ===\n\n" +
                             File(GATEWAY_LOG_FILE).readText()
@@ -168,7 +187,7 @@ class FileLogger(private val context: Context) {
         val file = when (logType) {
             LogType.APP -> File(APP_LOG_FILE)
             LogType.GATEWAY -> File(GATEWAY_LOG_FILE)
-            LogType.ALL -> return emptyList() // 不支持 ALL
+            LogType.ALL -> return emptyList()
         }
 
         if (!file.exists()) return emptyList()
@@ -179,6 +198,12 @@ class FileLogger(private val context: Context) {
             Log.e(TAG, "读取日志失败", e)
             emptyList()
         }
+    }
+
+    /** 停止后台写入线程 */
+    fun shutdown() {
+        running.set(false)
+        writerThread.interrupt()
     }
 
     // ==================== 私有方法 ====================
@@ -192,24 +217,20 @@ class FileLogger(private val context: Context) {
     }
 
     /**
-     * 追加到文件（Thread-safe，带日志轮转）
+     * 实际写入文件（在后台线程执行）
      */
-    private fun appendToFile(filePath: String, content: String) {
-        writeLock.withLock {
-            try {
-                val file = File(filePath)
+    private fun doAppendToFile(filePath: String, content: String) {
+        try {
+            val file = File(filePath)
 
-                // 检查文件大小，超过限制则轮转
-                if (file.exists() && file.length() > MAX_FILE_SIZE) {
-                    rotateLog(file)
-                }
-
-                // 追加内容
-                file.appendText(content)
-            } catch (e: Exception) {
-                // 写入失败时只Output to logcat，避免递归
-                Log.e(TAG, "写入日志文件失败: $filePath", e)
+            // 检查文件大小，超过限制则轮转
+            if (file.exists() && file.length() > MAX_FILE_SIZE) {
+                rotateLog(file)
             }
+
+            file.appendText(content)
+        } catch (e: Exception) {
+            Log.e(TAG, "写入日志文件失败: $filePath", e)
         }
     }
 
@@ -222,12 +243,10 @@ class FileLogger(private val context: Context) {
             val archiveName = "${file.nameWithoutExtension}-$timestamp.log"
             val archiveFile = File(file.parent, archiveName)
 
-            // 移动当前日志为归档
             file.renameTo(archiveFile)
 
             Log.i(TAG, "日志已轮转: $archiveName")
 
-            // 清理旧归档
             cleanOldArchives(file.parentFile)
         } catch (e: Exception) {
             Log.e(TAG, "日志轮转失败", e)
@@ -276,19 +295,6 @@ class FileLogger(private val context: Context) {
         }
 
         return "[$timestamp] $levelStr $tag: $message$errorInfo\n"
-    }
-
-    /**
-     * Output to logcat
-     */
-    private fun outputToLogcat(level: LogLevel, tag: String, message: String, error: Throwable?) {
-        when (level) {
-            LogLevel.VERBOSE -> Log.v(tag, message, error)
-            LogLevel.DEBUG -> Log.d(tag, message, error)
-            LogLevel.INFO -> Log.i(tag, message, error)
-            LogLevel.WARN -> Log.w(tag, message, error)
-            LogLevel.ERROR -> Log.e(tag, message, error)
-        }
     }
 }
 
@@ -341,6 +347,10 @@ data class LogStats(
 
 /**
  * 全局日志实例（便捷使用）
+ *
+ * 注意：AppLog 方法只写入文件，不再调用 logcat。
+ * logcat 输出由 Log.kt 包装器在调用 AppLog 之外单独完成，
+ * 避免 Log.kt → AppLog → FileLogger → outputToLogcat → Log.kt 的无限递归。
  */
 object AppLog {
     private lateinit var fileLogger: FileLogger
