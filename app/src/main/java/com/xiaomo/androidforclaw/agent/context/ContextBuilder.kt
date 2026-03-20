@@ -199,8 +199,8 @@ class ContextBuilder(
 
         // 11. Documentation - Skip (no documentation in Android environment)
 
-        // 12. Workspace Files (injected) - Mark Bootstrap injection
-        parts.add("<!-- Workspace files injected above -->")
+        // 12. Workspace Files (injected) - Aligned with OpenClaw
+        parts.add("## Workspace Files (injected)\nThese user-editable files are loaded by AndroidForClaw and included below in Project Context.")
 
         // 13. Reply Tags (aligned with OpenClaw)
         if (promptMode == PromptMode.FULL) {
@@ -251,7 +251,8 @@ class ContextBuilder(
         // 22. Runtime - Always included
         parts.add(buildRuntimeSection(userGoal, packageName, testMode))
 
-        val finalPrompt = parts.joinToString("\n\n---\n\n")
+        // Aligned with OpenClaw: sections joined by "\n" (no "---" separators)
+        val finalPrompt = parts.filter { it.isNotBlank() }.joinToString("\n")
 
         Log.d(TAG, "✅ System prompt 构建完成:")
         Log.d(TAG, "  - 模式: $promptMode")
