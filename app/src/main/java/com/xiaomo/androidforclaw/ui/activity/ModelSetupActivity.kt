@@ -98,7 +98,7 @@ class ModelSetupActivity : AppCompatActivity() {
                     ModelPreset("claude-haiku-3-5-20241022", "Claude 3.5 Haiku (快速)")
                 )
             ),
-            "mimo" to ProviderPreset(
+            "xiaomi" to ProviderPreset(
                 name = "小米 MiMo",
                 baseUrl = "https://api.xiaomimimo.com/anthropic",
                 api = "anthropic-messages",
@@ -134,7 +134,7 @@ class ModelSetupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityModelSetupBinding
     private val configLoader by lazy { ConfigLoader(this) }
-    private var selectedProvider = "mimo"
+    private var selectedProvider = "xiaomi"
     private var advancedExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,7 +160,7 @@ class ModelSetupActivity : AppCompatActivity() {
         binding.tilModel.visibility = View.GONE
 
         // 默认显示小米 MiMo 提示
-        applyProviderPreset("mimo")
+        applyProviderPreset("xiaomi")
 
         // "打开 xiaomimimo.com" link
         binding.tvOpenOpenrouter.setOnClickListener {
@@ -186,9 +186,9 @@ class ModelSetupActivity : AppCompatActivity() {
             }
 
             // If collapsing, reset to MiMo
-            if (!advancedExpanded && selectedProvider != "mimo") {
-                selectedProvider = "mimo"
-                applyProviderPreset("mimo")
+            if (!advancedExpanded && selectedProvider != "xiaomi") {
+                selectedProvider = "xiaomi"
+                applyProviderPreset("xiaomi")
             }
         }
     }
@@ -196,12 +196,12 @@ class ModelSetupActivity : AppCompatActivity() {
     private fun setupProviderSelection() {
         binding.chipGroupProvider.setOnCheckedStateChangeListener { _, checkedIds ->
             val provider = when {
-                checkedIds.contains(R.id.chip_mimo) -> "mimo"
+                checkedIds.contains(R.id.chip_mimo) -> "xiaomi"
                 checkedIds.contains(R.id.chip_google) -> "google"
                 checkedIds.contains(R.id.chip_anthropic) -> "anthropic"
                 checkedIds.contains(R.id.chip_openai) -> "openai"
                 checkedIds.contains(R.id.chip_custom) -> "custom"
-                else -> "mimo"
+                else -> "xiaomi"
             }
             selectedProvider = provider
             applyProviderPreset(provider)
@@ -214,7 +214,7 @@ class ModelSetupActivity : AppCompatActivity() {
         binding.apply {
             // API Key hint
             tilApiKey.hint = when (providerKey) {
-                "mimo" -> "小米 MiMo API Key"
+                "xiaomi" -> "小米 MiMo API Key"
                 "openrouter" -> "OpenRouter API Key"
                 "anthropic" -> "Anthropic API Key"
                 "openai" -> "OpenAI API Key"
@@ -222,7 +222,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 else -> "API Key"
             }
             (tilApiKey as? com.google.android.material.textfield.TextInputLayout)?.helperText = when (providerKey) {
-                "mimo" -> "免费使用，注册: platform.xiaomimimo.com"
+                "xiaomi" -> "免费使用，注册: platform.xiaomimimo.com"
                 "openrouter" -> "以 sk-or- 开头"
                 "anthropic" -> "以 sk-ant- 开头"
                 "openai" -> "以 sk- 开头"
@@ -276,9 +276,9 @@ class ModelSetupActivity : AppCompatActivity() {
     }
 
     private fun saveDefaultAndFinish() {
-        selectedProvider = "mimo"
+        selectedProvider = "xiaomi"
         advancedExpanded = false
-        applyProviderPreset("mimo")
+        applyProviderPreset("xiaomi")
         binding.etSetupApiKey.setText("")
         saveAndFinish()
     }

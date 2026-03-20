@@ -82,10 +82,69 @@ class ConfigLoader(private val context: Context) {
         val configJson = openclawConfigFile.readText()
         val processedJson = replaceEnvVars(configJson)
         val config = parseConfig(processedJson)
-        validateConfig(config)
+        val migrated = migrateProviderIds(config)
+        validateConfig(migrated)
 
         Log.i(TAG, "✅ 配置加载成功")
-        return config
+        return migrated
+    }
+
+    /**
+     * 迁移旧的 provider ID 到新 ID（对齐 OpenClaw 官方命名）
+     * "mimo" → "xiaomi"
+     */
+    private fun migrateProviderIds(config: OpenClawConfig): OpenClawConfig {
+        val providers = config.models?.providers ?: return config
+        if (!providers.containsKey("mimo")) return config
+
+        Log.i(TAG, "🔄 迁移 provider ID: mimo → xiaomi")
+        val migrated = providers.toMutableMap()
+        val mimoProvider = migrated.remove("mimo")!!
+        migrated["xiaomi"] = mimoProvider
+
+        // Also update default model ref if it points to mimo/
+        val agents = config.agents
+        val updatedAgents = if (agents?.defaults?.model?.primary?.startsWith("mimo/") == true) {
+            val newPrimary = agents.defaults.model.primary.replace("mimo/", "xiaomi/")
+            agents.copy(
+                defaults = agents.defaults.copy(
+                    model = ModelSelectionConfig(primary = newPrimary)
+                )
+            )
+        } else agents
+
+        val migratedConfig = config.copy(
+            models = config.models?.copy(providers = migrated),
+            agents = updatedAgents
+        )
+
+        // Persist the migration
+        try {
+            val root = JSONObject(openclawConfigFile.readText())
+            val modelsJson = root.optJSONObject("models")
+            val providersJson = modelsJson?.optJSONObject("providers")
+            if (providersJson?.has("mimo") == true) {
+                val mimoJson = providersJson.getJSONObject("mimo")
+                providersJson.put("xiaomi", mimoJson)
+                providersJson.remove("mimo")
+
+                // Update default model ref
+                val agentsJson = root.optJSONObject("agents")
+                val defaultsJson = agentsJson?.optJSONObject("defaults")
+                val modelJson = defaultsJson?.optJSONObject("model")
+                val primary = modelJson?.optString("primary")
+                if (primary?.startsWith("mimo/") == true) {
+                    modelJson.put("primary", primary.replace("mimo/", "xiaomi/"))
+                }
+
+                openclawConfigFile.writeText(root.toString(4))
+                Log.i(TAG, "✅ provider ID 迁移已持久化")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "⚠️ provider ID 迁移持久化失败: ${e.message}")
+        }
+
+        return migratedConfig
     }
 
     /**

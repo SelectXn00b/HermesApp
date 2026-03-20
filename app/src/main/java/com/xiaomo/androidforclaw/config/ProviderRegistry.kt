@@ -557,7 +557,7 @@ object ProviderRegistry {
     )
 
     val XIAOMI = ProviderDefinition(
-        id = "mimo",
+        id = "xiaomi", // 对齐 OpenClaw 官方配置
         name = "小米 (MiMo)",
         description = "小米 MiMo 大模型",
         baseUrl = XIAOMI_BASE_URL,
