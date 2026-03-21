@@ -191,9 +191,6 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         MMKV.initialize(this)
         registerActivityLifecycleCallbacks(this)
 
-        // Initialize unified storage paths (must be before anything that reads/writes config or logs)
-        com.xiaomo.androidforclaw.workspace.StoragePaths.init(this)
-
         // Initialize file logging system
         initializeFileLogger()
 

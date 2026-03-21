@@ -351,7 +351,6 @@ class MainActivityCompose : ComponentActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 if (Environment.isExternalStorageManager()) {
                     Log.i(TAG, "✅ File management permission granted")
-                    com.xiaomo.androidforclaw.workspace.StoragePaths.recheckAfterPermission(this)
                 } else {
                     Log.w(TAG, "⚠️ File management permission not granted, config file reading may fail")
                 }

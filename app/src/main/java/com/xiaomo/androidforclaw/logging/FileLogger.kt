@@ -35,10 +35,7 @@ class FileLogger(private val context: Context) {
         private const val MAX_ARCHIVED_LOGS = 5
     }
 
-    /** Resolved logs directory via StoragePaths */
-    private val logsDir: String by lazy {
-        com.xiaomo.androidforclaw.workspace.StoragePaths.logs.also { it.mkdirs() }.absolutePath
-    }
+    private val logsDir: String = com.xiaomo.androidforclaw.workspace.StoragePaths.logs.also { it.mkdirs() }.absolutePath
     private val appLogFilePath get() = "$logsDir/app.log"
     private val gatewayLogFilePath get() = "$logsDir/gateway.log"
 
@@ -68,8 +65,6 @@ class FileLogger(private val context: Context) {
     }
 
     init {
-        // Force lazy init so directory is created early
-        logsDir
         writerThread.start()
     }
 

@@ -173,7 +173,7 @@ object MainEntryNew {
             // 5. Initialize session manager (use workspace directory, aligned with OpenClaw)
             val workspaceDir = com.xiaomo.androidforclaw.workspace.StoragePaths.workspace.also {
                 it.mkdirs()
-                Log.d(TAG, "Using workspace: ${it.absolutePath}")
+                Log.d(TAG, "Workspace: ${it.absolutePath}")
             }
             sessionManager = SessionManager(
                 workspace = workspaceDir
