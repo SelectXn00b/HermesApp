@@ -268,6 +268,8 @@ dependencies {
     testImplementation 'com.google.code.gson:gson:2.12.1'
     // MockK（mock 框架，可选）
     testImplementation "io.mockk:mockk:1.14.2"
+    // Real org.json for unit tests (Android stubs don't parse)
+    testImplementation 'org.json:json:20240303'
 
     // Feishu Official SDK (needed for direct testing)
     // 注意:飞书SDK内部包含旧版protobuf,会导致测试环境冲突

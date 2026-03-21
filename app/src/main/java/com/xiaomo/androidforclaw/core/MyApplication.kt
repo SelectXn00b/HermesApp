@@ -189,6 +189,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         com.xiaomo.androidforclaw.util.LocaleHelper.applyLanguage(this)
 
         MMKV.initialize(this)
+        com.xiaomo.androidforclaw.config.ProviderRegistry.init(this)
         registerActivityLifecycleCallbacks(this)
 
         // Initialize file logging system
