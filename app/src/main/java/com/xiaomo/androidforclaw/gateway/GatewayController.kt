@@ -27,6 +27,8 @@ import com.xiaomo.androidforclaw.gateway.security.TokenAuth
 import com.xiaomo.androidforclaw.gateway.websocket.GatewayWebSocketServer
 import fi.iki.elonen.NanoHTTPD
 import com.xiaomo.androidforclaw.providers.LegacyMessage
+import com.xiaomo.androidforclaw.providers.llm.toNewMessage
+import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -119,7 +121,7 @@ class GatewayController(
                         "auth" to mapOf("deviceToken" to null),
                         "canvasHostUrl" to null,
                         "snapshot" to mapOf(
-                            "sessionDefaults" to mapOf("mainSessionKey" to "default")
+                            "sessionDefaults" to mapOf("mainSessionKey" to "main")
                         )
                     )
                 }
@@ -151,14 +153,59 @@ class GatewayController(
                     session.addMessage(LegacyMessage(role = "user", content = userContent))
                     sessionManager.save(session)
 
+                    // Build context history from session messages
+                    val contextHistory = session.messages.dropLast(1).map { it.toNewMessage() }
+
                     val job = serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        // Collect streaming progress events in parallel
+                        val streamJob = launch {
+                            agentLoop.progressFlow.collect { update ->
+                                when (update) {
+                                    is ProgressUpdate.BlockReply -> {
+                                        server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                            "sessionKey" to sessionKey,
+                                            "stream" to "assistant",
+                                            "data" to mapOf("text" to update.text)
+                                        )))
+                                    }
+                                    is ProgressUpdate.ToolCall -> {
+                                        val toolCallId = "tc_${UUID.randomUUID()}"
+                                        server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                            "sessionKey" to sessionKey,
+                                            "stream" to "tool",
+                                            "data" to mapOf(
+                                                "phase" to "start",
+                                                "name" to update.name,
+                                                "toolCallId" to toolCallId,
+                                                "arguments" to update.arguments
+                                            )
+                                        )))
+                                    }
+                                    is ProgressUpdate.ToolResult -> {
+                                        server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                            "sessionKey" to sessionKey,
+                                            "stream" to "tool",
+                                            "data" to mapOf(
+                                                "phase" to "result",
+                                                "name" to update.name,
+                                                "result" to update.result
+                                            )
+                                        )))
+                                    }
+                                    else -> { /* ignore other progress types */ }
+                                }
+                            }
+                        }
+
                         try {
                             val result = agentLoop.run(
                                 systemPrompt = "You are a helpful AI assistant.",
                                 userMessage = userMsg,
-                                contextHistory = emptyList(),
+                                contextHistory = contextHistory,
                                 reasoningEnabled = reasoningEnabled
                             )
+                            streamJob.cancel()
+
                             val text = result.finalContent
                             val msgId = "msg_${UUID.randomUUID()}"
                             val nowMs = System.currentTimeMillis()
@@ -167,7 +214,7 @@ class GatewayController(
                             session.addMessage(LegacyMessage(role = "assistant", content = text))
                             sessionManager.save(session)
 
-                            // OpenClaw client expects "stream" and data["text"]
+                            // Send final assistant text (full accumulated)
                             server?.broadcast(EventFrame(event = "agent", payload = mapOf(
                                 "sessionKey" to sessionKey,
                                 "stream" to "assistant",
@@ -186,6 +233,7 @@ class GatewayController(
                                 )
                             )))
                         } catch (e: Exception) {
+                            streamJob.cancel()
                             Log.e(TAG, "chat.send agent failed: ${e.message}", e)
                             server?.broadcast(EventFrame(event = "agent", payload = mapOf(
                                 "sessionKey" to sessionKey,
