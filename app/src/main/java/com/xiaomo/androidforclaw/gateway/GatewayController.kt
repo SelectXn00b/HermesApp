@@ -22,6 +22,7 @@ import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.gateway.protocol.AgentParams
 import com.xiaomo.androidforclaw.gateway.protocol.AgentWaitParams
+import com.xiaomo.androidforclaw.gateway.protocol.EventFrame
 import com.xiaomo.androidforclaw.gateway.security.TokenAuth
 import com.xiaomo.androidforclaw.gateway.websocket.GatewayWebSocketServer
 import fi.iki.elonen.NanoHTTPD
@@ -31,6 +32,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.xiaomo.androidforclaw.logging.Log
 import java.io.IOException
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import org.json.JSONObject
 
 /**
@@ -57,6 +60,9 @@ class GatewayController(
     private var server: GatewayWebSocketServer? = null
     private var tokenAuth: TokenAuth? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    // Per-session message history: sessionKey -> list of messages
+    private val chatHistory = ConcurrentHashMap<String, MutableList<Map<String, Any?>>>()
 
     private lateinit var agentMethods: AgentMethods
     private lateinit var sessionMethods: SessionMethods
@@ -101,6 +107,130 @@ class GatewayController(
                 toolsMethods = ToolsMethods(toolRegistry, androidToolRegistry)
                 skillsMethods = SkillsMethods(context)
                 configMethods = ConfigMethods(context)
+
+                // ── OpenClaw loopback handshake ───────────────────────────
+                // Client (OpenClaw Android) sends "connect" after receiving
+                // the "connect.challenge" event.  We respond with server info.
+                registerMethod("connect") { _ ->
+                    mapOf(
+                        "server" to "AndroidForClaw",
+                        "auth" to mapOf("deviceToken" to null),
+                        "canvasHostUrl" to null,
+                        "snapshot" to mapOf(
+                            "sessionDefaults" to mapOf("mainSessionKey" to "default")
+                        )
+                    )
+                }
+
+                // ── OpenClaw chat protocol ─────────────────────────────────
+                // chat.send: run agent asynchronously, stream "agent" events,
+                // finish with a "chat" final event.
+                registerMethod("chat.send") { params ->
+                    @Suppress("UNCHECKED_CAST")
+                    val p = params as? Map<String, Any?> ?: emptyMap()
+                    val sessionKey = p["sessionKey"] as? String ?: "default"
+                    val userMsg = p["message"] as? String ?: ""
+                    val runId = "run_${UUID.randomUUID()}"
+
+                    // Store user message in history
+                    val messages = chatHistory.getOrPut(sessionKey) { mutableListOf() }
+                    val userMsgObj = mapOf(
+                        "role" to "user",
+                        "content" to listOf(mapOf("type" to "text", "text" to userMsg)),
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                    synchronized(messages) { messages.add(userMsgObj) }
+
+                    serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            val result = agentLoop.run(
+                                systemPrompt = "You are a helpful AI assistant.",
+                                userMessage = userMsg,
+                                contextHistory = emptyList(),
+                                reasoningEnabled = false
+                            )
+                            val text = result.finalContent
+                            val msgId = "msg_${UUID.randomUUID()}"
+                            val nowMs = System.currentTimeMillis()
+
+                            // Store assistant message in history
+                            val assistantMsg = mapOf(
+                                "role" to "assistant",
+                                "content" to listOf(mapOf("type" to "text", "text" to text)),
+                                "timestamp" to nowMs
+                            )
+                            synchronized(messages) { messages.add(assistantMsg) }
+
+                            // OpenClaw client expects "stream" (not "type") and data["text"] (not data["delta"])
+                            server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                "sessionKey" to sessionKey,
+                                "stream" to "assistant",
+                                "data" to mapOf("text" to text)
+                            )))
+                            // OpenClaw client expects "state" (not "type") in chat events
+                            server?.broadcast(EventFrame(event = "chat", payload = mapOf(
+                                "state" to "final",
+                                "sessionKey" to sessionKey,
+                                "runId" to runId,
+                                "message" to mapOf(
+                                    "id" to msgId,
+                                    "role" to "assistant",
+                                    "content" to listOf(mapOf("type" to "text", "text" to text)),
+                                    "timestamp" to nowMs
+                                )
+                            )))
+                        } catch (e: Exception) {
+                            Log.e(TAG, "chat.send agent failed: ${e.message}", e)
+                            server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                "sessionKey" to sessionKey,
+                                "stream" to "error",
+                                "data" to mapOf("error" to (e.message ?: "error"))
+                            )))
+                        }
+                    }
+
+                    mapOf("runId" to runId)
+                }
+
+                // chat.history: return session message history in OpenClaw format.
+                registerMethod("chat.history") { params ->
+                    @Suppress("UNCHECKED_CAST")
+                    val p = params as? Map<String, Any?> ?: emptyMap()
+                    val sessionKey = p["sessionKey"] as? String ?: "default"
+                    val messages = chatHistory[sessionKey]
+                    val messageList = if (messages != null) {
+                        synchronized(messages) { messages.toList() }
+                    } else {
+                        emptyList()
+                    }
+                    mapOf(
+                        "sessionKey" to sessionKey,
+                        "sessionId" to null,
+                        "thinkingLevel" to null,
+                        "messages" to messageList
+                    )
+                }
+
+                // chat.health: returns current session health for the chat tab.
+                registerMethod("chat.health") { _ ->
+                    mapOf("ok" to true, "agentBusy" to false)
+                }
+
+                // chat.abort: abort the current chat run (best-effort stub).
+                registerMethod("chat.abort") { _ ->
+                    mapOf("aborted" to true)
+                }
+
+                // agents.list: list available agents (AndroidForClaw only has one).
+                registerMethod("agents.list") { _ ->
+                    mapOf("agents" to listOf(
+                        mapOf(
+                            "id" to "androidforclaw",
+                            "name" to "AndroidForClaw",
+                            "description" to "AI Agent for Android"
+                        )
+                    ))
+                }
 
                 // Register Agent methods
                 registerMethod("agent") { params ->
