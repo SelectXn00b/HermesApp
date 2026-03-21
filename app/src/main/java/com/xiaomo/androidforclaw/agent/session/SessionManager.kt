@@ -584,11 +584,15 @@ data class Session(
     var totalTokens: Int = 0,                  // Total token count
     var totalTokensFresh: Boolean = false      // Whether token data is fresh
 ) {
+    /** Per-message creation timestamps (epoch ms), parallel to messages list */
+    val messageTimestamps: MutableList<Long> = mutableListOf()
+
     /**
      * Add message
      */
     fun addMessage(message: LegacyMessage) {
         messages.add(message)
+        messageTimestamps.add(System.currentTimeMillis())
         totalTokensFresh = false  // Mark token count as stale
     }
 
@@ -608,6 +612,7 @@ data class Session(
      */
     fun clearMessages() {
         messages.clear()
+        messageTimestamps.clear()
         totalTokens = 0
         totalTokensFresh = true
     }

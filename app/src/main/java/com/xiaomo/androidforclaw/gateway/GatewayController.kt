@@ -117,7 +117,7 @@ class GatewayController(
                 // the "connect.challenge" event.  We respond with server info.
                 registerMethod("connect") { _ ->
                     mapOf(
-                        "server" to "AndroidForClaw",
+                        "server" to mapOf("host" to "AndroidForClaw"),
                         "auth" to mapOf("deviceToken" to null),
                         "canvasHostUrl" to null,
                         "snapshot" to mapOf(
@@ -157,6 +157,9 @@ class GatewayController(
                     val contextHistory = session.messages.dropLast(1).map { it.toNewMessage() }
 
                     val job = serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        // Track tool call IDs for correlating start/result pairs
+                        val pendingToolCallIds = ConcurrentHashMap<String, String>()
+
                         // Collect streaming progress events in parallel
                         val streamJob = launch {
                             agentLoop.progressFlow.collect { update ->
@@ -170,6 +173,7 @@ class GatewayController(
                                     }
                                     is ProgressUpdate.ToolCall -> {
                                         val toolCallId = "tc_${UUID.randomUUID()}"
+                                        pendingToolCallIds[update.name] = toolCallId
                                         server?.broadcast(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "tool",
@@ -182,12 +186,14 @@ class GatewayController(
                                         )))
                                     }
                                     is ProgressUpdate.ToolResult -> {
+                                        val toolCallId = pendingToolCallIds.remove(update.name) ?: "tc_${UUID.randomUUID()}"
                                         server?.broadcast(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "tool",
                                             "data" to mapOf(
                                                 "phase" to "result",
                                                 "name" to update.name,
+                                                "toolCallId" to toolCallId,
                                                 "result" to update.result
                                             )
                                         )))
@@ -232,13 +238,28 @@ class GatewayController(
                                     "timestamp" to nowMs
                                 )
                             )))
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            streamJob.cancel()
+                            Log.i(TAG, "chat.send cancelled (abort): $runId")
+                            server?.broadcast(EventFrame(event = "chat", payload = mapOf(
+                                "state" to "aborted",
+                                "sessionKey" to sessionKey,
+                                "runId" to runId
+                            )))
                         } catch (e: Exception) {
                             streamJob.cancel()
                             Log.e(TAG, "chat.send agent failed: ${e.message}", e)
+                            val errorMsg = e.message ?: "error"
                             server?.broadcast(EventFrame(event = "agent", payload = mapOf(
                                 "sessionKey" to sessionKey,
                                 "stream" to "error",
-                                "data" to mapOf("error" to (e.message ?: "error"))
+                                "data" to mapOf("error" to errorMsg)
+                            )))
+                            server?.broadcast(EventFrame(event = "chat", payload = mapOf(
+                                "state" to "error",
+                                "sessionKey" to sessionKey,
+                                "runId" to runId,
+                                "errorMessage" to errorMsg
                             )))
                         } finally {
                             activeJobs.remove(runId)
@@ -255,11 +276,12 @@ class GatewayController(
                     val p = params as? Map<String, Any?> ?: emptyMap()
                     val sessionKey = p["sessionKey"] as? String ?: "default"
                     val session = sessionManager.get(sessionKey)
-                    val messageList = session?.messages?.map { msg ->
+                    val messageList = session?.messages?.mapIndexed { idx, msg ->
+                        val ts = session.messageTimestamps.getOrElse(idx) { System.currentTimeMillis() }
                         mapOf(
                             "role" to msg.role,
                             "content" to legacyContentToOpenClaw(msg.content),
-                            "timestamp" to System.currentTimeMillis()
+                            "timestamp" to ts
                         )
                     } ?: emptyList()
                     mapOf(

@@ -322,3 +322,10 @@ configurations.all {
         }
     }
 }
+
+// 测试完成后不卸载 app 和 test APK
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith("uninstall")) {
+        task.enabled = false
+    }
+}

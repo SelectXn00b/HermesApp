@@ -19,8 +19,11 @@ class SessionMethods(
     /**
      * sessions.list() - List all sessions
      */
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("UNCHECKED_CAST")
     fun sessionsList(params: Any?): SessionListResult {
+        val p = params as? Map<String, Any?> ?: emptyMap()
+        val limit = (p["limit"] as? Number)?.toInt() ?: Int.MAX_VALUE
+
         val keys = sessionManager.getAllKeys()
         val sessions = keys.map { key ->
             val session = sessionManager.get(key)
@@ -31,7 +34,7 @@ class SessionMethods(
                 updatedAt = parseIso8601(session?.updatedAt),
                 displayName = session?.metadata?.get("displayName") as? String
             )
-        }
+        }.sortedByDescending { it.updatedAt }.take(limit)
         return SessionListResult(sessions = sessions)
     }
 
