@@ -86,7 +86,7 @@ config/models.json
 
 # 参考项目
 nanobot/
-OpenClaw/
+/OpenClaw/
 
 # 本地工作区 (只忽略根目录的 workspace, 不影响源代码中的 workspace 包)
 /workspace/
