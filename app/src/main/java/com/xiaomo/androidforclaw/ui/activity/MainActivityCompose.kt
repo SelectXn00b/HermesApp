@@ -26,6 +26,21 @@ import com.xiaomo.androidforclaw.util.ChatBroadcastReceiver
 import ai.openclaw.app.MainViewModel
 import ai.openclaw.app.ui.RootScreen
 import ai.openclaw.app.ui.OpenClawTheme
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.xiaomo.androidforclaw.accessibility.MediaProjectionHelper
 import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
 import com.tencent.mmkv.MMKV
@@ -171,6 +186,13 @@ class MainActivityCompose : ComponentActivity() {
             .apply()
 
         setContent {
+            val legalPrefs = remember {
+                getSharedPreferences("forclaw_legal", MODE_PRIVATE)
+            }
+            var legalAccepted by remember {
+                mutableStateOf(legalPrefs.getBoolean("legal.accepted", false))
+            }
+
             // Trigger loopback connection with retry — Gateway may still be starting.
             LaunchedEffect(Unit) {
                 repeat(5) { attempt ->
@@ -182,6 +204,18 @@ class MainActivityCompose : ComponentActivity() {
             }
 
             OpenClawTheme {
+                if (!legalAccepted) {
+                    LegalConsentDialog(
+                        onAccept = {
+                            legalPrefs.edit().putBoolean("legal.accepted", true).apply()
+                            legalAccepted = true
+                        },
+                        onDecline = { finishAffinity() },
+                        onOpenPrivacy = { LegalActivity.start(this@MainActivityCompose, LegalActivity.TYPE_PRIVACY) },
+                        onOpenTerms = { LegalActivity.start(this@MainActivityCompose, LegalActivity.TYPE_TERMS) },
+                    )
+                }
+
                 RootScreen(
                     viewModel = openClawViewModel,
                     connectTabSlot = { ForClawConnectTab() },
@@ -381,6 +415,70 @@ class MainActivityCompose : ComponentActivity() {
                 } else {
                     Log.w(TAG, "⚠️ File management permission still not granted")
                     showStoragePermissionDialog()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LegalConsentDialog(
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
+    onOpenPrivacy: () -> Unit,
+    onOpenTerms: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = { /* non-dismissable */ },
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+    ) {
+        Surface(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "服务条款和隐私政策",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                Text(
+                    text = "欢迎使用 ForClaw！在开始之前，请阅读并同意我们的服务条款和隐私政策。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                // Clickable links
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onOpenPrivacy) {
+                        Text("查看隐私政策 →", fontSize = 14.sp)
+                    }
+                    TextButton(onClick = onOpenTerms) {
+                        Text("查看用户协议 →", fontSize = 14.sp)
+                    }
+                }
+
+                Text(
+                    text = "点击「同意」即表示您已阅读并同意以上条款。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
+                ) {
+                    TextButton(onClick = onDecline) {
+                        Text("不同意")
+                    }
+                    Button(onClick = onAccept) {
+                        Text("同意")
+                    }
                 }
             }
         }

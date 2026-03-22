@@ -16,7 +16,6 @@
         tools:ignore="ProtectedPermissions" /> <!-- 存储权限 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -33,9 +32,6 @@
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission
-        android:name="android.permission.BIND_DEVICE_ADMIN"
-        tools:ignore="ProtectedPermissions" /> <!-- 设备管理权限 (需要用户手动设置为设备管理员) -->
     <uses-permission
         android:name="android.permission.BIND_DEVICE_ADMIN"
         tools:ignore="ProtectedPermissions" />
@@ -124,14 +120,9 @@
         <!-- 配置测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.config.ConfigTestActivity"
-            android:exported="true"
+            android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 权限管理页面 -->
         <activity
@@ -198,10 +189,17 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PhoneForClaw" />
 
+        <!-- 法律条款页面 -->
+        <activity
+            android:name="com.xiaomo.androidforclaw.ui.activity.LegalActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PhoneForClaw" />
+
         <!-- Feishu 连接测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.FeishuTestActivity"
-            android:exported="true"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PhoneForClaw" />
 

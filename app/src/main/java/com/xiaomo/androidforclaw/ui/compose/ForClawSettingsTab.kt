@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.tencent.mmkv.MMKV
 import com.xiaomo.androidforclaw.ui.activity.*
+import com.xiaomo.androidforclaw.ui.activity.LegalActivity
 import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
 import com.xiaomo.androidforclaw.updater.AppUpdater
 import com.xiaomo.androidforclaw.util.MMKVKeys
@@ -108,6 +109,22 @@ fun ForClawSettingsTab() {
         SettingsSection("应用") {
             CheckUpdateItem()
             RestartAppItem()
+        }
+
+        // ── 法律 ─────────────────────────────────────────────────
+        SettingsSection("法律") {
+            SettingsNavItem(
+                icon = Icons.Default.Policy,
+                title = "隐私政策",
+                subtitle = "查看隐私政策",
+                onClick = { LegalActivity.start(context, LegalActivity.TYPE_PRIVACY) }
+            )
+            SettingsNavItem(
+                icon = Icons.Default.Gavel,
+                title = "用户协议",
+                subtitle = "查看用户协议",
+                onClick = { LegalActivity.start(context, LegalActivity.TYPE_TERMS) }
+            )
         }
 
         // ── 关于 ─────────────────────────────────────────────────
