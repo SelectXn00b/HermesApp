@@ -171,9 +171,14 @@ class MainActivityCompose : ComponentActivity() {
             .apply()
 
         setContent {
-            // Trigger loopback connection once the Compose tree is ready.
+            // Trigger loopback connection with retry — Gateway may still be starting.
             LaunchedEffect(Unit) {
-                openClawViewModel.connectManual()
+                repeat(5) { attempt ->
+                    openClawViewModel.connectManual()
+                    // Wait and check if connected; if so, stop retrying
+                    kotlinx.coroutines.delay(if (attempt == 0) 500L else 2000L)
+                    if (openClawViewModel.isConnected.value) return@LaunchedEffect
+                }
             }
 
             OpenClawTheme {
