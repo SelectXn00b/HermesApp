@@ -52,8 +52,8 @@ private enum class HomeTab(
   val label: String,
   val icon: ImageVector,
 ) {
-  Connect(label = "Connect", icon = Icons.Default.CheckCircle),
   Chat(label = "Chat", icon = Icons.Default.ChatBubble),
+  Connect(label = "Connect", icon = Icons.Default.CheckCircle),
   Voice(label = "Voice", icon = Icons.Default.RecordVoiceOver),
   Screen(label = "Screen", icon = Icons.AutoMirrored.Filled.ScreenShare),
   Settings(label = "Settings", icon = Icons.Default.Settings),
@@ -74,7 +74,7 @@ fun PostOnboardingTabs(
   connectTabSlot: (@Composable () -> Unit)? = null,
   settingsTabSlot: (@Composable () -> Unit)? = null,
 ) {
-  var activeTab by rememberSaveable { mutableStateOf(HomeTab.Connect) }
+  var activeTab by rememberSaveable { mutableStateOf(HomeTab.Chat) }
   var chatTabStarted by rememberSaveable { mutableStateOf(false) }
   var screenTabStarted by rememberSaveable { mutableStateOf(false) }
 

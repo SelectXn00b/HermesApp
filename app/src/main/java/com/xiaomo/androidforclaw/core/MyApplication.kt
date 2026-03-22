@@ -226,6 +226,29 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // 🌐 Start Gateway service
         startGatewayService()
 
+        // 🐧 Initialize embedded Termux runtime (auto-extract bootstrap from assets)
+        com.xiaomo.termux.EmbeddedTermuxRuntime.init(
+            this,
+            workspaceDir = java.io.File("/sdcard/.androidforclaw/workspace")
+        )
+        // Regenerate exec-wrappers.sh so linker64 child-process bypass is up-to-date
+        if (com.xiaomo.termux.EmbeddedTermuxRuntime.isReady()) {
+            com.xiaomo.termux.EmbeddedTermuxRuntime.regenerateWrappers()
+        }
+        if (!com.xiaomo.termux.EmbeddedTermuxRuntime.isReady()) {
+            GlobalScope.launch(Dispatchers.IO) {
+                Log.i(TAG, "Termux bootstrap not extracted, auto-extracting...")
+                val result = com.xiaomo.termux.EmbeddedTermuxRuntime.setup { progress ->
+                    Log.d(TAG, "Termux bootstrap: ${progress.state} ${progress.message}")
+                }
+                if (result.isSuccess) {
+                    Log.i(TAG, "✅ Termux runtime ready")
+                } else {
+                    Log.e(TAG, "❌ Termux bootstrap failed: ${result.exceptionOrNull()?.message}")
+                }
+            }
+        }
+
         // 📱 Start Feishu Channel (if enabled)
         startFeishuChannelIfEnabled()
         startDiscordChannelIfEnabled()
@@ -248,24 +271,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             }
         }
 
-        // Termux SSH pre-warm (non-blocking, with timeout guard)
-        GlobalScope.launch(Dispatchers.IO) {
-            try {
-                Log.i(TAG, "Termux SSH pre-warm: checking availability...")
-                val termux = com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool(applicationContext)
-                // triggerAutoSetup will generate keys, deploy, start sshd if needed
-                val status = termux.triggerAutoSetup()
-                if (status.ready) {
-                    // Always warm up the persistent pool connection
-                    com.xiaomo.androidforclaw.agent.tools.TermuxSSHPool.warmUp(applicationContext)
-                    Log.i(TAG, "Termux SSH pool warmed up")
-                } else {
-                    Log.i(TAG, "Termux SSH warm-up skipped: ${status.message} (step=${status.lastStep})")
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Termux SSH warm-up skipped: ${e.message}")
-            }
-        }
+        // Embedded Termux runtime state check (non-blocking)
+        Log.i(TAG, "Embedded Termux runtime: state=${com.xiaomo.termux.EmbeddedTermuxRuntime.state}")
 
         // Delayed scan and export app info (avoid blocking app startup)
 //        Handler(Looper.getMainLooper()).postDelayed({

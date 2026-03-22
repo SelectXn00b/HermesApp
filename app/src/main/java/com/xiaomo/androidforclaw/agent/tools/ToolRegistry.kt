@@ -22,9 +22,8 @@ import java.io.File
  * Tools are cross-platform universal capabilities:
  * - read_file, write_file, edit_file: File operations
  * - list_dir: Directory listing
- * - exec: Execute shell commands
+ * - exec: Execute shell commands (auto-routes to embedded Termux or internal shell)
  * - web_fetch: Web fetching
- * - termux_bridge: Termux command execution
  *
  * Note: Android-specific capabilities are managed in AndroidToolRegistry
  */
@@ -83,10 +82,6 @@ class ToolRegistry(
         val configMethods = ConfigMethods(context)
         register(ConfigGetTool(configMethods))
         register(ConfigSetTool(configMethods))
-
-        // === Local code execution backends ===
-        // Termux is closer to OpenClaw's universal execution backends than Android UI skills.
-        register(TermuxBridgeTool(context))
 
         // === ClawHub skill hub tools ===
         // Aligned with OpenClaw gateway RPC: skills.search / skills.install

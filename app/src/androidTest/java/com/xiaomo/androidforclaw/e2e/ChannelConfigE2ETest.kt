@@ -53,7 +53,7 @@ class ChannelConfigE2ETest {
             channels = original.channels.copy(
                 slack = com.xiaomo.androidforclaw.config.SlackChannelConfig(
                     enabled = true,
-                    token = "xoxb-test-token-12345",
+                    botToken = "xoxb-test-token-12345",
                     dmPolicy = "pairing",
                     groupPolicy = "allowlist",
                     requireMention = false
@@ -67,7 +67,7 @@ class ChannelConfigE2ETest {
         assertNotNull("slack config should exist", reloaded.channels.slack)
         val slack = reloaded.channels.slack!!
         assertTrue(slack.enabled)
-        assertEquals("xoxb-test-token-12345", slack.token)
+        assertEquals("xoxb-test-token-12345", slack.botToken)
         assertEquals("pairing", slack.dmPolicy)
         assertEquals("allowlist", slack.groupPolicy)
         assertFalse(slack.requireMention)
@@ -85,7 +85,7 @@ class ChannelConfigE2ETest {
             channels = original.channels.copy(
                 telegram = com.xiaomo.androidforclaw.config.TelegramChannelConfig(
                     enabled = true,
-                    token = "bot123456:ABC-test",
+                    botToken = "bot123456:ABC-test",
                     dmPolicy = "open",
                     groupPolicy = "disabled",
                     requireMention = true
@@ -98,7 +98,7 @@ class ChannelConfigE2ETest {
         assertNotNull(reloaded.channels.telegram)
         val tg = reloaded.channels.telegram!!
         assertTrue(tg.enabled)
-        assertEquals("bot123456:ABC-test", tg.token)
+        assertEquals("bot123456:ABC-test", tg.botToken)
         assertEquals("disabled", tg.groupPolicy)
 
         configLoader.saveOpenClawConfig(original)
@@ -164,8 +164,8 @@ class ChannelConfigE2ETest {
 
         val updated = original.copy(
             channels = original.channels.copy(
-                slack = com.xiaomo.androidforclaw.config.SlackChannelConfig(enabled = true, token = "s1"),
-                telegram = com.xiaomo.androidforclaw.config.TelegramChannelConfig(enabled = true, token = "t1"),
+                slack = com.xiaomo.androidforclaw.config.SlackChannelConfig(enabled = true, botToken = "s1"),
+                telegram = com.xiaomo.androidforclaw.config.TelegramChannelConfig(enabled = true, botToken = "t1"),
                 whatsapp = com.xiaomo.androidforclaw.config.WhatsAppChannelConfig(enabled = true, phoneNumber = "w1"),
                 signal = com.xiaomo.androidforclaw.config.SignalChannelConfig(enabled = true, phoneNumber = "g1")
             )

@@ -106,10 +106,7 @@
 | `agent/tools/device/RefManager.kt` | RefManager | Playwright-style ref ID 映射 | `pw-role-snapshot.ts` | **必须保留** |
 | `agent/tools/device/SnapshotBuilder.kt` | SnapshotBuilder | Accessibility→RefNode 转换 | `pw-role-snapshot.ts` | **必须保留** |
 | `agent/tools/device/SnapshotFormatter.kt` | SnapshotFormatter | 紧凑格式输出 | `pw-tools-core.snapshot.ts` | **必须保留** |
-| `agent/tools/TermuxBridgeTool.kt` | TermuxBridgeTool | Termux SSH 执行命令 | `bash-tools.exec.ts` (本地执行) | **必须保留** — Linux 能力 |
-| `agent/tools/TermuxSSHPool.kt` | TermuxSSHPool | SSH 连接池 | - | **必须保留** — 配套 |
-| `agent/tools/TermuxStatus.kt` | TermuxStatus | Termux 可用性检查 | - | **必须保留** — 配套 |
-| `agent/tools/ExecFacadeTool.kt` | ExecFacadeTool | exec 门面,增加安全检查 | `bash-tools.ts` | **必须保留** |
+| `agent/tools/ExecFacadeTool.kt` | ExecFacadeTool | exec 门面，路由到内嵌 Termux 或内置 Shell | `bash-tools.ts` | **必须保留** |
 | `agent/tools/ClawImeInputSkill.kt` | ClawImeInputSkill | 通过 ClawIME 输入文本 | - | **必须保留** — 文本输入 |
 | `agent/tools/FeishuSendImageSkill.kt` | FeishuSendImageSkill | 飞书发送图片 | `message-tool.ts` (部分) | **必须保留** |
 | `agent/tools/FeishuToolAdapter.kt` | FeishuToolAdapter | 飞书工具适配 | - | **必须保留** |

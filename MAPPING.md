@@ -310,7 +310,6 @@
 | - | `agent/tools/ConfigGetTool.kt` | Android 独有 |
 | - | `agent/tools/ConfigSetTool.kt` | Android 独有 |
 | - | `agent/tools/SkillsHubTool.kt` | Android 独有 (对齐 ClawHub) |
-| - | `agent/tools/TermuxBridgeTool.kt` | Android 独有 |
 
 ### Android 特有工具 (无 OpenClaw 对应)
 

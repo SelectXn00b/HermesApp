@@ -21,6 +21,7 @@ data class ChatPendingToolCall(
   val args: kotlinx.serialization.json.JsonObject? = null,
   val startedAtMs: Long,
   val isError: Boolean? = null,
+  val isDone: Boolean = false,
 )
 
 data class ChatSessionEntry(

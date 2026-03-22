@@ -1,16 +1,9 @@
 /**
- * OpenClaw Source Reference:
- * - 无 OpenClaw 对应 (Android 平台独有)
+ * Termux Runtime Setup — Embedded bootstrap, no SSH needed.
  */
 package com.xiaomo.androidforclaw.ui.activity
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -19,25 +12,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool
-import com.xiaomo.androidforclaw.agent.tools.TermuxStatus
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import com.xiaomo.termux.BootstrapProgress
+import com.xiaomo.termux.EmbeddedTermuxRuntime
+import com.xiaomo.termux.RuntimeState
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class TermuxSetupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,81 +38,17 @@ class TermuxSetupActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermuxSetupScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val bridge = remember { TermuxBridgeTool(context) }
 
-    // Status checks
-    var termuxInstalled by remember { mutableStateOf(false) }
-    var termuxApiInstalled by remember { mutableStateOf(false) }
-    var sshReachable by remember { mutableStateOf(false) }
-    var sshAuthOk by remember { mutableStateOf(false) }
-    var sshConfigured by remember { mutableStateOf(false) }
-    var statusMessage by remember { mutableStateOf("等待检测...") }
-    var checking by remember { mutableStateOf(true) }
-    var autoSettingUp by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            // Permission granted, trigger auto-setup
-            scope.launch {
-                autoSettingUp = true
-                val status = withContext(Dispatchers.IO) { bridge.triggerAutoSetup() }
-                termuxInstalled = status.termuxInstalled
-                termuxApiInstalled = status.termuxApiInstalled
-                sshReachable = status.sshReachable
-                sshAuthOk = status.sshAuthOk
-                sshConfigured = status.sshConfigPresent
-                statusMessage = status.message
-                autoSettingUp = false
-            }
-        } else {
-            statusMessage = "RUN_COMMAND 权限被拒绝，请手动授权"
-        }
-    }
-
-    // Generate setup command — uses cp instead of >> to avoid Android scoped storage issues
-    val setupCommand = remember {
-        "export PREFIX=/data/data/com.termux/files/usr && export LD_LIBRARY_PATH=\$PREFIX/lib && export PATH=\$PREFIX/bin:\$PATH && export HOME=/data/data/com.termux/files/home && pkg install -y openssh && mkdir -p \$HOME/.ssh && rm -f \$HOME/.ssh/authorized_keys && cp /sdcard/.androidforclaw/.ssh/id_ed25519.pub \$HOME/.ssh/authorized_keys && chmod 700 \$HOME/.ssh && chmod 600 \$HOME/.ssh/authorized_keys && chmod 644 /sdcard/.androidforclaw/.ssh/id_ed25519 && pkill sshd; sshd && echo '✅ Done'"
-    }
-
-    // Check status on launch and periodically
-    fun checkStatus() {
-        scope.launch {
-            withContext(Dispatchers.IO) {
-                val status: TermuxStatus = bridge.getStatus()
-                termuxInstalled = status.termuxInstalled
-                termuxApiInstalled = status.termuxApiInstalled
-                sshReachable = status.sshReachable
-                sshAuthOk = status.sshAuthOk
-                sshConfigured = status.sshConfigPresent
-                statusMessage = status.message
-                checking = false
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        // Ensure BouncyCastle for SSH
-        try {
-            val bc = org.bouncycastle.jce.provider.BouncyCastleProvider()
-            java.security.Security.removeProvider(bc.name)
-            java.security.Security.insertProviderAt(bc, 1)
-        } catch (_: Exception) {}
-        checkStatus()
-        // Auto-refresh every 3 seconds
-        while (true) {
-            delay(3000)
-            checkStatus()
-        }
-    }
+    var runtimeState by remember { mutableStateOf(EmbeddedTermuxRuntime.state) }
+    var progressMessage by remember { mutableStateOf("") }
+    var isSettingUp by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Termux 配置") },
+                title = { Text("Termux 运行时") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, "返回")
@@ -146,163 +67,104 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
         ) {
             // Header
             Text(
-                "🐧 Termux 配置向导",
+                "🐧 Termux 运行时",
                 style = MaterialTheme.typography.headlineSmall
             )
             Text(
-                "Termux 让 AI 能在手机上运行 Python、Node.js 和 Shell 命令。\n按以下步骤完成配置：",
+                "内嵌的 Linux 运行环境，让 AI 能执行 Python、Node.js、Shell 命令。\n无需安装 Termux App，一键安装即可使用。",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Divider()
 
+            // Status card
             Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("当前状态", style = MaterialTheme.typography.titleSmall)
-                    Text("- Termux: ${if (termuxInstalled) "已安装" else "未安装"}")
-                    Text("- Termux:API: ${if (termuxApiInstalled) "已安装" else "未安装"}")
-                    Text("- SSH 8022: ${if (sshReachable) "可连接" else "不可连接"}")
-                    Text("- SSH 认证: ${if (sshAuthOk) "✅ 正常" else "❌ 失败"}")
-                    Text("- SSH 配置: ${if (sshConfigured) "已生成" else "未生成"}")
-                    Text("- 当前卡点: $statusMessage", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                // Clipboard-based setup: copy command + open Termux
-                                val cmd = bridge.copySetupCommandAndLaunch()
-                                statusMessage = "命令已复制到剪贴板，请在 Termux 中长按粘贴并回车"
-                                Toast.makeText(context, "✅ 命令已复制，长按粘贴后回车", Toast.LENGTH_LONG).show()
-                            },
-                            enabled = termuxInstalled && !(sshAuthOk && sshConfigured)
-                        ) {
-                            Text("一键配置（复制+打开Termux）")
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("运行时状态", style = MaterialTheme.typography.titleSmall)
+
+                    when (runtimeState) {
+                        RuntimeState.READY -> {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    "就绪",
+                                    tint = Color(0xFF4CAF50),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text("已安装，可正常使用", color = Color(0xFF4CAF50))
+                            }
                         }
-                        OutlinedButton(
-                            onClick = {
-                                checking = true
-                                checkStatus()
-                            },
-                            enabled = !checking
-                        ) {
-                            Text("尝试连接")
+                        RuntimeState.EXTRACTING -> {
+                            Text("正在解压运行时...")
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            Text(
+                                progressMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        RuntimeState.ERROR -> {
+                            Text("安装失败", color = MaterialTheme.colorScheme.error)
+                            errorMessage?.let {
+                                Text(
+                                    it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                        RuntimeState.NOT_INITIALIZED -> {
+                            Text("未安装")
                         }
                     }
                 }
             }
 
-            // Step 1: Install Termux
-            StepCard(
-                step = 1,
-                title = "安装 Termux",
-                description = "从 F-Droid 安装 Termux（不要用 Play Store 版本）",
-                done = termuxInstalled,
-                action = if (!termuxInstalled) {
-                    {
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://f-droid.org/packages/com.termux/"))
-                            context.startActivity(intent)
-                        } catch (_: Exception) {
-                            Toast.makeText(context, "请手动搜索安装 Termux", Toast.LENGTH_SHORT).show()
+            // Action buttons
+            if (runtimeState != RuntimeState.READY) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isSettingUp = true
+                            errorMessage = null
+                            val result = EmbeddedTermuxRuntime.setup { progress ->
+                                runtimeState = EmbeddedTermuxRuntime.state
+                                progressMessage = progress.message
+                                if (progress.state == BootstrapProgress.State.ERROR) {
+                                    errorMessage = progress.message
+                                }
+                            }
+                            runtimeState = EmbeddedTermuxRuntime.state
+                            isSettingUp = false
+                            if (result.isFailure) {
+                                errorMessage = result.exceptionOrNull()?.message
+                            }
                         }
-                    }
-                } else null,
-                actionLabel = "去下载"
-            )
-
-            // Step 1.5: Termux permissions
-            if (termuxInstalled && !(sshReachable && sshConfigured)) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0))
+                    },
+                    enabled = !isSettingUp,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("⚠️ 请先授予 Termux 文件权限", style = MaterialTheme.typography.titleSmall, color = Color(0xFFE65100))
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "手机设置 → 应用管理 → Termux → 权限管理\n" +
-                            "开启：照片和视频、音乐和音频、文件和文档\n" +
-                            "（不开启会导致命令执行 permission denied）",
-                            style = MaterialTheme.typography.bodySmall
+                    if (isSettingUp) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
+                        Spacer(Modifier.width(8.dp))
+                        Text("安装中...")
+                    } else {
+                        Text(if (runtimeState == RuntimeState.ERROR) "重新安装运行时" else "安装运行时")
                     }
                 }
             }
 
-            // Step 2: Open Termux and paste command
-            StepCard(
-                step = 2,
-                title = "打开 Termux，粘贴一行命令",
-                description = "点击下方按钮 → 命令自动复制 → Termux 自动打开 → 长按粘贴 → 回车",
-                done = sshAuthOk && sshConfigured
-            )
-
-            // Command box
-            if (termuxInstalled && !(sshAuthOk && sshConfigured)) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = setupCommand,
-                            color = Color(0xFF00FF00),
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                            lineHeight = 16.sp
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            clipboard.setPrimaryClip(ClipData.newPlainText("termux-setup", setupCommand))
-                            Toast.makeText(context, "✅ 已复制命令", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Default.ContentCopy, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("复制命令")
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            try {
-                                val intent = context.packageManager.getLaunchIntentForPackage("com.termux")
-                                if (intent != null) context.startActivity(intent)
-                                else Toast.makeText(context, "Termux 未安装", Toast.LENGTH_SHORT).show()
-                            } catch (_: Exception) {}
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("打开 Termux")
-                    }
-                }
-            }
-
-            // Step 3: Verify
-            StepCard(
-                step = 3,
-                title = "验证连接",
-                description = if (sshAuthOk && sshConfigured) "SSH 认证正常，配置完成！"
-                    else if (sshReachable && sshConfigured) "SSH 可达，但认证失败"
-                    else if (sshReachable) "SSH 可达，但配置文件未创建"
-                    else "等待 Termux 配置完成...",
-                done = sshAuthOk && sshConfigured
-            )
-
-            // All done
-            if (sshAuthOk && sshConfigured) {
+            // Ready state — show done message + uninstall option
+            if (runtimeState == RuntimeState.READY) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
@@ -319,11 +181,11 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "🎉 Termux 配置完成！",
+                            "🎉 运行时已就绪！",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            "AI 现在可以通过 exec 命令执行 Python、Node.js 和 Shell 脚本了。",
+                            "AI 现在可以通过 exec 命令执行 Python、Node.js 和 Shell 脚本。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -333,65 +195,35 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                         }
                     }
                 }
-            }
 
-            // Loading indicator
-            if (checking) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-        }
-    }
-}
+                Spacer(Modifier.height(16.dp))
 
-@Composable
-fun StepCard(
-    step: Int,
-    title: String,
-    description: String,
-    done: Boolean,
-    action: (() -> Unit)? = null,
-    actionLabel: String = ""
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            // Step number / check
-            if (done) {
-                Icon(
-                    Icons.Default.CheckCircle,
-                    "完成",
-                    tint = Color(0xFF4CAF50),
-                    modifier = Modifier.size(28.dp)
-                )
-            } else {
-                Surface(
-                    modifier = Modifier.size(28.dp),
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.primary
+                // Uninstall option
+                OutlinedButton(
+                    onClick = {
+                        EmbeddedTermuxRuntime.uninstall()
+                        runtimeState = EmbeddedTermuxRuntime.state
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("$step", color = Color.White, style = MaterialTheme.typography.labelLarge)
-                    }
+                    Icon(Icons.Default.Delete, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("卸载运行时")
                 }
             }
 
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleSmall)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (action != null && !done) {
-                    Spacer(Modifier.height(8.dp))
-                    TextButton(onClick = action) { Text(actionLabel) }
-                }
-            }
+            // Info footer
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "运行时基于 Termux bootstrap，包含 bash、coreutils 等基础 Linux 工具。\n" +
+                        "安装后可通过 exec 命令使用 pkg 安装 Python、Node.js 等。\n" +
+                        "运行时存储在应用私有目录，卸载应用时会自动清除。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

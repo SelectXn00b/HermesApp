@@ -44,6 +44,7 @@ include ':extensions:slack'
 include ':extensions:signal'
 include ':extensions:whatsapp'
 include ':extensions:observer'
+include ':extensions:termux'
 include ':self-control'
 // 移除：新架构不再使用 LangChain4j
 // include ':langchain4j-android'

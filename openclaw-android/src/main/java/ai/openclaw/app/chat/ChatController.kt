@@ -57,7 +57,7 @@ class ChatController(
 
   private val pendingRuns = mutableSetOf<String>()
   private val pendingRunTimeoutJobs = ConcurrentHashMap<String, Job>()
-  private val pendingRunTimeoutMs = 120_000L
+  private val pendingRunTimeoutMs = 240_000L
 
   private var lastHealthPollAtMs: Long? = null
 
@@ -323,6 +323,7 @@ class ChatController(
       "delta" -> {
         // Only show streaming text for runs we initiated
         if (!isPending) return
+        rearmAllPendingRunTimeouts()
         val text = parseAssistantDeltaText(payload)
         if (!text.isNullOrEmpty()) {
           _streamingAssistantText.value = text
@@ -360,6 +361,9 @@ class ChatController(
     val stream = payload["stream"].asStringOrNull()
     val data = payload["data"].asObjectOrNull()
 
+    // Any streaming activity from the agent resets the pending-run timeout
+    rearmAllPendingRunTimeouts()
+
     when (stream) {
       "assistant" -> {
         val text = data?.get("text")?.asStringOrNull()
@@ -386,7 +390,15 @@ class ChatController(
             )
           publishPendingToolCalls()
         } else if (phase == "result") {
-          pendingToolCallsById.remove(toolCallId)
+          // Mark as done instead of removing — keeps the card visible until final state
+          val existing = pendingToolCallsById[toolCallId]
+          if (existing != null) {
+            val isError = data?.get("isError")?.let {
+              it.asStringOrNull()?.toBooleanStrictOrNull()
+                ?: (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.toBooleanStrictOrNull()
+            }
+            pendingToolCallsById[toolCallId] = existing.copy(isDone = true, isError = isError)
+          }
           publishPendingToolCalls()
         }
       }
@@ -433,6 +445,14 @@ class ChatController(
         clearPendingRun(runId)
         _errorText.value = "Timed out waiting for a reply; try again or refresh."
       }
+  }
+
+  /** Re-arm all pending run timeouts — called when streaming activity proves the agent is alive. */
+  private fun rearmAllPendingRunTimeouts() {
+    val runIds = synchronized(pendingRuns) { pendingRuns.toList() }
+    for (runId in runIds) {
+      armPendingRunTimeout(runId)
+    }
   }
 
   private fun clearPendingRun(runId: String) {

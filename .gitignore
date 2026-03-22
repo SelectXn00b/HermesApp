@@ -37,7 +37,7 @@ bin/
 # 密钥文件
 *.keystore
 *.jks
-!test.keystore
+!debug.jks
 keystore.properties
 
 # 构建产物
@@ -120,3 +120,4 @@ tmp-screens/
 *.apk
 local.properties
 test.keystore
+.cc-connect/

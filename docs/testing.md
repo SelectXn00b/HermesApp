@@ -43,21 +43,7 @@
 | 3 | backend=internal | 强制内部执行 |
 | 4 | backend=termux | 强制 Termux 执行 |
 
-### 4. TermuxBridgeToolTest (29 cases)
-> 验证 Termux 桥接工具的参数解析、安全性、错误处理
-
-| 分组 | 用例数 | 验证内容 |
-|------|-------|---------|
-| 可用性检测 | 2 | Termux 未装/未就绪 |
-| 安装提示 | 3 | 提示文案、不暴露 SSH |
-| 参数验证 | 5 | 空命令、缺 runtime、无效 runtime |
-| Runtime 解析 | 4 | python→python3、nodejs→node、shell、优先级 |
-| 工作目录 | 3 | working_dir、cwd 别名、优先级 |
-| 超时 | 2 | 默认 60s、自定义超时 |
-| ToolDefinition | 4 | 名称、schema、安全性 |
-| ExecFacade 集成 | 6 | auto/internal/termux/unknown 路由 |
-
-### 5. SkillsHubToolTest (6 cases)
+### 4. SkillsHubToolTest (6 cases)
 > 验证 ClawHub 技能商店工具的定义和 schema
 
 | # | 用例 | 验证内容 |
@@ -195,8 +181,7 @@ AndroidForClaw Tests (306 total)
 ├── Unit Tests (70) ─── JVM, 无需设备
 │   ├── ContextBuilderConstantsTest (5)   — OpenClaw 常量对齐
 │   ├── AgentLoopCapabilityTest (23)      — 能力目录 + 数据结构
-│   ├── ExecFacadeToolTest (4)            — exec 路由逻辑
-│   ├── TermuxBridgeToolTest (29)         — Termux 桥接
+│   ├── ExecFacadeToolTest (3)            — exec 路由逻辑
 │   ├── SkillsHubToolTest (6)            — 技能商店
 │   └── CronTypesTest (3)                — 定时任务配置
 │

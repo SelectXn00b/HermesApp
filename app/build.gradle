@@ -9,7 +9,7 @@ plugins {
 // 获取打包时间，精确到小时
 def buildTime = new Date().format("yyyyMMddHH", TimeZone.getTimeZone("Asia/Shanghai"))
 
-// 从 keystore.properties 读取签名配置
+// 从 keystore.properties 读取签名配置（Release 用，该文件已 .gitignore）
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) {
@@ -19,35 +19,20 @@ if (keystorePropertiesFile.exists()) {
 android {
     signingConfigs {
         debug {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile rootProject.file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-            } else {
-                // 回退：使用默认签名
-                keyAlias 'android'
-                keyPassword 'android'
-                storeFile project.rootProject.file('../keystore.jks')
-                storePassword 'android'
-            }
+            keyAlias 'android'
+            keyPassword 'android'
+            storeFile project.rootProject.file('debug.jks')
+            storePassword 'android'
             enableV1Signing true
             enableV2Signing true
             enableV3Signing true
             enableV4Signing true
         }
         release {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-                storeFile rootProject.file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-            } else {
-                keyAlias 'android'
-                keyPassword 'android'
-                storeFile project.rootProject.file('../keystore.jks')
-                storePassword 'android'
-            }
+            keyAlias keystoreProperties['keyAlias'] ?: 'android'
+            keyPassword keystoreProperties['keyPassword'] ?: 'android'
+            storeFile keystoreProperties['storeFile'] ? rootProject.file(keystoreProperties['storeFile']) : rootProject.file('../keystore.jks')
+            storePassword keystoreProperties['storePassword'] ?: 'android'
             enableV1Signing true
             enableV2Signing true
             enableV3Signing true
@@ -236,11 +221,6 @@ dependencies {
     // ========== WorkManager (定时任务) ==========
     implementation 'androidx.work:work-runtime-ktx:2.10.1'
 
-    // ========== SSH (Termux bridge) ==========
-    implementation 'com.hierynomus:sshj:0.38.0'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.83'
-    implementation 'org.bouncycastle:bcpkix-jdk18on:1.83'
-
     // ========== EasyFloat 悬浮窗 ==========
     implementation 'com.github.princekin-f:EasyFloat:2.0.4'
 
@@ -252,6 +232,7 @@ dependencies {
     implementation project(':extensions:signal')
     implementation project(':extensions:whatsapp')
     implementation project(':extensions:observer')
+    implementation project(':extensions:termux')
 
     // ========== Self-Control Module ==========
     implementation project(':self-control')

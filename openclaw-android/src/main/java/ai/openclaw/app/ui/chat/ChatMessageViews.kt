@@ -146,21 +146,33 @@ fun ChatTypingIndicatorBubble() {
 @Composable
 fun ChatPendingToolsBubble(toolCalls: List<ChatPendingToolCall>) {
   val context = LocalContext.current
-  val displays =
+  val pairs =
     remember(toolCalls, context) {
-      toolCalls.map { ToolDisplayRegistry.resolve(context, it.name, it.args) }
+      toolCalls.map { it to ToolDisplayRegistry.resolve(context, it.name, it.args) }
     }
+
+  val allDone = toolCalls.all { it.isDone }
+  val anyRunning = toolCalls.any { !it.isDone }
 
   ChatBubbleContainer(
     style = bubbleStyle("assistant"),
     roleLabel = "Tools",
   ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-      Text("Running tools...", style = mobileCaption1.copy(fontWeight = FontWeight.SemiBold), color = mobileTextSecondary)
-      for (display in displays.take(6)) {
+      Text(
+        if (anyRunning) "Running tools..." else "Tools completed",
+        style = mobileCaption1.copy(fontWeight = FontWeight.SemiBold),
+        color = mobileTextSecondary,
+      )
+      for ((call, display) in pairs.take(6)) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+          val statusIcon = when {
+            call.isError == true -> "\u274C"  // red X
+            call.isDone -> "\u2705"           // green check
+            else -> display.emoji             // running: tool emoji
+          }
           Text(
-            "${display.emoji} ${display.label}",
+            "$statusIcon ${display.label}",
             style = mobileCallout,
             color = mobileTextSecondary,
             fontFamily = FontFamily.Monospace,
