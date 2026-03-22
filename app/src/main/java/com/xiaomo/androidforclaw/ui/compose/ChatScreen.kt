@@ -866,74 +866,64 @@ fun SessionControlBar(
 
                 // Session items
                 sessions.forEach { session ->
-                    Surface(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .combinedClickable(
-                                onClick = {
-                                    onSessionChange(session.id)
-                                    showSheet = false
-                                },
-                                onLongClick = {
-                                    if (onDeleteSession != null) {
-                                        showDeleteConfirm = session.id
-                                    }
-                                }
-                            ),
-                        color = if (session.id == currentSession?.id) Color(0xFFF5F8FF) else Color.White
+                            .clickable {
+                                onSessionChange(session.id)
+                                showSheet = false
+                            }
+                            .background(
+                                if (session.id == currentSession?.id) Color(0xFFF5F8FF)
+                                else Color.White
+                            )
+                            .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Active indicator
-                            if (session.id == currentSession?.id) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(3.dp)
-                                        .height(32.dp)
-                                        .clip(RoundedCornerShape(2.dp))
-                                        .background(Color(0xFF005FFF))
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                            }
+                        // Active indicator
+                        if (session.id == currentSession?.id) {
+                            Box(
+                                modifier = Modifier
+                                    .width(3.dp)
+                                    .height(32.dp)
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(Color(0xFF005FFF))
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
 
-                            Column(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = session.title,
+                                style = TextStyle(
+                                    fontSize = 15.sp,
+                                    fontWeight = if (session.id == currentSession?.id)
+                                        FontWeight.SemiBold else FontWeight.Normal,
+                                    color = Color(0xFF333333)
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = formatSessionTime(session.createdAt),
+                                style = TextStyle(fontSize = 12.sp, color = Color(0xFF999999)),
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+
+                        // Delete button — always visible, plain text
+                        if (onDeleteSession != null) {
+                            TextButton(
+                                onClick = { showDeleteConfirm = session.id }
+                            ) {
                                 Text(
-                                    text = session.title,
+                                    text = "删除",
                                     style = TextStyle(
-                                        fontSize = 15.sp,
-                                        fontWeight = if (session.id == currentSession?.id)
-                                            FontWeight.SemiBold else FontWeight.Normal,
-                                        color = Color(0xFF333333)
-                                    ),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = formatSessionTime(session.createdAt),
-                                    style = TextStyle(fontSize = 12.sp, color = Color(0xFF999999)),
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-
-                            // Message count badge
-                            if (session.messages.isNotEmpty()) {
-                                Surface(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = Color(0xFFF0F0F0)
-                                ) {
-                                    Text(
-                                        text = "${session.messages.size}",
-                                        style = TextStyle(fontSize = 11.sp, color = Color(0xFF999999)),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        fontSize = 13.sp,
+                                        color = Color(0xFFFF5252)
                                     )
-                                }
+                                )
                             }
-
-                            // Delete via long press or swipe (no visible button)
                         }
                     }
                     HorizontalDivider(color = Color(0xFFF5F5F5))
