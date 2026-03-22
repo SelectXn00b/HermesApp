@@ -245,6 +245,9 @@ class NodeRuntime(
         _seamColorArgb.value = DEFAULT_SEAM_COLOR_ARGB
         applyMainSessionKey(mainSessionKey)
         updateStatus()
+        // Re-bootstrap chat after operator connects — the initial bootstrap
+        // may have failed if the connection wasn't ready yet.
+        chat.refresh()
         micCapture.onGatewayConnectionChanged(true)
         scope.launch {
           refreshHomeCanvasOverviewIfConnected()
