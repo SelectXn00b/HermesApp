@@ -3,23 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="?attr/colorSurface">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="?attr/colorSurface"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#FFFFFF"
+            android:background="?attr/colorSurface"
             app:navigationIcon="@drawable/ic_arrow_back_24"
             app:title="模型配置"
-            app:titleTextColor="#000000" />
+            app:titleTextColor="?attr/colorOnSurface" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -47,10 +47,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="#E8F5E9"
-                    app:cardCornerRadius="12dp"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:strokeColor="#4CAF50"
+                    app:strokeColor="?attr/colorPrimary"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -63,7 +63,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="当前模型"
-                            android:textColor="#2E7D32"
+                            android:textColor="?attr/colorPrimary"
                             android:textSize="12sp" />
 
                         <TextView
@@ -72,7 +72,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="openrouter/hunter-alpha"
-                            android:textColor="#1B5E20"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -84,7 +84,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:text="选择 AI 服务商"
-                    android:textColor="#333333"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -103,9 +103,8 @@
                     android:layout_marginTop="8dp"
                     android:clickable="true"
                     android:focusable="true"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="1dp"
-                    app:rippleColor="#20000000">
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -119,7 +118,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="更多服务商"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="14sp" />
 
                         <ImageView
@@ -146,7 +145,7 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
                     android:text="自定义"
-                    android:textColor="#333333"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -194,7 +193,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="OpenRouter"
-                        android:textColor="#000000"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -203,7 +202,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="已配置"
-                        android:textColor="#4CAF50"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="12sp"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -231,8 +230,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="#FFF3E0"
-                    app:cardCornerRadius="8dp"
+                    app:cardBackgroundColor="?attr/colorTertiaryContainer"
+                    app:cardCornerRadius="14dp"
                     app:cardElevation="0dp">
 
                     <LinearLayout
@@ -246,7 +245,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="📋 如何获取 API Key？"
-                            android:textColor="#E65100"
+                            android:textColor="?attr/colorTertiary"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -255,7 +254,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:textColor="#BF360C"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="12sp"
                             android:lineSpacingExtra="4dp" />
 
@@ -265,7 +264,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="打开网页 →"
-                            android:textColor="#E65100"
+                            android:textColor="?attr/colorTertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -276,7 +275,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="选择模型"
-                    android:textColor="#333333"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -324,10 +323,9 @@
                     android:layout_marginTop="8dp"
                     android:clickable="true"
                     android:focusable="true"
-                    app:cardCornerRadius="8dp"
+                    app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#F5F5F5"
-                    app:rippleColor="#20000000">
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -341,7 +339,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="高级选项"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="13sp" />
 
                         <ImageView

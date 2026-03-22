@@ -14,6 +14,7 @@ import com.xiaomo.androidforclaw.ui.compose.ChatMessage
 import com.xiaomo.androidforclaw.ui.compose.MessageStatus
 import com.xiaomo.androidforclaw.ui.session.SessionManager
 import com.xiaomo.androidforclaw.util.ReasoningTagFilter
+import org.json.JSONObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -85,6 +86,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private fun observeAgentProgress() {
         viewModelScope.launch {
             MainEntryNew.uiProgressFlow.collect { event ->
+                val isToolEvent = event.type == "tool_call" || event.type == "tool_result"
                 val rendered = when (event.type) {
                     "iteration" -> ""
                     "thinking" -> ""  // Skip: sendMessage() already adds thinking indicator
@@ -99,7 +101,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 lastProgressContent = rendered
 
                 uiSessionManager.addMessageToCurrentSession(
-                    ChatMessage(content = rendered, isUser = false, status = MessageStatus.SENT)
+                    ChatMessage(
+                        content = rendered,
+                        isUser = false,
+                        status = MessageStatus.SENT,
+                        isToolCall = isToolEvent
+                    )
                 )
             }
         }
@@ -185,27 +192,48 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 else -> content.toString()
             }
 
-            if (contentStr.isNullOrEmpty()) {
-                return@mapNotNull null
-            }
-
             when (msg.role) {
-                "user" -> ChatMessage(
-                    content = contentStr,
-                    isUser = true,
-                    status = MessageStatus.SENT
-                )
+                "user" -> {
+                    if (contentStr.isNullOrEmpty()) return@mapNotNull null
+                    ChatMessage(content = contentStr, isUser = true, status = MessageStatus.SENT)
+                }
                 "assistant" -> {
-                    val cleanContent = ReasoningTagFilter.stripReasoningTags(contentStr)
-                    if (cleanContent.isNotEmpty()) {
+                    val toolCalls = msg.toolCalls
+                    if (!toolCalls.isNullOrEmpty()) {
+                        // Tool call request: show tool name + args, same format as progress events
+                        val toolText = toolCalls.joinToString("\n\n") { tc ->
+                            val argsText = try {
+                                val json = JSONObject(tc.function.arguments)
+                                if (json.length() == 0) "无参数"
+                                else json.keys().asSequence().joinToString("\n") { key ->
+                                    "  • $key: ${json.opt(key)}"
+                                }
+                            } catch (e: Exception) {
+                                tc.function.arguments
+                            }
+                            "执行: ${tc.function.name}\n$argsText"
+                        }
                         ChatMessage(
-                            content = cleanContent,
+                            content = toolText,
                             isUser = false,
-                            status = MessageStatus.SENT
+                            status = MessageStatus.SENT,
+                            isToolCall = true
                         )
                     } else {
-                        null
+                        if (contentStr.isNullOrEmpty()) return@mapNotNull null
+                        val cleanContent = ReasoningTagFilter.stripReasoningTags(contentStr)
+                        if (cleanContent.isEmpty()) return@mapNotNull null
+                        ChatMessage(content = cleanContent, isUser = false, status = MessageStatus.SENT)
                     }
+                }
+                "tool" -> {
+                    if (contentStr.isNullOrEmpty()) return@mapNotNull null
+                    ChatMessage(
+                        content = "执行完成\n$contentStr",
+                        isUser = false,
+                        status = MessageStatus.SENT,
+                        isToolCall = true
+                    )
                 }
                 else -> null
             }

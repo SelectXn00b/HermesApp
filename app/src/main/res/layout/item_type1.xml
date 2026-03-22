@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="?attr/colorSurface">
 
     <!-- 标题和展开/收起按钮 -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -20,7 +20,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_weight="1"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
@@ -44,7 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"
             android:layout_marginStart="10dp"
             app:layout_constraintStart_toEndOf="@id/status_progress"
@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:text="收起"
             android:visibility="gone"
-            android:textColor="@android:color/holo_blue_light"
+            android:textColor="?attr/colorPrimary"
             android:background="@null"
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -71,7 +71,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:layout_marginTop="8dp" />
     <!-- 内容文本 -->
 

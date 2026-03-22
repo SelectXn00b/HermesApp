@@ -23,14 +23,14 @@
             android:id="@+id/tv_model_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#000000"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp" />
 
         <TextView
             android:id="@+id/tv_model_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#999999"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="11sp" />
     </LinearLayout>
 
@@ -38,7 +38,7 @@
         android:id="@+id/tv_model_badge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#4CAF50"
+        android:textColor="?attr/colorPrimary"
         android:textSize="11sp"
         android:visibility="gone" />
 </LinearLayout>

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="?attr/colorSurfaceContainerLowest">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -26,8 +26,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -48,7 +48,7 @@
                             android:text="🤖 模型配置"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:id="@+id/tv_current_model_summary"
@@ -56,7 +56,7 @@
                             android:layout_height="wrap_content"
                             android:text="管理 AI 服务商和模型"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -74,8 +74,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -89,7 +89,7 @@
                         android:text="API 配置"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#000000"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="16dp" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -126,7 +126,7 @@
                         android:layout_height="wrap_content"
                         android:text="* 配置保存到 /sdcard/.androidforclaw/openclaw.json"
                         android:textSize="12sp"
-                        android:textColor="#999999"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="8dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -136,8 +136,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -151,7 +151,7 @@
                         android:text="功能开关"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#000000"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="16dp" />
 
                     <LinearLayout
@@ -172,14 +172,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="Extended Thinking"
                                 android:textSize="16sp"
-                                android:textColor="#000000" />
+                                android:textColor="?attr/colorOnSurface" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="启用深度推理模式"
                                 android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="4dp" />
                         </LinearLayout>
 
@@ -206,14 +206,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="Exploration Mode"
                                 android:textSize="16sp"
-                                android:textColor="#000000" />
+                                android:textColor="?attr/colorOnSurface" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="探索模式 vs 计划模式"
                                 android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:layout_marginTop="4dp" />
                         </LinearLayout>
 
@@ -230,8 +230,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -245,7 +245,7 @@
                         android:text="Gateway 配置"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#000000"
+                        android:textColor="?attr/colorOnSurface"
                         android:layout_marginBottom="16dp" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -268,7 +268,7 @@
                         android:layout_height="wrap_content"
                         android:text="* Gateway 在应用启动时自动运行"
                         android:textSize="12sp"
-                        android:textColor="#999999"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginTop="8dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -282,8 +282,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -304,14 +304,14 @@
                             android:text="📚 Skills 管理"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="查看和管理 Agent 技能"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -333,8 +333,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -355,14 +355,14 @@
                             android:text="📡 Channels 管理"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="管理飞书、Discord 等渠道"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -384,8 +384,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -406,7 +406,7 @@
                             android:text="🔄 检查更新"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:id="@+id/tv_current_version"
@@ -414,7 +414,7 @@
                             android:layout_height="wrap_content"
                             android:text="当前版本: ..."
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -436,8 +436,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -458,14 +458,14 @@
                             android:text="🔁 重启应用"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="重新加载配置和所有服务"
                             android:textSize="12sp"
-                            android:textColor="#666666"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -486,7 +486,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:backgroundTint="#FFFFFF">
+        app:backgroundTint="?attr/colorSurface">
 
         <LinearLayout
             android:layout_width="match_parent"

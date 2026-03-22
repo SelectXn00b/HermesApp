@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="?attr/colorSurface">
 
     <!-- 标题和展开/收起按钮 -->
     <LinearLayout
@@ -19,18 +19,18 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             android:text="Title" />
-            
+
         <TextView
             android:id="@+id/text_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"
             android:layout_marginStart="10dp"/>
-            
+
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"

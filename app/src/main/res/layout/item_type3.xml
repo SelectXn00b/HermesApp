@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="?attr/colorSurface">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             tools:text="Title"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"/>
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"
             android:layout_marginStart="10dp"
             app:layout_constraintStart_toEndOf="@id/status_progress"
@@ -87,7 +87,7 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:visibility="gone"
-        android:textColor="@android:color/holo_red_dark"
+        android:textColor="?attr/colorError"
         android:layout_marginTop="12dp"
         android:text="Red Title" />
 
@@ -97,7 +97,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:layout_marginTop="8dp"
         android:text="思考中..." />
 
@@ -106,7 +106,7 @@
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@android:color/darker_gray"
+        android:background="?attr/colorOutlineVariant"
         android:layout_marginTop="12dp"
         android:visibility="gone"/>
 
@@ -117,7 +117,7 @@
         android:layout_height="wrap_content"
         android:textSize="12sp"
         android:visibility="gone"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginTop="6dp"
         android:text="Comment" />
 

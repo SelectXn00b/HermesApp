@@ -60,39 +60,39 @@
             android:name="com.xiaomo.androidforclaw.ui.activity.MainActivity"
             android:exported="false"
             android:label="PhoneForClaw Debug (Legacy)"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:theme="@style/Theme.PhoneForClaw"
             tools:replace="android:exported" />
 
         <!-- 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ConfigActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Skills 管理页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SkillsActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Agent 测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.AgentTestActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 权限管理页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.PermissionsActivity"
             android:exported="true"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- QuickJS 测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.QuickJSTestActivity"
             android:exported="true"
             android:label="QuickJS Test"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+            android:theme="@style/Theme.PhoneForClaw">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -127,7 +127,7 @@
         <!-- AI测试Activity -->
         <activity android:name="com.xiaomo.androidforclaw.ui.activity.AITestActivity"
             android:exported="false"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
         
         <!-- Web服务 -->
         <service

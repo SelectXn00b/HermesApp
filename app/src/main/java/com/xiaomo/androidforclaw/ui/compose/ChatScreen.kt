@@ -70,7 +70,8 @@ data class ChatMessage(
     val content: String,
     val isUser: Boolean,
     val timestamp: Long = System.currentTimeMillis(),
-    val status: MessageStatus = MessageStatus.SENT
+    val status: MessageStatus = MessageStatus.SENT,
+    val isToolCall: Boolean = false
 )
 
 enum class MessageStatus {
@@ -207,12 +208,75 @@ fun ChatScreen(
 // Message Item with Markdown + Collapse + Long-press Copy
 // ============================================================================
 
+@Composable
+private fun ToolCallItem(
+    message: ChatMessage,
+    modifier: Modifier = Modifier
+) {
+    val isResult = message.content.startsWith("执行完成")
+    val icon = if (isResult) "✅" else "🔧"
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    val isLong = message.content.length > COLLAPSE_THRESHOLD
+    var expanded by remember { mutableStateOf(false) }
+    val displayContent = if (isLong && !expanded) message.content.take(COLLAPSE_THRESHOLD) + "..." else message.content
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // Small icon
+        Text(
+            text = icon,
+            style = TextStyle(fontSize = 13.sp),
+            modifier = Modifier.padding(top = 6.dp, end = 6.dp)
+        )
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = surfaceColor,
+            modifier = Modifier.weight(1f)
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                Text(
+                    text = displayContent,
+                    style = TextStyle(
+                        color = onSurfaceColor,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                )
+                if (isLong) {
+                    Text(
+                        text = if (expanded) "收起 ▲" else "展开 ▼",
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 11.sp
+                        ),
+                        modifier = Modifier
+                            .clickable { expanded = !expanded }
+                            .padding(top = 2.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageItem(
     message: ChatMessage,
     modifier: Modifier = Modifier
 ) {
+    if (message.isToolCall) {
+        ToolCallItem(message = message, modifier = modifier)
+        return
+    }
+
     val context = LocalContext.current
     val isLong = message.content.length > COLLAPSE_THRESHOLD
     var expanded by remember { mutableStateOf(false) }

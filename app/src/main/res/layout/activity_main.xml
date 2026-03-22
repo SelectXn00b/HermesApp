@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="?attr/colorSurfaceContainerLowest"
     tools:context="com.xiaomo.androidforclaw.ui.activity.MainActivity">
 
     <!-- 主内容区 -->
@@ -47,14 +47,14 @@
                         android:text="PhoneForClaw"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="AI 移动自动化平台"
                         android:textSize="14sp"
-                        android:textColor="#666666" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
 
                 <TextView
@@ -62,7 +62,7 @@
                     android:layout_height="wrap_content"
                     android:text="v2.4.3"
                     android:textSize="12sp"
-                    android:textColor="#999999" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <!-- Gateway 卡片 -->
@@ -71,8 +71,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -100,7 +100,7 @@
                             android:text="Gateway"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:id="@+id/tv_gateway_status"
@@ -109,7 +109,7 @@
                             android:text="运行中"
                             android:textSize="14sp"
                             android:layout_marginTop="4dp"
-                            android:textColor="#4CAF50" />
+                            android:textColor="?attr/colorPrimary" />
 
                         <TextView
                             android:id="@+id/tv_gateway_details"
@@ -117,7 +117,7 @@
                             android:layout_height="wrap_content"
                             android:text="WebSocket: ws://0.0.0.0:8765"
                             android:textSize="12sp"
-                            android:textColor="#999999"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -135,8 +135,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -164,7 +164,7 @@
                             android:text="权限"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:id="@+id/tv_permissions_status"
@@ -173,7 +173,7 @@
                             android:text="已授权"
                             android:textSize="14sp"
                             android:layout_marginTop="4dp"
-                            android:textColor="#4CAF50" />
+                            android:textColor="?attr/colorPrimary" />
 
                         <TextView
                             android:id="@+id/tv_permissions_details"
@@ -181,7 +181,7 @@
                             android:layout_height="wrap_content"
                             android:text="无障碍: ✓  悬浮窗: ✓  录屏: ✓"
                             android:textSize="12sp"
-                            android:textColor="#999999"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -199,8 +199,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -228,7 +228,7 @@
                             android:text="Skills"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:id="@+id/tv_skills_status"
@@ -237,7 +237,7 @@
                             android:text="8 个 Skills"
                             android:textSize="14sp"
                             android:layout_marginTop="4dp"
-                            android:textColor="#4CAF50" />
+                            android:textColor="?attr/colorPrimary" />
 
                         <TextView
                             android:id="@+id/tv_skills_details"
@@ -245,7 +245,7 @@
                             android:layout_height="wrap_content"
                             android:text="Always: 3  On-Demand: 5  Bundled: 8"
                             android:textSize="12sp"
-                            android:textColor="#999999"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -263,8 +263,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -292,7 +292,7 @@
                             android:text="Sessions"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="#000000" />
+                            android:textColor="?attr/colorOnSurface" />
 
                         <TextView
                             android:id="@+id/tv_sessions_status"
@@ -301,7 +301,7 @@
                             android:text="无活跃会话"
                             android:textSize="14sp"
                             android:layout_marginTop="4dp"
-                            android:textColor="#999999" />
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:id="@+id/tv_sessions_details"
@@ -309,7 +309,7 @@
                             android:layout_height="wrap_content"
                             android:text="暂无活跃的 Agent 会话"
                             android:textSize="12sp"
-                            android:textColor="#999999"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -330,7 +330,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:backgroundTint="#FFFFFF">
+        app:backgroundTint="?attr/colorSurface">
 
         <LinearLayout
             android:layout_width="match_parent"

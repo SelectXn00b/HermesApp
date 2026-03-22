@@ -78,7 +78,7 @@
             android:name="com.xiaomo.androidforclaw.ui.activity.MainActivityCompose"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+            android:theme="@style/Theme.PhoneForClaw">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -91,49 +91,49 @@
             android:name="com.xiaomo.androidforclaw.ui.activity.MainActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 模型配置引导页（首次启动） -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ModelSetupActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 模型配置页面（两页式） -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ModelConfigActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ConfigActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Skills 管理页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SkillsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Agent 测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.AgentTestActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 配置测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.config.ConfigTestActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+            android:theme="@style/Theme.PhoneForClaw">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -145,72 +145,72 @@
             android:name="com.xiaomo.androidforclaw.ui.activity.PermissionsActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Channel 列表页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ChannelListActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Feishu Channel 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.FeishuChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- MCP Server 配置页面（给外部 Agent 用，与 AndroidForClaw 自身无关） -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.McpConfigActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Discord Channel 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.DiscordChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.TelegramChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SlackChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SignalChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.TermuxSetupActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.WhatsAppChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- Feishu 连接测试页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.FeishuTestActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+            android:theme="@style/Theme.PhoneForClaw" />
 
         <!-- 结果Activity -->
         <activity

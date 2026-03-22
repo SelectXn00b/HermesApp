@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="?attr/colorSurfaceContainerLowest"
     android:fillViewport="true">
 
     <LinearLayout
@@ -17,9 +17,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#E3F2FD"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
+            app:cardBackgroundColor="?attr/colorPrimaryContainer"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                     android:text="⚠️ 已授予 0/3 个权限"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="#000000" />
+                    android:textColor="?attr/colorOnSurface" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -42,7 +42,7 @@
                     android:layout_marginTop="8dp"
                     android:text="PhoneForClaw 需要以下权限才能正常工作。请逐个授予权限。"
                     android:textSize="14sp"
-                    android:textColor="#666666" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <Button
                     android:id="@+id/btn_grant_all"
@@ -60,8 +60,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -82,7 +82,7 @@
                         android:text="无障碍服务"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:id="@+id/tv_accessibility_status"
@@ -90,7 +90,7 @@
                         android:layout_height="wrap_content"
                         android:text="❌ 未授权"
                         android:textSize="14sp"
-                        android:textColor="#F44336" />
+                        android:textColor="?attr/colorError" />
                 </LinearLayout>
 
                 <TextView
@@ -100,7 +100,7 @@
                     android:layout_marginTop="8dp"
                     android:text="用于：点击、滑动、输入文本、获取界面信息"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <Button
                     android:id="@+id/btn_accessibility"
@@ -118,8 +118,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -140,7 +140,7 @@
                         android:text="悬浮窗权限"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:id="@+id/tv_overlay_status"
@@ -148,7 +148,7 @@
                         android:layout_height="wrap_content"
                         android:text="❌ 未授权"
                         android:textSize="14sp"
-                        android:textColor="#F44336" />
+                        android:textColor="?attr/colorError" />
                 </LinearLayout>
 
                 <TextView
@@ -158,7 +158,7 @@
                     android:layout_marginTop="8dp"
                     android:text="用于：显示 Agent 执行状态悬浮窗"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <Button
                     android:id="@+id/btn_overlay"
@@ -176,8 +176,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -198,7 +198,7 @@
                         android:text="录屏权限"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textColor="?attr/colorOnSurface" />
 
                     <TextView
                         android:id="@+id/tv_screen_capture_status"
@@ -206,7 +206,7 @@
                         android:layout_height="wrap_content"
                         android:text="❌ 未授权"
                         android:textSize="14sp"
-                        android:textColor="#F44336" />
+                        android:textColor="?attr/colorError" />
                 </LinearLayout>
 
                 <TextView
@@ -216,7 +216,7 @@
                     android:layout_marginTop="8dp"
                     android:text="用于：截图观察界面、分析 UI 元素"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <Button
                     android:id="@+id/btn_screen_capture"
