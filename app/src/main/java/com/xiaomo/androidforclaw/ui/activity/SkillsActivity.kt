@@ -180,9 +180,19 @@ class SkillsActivity : AppCompatActivity() {
             appendLine("📊 预估 Tokens: ~${doc.estimateTokens()}")
         }
 
+        val scrollView = android.widget.ScrollView(this).apply {
+            val textView = android.widget.TextView(this@SkillsActivity).apply {
+                text = message
+                setPadding(48, 24, 48, 24)
+                textSize = 14f
+                setTextIsSelectable(true)
+            }
+            addView(textView)
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Skill 详情")
-            .setMessage(message)
+            .setView(scrollView)
             .setPositiveButton("查看内容") { _, _ ->
                 showSkillContent(doc)
             }
@@ -192,11 +202,22 @@ class SkillsActivity : AppCompatActivity() {
 
     private fun showSkillContent(doc: SkillDocument) {
         val content = doc.getFormattedContent()
-            .take(1000) + if (doc.content.length > 1000) "\n\n... (内容过长，仅显示前 1000 字符)" else ""
+            .take(2000) + if (doc.content.length > 2000) "\n\n... (内容过长，仅显示前 2000 字符)" else ""
+
+        val scrollView = android.widget.ScrollView(this).apply {
+            val textView = android.widget.TextView(this@SkillsActivity).apply {
+                text = content
+                setPadding(48, 24, 48, 24)
+                textSize = 13f
+                setTextIsSelectable(true)
+                typeface = android.graphics.Typeface.MONOSPACE
+            }
+            addView(textView)
+        }
 
         AlertDialog.Builder(this)
             .setTitle("${doc.metadata.emoji ?: ""} ${doc.name}")
-            .setMessage(content)
+            .setView(scrollView)
             .setPositiveButton("关闭", null)
             .show()
     }

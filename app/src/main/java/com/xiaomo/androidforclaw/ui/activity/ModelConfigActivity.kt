@@ -62,9 +62,22 @@ class ModelConfigActivity : AppCompatActivity() {
         binding = ActivityModelConfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        applySystemBarInsets()
         loadCurrentConfig()
         setupToolbar()
         buildProviderList()
+    }
+
+    private fun applySystemBarInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            val insets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            // Apply bottom inset to save button container so it sits above navigation bar
+            binding.btnSave.let { btn ->
+                val parent = btn.parent as? android.view.View
+                parent?.setPadding(0, 0, 0, insets.bottom)
+            }
+            windowInsets
+        }
     }
 
     override fun onDestroy() {

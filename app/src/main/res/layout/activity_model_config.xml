@@ -165,13 +165,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
+        android:fitsSystemWindows="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
-            android:paddingBottom="80dp">
+            android:paddingBottom="80dp"
+            android:clipToPadding="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -416,15 +418,25 @@
         </androidx.core.widget.NestedScrollView>
 
         <!-- Bottom Save Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_save"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_margin="16dp"
-            android:padding="12dp"
-            android:text="保存并使用"
-            android:textSize="16sp" />
+            android:orientation="vertical"
+            android:background="?attr/colorSurface">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:padding="12dp"
+                android:text="保存并使用"
+                android:textSize="16sp" />
+        </LinearLayout>
 
     </FrameLayout>
 
