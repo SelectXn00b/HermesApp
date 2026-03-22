@@ -484,21 +484,35 @@ class ModelConfigActivity : AppCompatActivity() {
 
         scope.launch {
             try {
-                val result = withContext(Dispatchers.IO) {
-                    performConnectionTest(effectiveBaseUrl, provider, apiKey, modelId)
+                val result = kotlinx.coroutines.withTimeout(25_000L) {
+                    withContext(Dispatchers.IO) {
+                        performConnectionTest(effectiveBaseUrl, provider, apiKey, modelId)
+                    }
                 }
-                AlertDialog.Builder(this@ModelConfigActivity)
-                    .setTitle("✅ 连接成功")
-                    .setMessage(result)
-                    .setPositiveButton("确定", null)
-                    .show()
+                if (!isFinishing) {
+                    AlertDialog.Builder(this@ModelConfigActivity)
+                        .setTitle("✅ 连接成功")
+                        .setMessage(result)
+                        .setPositiveButton("确定", null)
+                        .show()
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Connection test failed", e)
-                AlertDialog.Builder(this@ModelConfigActivity)
-                    .setTitle("❌ 连接失败")
-                    .setMessage("${e.message}")
-                    .setPositiveButton("确定", null)
-                    .show()
+                if (!isFinishing) {
+                    val errorMsg = when (e) {
+                        is kotlinx.coroutines.TimeoutCancellationException -> "请求超时（25秒），请检查网络或代理设置"
+                        is java.net.SocketTimeoutException -> "连接超时，请检查网络或代理设置"
+                        is java.net.UnknownHostException -> "无法解析域名 ${e.message}，请检查网络"
+                        is java.net.ConnectException -> "无法连接服务器，请检查网络或代理"
+                        is javax.net.ssl.SSLException -> "SSL 错误: ${e.message}"
+                        else -> "${e.message}"
+                    }
+                    AlertDialog.Builder(this@ModelConfigActivity)
+                        .setTitle("❌ 连接失败")
+                        .setMessage(errorMsg)
+                        .setPositiveButton("确定", null)
+                        .show()
+                }
             } finally {
                 binding.btnTestConnection.isEnabled = true
                 binding.btnTestConnection.text = "🔗 测试连接"
@@ -513,8 +527,10 @@ class ModelConfigActivity : AppCompatActivity() {
         modelId: String
     ): String {
         val client = OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false)
             .build()
 
         // Build chat completion request
