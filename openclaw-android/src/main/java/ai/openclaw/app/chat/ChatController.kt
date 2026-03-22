@@ -355,7 +355,7 @@ class ChatController(
           _errorText.value = payload["errorMessage"].asStringOrNull() ?: "Chat failed"
         }
         if (runId != null) clearPendingRun(runId) else clearPendingRuns()
-        pendingToolCallsById.clear()
+        // Keep tool calls visible — cleared when the next message is sent
         publishPendingToolCalls()
         _streamingAssistantText.value = null
         scope.launch {
@@ -418,7 +418,8 @@ class ChatController(
               it.asStringOrNull()?.toBooleanStrictOrNull()
                 ?: (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.toBooleanStrictOrNull()
             }
-            pendingToolCallsById[toolCallId] = existing.copy(isDone = true, isError = isError)
+            val result = data?.get("result")?.asStringOrNull()
+            pendingToolCallsById[toolCallId] = existing.copy(isDone = true, isError = isError, result = result)
           }
           publishPendingToolCalls()
         }
@@ -463,6 +464,12 @@ class ChatController(
             pendingRuns.contains(runId)
           }
         if (!stillPending) return@launch
+        // If tools are still actively running, rearm instead of erroring
+        val hasActiveTools = pendingToolCallsById.values.any { !it.isDone }
+        if (hasActiveTools) {
+          armPendingRunTimeout(runId)
+          return@launch
+        }
         clearPendingRun(runId)
         _errorText.value = "Timed out waiting for a reply; try again or refresh."
       }

@@ -164,7 +164,7 @@ fun ChatPendingToolsBubble(toolCalls: List<ChatPendingToolCall>) {
         style = mobileCaption1.copy(fontWeight = FontWeight.SemiBold),
         color = mobileTextSecondary,
       )
-      for ((call, display) in pairs.take(6)) {
+      for ((call, display) in pairs) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
           val statusIcon = when {
             call.isError == true -> "\u274C"  // red X
@@ -185,14 +185,16 @@ fun ChatPendingToolsBubble(toolCalls: List<ChatPendingToolCall>) {
               fontFamily = FontFamily.Monospace,
             )
           }
+          call.result?.let { result ->
+            val preview = result.trim().take(300)
+            Text(
+              preview + if (result.trim().length > 300) "…" else "",
+              style = mobileCaption1,
+              color = if (call.isError == true) mobileWarning else mobileTextSecondary,
+              fontFamily = FontFamily.Monospace,
+            )
+          }
         }
-      }
-      if (toolCalls.size > 6) {
-        Text(
-          text = "... +${toolCalls.size - 6} more",
-          style = mobileCaption1,
-          color = mobileTextSecondary,
-        )
       }
     }
   }

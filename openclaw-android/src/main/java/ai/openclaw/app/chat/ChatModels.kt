@@ -22,6 +22,7 @@ data class ChatPendingToolCall(
   val startedAtMs: Long,
   val isError: Boolean? = null,
   val isDone: Boolean = false,
+  val result: String? = null,
 )
 
 data class ChatSessionEntry(

@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "fallback": {
+    "emoji": "🧩"
+  },
+  "tools": {
+    "exec": {
+      "emoji": "💻",
+      "label": "exec",
+      "detailKeys": ["command"]
+    },
+    "read": {
+      "emoji": "📖",
+      "label": "read"
+    },
+    "write": {
+      "emoji": "✏️",
+      "label": "write"
+    },
+    "edit": {
+      "emoji": "✏️",
+      "label": "edit"
+    },
+    "web_fetch": {
+      "emoji": "🌐",
+      "label": "web_fetch",
+      "detailKeys": ["url"]
+    },
+    "screenshot": {
+      "emoji": "📸",
+      "label": "screenshot"
+    },
+    "view_tree": {
+      "emoji": "🌳",
+      "label": "view_tree"
+    },
+    "tap": {
+      "emoji": "👆",
+      "label": "tap",
+      "detailKeys": ["description", "x"]
+    },
+    "type_text": {
+      "emoji": "⌨️",
+      "label": "type_text",
+      "detailKeys": ["text"]
+    }
+  }
+}
