@@ -1,6 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-
 # Source code
 *.java text diff=java
 *.kt text diff=kotlin
@@ -8,7 +7,6 @@
 *.gradle text diff=java
 *.properties text
 *.md text diff=markdown
-
 # Binary files
 *.png binary
 *.jpg binary
@@ -29,10 +27,9 @@
 *.so binary
 *.apk binary
 *.aab binary
-
 # Android specific
 *.keystore binary
 *.jks binary
-
 # Documentation
 *.pdf binary
+extensions/termux/src/main/cpp/bootstrap-*.zip filter=lfs diff=lfs merge=lfs -text
