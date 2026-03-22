@@ -85,6 +85,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // 本地进程内 channel（绕过 WebSocket）
         private var localGatewayChannel: com.xiaomo.androidforclaw.gateway.LocalGatewayChannel? = null
 
+        fun isGatewayRunning(): Boolean = gatewayController != null
+
         // Feishu Channel
         private var feishuChannel: FeishuChannel? = null
         private var feishuWakeLock: android.os.PowerManager.WakeLock? = null

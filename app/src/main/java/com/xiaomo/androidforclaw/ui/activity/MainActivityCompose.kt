@@ -178,16 +178,9 @@ class MainActivityCompose : ComponentActivity() {
             } catch (_: Exception) {}
         }
 
-        // AndroidForClaw uses ModelSetupActivity (LLM API key) instead of OpenClaw's gateway
-        // onboarding. Mark onboarding as completed so RootScreen always shows PostOnboardingTabs.
-        // Also pre-configure the loopback connection so the OpenClaw client connects to our
-        // local GatewayWebSocketServer on ws://127.0.0.1:8765 (no TLS, no auth).
+        // Mark onboarding as completed so RootScreen always shows PostOnboardingTabs.
         getSharedPreferences("openclaw.node", MODE_PRIVATE).edit()
             .putBoolean("onboarding.completed", true)
-            .putBoolean("gateway.manual.enabled", true)
-            .putString("gateway.manual.host", "127.0.0.1")
-            .putInt("gateway.manual.port", 8765)
-            .putBoolean("gateway.manual.tls", false)
             .apply()
 
         setContent {

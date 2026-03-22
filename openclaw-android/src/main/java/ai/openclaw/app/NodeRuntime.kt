@@ -63,9 +63,10 @@ class NodeRuntime(
 
   private val externalAudioCaptureActive = MutableStateFlow(false)
 
-  private val discovery = GatewayDiscovery(appContext, scope = scope)
-  val gateways: StateFlow<List<GatewayEndpoint>> = discovery.gateways
-  val discoveryStatusText: StateFlow<String> = discovery.statusText
+  private val discovery: GatewayDiscovery? =
+    if (localChatChannel == null) GatewayDiscovery(appContext, scope = scope) else null
+  val gateways: StateFlow<List<GatewayEndpoint>> = discovery?.gateways ?: MutableStateFlow(emptyList())
+  val discoveryStatusText: StateFlow<String> = discovery?.statusText ?: MutableStateFlow("Local mode")
 
   private val identityStore = DeviceIdentityStore(appContext)
   private var connectedEndpoint: GatewayEndpoint? = null
@@ -342,7 +343,7 @@ class NodeRuntime(
     TalkModeManager(
       context = appContext,
       scope = scope,
-      session = operatorSession,
+      session = localChatChannel ?: operatorSession,
       supportsChatSubscribe = false,
       isConnected = { operatorConnected },
     ).also { speaker ->
@@ -369,7 +370,8 @@ class NodeRuntime(
             put("timeoutMs", JsonPrimitive(30_000))
             put("idempotencyKey", JsonPrimitive(idempotencyKey))
           }
-        val response = operatorSession.request("chat.send", params.toString())
+        val chatChannel = localChatChannel ?: operatorSession
+        val response = chatChannel.request("chat.send", params.toString())
         parseChatSendRunId(response) ?: idempotencyKey
       },
       speakAssistantReply = { text ->
@@ -413,8 +415,8 @@ class NodeRuntime(
     TalkModeManager(
       context = appContext,
       scope = scope,
-      session = operatorSession,
-      supportsChatSubscribe = true,
+      session = localChatChannel ?: operatorSession,
+      supportsChatSubscribe = localChatChannel == null,
       isConnected = { operatorConnected },
     )
   }
@@ -993,7 +995,7 @@ class NodeRuntime(
   private suspend fun refreshBrandingFromGateway() {
     if (!_isConnected.value) return
     try {
-      val res = operatorSession.request("config.get", "{}")
+      val res = (localChatChannel ?: operatorSession).request("config.get", "{}")
       val root = json.parseToJsonElement(res).asObjectOrNull()
       val config = root?.get("config").asObjectOrNull()
       val ui = config?.get("ui").asObjectOrNull()
@@ -1013,7 +1015,7 @@ class NodeRuntime(
   private suspend fun refreshAgentsFromGateway() {
     if (!operatorConnected) return
     try {
-      val res = operatorSession.request("agents.list", "{}")
+      val res = (localChatChannel ?: operatorSession).request("agents.list", "{}")
       val root = json.parseToJsonElement(res).asObjectOrNull() ?: return
       val defaultAgentId = root["defaultId"].asStringOrNull()?.trim().orEmpty()
       val mainKey = normalizeMainKey(root["mainKey"].asStringOrNull())

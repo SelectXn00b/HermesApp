@@ -18,7 +18,6 @@ import android.speech.SpeechRecognizer
 import android.util.Base64
 import android.util.Log
 import androidx.core.content.ContextCompat
-// GatewaySession replaced by IGatewayChannel
 import ai.openclaw.app.isCanonicalMainSessionKey
 import java.io.File
 import java.util.UUID

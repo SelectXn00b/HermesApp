@@ -30,8 +30,6 @@ import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.ui.activity.ModelConfigActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.InetSocketAddress
-import java.net.Socket
 
 /**
  * AndroidForClaw 状态 tab，替换 OpenClaw 的 Gateway Connection 页面。
@@ -89,15 +87,8 @@ fun ForClawConnectTab() {
                 providerName = "读取失败"
             }
 
-            // Gateway
-            try {
-                Socket().use { s ->
-                    s.connect(InetSocketAddress("127.0.0.1", 8765), 300)
-                    gatewayRunning = true
-                }
-            } catch (_: Exception) {
-                gatewayRunning = false
-            }
+            // Gateway (local in-process channel)
+            gatewayRunning = com.xiaomo.androidforclaw.core.MyApplication.isGatewayRunning()
 
             // Skills
             try {
