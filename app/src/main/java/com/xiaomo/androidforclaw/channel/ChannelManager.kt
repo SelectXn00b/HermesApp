@@ -91,7 +91,8 @@ class ChannelManager(private val context: Context) {
         val overlayPermission = Settings.canDrawOverlays(context)
         val mediaProjection = MediaProjectionHelper.isMediaProjectionGranted()
 
-        val connected = accessibilityEnabled && overlayPermission && mediaProjection
+        // 悬浮窗是可选功能，不影响核心连接状态
+        val connected = accessibilityEnabled && mediaProjection
         val running = accessibilityEnabled  // 至少需要无障碍服务
 
         val updatedAccount = current.copy(

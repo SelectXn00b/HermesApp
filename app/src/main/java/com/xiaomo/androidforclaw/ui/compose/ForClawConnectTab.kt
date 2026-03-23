@@ -182,15 +182,15 @@ fun ForClawConnectTab() {
         )
 
         // ── 权限 ─────────────────────────────────────────────
-        val allPermissionsOk = accessibilityOk && overlayOk && screenCaptureOk
+        val allPermissionsOk = accessibilityOk && screenCaptureOk
         StatusCard(
             title = "权限",
             icon = Icons.Default.Security,
             rows = listOf(
                 StatusRow("无障碍", if (accessibilityOk) "已授权" else "未授权",
                     if (accessibilityOk) StatusLevel.Ok else StatusLevel.Error),
-                StatusRow("悬浮窗", if (overlayOk) "已授权" else "未授权",
-                    if (overlayOk) StatusLevel.Ok else StatusLevel.Error),
+                StatusRow("悬浮窗", if (overlayOk) "已授权" else "未授权（可选）",
+                    if (overlayOk) StatusLevel.Ok else StatusLevel.Neutral),
                 StatusRow("录屏", if (screenCaptureOk) "已授权" else "未授权",
                     if (screenCaptureOk) StatusLevel.Ok else StatusLevel.Error),
             ),
