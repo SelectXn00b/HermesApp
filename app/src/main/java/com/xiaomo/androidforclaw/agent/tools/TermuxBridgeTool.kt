@@ -385,7 +385,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         val scriptFile = File("$CONFIG_DIR/termux_setup.sh")
         withContext(Dispatchers.IO) {
             scriptFile.parentFile?.mkdirs()
-            scriptFile.writeText(setupScript)
+            scriptFile.writeText(setupScript, Charsets.UTF_8)
         }
 
         // Execute via Termux RUN_COMMAND using /system/bin/sh (more compatible)
@@ -419,7 +419,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                 }
                 val fallbackFile = File("$CONFIG_DIR/termux_setup_fallback.sh")
                 withContext(Dispatchers.IO) {
-                    fallbackFile.writeText(fallbackScript)
+                    fallbackFile.writeText(fallbackScript, Charsets.UTF_8)
                 }
                 val intent = Intent("com.termux.RUN_COMMAND").apply {
                     setClassName(TERMUX_PACKAGE, "com.termux.app.RunCommandService")
@@ -507,7 +507,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             writeSSHString(pubBlob, "ssh-ed25519".toByteArray())
             writeSSHString(pubBlob, pubParams.encoded)
             val pubB64 = android.util.Base64.encodeToString(pubBlob.toByteArray(), android.util.Base64.NO_WRAP)
-            pubFile.writeText("ssh-ed25519 $pubB64 androidforclaw@device\n")
+            pubFile.writeText("ssh-ed25519 $pubB64 androidforclaw@device\n", Charsets.UTF_8)
 
             // Write private key in OpenSSH PEM format (sshj-compatible)
             val privBlob = buildOpenSSHPrivateKey(privParams, pubParams)
@@ -608,7 +608,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
                 put("user", user)
                 put("key_file", PRIVATE_KEY)
             }
-            File(SSH_CONFIG_FILE).writeText(config.toString(2))
+            File(SSH_CONFIG_FILE).writeText(config.toString(2).replace("\\/", "/"), Charsets.UTF_8)
             Log.i(TAG, "Wrote SSH config: user=$user, keyFile=$PRIVATE_KEY")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to write SSH config: ${e.message}")
@@ -681,7 +681,7 @@ class TermuxBridgeTool(private val context: Context) : Tool {
             }
             val file = File(STATUS_FILE)
             file.parentFile?.mkdirs()
-            file.writeText(json.toString(2))
+            file.writeText(json.toString(2).replace("\\/", "/"), Charsets.UTF_8)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to persist Termux status: ${e.message}")
         }

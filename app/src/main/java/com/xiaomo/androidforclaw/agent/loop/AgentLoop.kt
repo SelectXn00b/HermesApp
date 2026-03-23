@@ -215,7 +215,7 @@ class AgentLoop(
             logBuffer.clear()
 
             // Write session header
-            sessionLogFile?.writeText("========== Agent Loop Session ==========\n")
+            sessionLogFile?.writeText("========== Agent Loop Session ==========\n", Charsets.UTF_8)
             sessionLogFile?.appendText("Start time: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())}\n")
             sessionLogFile?.appendText("User message: $userMessage\n")
             sessionLogFile?.appendText("========================================\n\n")

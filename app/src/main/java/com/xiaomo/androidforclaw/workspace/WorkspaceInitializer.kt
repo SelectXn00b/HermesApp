@@ -146,7 +146,7 @@ class WorkspaceInitializer(private val context: Context) {
         val file = File(DEVICE_ID_FILE)
         if (!file.exists()) {
             val deviceId = UUID.randomUUID().toString()
-            file.writeText(deviceId)
+            file.writeText(deviceId, Charsets.UTF_8)
             Log.d(TAG, "生成 device-id: $deviceId")
         } else {
             Log.d(TAG, "device-id 已存在: ${file.readText().trim()}")
@@ -162,49 +162,49 @@ class WorkspaceInitializer(private val context: Context) {
         // BOOTSTRAP.md
         val bootstrapFile = File(workspaceDir, "BOOTSTRAP.md")
         if (!bootstrapFile.exists()) {
-            bootstrapFile.writeText(BOOTSTRAP_CONTENT)
+            bootstrapFile.writeText(BOOTSTRAP_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 BOOTSTRAP.md")
         }
 
         // IDENTITY.md
         val identityFile = File(workspaceDir, "IDENTITY.md")
         if (!identityFile.exists()) {
-            identityFile.writeText(IDENTITY_CONTENT)
+            identityFile.writeText(IDENTITY_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 IDENTITY.md")
         }
 
         // USER.md
         val userFile = File(workspaceDir, "USER.md")
         if (!userFile.exists()) {
-            userFile.writeText(USER_CONTENT)
+            userFile.writeText(USER_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 USER.md")
         }
 
         // SOUL.md
         val soulFile = File(workspaceDir, "SOUL.md")
         if (!soulFile.exists()) {
-            soulFile.writeText(SOUL_CONTENT)
+            soulFile.writeText(SOUL_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 SOUL.md")
         }
 
         // AGENTS.md
         val agentsFile = File(workspaceDir, "AGENTS.md")
         if (!agentsFile.exists()) {
-            agentsFile.writeText(AGENTS_CONTENT)
+            agentsFile.writeText(AGENTS_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 AGENTS.md")
         }
 
         // TOOLS.md
         val toolsFile = File(workspaceDir, "TOOLS.md")
         if (!toolsFile.exists()) {
-            toolsFile.writeText(TOOLS_CONTENT)
+            toolsFile.writeText(TOOLS_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 TOOLS.md")
         }
 
         // HEARTBEAT.md
         val heartbeatFile = File(workspaceDir, "HEARTBEAT.md")
         if (!heartbeatFile.exists()) {
-            heartbeatFile.writeText(HEARTBEAT_CONTENT)
+            heartbeatFile.writeText(HEARTBEAT_CONTENT, Charsets.UTF_8)
             Log.d(TAG, "创建 HEARTBEAT.md")
         }
     }
@@ -223,7 +223,7 @@ class WorkspaceInitializer(private val context: Context) {
               "platform": "android"
             }
             """.trimIndent()
-            stateFile.writeText(state)
+            stateFile.writeText(state, Charsets.UTF_8)
             Log.d(TAG, "创建 workspace-state.json")
         }
     }

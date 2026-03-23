@@ -162,7 +162,7 @@ class ConfigLoader private constructor() {
                     modelJson.put("primary", primary.replace("mimo/", "xiaomi/"))
                 }
 
-                openclawConfigFile.writeText(root.toString(4))
+                writeJsonToFile(openclawConfigFile, root)
                 Log.i(TAG, "✅ provider ID 迁移已持久化")
             }
         } catch (e: Exception) {
@@ -805,7 +805,7 @@ class ConfigLoader private constructor() {
             // Merge known fields into existing JSON
             mergeConfigToJson(existingJson, config)
 
-            openclawConfigFile.writeText(existingJson.toString(4))
+            writeJsonToFile(openclawConfigFile, existingJson)
             Log.i(TAG, "✅ 配置保存成功")
             openclawConfigCacheValid = false
             true
@@ -1011,6 +1011,14 @@ class ConfigLoader private constructor() {
 
     // ============ Private Helpers ============
 
+    /**
+     * 写 JSON 到文件，统一 UTF-8 编码并去掉多余的 \/ 转义
+     */
+    private fun writeJsonToFile(file: File, json: JSONObject, indent: Int = 4) {
+        val text = json.toString(indent).replace("\\/", "/")
+        file.writeText(text, Charsets.UTF_8)
+    }
+
     private fun ensureConfigDir() {
         if (!configDir.exists()) configDir.mkdirs()
     }
@@ -1019,7 +1027,7 @@ class ConfigLoader private constructor() {
         try {
             val defaultConfig = context.assets.open("openclaw.json.default.txt")
                 .bufferedReader().use { it.readText() }
-            openclawConfigFile.writeText(defaultConfig)
+            openclawConfigFile.writeText(defaultConfig, Charsets.UTF_8)
             Log.i(TAG, "✅ 创建默认配置: ${openclawConfigFile.absolutePath}")
         } catch (e: Exception) {
             Log.e(TAG, "创建默认配置失败", e)

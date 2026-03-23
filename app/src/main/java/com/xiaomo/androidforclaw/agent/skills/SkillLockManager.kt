@@ -56,7 +56,7 @@ class SkillLockManager(private val workspacePath: String) {
 
             // Write file
             val content = gson.toJson(lockFile)
-            this.lockFile.writeText(content)
+            this.lockFile.writeText(content, Charsets.UTF_8)
 
             Log.d(TAG, "✅ Lock file written: ${this.lockFile.absolutePath}")
             Result.success(Unit)

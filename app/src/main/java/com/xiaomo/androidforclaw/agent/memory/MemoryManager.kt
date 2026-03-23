@@ -120,7 +120,7 @@ class MemoryManager(
 
     suspend fun writeMemory(content: String) = withContext(Dispatchers.IO) {
         try {
-            memoryFile.writeText(content)
+            memoryFile.writeText(content, Charsets.UTF_8)
             Log.d(TAG, "MEMORY.md written successfully")
             // Re-index after write
             memoryIndex?.indexFile(memoryFile)
@@ -163,7 +163,7 @@ class MemoryManager(
         val logFile = File(memoryDir, "$today.md")
         try {
             if (!logFile.exists()) {
-                logFile.writeText("# Daily Log - $today\n\n")
+                logFile.writeText("# Daily Log - $today\n\n", Charsets.UTF_8)
             }
             val timestamp = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
             logFile.appendText("\n## [$timestamp]\n$content\n")
@@ -216,7 +216,7 @@ This file stores long-term, curated memories that persist across sessions.
 
 Last updated: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())}
         """.trimIndent()
-        try { memoryFile.writeText(template) } catch (e: Exception) { Log.e(TAG, "Failed to create template", e) }
+        try { memoryFile.writeText(template, Charsets.UTF_8) } catch (e: Exception) { Log.e(TAG, "Failed to create template", e) }
         return template
     }
 
