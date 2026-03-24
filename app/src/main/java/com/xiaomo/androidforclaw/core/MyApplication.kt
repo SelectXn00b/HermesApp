@@ -2093,16 +2093,20 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             // Send typing indicator
                             channel.sender?.sendTyping(msg.fromUserId)
 
-                            // Process message through agent
-                            val response = processWeixinMessage(msg)
+                            // Process message through agent (with intermediate progress sending)
+                            val (response, blockRepliesSent) = processWeixinMessage(msg)
 
-                            // Send reply
+                            // Send final reply — skip parts already sent as BlockReply
                             if (response.isNotBlank() && !shouldSkipWeixinReply(response)) {
-                                val sanitized = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+                                var sanitized = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
                                     .stripControlTokensFromText(response)
                                     .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                                     .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                                     .trim()
+                                // Deduplicate: remove block reply text already sent mid-process
+                                for (sent in blockRepliesSent) {
+                                    sanitized = sanitized.replace(sent, "").trim()
+                                }
                                 if (sanitized.isNotBlank()) {
                                     channel.sender?.sendText(msg.fromUserId, sanitized)
                                 }
@@ -2130,9 +2134,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         return trimmed == "NO_REPLY" || trimmed == "HEARTBEAT_OK" || trimmed.isEmpty()
     }
 
+    /**
+     * Process Weixin message with intermediate progress sending.
+     * Returns Pair(finalContent, blockRepliesSent).
+     */
     private suspend fun processWeixinMessage(
         msg: com.xiaomo.weixin.messaging.WeixinInboundMessage
-    ): String = withContext(Dispatchers.IO) {
+    ): Pair<String, List<String>> = withContext(Dispatchers.IO) {
         try {
             val sessionId = "weixin_${msg.fromUserId}"
             Log.i(TAG, "🆔 Weixin Session ID: $sessionId")
@@ -2141,7 +2149,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 MainEntryNew.initialize(this@MyApplication)
             }
             val sessionManager = MainEntryNew.getSessionManager()
-                ?: return@withContext "系统错误：无法创建会话"
+                ?: return@withContext Pair("系统错误：无法创建会话", emptyList())
 
             val session = sessionManager.getOrCreate(sessionId)
 
@@ -2197,11 +2205,55 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 channelContext = channelCtx
             )
 
+            // Collect intermediate progress updates and send to Weixin user
+            val blockRepliesSent = mutableListOf<String>()
+            val sender = weixinChannel?.sender
+            val toUser = msg.fromUserId
+
+            val progressJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                agentLoop.progressFlow.collect { update ->
+                    when (update) {
+                        is ProgressUpdate.ToolCall -> {
+                            try {
+                                sender?.sendText(toUser, "🔧 正在使用: ${update.name}...")
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Weixin: 发送工具调用提示失败: ${e.message}")
+                            }
+                        }
+                        is ProgressUpdate.BlockReply -> {
+                            val text = update.text.trim()
+                            if (text.isNotEmpty()) {
+                                try {
+                                    val sanitized = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+                                        .stripControlTokensFromText(text)
+                                        .trim()
+                                    if (sanitized.isNotBlank()) {
+                                        sender?.sendText(toUser, sanitized)
+                                        blockRepliesSent.add(sanitized)
+                                    }
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "Weixin: 发送中间回复失败: ${e.message}")
+                                }
+                            }
+                        }
+                        is ProgressUpdate.Error -> {
+                            try {
+                                sender?.sendText(toUser, "⚠️ ${update.message}")
+                            } catch (_: Exception) {}
+                        }
+                        else -> { /* ignore other updates */ }
+                    }
+                }
+            }
+
             val result = agentLoop.run(
                 systemPrompt = systemPrompt,
                 userMessage = msg.body,
                 contextHistory = contextHistory.map { it.toNewMessage() },
             )
+
+            // Cancel progress collection after agent finishes
+            progressJob.cancel()
 
             // Save to session history
             session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
@@ -2211,10 +2263,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 role = "assistant", content = result.finalContent
             ))
 
-            result.finalContent
+            Pair(result.finalContent, blockRepliesSent.toList())
         } catch (e: Exception) {
             Log.e(TAG, "processWeixinMessage 异常", e)
-            "处理消息时出错：${e.message}"
+            Pair("处理消息时出错：${e.message}", emptyList())
         }
     }
 
