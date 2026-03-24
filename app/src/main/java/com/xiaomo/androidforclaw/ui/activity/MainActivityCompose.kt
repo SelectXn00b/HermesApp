@@ -204,6 +204,11 @@ class MainActivityCompose : ComponentActivity() {
                             legalAccepted = true
                             // Request storage permission after legal consent
                             checkAndRequestStoragePermission()
+                            // For Android 10 and below (no MANAGE_EXTERNAL_STORAGE needed),
+                            // launch model setup immediately since permission is already granted.
+                            if (hasStoragePermission()) {
+                                launchModelSetupIfNeeded()
+                            }
                         },
                         onDecline = { finishAffinity() },
                         onOpenPrivacy = { LegalActivity.start(this@MainActivityCompose, LegalActivity.TYPE_PRIVACY) },
