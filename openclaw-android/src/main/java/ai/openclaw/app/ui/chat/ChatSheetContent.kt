@@ -102,6 +102,7 @@ fun ChatSheetContent(viewModel: MainViewModel) {
     modifier =
       Modifier
         .fillMaxSize()
+        .imePadding()
         .padding(horizontal = 20.dp, vertical = 12.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
@@ -126,7 +127,7 @@ fun ChatSheetContent(viewModel: MainViewModel) {
       modifier = Modifier.weight(1f, fill = true),
     )
 
-    Row(modifier = Modifier.fillMaxWidth().imePadding()) {
+    Row(modifier = Modifier.fillMaxWidth()) {
       ChatComposer(
         healthOk = healthOk,
         thinkingLevel = thinkingLevel,
