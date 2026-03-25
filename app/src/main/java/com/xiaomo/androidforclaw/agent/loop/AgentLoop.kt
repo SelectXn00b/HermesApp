@@ -74,7 +74,8 @@ class AgentLoop(
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw
         private const val LLM_TIMEOUT_MS = 180_000L  // LLM single call timeout: 180 seconds (free models can be slow)
         private const val MAX_CONSECUTIVE_ERRORS = 3  // Consecutive same error threshold: 3 times
-        private const val AGENT_LOOP_TOTAL_TIMEOUT_MS = 4 * 60 * 1000L  // 整个 AgentLoop 最大运行 4 分钟
+        private const val AGENT_LOOP_TOTAL_TIMEOUT_MS = 30 * 60 * 1000L  // 整个 run() 最大运行 30 分钟
+        private const val ITERATION_TIMEOUT_MS = 5 * 60 * 1000L  // 单次 iteration（LLM 调用 + 工具执行）最大 5 分钟
 
         // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
         private const val SOFT_TRIM_RATIO = 0.3f
@@ -678,6 +679,12 @@ class AgentLoop(
 
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
                     writeLog("⏱️ 本轮迭代总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执行: ${totalExecDuration}ms)")
+
+                    // 单次 iteration 超时检查
+                    if (iterationDuration > ITERATION_TIMEOUT_MS) {
+                        writeLog("⏰ Iteration $iteration 超时 (${iterationDuration}ms > ${ITERATION_TIMEOUT_MS}ms)")
+                        Log.w(TAG, "Iteration $iteration exceeded timeout: ${iterationDuration}ms")
+                    }
 
                     // Send iteration complete event (with time statistics)
                     _progressFlow.emit(ProgressUpdate.IterationComplete(iteration, iterationDuration, llmDuration, totalExecDuration))
