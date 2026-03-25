@@ -264,7 +264,7 @@ class MainActivityCompose : ComponentActivity() {
 
     /**
      * Check GitHub Releases for updates in background.
-     * Only shows dialog if a new version is available.
+     * 同一版本号每天最多弹一次更新弹窗。
      */
     fun silentUpdateCheck() {
         lifecycleScope.launch {
@@ -272,7 +272,12 @@ class MainActivityCompose : ComponentActivity() {
                 val updater = com.xiaomo.androidforclaw.updater.AppUpdater(this@MainActivityCompose)
                 val info = updater.checkForUpdate()
                 if (info.hasUpdate && info.downloadUrl != null) {
-                    // Show update dialog on main thread
+                    // 频次限制：同版本号每天最多弹一次
+                    val prefs = getSharedPreferences("update_check", MODE_PRIVATE)
+                    val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+                    val key = "dismissed_${info.latestVersion}_$today"
+                    if (prefs.getBoolean(key, false)) return@launch
+
                     val sizeStr = if (info.fileSize > 0) "%.1f MB".format(info.fileSize / 1024.0 / 1024.0) else ""
                     val message = buildString {
                         append("发现新版本 v${info.latestVersion}\n")
@@ -299,7 +304,12 @@ class MainActivityCompose : ComponentActivity() {
                                 }
                             }
                         }
-                        .setNegativeButton("稍后再说", null)
+                        .setNegativeButton("稍后再说") { _, _ ->
+                            prefs.edit().putBoolean(key, true).apply()
+                        }
+                        .setOnCancelListener {
+                            prefs.edit().putBoolean(key, true).apply()
+                        }
                         .show()
                 }
             } catch (_: Exception) {
