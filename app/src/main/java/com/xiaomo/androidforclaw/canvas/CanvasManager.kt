@@ -39,6 +39,14 @@ object CanvasManager {
     var currentActivity: CanvasActivity? = null
         internal set
 
+    /**
+     * Screen tab 内嵌的 CanvasController 引用（由 MainActivityCompose 设置）。
+     * CanvasTool 优先走此路径，在 Screen tab 的 WebView 中渲染，
+     * 而不是启动独立的 CanvasActivity。
+     */
+    @Volatile
+    var screenTabController: ai.openclaw.app.node.CanvasController? = null
+
     /** pending eval 请求 */
     private val pendingEvals = mutableMapOf<String, CompletableDeferred<String?>>()
 
@@ -149,6 +157,11 @@ object CanvasManager {
     internal fun onSnapshotResult(id: String, result: SnapshotResult) {
         synchronized(pendingSnapshots) { pendingSnapshots[id]?.complete(result) }
     }
+
+    /**
+     * 公开的 URL 解析方法，供 CanvasTool 等外部使用
+     */
+    fun resolveUrlPublic(url: String): String = resolveUrl(url)
 
     /**
      * 解析 URL — 支持本地文件路径、http(s) URL

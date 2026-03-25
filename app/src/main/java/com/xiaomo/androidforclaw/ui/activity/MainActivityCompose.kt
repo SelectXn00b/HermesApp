@@ -193,6 +193,9 @@ class MainActivityCompose : ComponentActivity() {
             // 本地直连：同进程，无需 WebSocket 握手
             LaunchedEffect(Unit) {
                 openClawViewModel.connectLocal()
+                // 让 CanvasTool 走 Screen tab 内嵌 WebView 而不是独立 Activity
+                com.xiaomo.androidforclaw.canvas.CanvasManager.screenTabController =
+                    openClawViewModel.canvas
             }
 
             OpenClawTheme {
