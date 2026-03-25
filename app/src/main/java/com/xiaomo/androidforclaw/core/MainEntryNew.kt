@@ -267,6 +267,15 @@ object MainEntryNew {
             user = Build.MODEL
         }
 
+        // Cancel previous run if still active (prevents stuck state)
+        job?.let { oldJob ->
+            if (oldJob.isActive) {
+                Log.w(TAG, "🛑 [Session] Cancelling previous run before starting new one")
+                agentLoop.stop()
+                oldJob.cancel()
+            }
+        }
+
         // Start coroutine execution (without showing floating window)
         job = scope.simpleSafeLaunch(
             {

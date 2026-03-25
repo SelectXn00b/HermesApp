@@ -170,6 +170,14 @@ class GatewayController(
                     // Build context history from session messages
                     val contextHistory = session.messages.dropLast(1).map { it.toNewMessage() }
 
+                    // Cancel any previously active run to avoid single agentLoop contention
+                    if (activeJobs.isNotEmpty()) {
+                        Log.w(TAG, "🛑 [chat.send] Cancelling ${activeJobs.size} previous run(s)")
+                        agentLoop.stop()
+                        activeJobs.values.forEach { it.cancel() }
+                        activeJobs.clear()
+                    }
+
                     val job = serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                         // Track tool call IDs for correlating start/result pairs
                         val pendingToolCallIds = ConcurrentHashMap<String, String>()
