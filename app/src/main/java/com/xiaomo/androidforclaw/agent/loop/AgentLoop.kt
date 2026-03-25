@@ -810,7 +810,11 @@ class AgentLoop(
         writeLog("Tools used: ${toolsUsed.joinToString(", ")}")
 
         // Add final content as assistant message if not empty
-        val effectiveFinalContent = finalContent ?: "无响应"
+        val effectiveFinalContent = when {
+            finalContent != null -> finalContent
+            shouldStop -> "✅ 任务已停止"
+            else -> "无响应"
+        }
         if (effectiveFinalContent.isNotEmpty()) {
             messages.add(com.xiaomo.androidforclaw.providers.llm.Message(
                 role = "assistant",
