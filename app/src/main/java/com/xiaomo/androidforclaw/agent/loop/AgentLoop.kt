@@ -75,8 +75,9 @@ class AgentLoop(
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw
         private const val LLM_TIMEOUT_MS = 180_000L  // LLM single call timeout: 180 seconds (free models can be slow)
         private const val MAX_CONSECUTIVE_ERRORS = 3  // Consecutive same error threshold: 3 times
-        private const val AGENT_LOOP_TOTAL_TIMEOUT_MS = 30 * 60 * 1000L  // 整个 run() 最大运行 30 分钟
-        private const val ITERATION_TIMEOUT_MS = 5 * 60 * 1000L  // 单次 iteration（LLM 调用 + 工具执行）最大 5 分钟
+        // 整体超时已移除 — 对齐 OpenClaw（OpenClaw 主循环无整体时间限制）
+        // private const val AGENT_LOOP_TOTAL_TIMEOUT_MS = 30 * 60 * 1000L
+        private const val ITERATION_WARN_THRESHOLD_MS = 5 * 60 * 1000L  // 单次 iteration 超过 5 分钟仅 warn，不中断
 
         // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
         private const val SOFT_TRIM_RATIO = 0.3f
@@ -346,16 +347,8 @@ class AgentLoop(
         val toolsUsed = mutableListOf<String>()
         val loopStartTime = System.currentTimeMillis()
 
-        // 4. Main loop
+        // 4. Main loop (no overall timeout — aligned with OpenClaw)
         while (iteration < maxIterations && !shouldStop) {
-            // 整体超时检查
-            val elapsed = System.currentTimeMillis() - loopStartTime
-            if (elapsed > AGENT_LOOP_TOTAL_TIMEOUT_MS) {
-                writeLog("⏰ AgentLoop 整体超时 (${elapsed}ms > ${AGENT_LOOP_TOTAL_TIMEOUT_MS}ms)")
-                Log.w(TAG, "AgentLoop total timeout after ${elapsed}ms")
-                finalContent = "⚠️ 处理超时（已运行 ${elapsed / 1000}s），请简化问题或重试"
-                break
-            }
             iteration++
             val iterationStartTime = System.currentTimeMillis()
             writeLog("========== Iteration $iteration ==========")
@@ -681,10 +674,10 @@ class AgentLoop(
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
                     writeLog("⏱️ 本轮迭代总耗时: ${iterationDuration}ms (LLM: ${llmDuration}ms, 执行: ${totalExecDuration}ms)")
 
-                    // 单次 iteration 超时检查
-                    if (iterationDuration > ITERATION_TIMEOUT_MS) {
-                        writeLog("⏰ Iteration $iteration 超时 (${iterationDuration}ms > ${ITERATION_TIMEOUT_MS}ms)")
-                        Log.w(TAG, "Iteration $iteration exceeded timeout: ${iterationDuration}ms")
+                    // 单次 iteration 耗时告警（仅 warn，不中断）
+                    if (iterationDuration > ITERATION_WARN_THRESHOLD_MS) {
+                        writeLog("⚠️ Iteration $iteration 耗时较长 (${iterationDuration}ms > ${ITERATION_WARN_THRESHOLD_MS}ms)")
+                        Log.w(TAG, "Iteration $iteration slow: ${iterationDuration}ms")
                     }
 
                     // Send iteration complete event (with time statistics)
