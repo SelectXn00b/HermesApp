@@ -66,18 +66,34 @@ class AgentLoop(
     private val toolRegistry: ToolRegistry,
     private val androidToolRegistry: AndroidToolRegistry,
     private val contextManager: ContextManager? = null,  // Optional context manager
-    private val maxIterations: Int = 40,
+    @Deprecated("No longer used — aligned with OpenClaw (no iteration limit)")
+    private val maxIterations: Int = Int.MAX_VALUE,  // Kept for call-site compat, ignored
     private val modelRef: String? = null,
     private val configLoader: ConfigLoader? = null  // For context window resolution (Gap 2)
 ) {
     companion object {
         private const val TAG = "AgentLoop"
-        private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw
-        private const val LLM_TIMEOUT_MS = 180_000L  // LLM single call timeout: 180 seconds (free models can be slow)
-        private const val MAX_CONSECUTIVE_ERRORS = 3  // Consecutive same error threshold: 3 times
-        // 整体超时已移除 — 对齐 OpenClaw（OpenClaw 主循环无整体时间限制）
-        // private const val AGENT_LOOP_TOTAL_TIMEOUT_MS = 30 * 60 * 1000L
-        private const val ITERATION_WARN_THRESHOLD_MS = 5 * 60 * 1000L  // 单次 iteration 超过 5 分钟仅 warn，不中断
+        private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw MAX_OVERFLOW_COMPACTION_ATTEMPTS
+
+        /**
+         * LLM single call timeout.
+         * OpenClaw: agents.defaults.timeoutSeconds (configurable, no hard default in loop).
+         * Android: 180s default for free/slow models, generous enough for long generations.
+         */
+        private const val LLM_TIMEOUT_MS = 180_000L
+
+        /**
+         * Timeout compaction: when LLM times out and context usage is high (>65%),
+         * try compacting before retrying. Aligned with OpenClaw MAX_TIMEOUT_COMPACTION_ATTEMPTS.
+         */
+        private const val MAX_TIMEOUT_COMPACTION_ATTEMPTS = 2
+        private const val TIMEOUT_COMPACTION_TOKEN_RATIO = 0.65f
+
+        /**
+         * Iteration warn threshold (no hard limit).
+         * OpenClaw has no per-iteration timeout; this is Android-only observability.
+         */
+        private const val ITERATION_WARN_THRESHOLD_MS = 5 * 60 * 1000L
 
         // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
         private const val SOFT_TRIM_RATIO = 0.3f
@@ -149,33 +165,8 @@ class AgentLoop(
     // Loop detector state
     private val loopDetectionState = ToolLoopDetection.SessionState()
 
-    // Error tracker: used to detect consecutive identical errors
-    private val errorTracker = mutableListOf<String>()
-
-    /**
-     * Record error and check if threshold is reached
-     * @return true if execution should stop
-     */
-    private fun trackError(errorMessage: String): Boolean {
-        errorTracker.add(errorMessage)
-
-        // Keep only recent error records
-        if (errorTracker.size > MAX_CONSECUTIVE_ERRORS) {
-            errorTracker.removeAt(0)
-        }
-
-        // Check if all recent errors are identical
-        if (errorTracker.size >= MAX_CONSECUTIVE_ERRORS) {
-            val allSame = errorTracker.all { it == errorMessage }
-            if (allSame) {
-                writeLog("🚨 连续 $MAX_CONSECUTIVE_ERRORS 次相同错误，停止执行")
-                writeLog("   错误: $errorMessage")
-                return true
-            }
-        }
-
-        return false
-    }
+    // Timeout compaction counter (aligned with OpenClaw timeoutCompactionAttempts)
+    private var timeoutCompactionAttempts = 0
 
     /**
      * Write log to file and buffer
@@ -315,7 +306,6 @@ class AgentLoop(
         contextManager?.reset()
 
         writeLog("========== Agent Loop 开始 ==========")
-        writeLog("Max iterations: $maxIterations")
         writeLog("Model: ${modelRef ?: "default"}")
         writeLog("Reasoning: ${if (reasoningEnabled) "enabled" else "disabled"}")
         writeLog("🔧 Universal tools: ${toolRegistry.getToolCount()}")
@@ -347,8 +337,10 @@ class AgentLoop(
         val toolsUsed = mutableListOf<String>()
         val loopStartTime = System.currentTimeMillis()
 
-        // 4. Main loop (no overall timeout — aligned with OpenClaw)
-        while (iteration < maxIterations && !shouldStop) {
+        // 4. Main loop — no iteration limit, no overall timeout (aligned with OpenClaw)
+        // OpenClaw's inner loop is while(true), terminates when LLM returns
+        // final answer (no tool_calls) or abort/error.
+        while (!shouldStop) {
             iteration++
             val iterationStartTime = System.currentTimeMillis()
             writeLog("========== Iteration $iteration ==========")
@@ -415,20 +407,50 @@ class AgentLoop(
                         )
                     }
                 } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    val errorMsg = "LLM 调用超时 (${LLM_TIMEOUT_MS}ms)"
-                    writeLog("❌ $errorMsg")
-                    Log.e(TAG, errorMsg)
+                    val errorMsg = "LLM 调用超时 (${LLM_TIMEOUT_MS / 1000}s)"
+                    writeLog("⏰ $errorMsg")
+                    Log.w(TAG, errorMsg)
 
-                    // Record timeout error
-                    if (trackError(errorMsg)) {
-                        shouldStop = true
-                        finalContent = "任务失败: $errorMsg"
-                        break
+                    // ── Timeout compaction (aligned with OpenClaw) ──
+                    // When LLM times out with high context usage, try compacting
+                    // before retrying to break the timeout death spiral.
+                    val totalCharsNow = ToolResultContextGuard.estimateContextChars(messages)
+                    val budgetCharsNow = (contextWindowTokens * 4 * 0.75).toInt()
+                    val tokenUsedRatio = if (budgetCharsNow > 0) totalCharsNow.toFloat() / budgetCharsNow else 0f
+
+                    if (timeoutCompactionAttempts < MAX_TIMEOUT_COMPACTION_ATTEMPTS &&
+                        tokenUsedRatio > TIMEOUT_COMPACTION_TOKEN_RATIO
+                    ) {
+                        timeoutCompactionAttempts++
+                        writeLog("🔄 Timeout compaction attempt $timeoutCompactionAttempts/$MAX_TIMEOUT_COMPACTION_ATTEMPTS " +
+                            "(context usage: ${(tokenUsedRatio * 100).toInt()}%)")
+
+                        // Try context recovery via compaction
+                        if (contextManager != null) {
+                            val recoveryResult = contextManager.handleContextOverflow(
+                                error = e,
+                                messages = messages
+                            )
+                            if (recoveryResult is ContextRecoveryResult.Recovered) {
+                                writeLog("✅ Timeout compaction succeeded: ${recoveryResult.strategy}")
+                                messages.clear()
+                                messages.addAll(recoveryResult.messages)
+                                continue
+                            }
+                        }
+
+                        // Fallback: aggressive prune old tool results
+                        pruneOldToolResults(messages, contextWindowTokens)
+                        aggressiveTrimMessages(messages, budgetCharsNow)
+                        writeLog("✅ Timeout compaction fallback: pruned context")
+                        continue
                     }
 
-                    // Add timeout error message to inform LLM
-                    messages.add(userMessage("系统提示: LLM 调用超时，请尝试简化任务或分步执行"))
-                    continue
+                    // No compaction possible — surface timeout to user
+                    // (aligned with OpenClaw: surface error when compaction exhausted)
+                    writeLog("❌ LLM timeout after $timeoutCompactionAttempts compaction attempts, surfacing error")
+                    finalContent = "⏰ LLM 调用超时。请简化问题或使用 /new 开始新对话。"
+                    break
                 }
 
                 val llmDuration = System.currentTimeMillis() - llmStartTime
@@ -573,21 +595,16 @@ class AgentLoop(
                         // ✅ Search universal tools first, then Android tools
                         val execStartTime = System.currentTimeMillis()
 
-                        // Add timeout protection for tool execution (max 30 seconds)
-                        val result = try {
-                            kotlinx.coroutines.withTimeout(30_000L) {
-                                val target = toolCallDispatcher.resolve(functionName)
-                                when (target) {
-                                    is ToolCallDispatcher.DispatchTarget.Universal -> writeLog("   → Universal tool")
-                                    is ToolCallDispatcher.DispatchTarget.Android -> writeLog("   → Android tool")
-                                    null -> writeLog("   ❌ Unknown function: $functionName")
-                                }
-                                toolCallDispatcher.execute(functionName, args)
+                        // Execute tool (no per-tool timeout — aligned with OpenClaw)
+                        // Individual tools manage their own timeouts internally.
+                        val result = run {
+                            val target = toolCallDispatcher.resolve(functionName)
+                            when (target) {
+                                is ToolCallDispatcher.DispatchTarget.Universal -> writeLog("   → Universal tool")
+                                is ToolCallDispatcher.DispatchTarget.Android -> writeLog("   → Android tool")
+                                null -> writeLog("   ❌ Unknown function: $functionName")
                             }
-                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                            writeLog("   ⏰ Tool execution timeout after 30s")
-                            Log.e(TAG, "Tool execution timeout: $functionName after 30s")
-                            SkillResult.error("Tool execution timeout after 30 seconds. The tool may be blocked or unresponsive.")
+                            toolCallDispatcher.execute(functionName, args)
                         }
 
                         val execDuration = System.currentTimeMillis() - execStartTime
@@ -596,32 +613,11 @@ class AgentLoop(
                         writeLog("   Result: ${result.success}, ${result.content.take(200)}")
                         writeLog("   ⏱️ 执行耗时: ${execDuration}ms")
 
-                        // 🔍 Track tool execution errors
+                        // Log tool execution errors (aligned with OpenClaw: no consecutive error abort)
+                        // OpenClaw lets the LLM see tool errors and decide how to proceed.
+                        // ToolLoopDetection handles runaway loops separately.
                         if (!result.success) {
-                            val errorMsg = result.content
-                            writeLog("   ⚠️ 工具执行失败: $errorMsg")
-
-                            // Check if error threshold is reached
-                            if (trackError("$functionName: $errorMsg")) {
-                                shouldStop = true
-                                finalContent = "任务失败: 连续 $MAX_CONSECUTIVE_ERRORS 次相同错误 - $errorMsg"
-
-                                // Add error message
-                                messages.add(
-                                    toolMessage(
-                                        toolCallId = toolCall.id,
-                                        content = finalContent ?: "",
-                                        name = functionName
-                                    )
-                                )
-                                break
-                            }
-                        } else {
-                            // Successful execution, clear error tracker
-                            if (errorTracker.isNotEmpty()) {
-                                writeLog("   ✅ 工具执行成功，清空错误追踪")
-                                errorTracker.clear()
-                            }
+                            writeLog("   ⚠️ 工具执行失败: ${result.content.take(200)}")
                         }
 
                         // Record tool call result (for loop detection)
@@ -747,16 +743,10 @@ class AgentLoop(
                     // Non-context overflow error
                     _progressFlow.emit(ProgressUpdate.Error(e.message ?: "Unknown error"))
 
-                    // Try to continue or stop
+                    // Classify error and decide retry vs abort (aligned with OpenClaw)
                     if (e.message?.contains("timeout", ignoreCase = true) == true) {
-                        // Timeout error, can retry (but track for consecutive error detection)
-                        val errorMsg = "Timeout: ${e.message?.take(100)}"
-                        writeLog("Timeout error, retrying... ($errorMsg)")
-                        if (trackError(errorMsg)) {
-                            shouldStop = true
-                            finalContent = "任务失败: 连续超时 - $errorMsg"
-                            break
-                        }
+                        // Timeout error: retry (OpenClaw retries timeouts with profile rotation)
+                        writeLog("⏰ Timeout error, retrying... (${e.message?.take(100)})")
                         continue
                     } else {
                         // Other errors, stop loop and format error message
@@ -792,12 +782,10 @@ class AgentLoop(
         }
 
         // 5. Handle loop end
-        if (finalContent == null && iteration >= maxIterations) {
-            writeLog("Max iterations ($maxIterations) reached")
-            Log.w(TAG, "Max iterations ($maxIterations) reached")
-            finalContent = "达到最大迭代次数 ($maxIterations)，任务未完成。" +
-                    "建议将任务拆分为更小的步骤。"
-        }
+        // No maxIterations limit (aligned with OpenClaw). Loop only exits when:
+        // - LLM returns final answer (no tool_calls)
+        // - shouldStop flag set (abort, critical loop, stop tool)
+        // - Unrecoverable error
 
         writeLog("========== Agent Loop 结束 ==========")
         writeLog("Iterations: $iteration")
