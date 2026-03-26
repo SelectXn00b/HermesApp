@@ -1,8 +1,15 @@
 ---
-always: false
-skillKey: install-app
-primaryEnv: android
-emoji: 📦
+name: install-app
+description: 安装 APK 文件到 Android 设备
+metadata:
+  {
+    "openclaw": {
+      "always": false,
+      "skillKey": "install-app",
+      "primaryEnv": "android",
+      "emoji": "📦"
+    }
+  }
 ---
 
 # Install App Skill
