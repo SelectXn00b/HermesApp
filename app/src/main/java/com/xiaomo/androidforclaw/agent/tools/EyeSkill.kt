@@ -47,7 +47,9 @@ class EyeSkill(
     override val name = "eye"
     override val description = "Your eyes — use the phone's cameras to observe the physical environment. " +
         "front eye faces the user, back eye faces outward. " +
-        "Actions: list (list available eyes), look (take a snapshot to see), watch (record a short video to observe over time)"
+        "Actions: list (list available eyes), look (take a photo and see — image is embedded for you to understand), " +
+        "snap (take a photo and save — only returns file path, no image embedded), " +
+        "watch (record a short video to observe over time)"
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -60,8 +62,8 @@ class EyeSkill(
                     properties = mapOf(
                         "action" to PropertySchema(
                             type = "string",
-                            description = "操作类型: list(列出可用的眼睛), look(看一眼，拍摄快照), watch(持续观察，录制短视频)",
-                            enum = listOf("list", "look", "watch")
+                            description = "操作类型: list(列出可用的眼睛), look(看一眼并理解，图片直接嵌入给你看), snap(纯拍照，只返回文件路径), watch(持续观察，录制短视频)",
+                            enum = listOf("list", "look", "snap", "watch")
                         ),
                         "facing" to PropertySchema(
                             type = "string",
@@ -111,14 +113,19 @@ class EyeSkill(
             "look" -> {
                 val permResult = ensureCameraPermission()
                 if (permResult != null) return permResult
-                executeLook(args)
+                executeLook(args, embedImage = true)
+            }
+            "snap" -> {
+                val permResult = ensureCameraPermission()
+                if (permResult != null) return permResult
+                executeLook(args, embedImage = false)
             }
             "watch" -> {
                 val permResult = ensureCameraPermission()
                 if (permResult != null) return permResult
                 executeWatch(args)
             }
-            else -> SkillResult.error("Unknown action: $action. Use: list, look, watch")
+            else -> SkillResult.error("Unknown action: $action. Use: list, look, snap, watch")
         }
     }
 
@@ -174,8 +181,9 @@ class EyeSkill(
 
     /**
      * 看一眼（拍照）
+     * @param embedImage true=look（图片嵌入给模型看），false=snap（只返回文件路径）
      */
-    private suspend fun executeLook(args: Map<String, Any?>): SkillResult {
+    private suspend fun executeLook(args: Map<String, Any?>, embedImage: Boolean = true): SkillResult {
         return try {
             val facing = (args["facing"] as? String)?.lowercase() ?: "back"
             val quality = (args["quality"] as? Number)?.toDouble() ?: 0.95
@@ -206,10 +214,16 @@ class EyeSkill(
             }
 
             val output = buildString {
-                appendLine("👁️ 通过${eyeName}观察完成")
-                appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
-                appendLine("文件: ${photoFile.absolutePath}")
-                appendLine("（图片已内嵌，请直接描述你看到的内容）")
+                if (embedImage) {
+                    appendLine("👁️ 通过${eyeName}观察完成")
+                    appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
+                    appendLine("文件: ${photoFile.absolutePath}")
+                    appendLine("（图片已内嵌，请直接描述你看到的内容）")
+                } else {
+                    appendLine("📸 通过${eyeName}拍照完成")
+                    appendLine("分辨率: ${sanitized.width}x${sanitized.height}")
+                    appendLine("文件: ${photoFile.absolutePath}")
+                }
             }
 
             SkillResult.success(
@@ -220,7 +234,7 @@ class EyeSkill(
                     "height" to sanitized.height,
                     "file_path" to photoFile.absolutePath,
                 ),
-                images = listOf(ImageBlock(base64 = sanitized.base64, mimeType = sanitized.mimeType))
+                images = if (embedImage) listOf(ImageBlock(base64 = sanitized.base64, mimeType = sanitized.mimeType)) else null
             )
         } catch (e: Exception) {
             Log.e(TAG, "eye.look failed", e)
