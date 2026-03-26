@@ -28,17 +28,24 @@ object TermuxSshdLauncher {
     private const val EXTRA_ARGUMENTS = "$TERMUX_PACKAGE.RUN_COMMAND_ARGUMENTS"
     private const val EXTRA_BACKGROUND = "$TERMUX_PACKAGE.RUN_COMMAND_BACKGROUND"
 
+    /** sshd 的完整路径 */
+    const val SSHD_PATH = "/data/data/$TERMUX_PACKAGE/files/usr/bin/sshd"
+
+    /**
+     * 构建 RUN_COMMAND intent（可用于测试）。
+     */
+    fun buildIntent(): Intent = Intent(ACTION_RUN_COMMAND).apply {
+        setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
+        putExtra(EXTRA_COMMAND, SSHD_PATH)
+        putExtra(EXTRA_BACKGROUND, true)
+    }
+
     /**
      * 发送 RUN_COMMAND intent 让 Termux 执行 sshd。
      * 非阻塞，调用后 sshd 可能需要 1-2 秒才能监听端口。
      */
     fun launch(context: Context) {
-        val intent = Intent(ACTION_RUN_COMMAND).apply {
-            setClassName(TERMUX_PACKAGE, RUN_COMMAND_SERVICE)
-            putExtra(EXTRA_COMMAND, "/data/data/$TERMUX_PACKAGE/files/usr/bin/sshd")
-            putExtra(EXTRA_BACKGROUND, true)
-        }
-
+        val intent = buildIntent()
         try {
             context.startService(intent)
             Log.i(TAG, "✅ 已发送 RUN_COMMAND 启动 sshd")
