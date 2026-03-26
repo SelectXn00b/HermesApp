@@ -26,6 +26,7 @@ import com.xiaomo.androidforclaw.util.GlobalExceptionHandler
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.util.SPHelper
 import com.xiaomo.androidforclaw.util.WakeLockManager
+import com.xiaomo.androidforclaw.camera.CameraCaptureManager
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import com.xiaomo.androidforclaw.util.AppInfoScanner
 import com.tencent.mmkv.MMKV
@@ -118,6 +119,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // Accessibility Health Monitor
         private var healthMonitor: AccessibilityHealthMonitor? = null
 
+        // Camera Capture Manager (对齐 OpenClaw CameraCaptureManager)
+        private var cameraCaptureManager: CameraCaptureManager? = null
+
+        fun getCameraCaptureManager(): CameraCaptureManager? = cameraCaptureManager
+
         private fun onAppForeground() {
             Log.d(TAG, "App回到前台")
             // Check if test task is running, if so ensure WakeLock is acquired
@@ -205,6 +211,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         MMKV.initialize(this)
         com.xiaomo.androidforclaw.config.ProviderRegistry.init(this)
         registerActivityLifecycleCallbacks(this)
+
+        // 初始化 CameraCaptureManager (对齐 OpenClaw camera.snap/clip)
+        cameraCaptureManager = CameraCaptureManager(this)
 
         // Initialize file logging system
         initializeFileLogger()
@@ -652,7 +661,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
             // Initialize dependencies
             val toolRegistry = ToolRegistry(this, taskDataManager)
-            val androidToolRegistry = AndroidToolRegistry(this, taskDataManager)
+            val androidToolRegistry = AndroidToolRegistry(this, taskDataManager, cameraCaptureManager = cameraCaptureManager)
             val skillsLoader = SkillsLoader(this)
             val workspaceDir = StoragePaths.workspace
             val sessionManager = SessionManager(workspaceDir)
@@ -850,7 +859,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     }
 
     override fun onActivityResumed(activity: Activity) {
-
+        // Attach LifecycleOwner to CameraCaptureManager for CameraX binding
+        if (activity is androidx.lifecycle.LifecycleOwner) {
+            cameraCaptureManager?.attachLifecycleOwner(activity)
+        }
     }
 
     override fun onActivityPaused(activity: Activity) {
@@ -1311,7 +1323,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 )
                 val androidToolRegistry = AndroidToolRegistry(
                     context = this@MyApplication,
-                    taskDataManager = taskDataManager
+                    taskDataManager = taskDataManager,
+                    cameraCaptureManager = cameraCaptureManager,
                 )
 
                 // Register feishu tools into ToolRegistry (aligned with OpenClaw extension tools)
@@ -1939,7 +1952,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             val taskDataManager = TaskDataManager.getInstance()
 
             val toolRegistry = ToolRegistry(this@MyApplication, taskDataManager)
-            val androidToolRegistry = AndroidToolRegistry(this@MyApplication, taskDataManager)
+            val androidToolRegistry = AndroidToolRegistry(this@MyApplication, taskDataManager, cameraCaptureManager = cameraCaptureManager)
 
             val agentLoop = AgentLoop(
                 llmProvider = llmProvider,
@@ -2201,7 +2214,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             )
             val androidToolRegistry = AndroidToolRegistry(
                 context = this@MyApplication,
-                taskDataManager = taskDataManager
+                taskDataManager = taskDataManager,
+                cameraCaptureManager = cameraCaptureManager,
             )
 
             val configLoader = ConfigLoader(this@MyApplication)

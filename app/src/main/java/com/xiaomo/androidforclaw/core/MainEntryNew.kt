@@ -158,7 +158,8 @@ object MainEntryNew {
                 context = application,
                 taskDataManager = taskDataManager,
                 memoryManager = memoryManager,
-                workspacePath = workspacePath
+                workspacePath = workspacePath,
+                cameraCaptureManager = MyApplication.getCameraCaptureManager(),
             )
             Log.d(TAG, "✓ AndroidToolRegistry initialized (${androidToolRegistry.getToolCount()} Android tools)")
 

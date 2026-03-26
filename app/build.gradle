@@ -229,6 +229,13 @@ dependencies {
     // ========== EasyFloat 悬浮窗 ==========
     implementation 'com.github.princekin-f:EasyFloat:2.0.4'
 
+    // ========== CameraX (对齐 OpenClaw camera.snap/clip) ==========
+    implementation 'androidx.camera:camera-core:1.5.2'
+    implementation 'androidx.camera:camera-camera2:1.5.2'
+    implementation 'androidx.camera:camera-lifecycle:1.5.2'
+    implementation 'androidx.camera:camera-video:1.5.2'
+    implementation 'androidx.exifinterface:exifinterface:1.4.2'
+
     // ========== Extensions ==========
     implementation project(':extensions:feishu')
     implementation project(':extensions:discord')

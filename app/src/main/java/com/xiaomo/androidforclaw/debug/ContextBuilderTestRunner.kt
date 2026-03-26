@@ -207,7 +207,8 @@ object ContextBuilderTestRunner {
 
         val androidToolRegistry = AndroidToolRegistry(
             context = context,
-            taskDataManager = TaskDataManager.getInstance()
+            taskDataManager = TaskDataManager.getInstance(),
+            cameraCaptureManager = com.xiaomo.androidforclaw.core.MyApplication.getCameraCaptureManager(),
         )
 
         return ContextBuilder(

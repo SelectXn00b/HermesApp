@@ -11,6 +11,7 @@ package com.xiaomo.androidforclaw.agent.tools
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.memory.MemoryManager
+import com.xiaomo.androidforclaw.camera.CameraCaptureManager
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.memory.MemoryGetSkill
 import com.xiaomo.androidforclaw.agent.tools.memory.MemorySearchSkill
@@ -34,7 +35,8 @@ class AndroidToolRegistry(
     private val context: Context,
     private val taskDataManager: TaskDataManager,
     private val memoryManager: MemoryManager? = null,
-    private val workspacePath: String = StoragePaths.workspace.absolutePath
+    private val workspacePath: String = StoragePaths.workspace.absolutePath,
+    private val cameraCaptureManager: CameraCaptureManager? = null,
 ) {
     companion object {
         private const val TAG = "AndroidToolRegistry"
@@ -67,6 +69,13 @@ class AndroidToolRegistry(
 
         // === Feishu image (kept as direct tool — media upload needs special handling) ===
         register(FeishuSendImageSkill(context))
+
+        // === Camera (对齐 OpenClaw camera.list/snap/clip) ===
+        if (cameraCaptureManager != null) {
+            register(CameraSkill(context, cameraCaptureManager))
+        } else {
+            Log.d(TAG, "⚠️ CameraCaptureManager not provided, skipping camera skill")
+        }
 
         Log.d(TAG, "✅ Registered ${tools.size} Android platform tools")
     }

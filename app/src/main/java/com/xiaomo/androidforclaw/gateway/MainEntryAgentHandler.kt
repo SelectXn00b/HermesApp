@@ -52,7 +52,8 @@ class MainEntryAgentHandler(
     private val androidToolRegistry: AndroidToolRegistry by lazy {
         AndroidToolRegistry(
             context = application,
-            taskDataManager = taskDataManager
+            taskDataManager = taskDataManager,
+            cameraCaptureManager = com.xiaomo.androidforclaw.core.MyApplication.getCameraCaptureManager(),
         )
     }
 
