@@ -1208,7 +1208,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 val queueMode = getQueueModeForChat(event.chatId, event.chatType)
 
                 // 🚀 Enqueue message for processing (fully aligned with OpenClaw)
-                // 整体超时保护：单条消息处理不超过 5 分钟，防止队列阻塞
+                // OpenClaw 主 session 无消息处理超时，此处也不加超时限制
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
                         messageQueueManager.enqueue(
@@ -1216,18 +1216,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             message = queuedMessage,
                             mode = queueMode
                         ) { msg ->
-                            kotlinx.coroutines.withTimeout(5 * 60 * 1000L) {
-                                // Restore original event from metadata
-                                val originalEvent = msg.metadata["event"] as? com.xiaomo.feishu.FeishuEvent.Message
-                                    ?: event
-                                processFeishuMessageWithTyping(originalEvent, msg)
-                            }
+                            // Restore original event from metadata
+                            val originalEvent = msg.metadata["event"] as? com.xiaomo.feishu.FeishuEvent.Message
+                                ?: event
+                            processFeishuMessageWithTyping(originalEvent, msg)
                         }
-                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                        Log.e(TAG, "消息处理超时 (5min)，队列已释放", e)
-                        try {
-                            sendFeishuReply(event, "⚠️ 处理超时，请重试")
-                        } catch (_: Exception) {}
                     } catch (e: Exception) {
                         Log.e(TAG, "消息队列处理失败", e)
                     }
@@ -2146,17 +2139,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                 message = queuedMessage,
                                 mode = queueMode
                             ) { qMsg ->
-                                kotlinx.coroutines.withTimeout(5 * 60 * 1000L) {
-                                    val originalMsg = qMsg.metadata["weixinMsg"]
-                                        as? com.xiaomo.weixin.messaging.WeixinInboundMessage ?: msg
-                                    processWeixinMessageQueued(originalMsg, queueKey)
-                                }
+                                val originalMsg = qMsg.metadata["weixinMsg"]
+                                    as? com.xiaomo.weixin.messaging.WeixinInboundMessage ?: msg
+                                processWeixinMessageQueued(originalMsg, queueKey)
                             }
-                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                            Log.e(TAG, "Weixin 消息处理超时 (5min)", e)
-                            try {
-                                channel.sender?.sendText(msg.fromUserId, "⚠️ 处理超时，请重试")
-                            } catch (_: Exception) {}
                         } catch (e: kotlinx.coroutines.CancellationException) {
                             Log.i(TAG, "Weixin: 任务被用户取消 ${msg.fromUserId}")
                         } catch (e: Exception) {
