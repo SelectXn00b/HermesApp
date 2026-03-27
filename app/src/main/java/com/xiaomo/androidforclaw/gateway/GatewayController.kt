@@ -16,6 +16,7 @@ import com.xiaomo.androidforclaw.gateway.methods.ModelsMethods
 import com.xiaomo.androidforclaw.gateway.methods.ToolsMethods
 import com.xiaomo.androidforclaw.gateway.methods.SkillsMethods
 import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
+import com.xiaomo.androidforclaw.gateway.methods.TalkMethods
 import com.xiaomo.androidforclaw.gateway.methods.CronMethods
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
@@ -79,6 +80,7 @@ class GatewayController(
     private lateinit var toolsMethods: ToolsMethods
     private lateinit var skillsMethods: SkillsMethods
     private lateinit var configMethods: ConfigMethods
+    private lateinit var talkMethods: TalkMethods
 
     var isRunning = false
         private set
@@ -129,6 +131,8 @@ class GatewayController(
                 toolsMethods = ToolsMethods(toolRegistry, androidToolRegistry)
                 skillsMethods = SkillsMethods(context)
                 configMethods = ConfigMethods(context)
+                talkMethods = TalkMethods(context)
+                talkMethods.init()
 
                 // ── OpenClaw loopback handshake ───────────────────────────
                 // Client (OpenClaw Android) sends "connect" after receiving
@@ -577,6 +581,14 @@ class GatewayController(
                     CronMethods.runs(params as JSONObject)
                 }
 
+                // ── Talk (TTS) methods ───────────────────────────────────
+                registerMethod("talk.config") { params ->
+                    talkMethods.talkConfig(params)
+                }
+                registerMethod("talk.speak") { params ->
+                    talkMethods.talkSpeak(params)
+                }
+
                 Log.i(TAG,"Registered ${getMethodCount()} RPC methods")
             }
 
@@ -613,6 +625,7 @@ class GatewayController(
         try {
             server?.stop()
             server = null
+            if (::talkMethods.isInitialized) talkMethods.shutdown()
             isRunning = false
             Log.i(TAG, "Gateway WebSocket server stopped")
         } catch (e: Exception) {
