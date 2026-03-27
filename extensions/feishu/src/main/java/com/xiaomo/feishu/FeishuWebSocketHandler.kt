@@ -130,6 +130,15 @@ class FeishuWebSocketHandler(
                 mention.id?.openId
             } ?: emptyList()
 
+            // Parse message create_time (aligned with OpenClaw: use original
+            // message timestamp instead of processing time).
+            // Feishu uses millisecond epoch string.
+            val createTime = try {
+                message.createTime?.toLongOrNull() ?: System.currentTimeMillis()
+            } catch (_: Exception) {
+                System.currentTimeMillis()
+            }
+
             // 发送事件
             eventFlow.emit(
                 FeishuEvent.Message(
@@ -143,7 +152,8 @@ class FeishuWebSocketHandler(
                     rootId = rootId,
                     parentId = parentId,
                     threadId = threadId,
-                    mediaKeys = parseResult.mediaKeys
+                    mediaKeys = parseResult.mediaKeys,
+                    createTime = createTime
                 )
             )
 

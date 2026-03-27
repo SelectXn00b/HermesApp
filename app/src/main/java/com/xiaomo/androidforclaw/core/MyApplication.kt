@@ -1157,10 +1157,13 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         }
                     }
 
-                    // Check group messages (aligned with OpenClaw: obey config.requireMention)
+                    // Check group messages (aligned with OpenClaw: resolve requireMention based on groupPolicy)
                     if (event.chatType == "group") {
-                        val requireMention = feishuConfig.requireMention
-                        Log.d(TAG, "   requireMention: $requireMention (按配置处理)")
+                        // OpenClaw: requireMentionDefault = groupPolicy === "open" ? false : true
+                        val groupPolicy = feishuConfig.groupPolicy
+                        val requireMentionDefault = groupPolicy != "open"
+                        val requireMention = feishuConfig.requireMention ?: requireMentionDefault
+                        Log.d(TAG, "   requireMention: $requireMention (groupPolicy=$groupPolicy, explicit=${feishuConfig.requireMention})")
 
                         if (requireMention) {
                             // Check @_all (aligned with OpenClaw: treat as @ all bots)

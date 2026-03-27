@@ -63,7 +63,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
     var appSecret by remember { mutableStateOf(savedConfig.appSecret) }
     var dmPolicy by remember { mutableStateOf(savedConfig.dmPolicy) }
     var groupPolicy by remember { mutableStateOf(savedConfig.groupPolicy) }
-    var requireMention by remember { mutableStateOf(savedConfig.requireMention) }
+    var requireMention by remember { mutableStateOf(savedConfig.requireMention ?: savedConfig.groupPolicy != "open") }
     var groupAllowFrom by remember { mutableStateOf(savedConfig.groupAllowFrom.joinToString("\n")) }
 
     var showSaveSuccess by remember { mutableStateOf(false) }

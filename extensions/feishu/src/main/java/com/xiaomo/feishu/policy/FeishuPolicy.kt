@@ -65,14 +65,24 @@ class FeishuPolicy(private val config: FeishuConfig) {
 
     /**
      * 检查群组消息是否需要 @
+     *
+     * Aligned with OpenClaw policy.ts:
+     * When groupPolicy is "open" and requireMention is not explicitly configured,
+     * default to false: an open group should respond to all messages including
+     * images and files that cannot carry @-mentions.
      */
     fun requiresMention(chatType: String, isMentioned: Boolean, isSingleBot: Boolean): Boolean {
         if (chatType != "group") {
             return false // DM 不需要 @
         }
 
-        if (!config.requireMention) {
-            return false // 配置为不需要 @
+        // Resolve requireMention: explicit config > groupPolicy-based default
+        // OpenClaw: requireMentionDefault = groupPolicy === "open" ? false : true
+        val requireMentionDefault = config.groupPolicy != FeishuConfig.GroupPolicy.OPEN
+        val requireMention = config.requireMention ?: requireMentionDefault
+
+        if (!requireMention) {
+            return false
         }
 
         // 检查 bypass 规则

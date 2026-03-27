@@ -35,7 +35,7 @@ data class FeishuConfig(
     // ===== 群组策略 =====
     val groupPolicy: GroupPolicy = GroupPolicy.ALLOWLIST,
     val groupAllowFrom: List<String> = emptyList(),
-    val requireMention: Boolean = true,
+    val requireMention: Boolean? = null, // null = use groupPolicy-based default (open→false, else→true)
     val groupCommandMentionBypass: MentionBypass = MentionBypass.NEVER,
     val allowMentionlessInMultiBotGroup: Boolean = false,
 

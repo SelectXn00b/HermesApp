@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -102,6 +103,43 @@ class FeishuChannel(private val config: FeishuConfig) {
     fun setBotOpenId(openId: String) {
         botOpenId = openId
         Log.d(TAG, "Bot open_id set: $openId")
+    }
+
+    /**
+     * Background retry for bot identity (aligned with OpenClaw monitor.account.ts).
+     * When bot info probe fails at startup, retry with escalating delays
+     * so the degraded state (not knowing bot open_id) is bounded rather than permanent.
+     */
+    private fun startBotIdentityRetry() {
+        val retryDelaysMs = listOf(60_000L, 120_000L, 300_000L, 600_000L, 900_000L)
+        val scope = kotlinx.coroutines.CoroutineScope(
+            kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob()
+        )
+        scope.launch {
+            for ((i, delayMs) in retryDelaysMs.withIndex()) {
+                if (botOpenId != null || !isConnected) return@launch
+                delay(delayMs)
+                if (botOpenId != null || !isConnected) return@launch
+                try {
+                    val botInfoResult = client.getBotInfo()
+                    if (botInfoResult.isSuccess) {
+                        val botInfo = botInfoResult.getOrNull()
+                        val openId = botInfo?.openId
+                        if (openId != null) {
+                            botOpenId = openId
+                            Log.i(TAG, "✅ Bot open_id recovered via background retry: $openId")
+                            return@launch
+                        }
+                    }
+                    val nextDelay = retryDelaysMs.getOrNull(i + 1)
+                    Log.w(TAG, "Bot identity retry ${i + 1}/${retryDelaysMs.size} failed" +
+                        if (nextDelay != null) "; next attempt in ${nextDelay / 1000}s" else "")
+                } catch (e: Exception) {
+                    Log.w(TAG, "Bot identity retry ${i + 1} error: ${e.message}")
+                }
+            }
+            Log.e(TAG, "Bot identity retry exhausted; requireMention group messages may be skipped until restart")
+        }
     }
 
     /**
@@ -210,6 +248,8 @@ class FeishuChannel(private val config: FeishuConfig) {
             } else {
                 Log.w(TAG, "Failed to get bot info: ${botInfoResult.exceptionOrNull()?.message}")
                 Log.w(TAG, "Will continue without bot open_id (mention check may not work correctly)")
+                // Background retry with escalating delays (aligned with OpenClaw monitor.account.ts)
+                startBotIdentityRetry()
             }
 
             // 根据连接模式创建 handler
@@ -463,7 +503,10 @@ sealed class FeishuEvent {
         val parentId: String? = null,
         val threadId: String? = null,
         // Media keys for image/file/audio/video/sticker messages
-        val mediaKeys: com.xiaomo.feishu.messaging.MediaKeys? = null
+        val mediaKeys: com.xiaomo.feishu.messaging.MediaKeys? = null,
+        // Original message timestamp from Feishu (millisecond epoch string).
+        // Aligned with OpenClaw: use create_time instead of processing time.
+        val createTime: Long = System.currentTimeMillis()
     ) : FeishuEvent()
 
     data class Error(val error: Throwable) : FeishuEvent()

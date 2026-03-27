@@ -516,7 +516,7 @@ class ConfigLoader private constructor() {
             groupAllowFrom = json.optJSONArray("groupAllowFrom")?.let { arr ->
                 (0 until arr.length()).map { arr.getString(it) }
             } ?: emptyList(),
-            requireMention = json.optBoolean("requireMention", true),
+            requireMention = if (json.has("requireMention")) json.optBoolean("requireMention") else null,
             groupCommandMentionBypass = json.optString("groupCommandMentionBypass", "never"),
             allowMentionlessInMultiBotGroup = json.optBoolean("allowMentionlessInMultiBotGroup", false),
             groupSessionScope = if (json.has("groupSessionScope")) json.optString("groupSessionScope") else null,
@@ -907,7 +907,7 @@ class ConfigLoader private constructor() {
         feishuObj.put("connectionMode", feishu.connectionMode)
         feishuObj.put("dmPolicy", feishu.dmPolicy)
         feishuObj.put("groupPolicy", feishu.groupPolicy)
-        feishuObj.put("requireMention", feishu.requireMention)
+        feishu.requireMention?.let { feishuObj.put("requireMention", it) }
         feishuObj.put("groupCommandMentionBypass", feishu.groupCommandMentionBypass)
         feishuObj.put("allowMentionlessInMultiBotGroup", feishu.allowMentionlessInMultiBotGroup)
         channelsObj.put("feishu", feishuObj)
