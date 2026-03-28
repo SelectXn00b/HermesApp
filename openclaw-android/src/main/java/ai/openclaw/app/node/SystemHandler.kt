@@ -75,10 +75,12 @@ private class AndroidSystemNotificationPoster(
         else -> Triple("active", NotificationManager.IMPORTANCE_DEFAULT, "OpenClaw Active")
       }
     val channelId = "$NOTIFICATION_CHANNEL_BASE_ID.$suffix"
-    val manager = appContext.getSystemService(NotificationManager::class.java)
-    val existing = manager.getNotificationChannel(channelId)
-    if (existing == null) {
-      manager.createNotificationChannel(NotificationChannel(channelId, name, importance))
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val manager = appContext.getSystemService(NotificationManager::class.java)
+      val existing = manager.getNotificationChannel(channelId)
+      if (existing == null) {
+        manager.createNotificationChannel(NotificationChannel(channelId, name, importance))
+      }
     }
     return channelId
   }

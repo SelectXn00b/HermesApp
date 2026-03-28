@@ -327,9 +327,12 @@ public class InstallManager {
                 // Ignore exception
             }
         }
+        int flags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            flags |= PendingIntent.FLAG_MUTABLE;
+        }
         PendingIntent pendingIntent = PendingIntent
-                .getBroadcast(context, index, intent,
-                        PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+                .getBroadcast(context, index, intent, flags);
         return pendingIntent.getIntentSender();
     }
 

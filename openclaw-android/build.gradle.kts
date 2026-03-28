@@ -16,7 +16,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 31
+        minSdk = 26
         // SMS and call log enabled by default (sideloaded, not Play Store)
         buildConfigField("boolean", "OPENCLAW_ENABLE_SMS", "true")
         buildConfigField("boolean", "OPENCLAW_ENABLE_CALL_LOG", "true")

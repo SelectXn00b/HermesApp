@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -81,17 +82,19 @@ class NodeForegroundService : Service() {
   override fun onBind(intent: Intent?) = null
 
   private fun ensureChannel() {
-    val mgr = getSystemService(NotificationManager::class.java)
-    val channel =
-      NotificationChannel(
-        CHANNEL_ID,
-        "Connection",
-        NotificationManager.IMPORTANCE_LOW,
-      ).apply {
-        description = "OpenClaw node connection status"
-        setShowBadge(false)
-      }
-    mgr.createNotificationChannel(channel)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val mgr = getSystemService(NotificationManager::class.java)
+      val channel =
+        NotificationChannel(
+          CHANNEL_ID,
+          "Connection",
+          NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+          description = "OpenClaw node connection status"
+          setShowBadge(false)
+        }
+      mgr.createNotificationChannel(channel)
+    }
   }
 
   private fun buildNotification(title: String, text: String): Notification {
@@ -137,7 +140,11 @@ class NodeForegroundService : Service() {
       updateNotification(notification)
       return
     }
-    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+    } else {
+      startForeground(NOTIFICATION_ID, notification)
+    }
     didStartForeground = true
   }
 
@@ -149,7 +156,11 @@ class NodeForegroundService : Service() {
 
     fun start(context: Context) {
       val intent = Intent(context, NodeForegroundService::class.java)
-      context.startForegroundService(intent)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        context.startForegroundService(intent)
+      } else {
+        context.startService(intent)
+      }
     }
 
     fun stop(context: Context) {
