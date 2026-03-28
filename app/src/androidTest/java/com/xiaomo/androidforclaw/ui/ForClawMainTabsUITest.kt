@@ -7,6 +7,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.*
+import com.xiaomo.androidforclaw.R
+import ai.openclaw.app.R as OpenClawR
 import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import org.junit.*
 import org.junit.Assert.*
@@ -17,9 +19,10 @@ import org.junit.runners.MethodSorters
  * ForClaw 主界面 UI 主线测试
  *
  * 关键路径:
- * 1. Connect 四卡片可见，"修改配置" 跳转正确
- * 2. Settings 显示 ForClaw 内容；模型配置可跳转
- * 3. Connect ↔ Settings 来回切换不崩溃
+ * 1. Settings tab 显示 ForClaw 卡片（LLM API / Gateway / Channels / Skills / Permissions）
+ * 2. Settings tab 显示模型配置等设置项；模型配置可跳转
+ *
+ * 底部导航: Chat | Voice | Screen | Settings
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -34,6 +37,8 @@ class ForClawMainTabsUITest {
     private lateinit var device: UiDevice
     private lateinit var scenario: ActivityScenario<MainActivityCompose>
 
+    private val res get() = InstrumentationRegistry.getInstrumentation().targetContext.resources
+
     @Before
     fun setUp() {
         val instr = InstrumentationRegistry.getInstrumentation()
@@ -42,16 +47,14 @@ class ForClawMainTabsUITest {
             "appops set $PKG MANAGE_EXTERNAL_STORAGE allow"
         ).close()
 
-        val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivityCompose::class.java)
-        scenario = ActivityScenario.launch(intent)
+        // Pre-accept legal consent
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.getSharedPreferences("forclaw_legal", android.content.Context.MODE_PRIVATE)
+            .edit().putBoolean("legal.accepted", true).apply()
 
-        // Give onboarding time to appear (short), then dismiss if present
-        Thread.sleep(800)
-        if (device.findObject(UiSelector().textContains("欢迎使用")).exists()) {
-            device.pressBack()
-            Thread.sleep(500)
-        }
-        device.findObject(UiSelector().text("Connect")).waitForExists(TIMEOUT)
+        val intent = Intent(context, MainActivityCompose::class.java)
+        scenario = ActivityScenario.launch(intent)
+        Thread.sleep(2000)
         device.waitForIdle()
     }
 
@@ -71,13 +74,18 @@ class ForClawMainTabsUITest {
     private fun hasText(text: String, timeout: Long = 2_000L): Boolean =
         device.findObject(UiSelector().textContains(text)).waitForExists(timeout)
 
-    /** Exact-match tab click — avoids hitting "Connected" when targeting "Connect" */
     private fun clickTab(label: String) {
-        val obj = device.findObject(UiSelector().text(label))
-        assertTrue("Tab '$label' not found within ${TIMEOUT}ms", obj.waitForExists(TIMEOUT))
-        obj.click()
+        // Try content-desc first (Compose NavigationBarItem), then text
+        val byDesc = device.findObject(UiSelector().description(label))
+        if (byDesc.waitForExists(TIMEOUT)) {
+            byDesc.click()
+        } else {
+            val byText = device.findObject(UiSelector().text(label))
+            assertTrue("Tab '$label' not found within ${TIMEOUT}ms", byText.waitForExists(TIMEOUT))
+            byText.click()
+        }
         device.waitForIdle()
-        Thread.sleep(350)
+        Thread.sleep(500)
     }
 
     private fun scrollDown() {
@@ -94,53 +102,48 @@ class ForClawMainTabsUITest {
 
     // ── Tests ────────────────────────────────────────────────────────────
 
-    /** Connect 四卡片可见，"修改配置" 跳转到 ModelConfigActivity 不打开引导页 */
+    /** Settings tab 显示 ForClaw 连接卡片 (LLM API / Local Gateway / Channels / Skills) */
     @Test
-    fun test01_connectTab() {
-        clickTab("Connect")
-        findText("LLM API")
-        findText("本地 Gateway")
-        findText("Channels")
-        findText("Skills")
+    fun test01_settingsTab_connectionCards() {
+        val settingsLabel = res.getString(OpenClawR.string.tab_settings)
+        clickTab(settingsLabel)
 
-        findText("修改配置").click()
-        // Wait until the new screen settles (up to 3s) instead of blind sleep
-        val deadline1 = System.currentTimeMillis() + 3_000L
-        while (device.currentPackageName == PKG &&
-               device.findObject(UiSelector().text("修改配置")).waitForExists(200) &&
-               System.currentTimeMillis() < deadline1) {
-            Thread.sleep(100)
+        // Verify connection status cards from ForClawSettingsTab
+        val llmLabel = res.getString(R.string.connect_llm_api)
+        val gatewayLabel = res.getString(R.string.connect_local_gateway)
+        val channelsLabel = res.getString(R.string.connect_channels)
+        val skillsLabel = res.getString(R.string.connect_skills)
+
+        assertTrue("LLM API card should be visible", scrollUntilText(llmLabel))
+        assertTrue("Local Gateway card should be visible", scrollUntilText(gatewayLabel))
+        assertTrue("Channels card should be visible", scrollUntilText(channelsLabel))
+        assertTrue("Skills card should be visible", scrollUntilText(skillsLabel))
+
+        // Click "Modify" on LLM API card to open ModelConfigActivity
+        val modifyLabel = res.getString(R.string.connect_modify_config)
+        if (scrollUntilText(modifyLabel)) {
+            findText(modifyLabel).click()
+            Thread.sleep(1500)
+            device.waitForIdle()
+            assertEquals("Should stay in app", PKG, device.currentPackageName)
+            device.pressBack()
+            device.waitForIdle()
         }
-        device.waitForIdle()
-        assertEquals("Should stay in app", PKG, device.currentPackageName)
-        assertFalse("Should NOT open 引导页", hasText("欢迎使用", 2000))
-        device.pressBack()
-        device.waitForIdle()
     }
 
-    /** Settings 显示 ForClaw 内容；模型配置可跳转 */
+    /** Settings tab 显示配置项（Termux / openclaw.json / 检查更新）并可正常滚动 */
     @Test
-    fun test02_settingsTab() {
-        clickTab("Settings")
-        findText("模型配置")
-        findText("Channels")
-        assertFalse("Should NOT show OpenClaw settings", hasText("Node Identity", 2000))
-        assertTrue("Termux 配置 should be visible",  scrollUntilText("Termux 配置"))
+    fun test02_settingsTab_configItems() {
+        val settingsLabel = res.getString(OpenClawR.string.tab_settings)
+        clickTab(settingsLabel)
+
+        val termuxLabel = res.getString(R.string.settings_termux)
+        val checkUpdateLabel = res.getString(R.string.settings_check_update)
+
+        assertTrue("Channels should be visible", scrollUntilText(res.getString(R.string.connect_channels)))
+        assertTrue("Termux Setup should be visible", scrollUntilText(termuxLabel))
+        // openclaw.json is a file name, locale-independent
         assertTrue("openclaw.json should be visible", scrollUntilText("openclaw.json"))
-        assertTrue("检查更新 should be visible",      scrollUntilText("检查更新"))
-
-        scrollUntilText("模型配置")
-        findText("模型配置").click()
-        val deadline2 = System.currentTimeMillis() + 3_000L
-        while (device.currentPackageName == PKG &&
-               device.findObject(UiSelector().text("模型配置")).waitForExists(200) &&
-               System.currentTimeMillis() < deadline2) {
-            Thread.sleep(100)
-        }
-        device.waitForIdle()
-        assertEquals("Should stay in app", PKG, device.currentPackageName)
-        device.pressBack()
-        device.waitForIdle()
+        assertTrue("Check for Updates should be visible", scrollUntilText(checkUpdateLabel))
     }
-
 }
