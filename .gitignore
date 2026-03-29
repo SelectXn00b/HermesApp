@@ -53,6 +53,7 @@ keystore.properties
 .externalNativeBuild
 .cxx
 *.so
+!app/src/main/jniLibs/**/*.so
 
 # Lint
 lint-results.html
