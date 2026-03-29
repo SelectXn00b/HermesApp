@@ -95,6 +95,12 @@
     <string name="licenses_summary">查看开源许可证</string>
     <string name="licenses_key">许可证</string>
 
+    <!-- 权限披露弹窗 (Google Play 合规) -->
+    <string name="disclosure_storage_title">文件访问使用说明</string>
+    <string name="disclosure_storage_message">ForClaw 需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」将跳转到系统设置页面开启此权限。</string>
+    <string name="disclosure_agree">同意并继续</string>
+    <string name="disclosure_exit">退出</string>
+
     <!-- 键盘相关 -->
     <string name="keyboard_on">ClawIME 键盘 {开启}</string>
     <string name="switch_to_normal_keyboard">切换回普通键盘</string>

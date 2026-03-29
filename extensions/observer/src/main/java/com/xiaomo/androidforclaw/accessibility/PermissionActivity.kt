@@ -417,9 +417,24 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 请求无障碍服务权限
+     * 请求无障碍服务权限 — 先弹出醒目披露声明（Google Play 合规要求）
      */
     private fun requestAccessibilityPermission() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.disclosure_accessibility_title))
+            .setMessage(getString(R.string.disclosure_accessibility_message))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.disclosure_agree)) { _, _ ->
+                openAccessibilitySettings()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * 打开系统无障碍设置页面
+     */
+    private fun openAccessibilitySettings() {
         try {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivityForResult(intent, REQUEST_CODE_ACCESSIBILITY)
@@ -431,9 +446,24 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 请求录屏权限
+     * 请求录屏权限 — 先弹出醒目披露声明（Google Play 合规要求）
      */
     private fun requestMediaProjectionPermission() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.disclosure_screen_capture_title))
+            .setMessage(getString(R.string.disclosure_screen_capture_message))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.disclosure_agree)) { _, _ ->
+                startMediaProjectionRequest()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * 发起系统录屏权限请求
+     */
+    private fun startMediaProjectionRequest() {
         try {
             val needsPermission = !MediaProjectionHelper.requestPermission(this)
 
@@ -450,19 +480,32 @@ class PermissionActivity : Activity() {
     }
 
     /**
-     * 请求存储权限
+     * 请求存储权限 — 先弹出醒目披露声明（Google Play 合规要求）
      */
     private fun requestStoragePermission() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.disclosure_storage_title))
+            .setMessage(getString(R.string.disclosure_storage_message))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.disclosure_agree)) { _, _ ->
+                openStorageSettings()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * 打开系统存储权限设置
+     */
+    private fun openStorageSettings() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Android 11+ 需要跳转到 MANAGE_EXTERNAL_STORAGE 设置
                 val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                     data = Uri.parse("package:$packageName")
                 }
                 startActivityForResult(intent, REQUEST_CODE_MANAGE_STORAGE)
                 Toast.makeText(this, "请开启\"允许管理所有文件\"权限", Toast.LENGTH_LONG).show()
             } else {
-                // Android 10 及以下直接请求 WRITE_EXTERNAL_STORAGE
                 requestPermissions(
                     arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     REQUEST_CODE_MANAGE_STORAGE

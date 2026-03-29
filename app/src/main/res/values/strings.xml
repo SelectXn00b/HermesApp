@@ -87,6 +87,12 @@
 
     <string name="pref_key_verified" translatable="false">verified</string>
 
+    <!-- Disclosure Dialogs (Google Play compliance) -->
+    <string name="disclosure_storage_title">File Access Disclosure</string>
+    <string name="disclosure_storage_message">ForClaw needs \"All Files Access\" permission to provide the following core features:\n\n• File management: The AI reads, creates, and edits files on your device based on your commands\n• Configuration storage: Save app settings, chat history, and skill plugins\n• Screenshot saving: Save screenshots for AI analysis\n\nThis app only accesses files when you initiate a command. It does not scan or upload your files in the background.\n\nBy tapping \"Agree &amp; Continue\", you will be directed to system settings to enable this permission.</string>
+    <string name="disclosure_agree">Agree &amp; Continue</string>
+    <string name="disclosure_exit">Exit</string>
+
     <!-- 键盘相关 -->
     <string name="keyboard_on">ClawIME {ON}</string>
     <string name="switch_to_normal_keyboard">Switch to normal keyboard</string>
