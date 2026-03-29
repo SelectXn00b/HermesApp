@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.mcp.ObserverMcpServer
 import java.net.Inet4Address
 import java.net.NetworkInterface
