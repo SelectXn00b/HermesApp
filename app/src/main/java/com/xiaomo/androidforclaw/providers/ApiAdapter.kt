@@ -729,37 +729,103 @@ object ApiAdapter {
     ): JSONObject {
         val json = JSONObject()
 
-        // Gemini uses contents array
+        // Extract system message → systemInstruction
+        val systemMessage = messages
+            .filter { it.role == "system" }
+            .joinToString("\n") { it.content }
+            .takeIf { it.isNotBlank() }
+        if (systemMessage != null) {
+            json.put("systemInstruction", JSONObject().apply {
+                put("parts", JSONArray().apply {
+                    put(JSONObject().apply { put("text", systemMessage) })
+                })
+            })
+        }
+
+        // Build contents array (skip system messages)
         val contents = JSONArray()
         messages.filter { it.role != "system" }.forEach { message ->
-            val content = JSONObject()
-            content.put("role", when (message.role) {
-                "assistant" -> "model"
-                else -> "user"
-            })
             val parts = JSONArray()
-            // Multimodal: add inline images for Gemini
-            if (message.role == "user" && !message.images.isNullOrEmpty()) {
-                for (img in message.images!!) {
+
+            when (message.role) {
+                "assistant" -> {
+                    // Assistant message with tool calls → functionCall parts
+                    if (!message.toolCalls.isNullOrEmpty()) {
+                        message.toolCalls.forEach { toolCall ->
+                            parts.put(JSONObject().apply {
+                                put("functionCall", JSONObject().apply {
+                                    put("name", toolCall.name)
+                                    put("args", JSONObject(toolCall.arguments))
+                                })
+                            })
+                        }
+                    }
+                    // Text content
+                    if (message.content.isNotBlank()) {
+                        parts.put(JSONObject().apply { put("text", message.content) })
+                    }
+                    contents.put(JSONObject().apply {
+                        put("role", "model")
+                        put("parts", parts)
+                    })
+                }
+                "tool" -> {
+                    // Tool result → functionResponse part (role=user in Gemini)
+                    val toolName = message.name ?: message.toolCallId ?: "unknown"
                     parts.put(JSONObject().apply {
-                        put("inline_data", JSONObject().apply {
-                            put("mime_type", img.mimeType)
-                            put("data", img.base64)
+                        put("functionResponse", JSONObject().apply {
+                            put("name", toolName)
+                            put("response", JSONObject().apply {
+                                put("result", message.content)
+                            })
                         })
+                    })
+                    contents.put(JSONObject().apply {
+                        put("role", "user")
+                        put("parts", parts)
+                    })
+                }
+                else -> {
+                    // User message
+                    // Multimodal: add inline images
+                    if (!message.images.isNullOrEmpty()) {
+                        for (img in message.images) {
+                            parts.put(JSONObject().apply {
+                                put("inline_data", JSONObject().apply {
+                                    put("mime_type", img.mimeType)
+                                    put("data", img.base64)
+                                })
+                            })
+                        }
+                    }
+                    if (message.content.isNotBlank()) {
+                        parts.put(JSONObject().apply { put("text", message.content) })
+                    }
+                    contents.put(JSONObject().apply {
+                        put("role", "user")
+                        put("parts", parts)
                     })
                 }
             }
-            // Text part
-            if (message.content.isNotBlank()) {
-                parts.put(JSONObject().apply {
-                    put("text", message.content)
+        }
+        json.put("contents", contents)
+
+        // Tools → function_declarations
+        if (!tools.isNullOrEmpty()) {
+            val declarations = JSONArray()
+            tools.forEach { tool ->
+                declarations.put(JSONObject().apply {
+                    put("name", tool.function.name)
+                    put("description", tool.function.description)
+                    put("parameters", buildParametersJson(tool.function.parameters))
                 })
             }
-            content.put("parts", parts)
-            contents.put(content)
+            json.put("tools", JSONArray().apply {
+                put(JSONObject().apply {
+                    put("function_declarations", declarations)
+                })
+            })
         }
-
-        json.put("contents", contents)
 
         // Generation config
         json.put("generationConfig", JSONObject().apply {
@@ -781,10 +847,42 @@ object ApiAdapter {
         val candidate = candidates.getJSONObject(0)
         val content = candidate.optJSONObject("content")
         val parts = content?.optJSONArray("parts")
-        val text = parts?.optJSONObject(0)?.optString("text")
+
+        // Parse all parts: text + functionCall
+        val textParts = mutableListOf<String>()
+        val toolCalls = mutableListOf<ToolCall>()
+
+        if (parts != null) {
+            for (i in 0 until parts.length()) {
+                val part = parts.getJSONObject(i)
+                // Text part
+                part.optString("text", "").takeIf { it.isNotEmpty() }?.let {
+                    textParts.add(it)
+                }
+                // functionCall part
+                part.optJSONObject("functionCall")?.let { fc ->
+                    toolCalls.add(ToolCall(
+                        id = "call_${System.currentTimeMillis()}_$i",
+                        name = fc.getString("name"),
+                        arguments = fc.optJSONObject("args")?.toString() ?: "{}"
+                    ))
+                }
+            }
+        }
+
+        // Parse usage metadata
+        val usageMeta = json.optJSONObject("usageMetadata")
+        val usage = if (usageMeta != null) {
+            Usage(
+                promptTokens = usageMeta.optInt("promptTokenCount", 0),
+                completionTokens = usageMeta.optInt("candidatesTokenCount", 0)
+            )
+        } else null
 
         return ParsedResponse(
-            content = text,
+            content = textParts.joinToString("").takeIf { it.isNotEmpty() },
+            toolCalls = toolCalls.takeIf { it.isNotEmpty() },
+            usage = usage,
             finishReason = candidate.optString("finishReason")
         )
     }

@@ -391,7 +391,8 @@ class ModelSetupActivity : AppCompatActivity() {
             )
 
             val existingModels = config.models ?: ModelsConfig()
-            val updatedProviders = existingModels.providers.toMutableMap()
+            // Only keep the currently selected provider — remove stale entries (Issue #9)
+            val updatedProviders = mutableMapOf<String, ProviderConfig>()
             updatedProviders[providerName] = newProvider
 
             val defaultModelId = if (selectedProvider == "custom") {
