@@ -1159,6 +1159,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
                 // 📎 Download media attachment if present (aligned with OpenClaw resolveFeishuMediaList)
                 var userMessage = event.content
+                var userImages: List<com.xiaomo.androidforclaw.providers.llm.ImageBlock>? = null
                 val eventMediaKeys = event.mediaKeys
                 if (eventMediaKeys != null) {
                     try {
@@ -1169,8 +1170,36 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         val downloadResult = mediaDownload.downloadMedia(event.messageId, eventMediaKeys)
                         if (downloadResult.isSuccess) {
                             val localPath = downloadResult.getOrNull()!!.file.absolutePath
-                            userMessage = "$userMessage\n[附件已下载: $localPath]"
-                            Log.i(TAG, "📎 媒体附件已下载: $localPath")
+                            Log.i(TAG, "📎 媒体附件已下载: $localPath (type=${eventMediaKeys.mediaType})")
+
+                            // If image, convert to ImageBlock for multimodal LLM input
+                            if (eventMediaKeys.mediaType == "image") {
+                                try {
+                                    val imageFile = java.io.File(localPath)
+                                    val bitmap = android.graphics.BitmapFactory.decodeFile(localPath)
+                                    if (bitmap != null) {
+                                        // Resize to max 1024px on longest side to reduce payload
+                                        val maxDim = 1024
+                                        val scale = minOf(maxDim.toFloat() / bitmap.width, maxDim.toFloat() / bitmap.height, 1f)
+                                        val scaled = if (scale < 1f) {
+                                            android.graphics.Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true)
+                                        } else bitmap
+                                        val stream = java.io.ByteArrayOutputStream()
+                                        scaled.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, stream)
+                                        val base64 = android.util.Base64.encodeToString(stream.toByteArray(), android.util.Base64.NO_WRAP)
+                                        userImages = listOf(com.xiaomo.androidforclaw.providers.llm.ImageBlock(base64 = base64, mimeType = "image/jpeg"))
+                                        if (scaled != bitmap) scaled.recycle()
+                                        bitmap.recycle()
+                                        userMessage = if (userMessage.isBlank()) "[用户发送了一张图片]" else userMessage
+                                        Log.i(TAG, "🖼️ 图片已转为 ImageBlock (${scaled.width}x${scaled.height}, ${stream.size()} bytes)")
+                                    }
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "🖼️ 图片转 base64 失败: ${e.message}")
+                                    userMessage = "$userMessage\n[附件已下载: $localPath]"
+                                }
+                            } else {
+                                userMessage = "$userMessage\n[附件已下载: $localPath]"
+                            }
                         } else {
                             Log.w(TAG, "📎 媒体下载失败: ${downloadResult.exceptionOrNull()?.message}")
                         }
@@ -1357,7 +1386,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         systemPrompt = systemPrompt,
                         userMessage = userMessage,
                         contextHistory = contextHistory.map { it.toNewMessage() },
-                        reasoningEnabled = true
+                        reasoningEnabled = true,
+                        images = userImages
                     )
                 } finally {
                     // Always unregister after the run completes (or fails)
