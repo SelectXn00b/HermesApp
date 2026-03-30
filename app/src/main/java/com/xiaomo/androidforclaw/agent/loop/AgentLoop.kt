@@ -390,6 +390,24 @@ class AgentLoop(
             messages.add(userMessage(userMessage))
             writeLog("✅ User message: $userMessage")
         }
+
+        // 3b. Detect image references in user message text (aligned with OpenClaw detectAndLoadPromptImages)
+        val imageRefs = com.xiaomo.androidforclaw.agent.tools.ImageLoader.detectImageReferences(userMessage)
+        if (imageRefs.isNotEmpty()) {
+            writeLog("🖼️ Detected ${imageRefs.size} image reference(s) in user message")
+            val loadedImages = imageRefs.mapNotNull { ref ->
+                com.xiaomo.androidforclaw.agent.tools.ImageLoader.loadImageFromPath(ref)
+            }
+            if (loadedImages.isNotEmpty()) {
+                // Replace the last user message with one that includes the loaded images
+                val lastIdx = messages.size - 1
+                if (messages[lastIdx].role == "user") {
+                    messages[lastIdx] = userMessage(userMessage, loadedImages)
+                    writeLog("🖼️ Loaded ${loadedImages.size} image(s) into user message")
+                }
+            }
+        }
+
         writeLog("📤 准备发送第一次 LLM 请求...")
 
         var iteration = 0
