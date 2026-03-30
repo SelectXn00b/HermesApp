@@ -288,10 +288,12 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             }
         }
 
-        // 📱 Start Feishu Channel (if enabled)
-        startFeishuChannelIfEnabled()
-        startDiscordChannelIfEnabled()
-        startWeixinChannelIfEnabled()
+        // 📱 Start channels (only if storage permission is granted)
+        if (hasStoragePermission()) {
+            startAllChannels()
+        } else {
+            Log.w(TAG, "⚠️ 存储权限未授权，跳过 Channel 初始化。授权后将自动启动。")
+        }
 
         // 🪟 Initialize floating window manager
         com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.init(this)
@@ -573,6 +575,29 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             e.printStackTrace()
             Log.e(TAG, "========================================")
         }
+    }
+
+    /**
+     * Check if MANAGE_EXTERNAL_STORAGE permission is granted (Android 11+).
+     * Below Android 11, always returns true.
+     */
+    private fun hasStoragePermission(): Boolean {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            android.os.Environment.isExternalStorageManager()
+        } else {
+            true
+        }
+    }
+
+    /**
+     * Start all messaging channels. Called after storage permission is granted.
+     * Safe to call multiple times — each channel checks its own enabled flag.
+     */
+    fun startAllChannels() {
+        Log.i(TAG, "🚀 startAllChannels() — 启动所有消息通道")
+        startFeishuChannelIfEnabled()
+        startDiscordChannelIfEnabled()
+        startWeixinChannelIfEnabled()
     }
 
     /**

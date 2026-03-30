@@ -167,6 +167,8 @@ class MainActivityCompose : ComponentActivity() {
         // otherwise the wizard cannot read/write /sdcard/.androidforclaw/.
         if (legalAlreadyAccepted && hasStoragePermission()) {
             launchModelSetupIfNeeded()
+            // Start channels if they were skipped in MyApplication.onCreate due to missing permission
+            (application as? com.xiaomo.androidforclaw.core.MyApplication)?.startAllChannels()
         }
 
         // Auto-prune old sessions (>30 days) on startup
@@ -210,6 +212,7 @@ class MainActivityCompose : ComponentActivity() {
                             // launch model setup immediately since permission is already granted.
                             if (hasStoragePermission()) {
                                 launchModelSetupIfNeeded()
+                                (application as? com.xiaomo.androidforclaw.core.MyApplication)?.startAllChannels()
                             }
                         },
                         onDecline = { finishAffinity() },
