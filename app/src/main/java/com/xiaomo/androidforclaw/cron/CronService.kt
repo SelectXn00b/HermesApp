@@ -265,8 +265,20 @@ class CronService(private val context: Context, private val config: CronConfig) 
     private suspend fun executeMainJob(job: CronJob): CronRunResult {
         return when (val payload = job.payload) {
             is CronPayload.SystemEvent -> {
-                // TODO: Integrate with MainEntryNew
+                // System events: broadcast or log
                 CronRunResult(RunStatus.OK, "System event: ${payload.text}")
+            }
+            is CronPayload.AgentTurn -> {
+                val delivery = CronDeliveryResolver.resolveDeliveryPlan(job)
+                CronAgentTurnExecutor.execute(
+                    context = context,
+                    sessionId = "cron_${job.name}",
+                    userMessage = payload.message,
+                    model = payload.model,
+                    channel = delivery.channel,
+                    to = delivery.to,
+                    isolated = false
+                )
             }
             else -> CronRunResult(RunStatus.ERROR, "Invalid payload for main session")
         }
@@ -275,13 +287,16 @@ class CronService(private val context: Context, private val config: CronConfig) 
     private suspend fun executeIsolatedJob(job: CronJob): CronRunResult {
         return when (val payload = job.payload) {
             is CronPayload.AgentTurn -> {
-                try {
-                    // TODO: Integrate with MainEntryNew
-                    delay(100)
-                    CronRunResult(RunStatus.OK, "Agent turn: ${payload.message}")
-                } catch (e: Exception) {
-                    CronRunResult(RunStatus.ERROR, e.message)
-                }
+                val delivery = CronDeliveryResolver.resolveDeliveryPlan(job)
+                CronAgentTurnExecutor.execute(
+                    context = context,
+                    sessionId = "cron_isolated_${job.id}",
+                    userMessage = payload.message,
+                    model = payload.model,
+                    channel = delivery.channel,
+                    to = delivery.to,
+                    isolated = true
+                )
             }
             else -> CronRunResult(RunStatus.ERROR, "Invalid payload for isolated session")
         }
