@@ -54,6 +54,7 @@ object FeishuConfigAdapter {
                 else -> FeishuConfig.MentionBypass.NEVER
             },
             allowMentionlessInMultiBotGroup = channelConfig.allowMentionlessInMultiBotGroup,
+            groupSessionScope = channelConfig.groupSessionScope,
             topicSessionMode = when (channelConfig.topicSessionMode) {
                 "enabled" -> FeishuConfig.TopicSessionMode.ENABLED
                 "disabled" -> FeishuConfig.TopicSessionMode.DISABLED
@@ -119,6 +120,7 @@ object FeishuConfigAdapter {
                 FeishuConfig.MentionBypass.NEVER -> "never"
             },
             allowMentionlessInMultiBotGroup = feishuConfig.allowMentionlessInMultiBotGroup,
+            groupSessionScope = feishuConfig.groupSessionScope,
             topicSessionMode = when (feishuConfig.topicSessionMode) {
                 FeishuConfig.TopicSessionMode.ENABLED -> "enabled"
                 FeishuConfig.TopicSessionMode.DISABLED -> "disabled"

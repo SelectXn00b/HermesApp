@@ -35,7 +35,7 @@ class FeishuSessionManager(private val config: FeishuConfig) {
         chatType: String,
         senderId: String? = null
     ): FeishuSession = mutex.withLock {
-        val sessionKey = buildSessionKey(chatId, chatType)
+        val sessionKey = buildSessionKey(chatId, chatType, senderId)
 
         // 检查现有会话
         val existing = sessions[sessionKey]
@@ -105,14 +105,16 @@ class FeishuSessionManager(private val config: FeishuConfig) {
 
     /**
      * 构建会话 key
+     * Aligned with OpenClaw session key convention:
+     * - Standard: "$chatType:$chatId" (e.g. "group:oc_xxx", "p2p:ou_xxx")
+     * - Per-user scope: "group:$chatId:user:$senderId" (isolate per sender in groups)
      */
-    private fun buildSessionKey(chatId: String, chatType: String): String {
-        return if (config.topicSessionMode == FeishuConfig.TopicSessionMode.ENABLED) {
-            // Topic session 模式：每个 topic 一个会话
-            "$chatType:$chatId"
-        } else {
-            // 标准模式：每个 chat 一个会话
-            "$chatType:$chatId"
+    private fun buildSessionKey(chatId: String, chatType: String, senderId: String? = null): String {
+        return when {
+            chatType == "group" && config.groupSessionScope == "per-user" && !senderId.isNullOrBlank() ->
+                "group:$chatId:user:$senderId"
+            else ->
+                "$chatType:$chatId"
         }
     }
 }

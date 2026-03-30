@@ -30,6 +30,15 @@
     <string name="toast_screen_capture_granted">Screen capture permission granted</string>
     <string name="toast_screen_capture_denied">Screen capture permission denied</string>
 
+    <!-- Disclosure Dialogs (Google Play compliance) -->
+    <string name="disclosure_accessibility_title">Accessibility Service Disclosure</string>
+    <string name="disclosure_accessibility_message">ForClaw needs the Android Accessibility Service to provide the following core features:\n\n• Read screen content: Retrieve UI elements on the current screen so the AI can understand what is displayed\n• Automated actions: Perform tap, swipe, and text input operations based on your commands\n• Navigation: Execute back, home, and other navigation actions\n\nThis app does not collect, store, or share your personal data through the Accessibility Service. All screen information is processed locally on the device only to execute AI commands you initiate.\n\nBy tapping \"Agree &amp; Continue\", you acknowledge and authorize this app to use the Accessibility Service.</string>
+    <string name="disclosure_screen_capture_title">Screen Recording Disclosure</string>
+    <string name="disclosure_screen_capture_message">ForClaw needs Screen Recording (MediaProjection) to provide the following core features:\n\n• Capture screenshots: Take screenshots of the current screen so the AI can understand what you are viewing\n• Analyze UI elements: Identify buttons, text, and other elements on screen to assist automation\n\nScreenshots are processed locally on the device and are not uploaded or shared with third parties.\n\nBy tapping \"Agree &amp; Continue\", you acknowledge and authorize this app to use screen recording.</string>
+    <string name="disclosure_storage_title">File Access Disclosure</string>
+    <string name="disclosure_storage_message">ForClaw needs \"All Files Access\" permission to provide the following core features:\n\n• File management: The AI reads, creates, and edits files on your device based on your commands\n• Configuration storage: Save app settings, chat history, and skill plugins\n• Screenshot saving: Save screenshots for AI analysis\n\nThis app only accesses files when you initiate a command. It does not scan or upload your files in the background.\n\nBy tapping \"Agree &amp; Continue\", you acknowledge and authorize this app to access device files.</string>
+    <string name="disclosure_agree">Agree &amp; Continue</string>
+
     <!-- Notifications -->
     <string name="notification_channel_name">Service Status</string>
     <string name="notification_channel_desc">Shows service running status</string>

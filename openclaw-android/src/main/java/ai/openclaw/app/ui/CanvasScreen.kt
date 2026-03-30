@@ -56,8 +56,8 @@ fun CanvasScreen(viewModel: MainViewModel, visible: Boolean, modifier: Modifier 
         @Suppress("DEPRECATION")
         settings.allowUniversalAccessFromFileURLs = true
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-        settings.useWideViewPort = false
-        settings.loadWithOverviewMode = false
+        settings.useWideViewPort = true
+        settings.loadWithOverviewMode = true
         settings.builtInZoomControls = false
         settings.displayZoomControls = false
         settings.setSupportZoom(false)
@@ -109,6 +109,29 @@ fun CanvasScreen(viewModel: MainViewModel, visible: Boolean, modifier: Modifier 
               if (isDebuggable) {
                 Log.d("OpenClawWebView", "onPageFinished: $url")
               }
+              // Best-effort centering: nudge body to center content if the page
+              // does not already specify its own alignment / layout.
+              view.evaluateJavascript(
+                """
+                (() => {
+                  try {
+                    const b = document.body;
+                    if (!b) return;
+                    const cs = getComputedStyle(b);
+                    const isLayoutSet = cs.display === 'flex' || cs.display === 'grid'
+                      || cs.textAlign === 'center';
+                    if (!isLayoutSet) {
+                      b.style.display = 'flex';
+                      b.style.flexDirection = 'column';
+                      b.style.alignItems = 'center';
+                      b.style.justifyContent = 'center';
+                      b.style.minHeight = '100vh';
+                    }
+                  } catch(_){}
+                })();
+                """.trimIndent(),
+                null,
+              )
               viewModel.canvas.onPageFinished()
             }
 

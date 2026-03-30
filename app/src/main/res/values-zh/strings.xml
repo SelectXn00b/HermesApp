@@ -95,6 +95,12 @@
     <string name="licenses_summary">查看开源许可证</string>
     <string name="licenses_key">许可证</string>
 
+    <!-- 权限披露弹窗 (Google Play 合规) -->
+    <string name="disclosure_storage_title">文件访问使用说明</string>
+    <string name="disclosure_storage_message">ForClaw 需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」将跳转到系统设置页面开启此权限。</string>
+    <string name="disclosure_agree">同意并继续</string>
+    <string name="disclosure_exit">退出</string>
+
     <!-- 键盘相关 -->
     <string name="keyboard_on">ClawIME 键盘 {开启}</string>
     <string name="switch_to_normal_keyboard">切换回普通键盘</string>
@@ -210,7 +216,7 @@
     <string name="settings_model_config_desc">API Key 和模型参数</string>
     <string name="settings_channels">Channels</string>
     <string name="settings_channels_desc">飞书、Discord 等多渠道接入</string>
-    <string name="settings_skills">Skills</string>
+    <string name="settings_skills">技能</string>
     <string name="settings_skills_desc">管理 Agent Skills</string>
     <string name="settings_termux">Termux 配置</string>
     <string name="settings_termux_desc">配置 Termux SSH 连接</string>
@@ -246,7 +252,7 @@
     <string name="settings_github">GitHub 仓库</string>
     <string name="settings_github_desc">查看源码 / 提交 Issue</string>
     <string name="settings_copyright">© 2024–2025 小龙虾</string>
-    <string name="settings_inspired">Inspired by OpenClaw</string>
+    <string name="settings_inspired">灵感来自 OpenClaw</string>
     <string name="settings_copied">已复制</string>
     <string name="settings_cannot_open_link">无法打开链接</string>
 
@@ -270,7 +276,7 @@
     <string name="connect_weixin">微信</string>
     <string name="connect_enabled">已启用</string>
     <string name="connect_manage">管理</string>
-    <string name="connect_skills">Skills</string>
+    <string name="connect_skills">技能</string>
     <string name="connect_skills_loaded">%d 个</string>
     <string name="connect_mcp_server">MCP Server</string>
     <string name="connect_mcp_stopped">已停止</string>
@@ -289,4 +295,20 @@
     <string name="picker_model_label">模型</string>
     <string name="picker_use_global">使用全局默认模型</string>
     <string name="picker_no_provider">⚠ 未配置任何 Provider，请先在「模型配置」页添加</string>
+
+    <!-- Channel titles -->
+    <string name="signal_channel_title">Signal 频道</string>
+    <string name="whatsapp_channel_title">WhatsApp 频道</string>
+    <string name="slack_channel_title">Slack 频道</string>
+    <string name="telegram_channel_title">Telegram 频道</string>
+    <string name="feishu_channel_title">飞书频道</string>
+    <string name="discord_channel_title">Discord 频道</string>
+    <string name="channels_title">渠道列表</string>
+    <string name="dm_policy">私聊策略</string>
+    <string name="group_policy">群聊策略</string>
+    <string name="mcp_server_title">MCP 服务</string>
+    <string name="skills_management">技能管理</string>
+    <string name="skill_detail">技能详情</string>
+    <string name="web_clipboard">网页剪切板</string>
+    <string name="unknown">未知</string>
 </resources>

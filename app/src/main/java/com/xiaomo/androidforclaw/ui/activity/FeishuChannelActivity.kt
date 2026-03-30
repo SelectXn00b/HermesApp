@@ -19,7 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import kotlinx.coroutines.launch
 
@@ -71,7 +73,7 @@ fun FeishuChannelScreen(onBack: () -> Unit, context: android.content.Context = a
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Feishu Channel") },
+                title = { Text(stringResource(R.string.feishu_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, "返回")

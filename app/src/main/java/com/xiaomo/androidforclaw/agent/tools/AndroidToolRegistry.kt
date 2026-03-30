@@ -138,7 +138,7 @@ class AndroidToolRegistry(
     /**
      * Get all tools description (for building system prompt)
      */
-    fun getToolsDescription(): String {
+    fun getToolsDescription(excludeTools: Set<String> = emptySet()): String {
         return buildString {
             appendLine("## Android Platform Tools")
             appendLine()
@@ -156,13 +156,16 @@ class AndroidToolRegistry(
             )
 
             categories.forEach { (category, toolNames) ->
-                appendLine("### $category")
-                toolNames.forEach { name ->
-                    tools[name]?.let { tool ->
-                        appendLine("- **${tool.name}**: ${tool.description.lines().first()}")
+                val filtered = toolNames.filter { it !in excludeTools }
+                if (filtered.isNotEmpty()) {
+                    appendLine("### $category")
+                    filtered.forEach { name ->
+                        tools[name]?.let { tool ->
+                            appendLine("- **${tool.name}**: ${tool.description.lines().first()}")
+                        }
                     }
+                    appendLine()
                 }
-                appendLine()
             }
         }
     }

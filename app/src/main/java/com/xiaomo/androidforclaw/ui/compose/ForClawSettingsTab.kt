@@ -565,7 +565,7 @@ private fun AboutSection() {
     val packageInfo = remember {
         try { context.packageManager.getPackageInfo(context.packageName, 0) } catch (_: Exception) { null }
     }
-    val versionName = packageInfo?.versionName ?: "Unknown"
+    val versionName = packageInfo?.versionName ?: stringResource(R.string.unknown)
 
     Surface(
         modifier = Modifier.fillMaxWidth(),

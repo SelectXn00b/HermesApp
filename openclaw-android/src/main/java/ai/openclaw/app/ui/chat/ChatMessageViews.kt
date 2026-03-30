@@ -76,20 +76,9 @@ fun ChatMessageBubble(message: ChatMessage) {
 
   if (displayableContent.isEmpty()) return
 
-  Column(modifier = Modifier.fillMaxWidth()) {
-    message.timestampMs?.let { ts ->
-      Text(
-        text = remember(ts) { formatMessageTime(ts) },
-        style = mobileCaption2,
-        color = mobileTextSecondary,
-        modifier = Modifier
-          .align(if (style.alignEnd) Alignment.End else Alignment.Start)
-          .padding(bottom = 3.dp),
-      )
-    }
-    ChatBubbleContainer(style = style, roleLabel = roleLabel(role)) {
-      ChatMessageBody(content = displayableContent, textColor = mobileText)
-    }
+  ChatBubbleContainer(style = style, roleLabel = roleLabel(role), timestampMs = message.timestampMs) {
+    ChatMessageBody(content = displayableContent, textColor = mobileText)
+  }
   }
 }
 
@@ -97,6 +86,7 @@ fun ChatMessageBubble(message: ChatMessage) {
 private fun ChatBubbleContainer(
   style: ChatBubbleStyle,
   roleLabel: String,
+  timestampMs: Long? = null,
   modifier: Modifier = Modifier,
   content: @Composable () -> Unit,
 ) {
@@ -116,11 +106,25 @@ private fun ChatBubbleContainer(
         modifier = Modifier.padding(horizontal = 11.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp),
       ) {
-        Text(
-          text = roleLabel,
-          style = mobileCaption2.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 0.6.sp),
-          color = style.roleColor,
-        )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+            text = roleLabel,
+            style = mobileCaption2.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 0.6.sp),
+            color = style.roleColor,
+          )
+          if (timestampMs != null) {
+            val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+            Text(
+              text = timeFormatter.format(Date(timestampMs)),
+              style = mobileCaption2,
+              color = style.roleColor.copy(alpha = 0.6f),
+            )
+          }
+        }
         content()
       }
     }

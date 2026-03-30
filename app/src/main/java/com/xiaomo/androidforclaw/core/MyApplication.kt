@@ -882,6 +882,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                     .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                     .trim()
+                // Redact secrets in group chat outbound messages (ContextSecurityGuard)
+                if (event.chatType == "group") {
+                    sanitizedResponse = com.xiaomo.androidforclaw.agent.context.ContextSecurityGuard
+                        .redactForSharedContext(sanitizedResponse)
+                }
                 if (sanitizedResponse.isNotBlank()) {
                     sendFeishuReply(event, sanitizedResponse)
                 } else {
@@ -1886,7 +1891,12 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             Log.i(TAG, "💾 [Session] 会话已保存，总消息数: ${session.messageCount()}")
 
             // 10. Send reply
-            val replyContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "抱歉，我无法处理这个请求。")
+            var replyContent = com.xiaomo.androidforclaw.util.ReplyTagFilter.strip(result.finalContent ?: "抱歉，我无法处理这个请求。")
+            // Redact secrets in guild (group) channel outbound messages
+            if (event.guildId != null) {
+                replyContent = com.xiaomo.androidforclaw.agent.context.ContextSecurityGuard
+                    .redactForSharedContext(replyContent)
+            }
 
             // Send in chunks (Discord 2000 character limit)
             val chunks = splitMessageIntoChunks(replyContent, 1900)

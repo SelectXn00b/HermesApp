@@ -158,7 +158,7 @@ object SessionVisibilityGuard {
 
         // BFS through descendants
         while (queue.isNotEmpty()) {
-            val current = queue.removeFirst()
+            val current = queue.removeAt(0)
             val grandchildren = registry.listRunsForRequester(current)
             for (gc in grandchildren) {
                 if (gc.childSessionKey == targetSessionKey) return true

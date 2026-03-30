@@ -411,13 +411,13 @@ class MainActivityCompose : ComponentActivity() {
 
     private fun showStoragePermissionDialog() {
         android.app.AlertDialog.Builder(this)
-            .setTitle("需要文件管理权限")
-            .setMessage("ForClaw 需要「所有文件访问」权限来保存配置和聊天记录。\n\n请在接下来的设置页面中开启此权限。")
+            .setTitle(getString(com.xiaomo.androidforclaw.R.string.disclosure_storage_title))
+            .setMessage(getString(com.xiaomo.androidforclaw.R.string.disclosure_storage_message))
             .setCancelable(false)
-            .setPositiveButton("去授权") { _, _ ->
+            .setPositiveButton(getString(com.xiaomo.androidforclaw.R.string.disclosure_agree)) { _, _ ->
                 openStoragePermissionSettings()
             }
-            .setNegativeButton("退出") { _, _ ->
+            .setNegativeButton(getString(com.xiaomo.androidforclaw.R.string.disclosure_exit)) { _, _ ->
                 finish()
             }
             .show()

@@ -61,7 +61,16 @@ data class CronJobState(
 data class CronDelivery(
     val mode: DeliveryMode,
     val channel: String? = null,
-    val to: String? = null
+    val to: String? = null,
+    val accountId: String? = null,
+    val failureDestination: CronFailureDestination? = null
+)
+
+data class CronFailureDestination(
+    val mode: String? = null,
+    val channel: String? = null,
+    val to: String? = null,
+    val accountId: String? = null
 )
 
 // Failure Alert

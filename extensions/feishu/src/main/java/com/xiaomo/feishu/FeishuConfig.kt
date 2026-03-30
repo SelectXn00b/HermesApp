@@ -40,6 +40,7 @@ data class FeishuConfig(
     val allowMentionlessInMultiBotGroup: Boolean = false,
 
     // ===== 会话模式 =====
+    val groupSessionScope: String? = null, // "per-user" = isolate per sender in groups
     val topicSessionMode: TopicSessionMode = TopicSessionMode.DISABLED,
 
     // ===== 历史记录 =====

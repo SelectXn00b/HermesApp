@@ -60,6 +60,9 @@ class ToolRegistry(
         
         // Memory tools registered in AndroidToolRegistry (MemorySearchSkill/MemoryGetSkill)
 
+        // === Patch tool (OpenClaw apply-patch.ts) ===
+        register(ApplyPatchTool(workspace = workspace))
+
         // === Shell tools ===
         // Single exec entry with backend routing (auto/termux/internal).
         register(ExecFacadeTool(context, workingDir = workspace.absolutePath))
@@ -95,6 +98,9 @@ class ToolRegistry(
         register(SkillsSearchTool(context))
         register(SkillsInstallTool(context))
         register(ClawHubConfigTool(context))
+
+        // === Lark CLI (飞书官方 CLI) ===
+        register(LarkCliTool(context))
 
         Log.d(TAG, "✅ Registered ${tools.size} universal tools (memory tools in AndroidToolRegistry)")
     }
@@ -141,17 +147,19 @@ class ToolRegistry(
     /**
      * Get all tools description (for building system prompt)
      */
-    fun getToolsDescription(): String {
+    fun getToolsDescription(excludeTools: Set<String> = emptySet()): String {
         return buildString {
             appendLine("## Universal Tools")
             appendLine()
             appendLine("跨平台通用工具，来自 Pi Coding Agent 和 OpenClaw：")
             appendLine()
-            tools.values.forEach { tool ->
-                appendLine("### ${tool.name}")
-                appendLine(tool.description)
-                appendLine()
-            }
+            tools.values
+                .filter { it.name !in excludeTools }
+                .forEach { tool ->
+                    appendLine("### ${tool.name}")
+                    appendLine(tool.description)
+                    appendLine()
+                }
         }
     }
 

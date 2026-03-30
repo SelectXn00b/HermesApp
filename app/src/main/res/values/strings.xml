@@ -87,6 +87,12 @@
 
     <string name="pref_key_verified" translatable="false">verified</string>
 
+    <!-- Disclosure Dialogs (Google Play compliance) -->
+    <string name="disclosure_storage_title">File Access Disclosure</string>
+    <string name="disclosure_storage_message">ForClaw needs \"All Files Access\" permission to provide the following core features:\n\n• File management: The AI reads, creates, and edits files on your device based on your commands\n• Configuration storage: Save app settings, chat history, and skill plugins\n• Screenshot saving: Save screenshots for AI analysis\n\nThis app only accesses files when you initiate a command. It does not scan or upload your files in the background.\n\nBy tapping \"Agree &amp; Continue\", you will be directed to system settings to enable this permission.</string>
+    <string name="disclosure_agree">Agree &amp; Continue</string>
+    <string name="disclosure_exit">Exit</string>
+
     <!-- 键盘相关 -->
     <string name="keyboard_on">ClawIME {ON}</string>
     <string name="switch_to_normal_keyboard">Switch to normal keyboard</string>
@@ -281,4 +287,20 @@
     <string name="picker_model_label">Model</string>
     <string name="picker_use_global">Use global default model</string>
     <string name="picker_no_provider">No providers configured, please add in \"Model Configuration\" first</string>
+
+    <!-- Channel titles -->
+    <string name="signal_channel_title">Signal Channel</string>
+    <string name="whatsapp_channel_title">WhatsApp Channel</string>
+    <string name="slack_channel_title">Slack Channel</string>
+    <string name="telegram_channel_title">Telegram Channel</string>
+    <string name="feishu_channel_title">Feishu Channel</string>
+    <string name="discord_channel_title">Discord Channel</string>
+    <string name="channels_title">Channels</string>
+    <string name="dm_policy">DM Policy</string>
+    <string name="group_policy">Group Policy</string>
+    <string name="mcp_server_title">MCP Server</string>
+    <string name="skills_management">Skills Management</string>
+    <string name="skill_detail">Skill Detail</string>
+    <string name="web_clipboard">Web Clipboard</string>
+    <string name="unknown">Unknown</string>
 </resources>

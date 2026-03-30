@@ -151,7 +151,7 @@ private fun ScreenTabScreen(viewModel: MainViewModel, visible: Boolean, modifier
     }
   }
 
-  Box(modifier = modifier.fillMaxSize()) {
+  Box(modifier = modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
     CanvasScreen(viewModel = viewModel, visible = visible, modifier = Modifier.fillMaxSize())
   }
 }

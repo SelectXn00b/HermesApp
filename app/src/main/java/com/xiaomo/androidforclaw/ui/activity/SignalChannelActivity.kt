@@ -18,7 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.config.SignalChannelConfig
 import com.xiaomo.androidforclaw.ui.compose.ChannelModelPicker
@@ -61,7 +63,7 @@ fun SignalChannelScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Signal Channel") },
+                title = { Text(stringResource(R.string.signal_channel_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, "返回")
@@ -147,7 +149,7 @@ fun SignalChannelScreen(
             Divider()
 
             // ── DM Policy ──
-            Text("DM Policy", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.dm_policy), style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("open", "pairing", "allowlist").forEach { policy ->
                     FilterChip(
@@ -159,7 +161,7 @@ fun SignalChannelScreen(
             }
 
             // ── Group Policy ──
-            Text("Group Policy", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.group_policy), style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("open", "allowlist", "disabled").forEach { policy ->
                     FilterChip(

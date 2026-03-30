@@ -149,8 +149,8 @@ class ContextBuilder(
         // 1. Identity (core identity) - Always included
         parts.add(buildIdentitySection())
 
-        // 2. Tooling (tool list) - Always included
-        val tooling = buildToolingSection()
+        // 2. Tooling (tool list, filtered by chat context policy) - Always included
+        val tooling = buildToolingSection(channelContext)
         if (tooling.isNotEmpty()) {
             parts.add(tooling)
         }
@@ -237,7 +237,7 @@ class ContextBuilder(
         }
 
         // 19. Project Context (Bootstrap Files) - Always included
-        val bootstrap = loadBootstrapFiles()
+        val bootstrap = loadBootstrapFiles(channelContext)
         if (bootstrap.isNotEmpty()) {
             parts.add(bootstrap)
         }
@@ -289,10 +289,18 @@ class ContextBuilder(
         val accessibilityStatus = if (accessibilityEnabled) "✅ available" else "❌ not available"
         val screenshotStatus = if (screenshotEnabled) "✅ available" else "❌ not available"
 
+        // Resolve agent identity name — aligned with OpenClaw identity.ts
+        val agentName = try {
+            val config = configLoader?.loadOpenClawConfig()
+            if (config != null) {
+                com.xiaomo.androidforclaw.agent.AgentIdentity.resolveIdentityName(config) ?: "AndroidForClaw"
+            } else "AndroidForClaw"
+        } catch (_: Exception) { "AndroidForClaw" }
+
         return """
 # Identity
 
-You are AndroidForClaw, an AI agent running on Android devices.
+You are $agentName, an AI agent running on Android devices.
 
 ## Screen Interaction (Playwright-aligned)
 
@@ -322,22 +330,35 @@ Legacy tools (tap, swipe, screenshot, etc.) are also available but prefer `devic
      * 2. Tooling Section (tool list)
      * Aligned with OpenClaw: "## Tooling" + tool list + TOOLS.md disclaimer
      */
-    private fun buildToolingSection(): String {
+    private fun buildToolingSection(channelContext: ChannelContext? = null): String {
         val lines = mutableListOf<String>()
         lines.add("## Tooling")
         lines.add("Tool availability (filtered by policy):")
         lines.add("Tool names are case-sensitive. Call tools exactly as listed.")
 
-        // Universal tools
-        val universalTools = toolRegistry.getToolsDescription()
+        // Resolve tool policy based on chat context
+        val policy = ToolPolicyResolver.resolveToolPolicy(channelContext?.chatType)
+        val excludeTools = if (policy == ToolPolicyLevel.RESTRICTED) {
+            ToolPolicyResolver.getRestrictedToolNames()
+        } else {
+            emptySet()
+        }
+
+        // Universal tools (filtered by policy)
+        val universalTools = toolRegistry.getToolsDescription(excludeTools)
         if (universalTools.isNotEmpty()) {
             lines.add(universalTools)
         }
 
-        // Android platform tools
-        val androidTools = androidToolRegistry.getToolsDescription()
+        // Android platform tools (filtered by policy)
+        val androidTools = androidToolRegistry.getToolsDescription(excludeTools)
         if (androidTools.isNotEmpty()) {
             lines.add(androidTools)
+        }
+
+        // Note restricted tools in shared context
+        if (policy == ToolPolicyLevel.RESTRICTED && excludeTools.isNotEmpty()) {
+            lines.add("[Policy: ${excludeTools.joinToString(", ")} restricted in shared context]")
         }
 
         // TOOLS.md disclaimer (aligned with OpenClaw)
@@ -606,16 +627,24 @@ This is a single-user Android device. All requests come from the device owner.
     }
 
     /**
-     * 9. Model Aliases Section (aligned with OpenClaw)
+     * 9. Model Aliases Section (aligned with OpenClaw model-alias-lines.ts)
+     * Now dynamically reads from config modelAliases instead of hardcoding.
      */
     private fun buildModelAliasesSection(): String {
-        return """
-## Model Aliases
-Prefer aliases when specifying model overrides; full provider/model is also accepted.
-- ClaudeOpus46: mify/ppio/pa/claude-opus-4-61
-- Codex: mify/azure_openai/gpt-5-codex
-- Gemini3: mify/vertex_ai/gemini-3-pro-preview
-        """.trimIndent()
+        val config = try { configLoader?.loadOpenClawConfig() } catch (_: Exception) { null }
+        val lines = if (config != null) {
+            com.xiaomo.androidforclaw.providers.ModelSelection.buildModelAliasLines(config)
+        } else {
+            emptyList()
+        }
+        if (lines.isEmpty()) {
+            return "## Model Aliases\nNo aliases configured. Use full provider/model format."
+        }
+        return buildString {
+            appendLine("## Model Aliases")
+            appendLine("Prefer aliases when specifying model overrides; full provider/model is also accepted.")
+            lines.forEach { appendLine(it) }
+        }.trimEnd()
     }
 
     /**
@@ -795,7 +824,7 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
      * Priority: workspace > assets (bundled)
      * Budget: per-file max + total max (prevents MEMORY.md from blowing context)
      */
-    private fun loadBootstrapFiles(): String {
+    private fun loadBootstrapFiles(channelContext: ChannelContext? = null): String {
         // Read budget from config if available, otherwise use defaults
         val config = try { configLoader?.loadOpenClawConfig() } catch (_: Exception) { null }
         val perFileMaxChars = config?.agents?.defaults?.bootstrapMaxChars ?: DEFAULT_BOOTSTRAP_MAX_CHARS
@@ -806,6 +835,12 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
         var hasSoulFile = false
 
         for (filename in BOOTSTRAP_FILES) {
+            // Code-level MEMORY.md guard: skip in shared contexts (group chats)
+            // Supplements the prompt-level instruction in SOUL.md
+            if (filename == "MEMORY.md" && !ContextSecurityGuard.shouldLoadMemory(channelContext)) {
+                continue
+            }
+
             if (remainingTotalChars <= 0) {
                 Log.w(TAG, "⚠️ Bootstrap total budget exhausted, skipping: $filename")
                 break

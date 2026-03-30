@@ -119,6 +119,13 @@ class AgentLoop(
     private val gson = Gson()
 
     /**
+     * Session key for this agent loop instance.
+     * Used for per-channel history limit resolution (aligned with OpenClaw getHistoryLimitFromSessionKey).
+     * Set by caller (MainEntryNew, SubagentSpawner, Gateway) after construction.
+     */
+    var sessionKey: String? = null
+
+    /**
      * Extra per-session tools (e.g. subagent tools: sessions_spawn, sessions_list, etc.)
      * Set after construction to resolve circular dependency (tools need AgentLoop ref).
      * Aligned with OpenClaw per-session tool injection.
@@ -433,11 +440,9 @@ class AgentLoop(
                 val contextWindowTokens = resolveContextWindowTokens()
 
                 // Step 1: Limit history turns — drop old user/assistant turn pairs
-                // Aligned with OpenClaw limitHistoryTurns
-                // Default 30 turns, or use config historyLimit
-                val maxTurns = try {
-                    configLoader?.loadOpenClawConfig()?.channels?.feishu?.historyLimit ?: 30
-                } catch (_: Exception) { 30 }
+                // Aligned with OpenClaw limitHistoryTurns + getHistoryLimitFromSessionKey
+                val maxTurns = com.xiaomo.androidforclaw.agent.session.HistoryTurnLimiter
+                    .getHistoryLimitFromSessionKey(sessionKey, configLoader)
 
                 val systemMsg = messages.firstOrNull { it.role == "system" }
                 val nonSystemMessages = messages.filter { it.role != "system" }.toMutableList()

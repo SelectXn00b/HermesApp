@@ -641,7 +641,7 @@ object ToolLoopDetection {
         ))
 
         if (state.toolCallHistory.size > resolvedConfig.historySize) {
-            state.toolCallHistory.removeFirst()
+            state.toolCallHistory.removeAt(0)
         }
     }
 
@@ -687,7 +687,7 @@ object ToolLoopDetection {
         // Trim to history size (aligned with OpenClaw splice approach)
         if (state.toolCallHistory.size > resolvedConfig.historySize) {
             val excess = state.toolCallHistory.size - resolvedConfig.historySize
-            repeat(excess) { state.toolCallHistory.removeFirst() }
+            repeat(excess) { state.toolCallHistory.removeAt(0) }
         }
     }
 

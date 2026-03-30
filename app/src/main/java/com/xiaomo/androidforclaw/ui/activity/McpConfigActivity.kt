@@ -25,10 +25,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.mcp.ObserverMcpServer
 import java.net.Inet4Address
 import java.net.NetworkInterface
@@ -83,7 +85,7 @@ private fun McpConfigScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("MCP Server") },
+                title = { Text(stringResource(R.string.mcp_server_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, "返回")

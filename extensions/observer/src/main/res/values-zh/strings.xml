@@ -30,6 +30,15 @@
     <string name="toast_screen_capture_granted">录屏权限已授予</string>
     <string name="toast_screen_capture_denied">录屏权限被拒绝</string>
 
+    <!-- 权限披露弹窗 (Google Play 合规) -->
+    <string name="disclosure_accessibility_title">无障碍服务使用说明</string>
+    <string name="disclosure_accessibility_message">ForClaw 需要使用 Android 无障碍服务（AccessibilityService）来实现以下核心功能：\n\n• 读取屏幕内容：获取当前界面的 UI 元素，以便 AI 理解屏幕上显示的内容\n• 自动化操作：根据您的指令执行点击、滑动、输入文字等操作\n• 界面导航：执行返回、回到主页等导航操作\n\n本应用不会通过无障碍服务收集、存储或分享您的个人数据。所有屏幕信息仅在设备本地处理，用于执行您主动发起的 AI 指令。\n\n点击「同意并继续」表示您了解并授权本应用使用无障碍服务。</string>
+    <string name="disclosure_screen_capture_title">屏幕录制使用说明</string>
+    <string name="disclosure_screen_capture_message">ForClaw 需要使用屏幕录制（MediaProjection）来实现以下核心功能：\n\n• 截取屏幕画面：获取当前屏幕截图，以便 AI 理解您正在查看的内容\n• 分析 UI 元素：识别屏幕上的按钮、文字等元素，辅助自动化操作\n\n屏幕截图仅在设备本地处理，不会上传或分享给第三方。\n\n点击「同意并继续」表示您了解并授权本应用使用屏幕录制功能。</string>
+    <string name="disclosure_storage_title">文件访问使用说明</string>
+    <string name="disclosure_storage_message">ForClaw 需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」表示您了解并授权本应用访问设备文件。</string>
+    <string name="disclosure_agree">同意并继续</string>
+
     <!-- 通知 -->
     <string name="notification_channel_name">服务状态</string>
     <string name="notification_channel_desc">显示服务运行状态</string>

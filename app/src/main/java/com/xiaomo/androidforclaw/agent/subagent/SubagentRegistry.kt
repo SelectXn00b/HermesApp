@@ -368,7 +368,7 @@ class SubagentRegistry(
         visited.add(sessionKey)
 
         while (queue.isNotEmpty()) {
-            val currentKey = queue.removeFirst()
+            val currentKey = queue.removeAt(0)
             val children = runs.values.filter { it.requesterSessionKey == currentKey }
             for (child in children) {
                 if (child.isActive || child.cleanupCompletedAt == null) count++
@@ -394,7 +394,7 @@ class SubagentRegistry(
         visited.add(sessionKey)
 
         while (queue.isNotEmpty()) {
-            val currentKey = queue.removeFirst()
+            val currentKey = queue.removeAt(0)
             val children = runs.values.filter { it.requesterSessionKey == currentKey }
             for (child in children) {
                 if (child.runId != excludeRunId && (child.isActive || child.cleanupCompletedAt == null)) {
@@ -421,7 +421,7 @@ class SubagentRegistry(
         visited.add(sessionKey)
 
         while (queue.isNotEmpty()) {
-            val currentKey = queue.removeFirst()
+            val currentKey = queue.removeAt(0)
             val children = runs.values.filter { it.requesterSessionKey == currentKey }
             for (child in children) {
                 if (child.isActive) count++
@@ -446,7 +446,7 @@ class SubagentRegistry(
         visited.add(sessionKey)
 
         while (queue.isNotEmpty()) {
-            val currentKey = queue.removeFirst()
+            val currentKey = queue.removeAt(0)
             val children = runs.values.filter { it.requesterSessionKey == currentKey }
             for (child in children) {
                 result.add(child)
@@ -566,7 +566,7 @@ class SubagentRegistry(
         queue.add(runId)
 
         while (queue.isNotEmpty()) {
-            val currentRunId = queue.removeFirst()
+            val currentRunId = queue.removeAt(0)
             if (currentRunId in visited) continue
             visited.add(currentRunId)
 
