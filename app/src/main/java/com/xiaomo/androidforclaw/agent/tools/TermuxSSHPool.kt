@@ -48,11 +48,26 @@ object TermuxSSHPool {
 
     /**
      * Get or create a connected & authenticated SSH client.
+     * Sends a keepalive probe to detect stale connections early.
      */
     suspend fun getClient(): SSHClient = lock.withLock {
         val c = client
-        if (c != null && c.isConnected && c.isAuthenticated) return@withLock c
-        safeDisconnect(c)
+        if (c != null && c.isConnected && c.isAuthenticated) {
+            // Send a keepalive probe to verify the connection is truly alive.
+            // SSHJ keepAlive runs in background, but if Termux was killed between
+            // intervals the connection appears alive but is actually dead.
+            try {
+                c.connection.keepAlive.keepAliveInterval = KEEPALIVE_INTERVAL_S
+                // Trigger an immediate transport-level write to flush dead connections
+                c.transport.write(net.schmizz.sshj.common.SSHPacket(net.schmizz.sshj.common.Message.IGNORE))
+                return@withLock c
+            } catch (e: Exception) {
+                Log.w(TAG, "SSH connection stale, reconnecting: ${e.message}")
+                safeDisconnect(c)
+            }
+        } else {
+            safeDisconnect(c)
+        }
         val newClient = connectWithRetry()
         client = newClient
         newClient
@@ -117,6 +132,14 @@ object TermuxSSHPool {
             }
             val cmd = session.exec(fullCommand)
             cmd.join(timeoutS.toLong(), TimeUnit.SECONDS)
+
+            // If command didn't finish, close to prevent readText() from blocking forever
+            if (!cmd.isEOF) {
+                Log.w(TAG, "Command timed out after ${timeoutS}s, force closing: ${command.take(80)}")
+                try { cmd.close() } catch (_: Exception) {}
+                return ExecResult(false, "", "Command timed out after ${timeoutS}s", -1)
+            }
+
             val stdout = cmd.inputStream.bufferedReader().readText()
             val stderr = cmd.errorStream.bufferedReader().readText()
             val exitCode = cmd.exitStatus ?: -1

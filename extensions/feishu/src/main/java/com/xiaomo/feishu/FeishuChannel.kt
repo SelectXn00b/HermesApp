@@ -78,6 +78,7 @@ class FeishuChannel(private val config: FeishuConfig) {
 
     // 机器人自己的 open_id (用于检测 @mention)
     private var botOpenId: String? = null
+    private var botName: String? = null
 
     // 当前对话上下文 (用于 Agent 工具调用)
     private var currentChatContext: ChatContext? = null
@@ -96,6 +97,8 @@ class FeishuChannel(private val config: FeishuConfig) {
      * 获取机器人的 open_id
      */
     fun getBotOpenId(): String? = botOpenId
+
+    fun getBotName(): String? = botName
 
     /**
      * 设置机器人的 open_id
@@ -243,6 +246,7 @@ class FeishuChannel(private val config: FeishuConfig) {
             if (botInfoResult.isSuccess) {
                 val botInfo = botInfoResult.getOrNull()
                 botOpenId = botInfo?.openId
+                botName = botInfo?.name
                 Log.i(TAG, "  Bot open_id: ${botOpenId ?: "unknown"}")
                 Log.i(TAG, "  Bot name: ${botInfo?.name ?: "unknown"}")
             } else {
@@ -498,6 +502,7 @@ sealed class FeishuEvent {
         val content: String,
         val msgType: String,
         val mentions: List<String> = emptyList(),
+        val mentionNames: List<String> = emptyList(),
         // Thread/reply awareness (from Lark SDK message object)
         val rootId: String? = null,
         val parentId: String? = null,

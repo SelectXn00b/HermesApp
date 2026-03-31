@@ -126,9 +126,13 @@ class FeishuWebSocketHandler(
             val threadId = try { message.threadId } catch (e: Exception) { null }
 
             // 解析 mentions
-            val mentions = message.mentions?.mapNotNull { mention ->
-                mention.id?.openId
-            } ?: emptyList()
+            val mentions = mutableListOf<String>()
+            val mentionNames = mutableListOf<String>()
+            message.mentions?.forEach { mention ->
+                Log.d(TAG, "   mention: key=${mention.key}, name=${mention.name}, openId=${mention.id?.openId}, userId=${mention.id?.userId}, unionId=${mention.id?.unionId}")
+                mention.id?.openId?.let { mentions.add(it) }
+                mention.name?.let { mentionNames.add(it) }
+            }
 
             // Parse message create_time (aligned with OpenClaw: use original
             // message timestamp instead of processing time).
@@ -149,6 +153,7 @@ class FeishuWebSocketHandler(
                     content = parseResult.text,
                     msgType = msgType,
                     mentions = mentions,
+                    mentionNames = mentionNames,
                     rootId = rootId,
                     parentId = parentId,
                     threadId = threadId,

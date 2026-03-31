@@ -1045,12 +1045,21 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                     Log.w(TAG, "   提示: 检查飞书配置或网络连接，确保能获取机器人信息")
                                     return
                                 } else if (botOpenId !in event.mentions) {
-                                    // Has bot open_id, but message doesn't @ bot
-                                    Log.w(TAG, "❌ 群消息 @了其他人但没有 @机器人(${botOpenId})，忽略此消息")
-                                    Log.w(TAG, "   消息内容: ${event.content}")
-                                    Log.w(TAG, "   Bot Open ID: $botOpenId")
-                                    Log.w(TAG, "   Mentions: ${event.mentions}")
-                                    return
+                                    // open_id 不匹配，用 mentionNames 兜底（Lark SDK 偶现 open_id 解析异常）
+                                    val botName = feishuChannel?.getBotName()
+                                    val nameMatch = botName != null && event.mentionNames.any {
+                                        it.equals(botName, ignoreCase = true)
+                                    }
+                                    if (nameMatch) {
+                                        Log.w(TAG, "⚠️ 群消息 @mention open_id 不匹配(${event.mentions})，但 name 匹配($botName)，放行")
+                                    } else {
+                                        Log.w(TAG, "❌ 群消息 @了其他人但没有 @机器人(${botOpenId})，忽略此消息")
+                                        Log.w(TAG, "   消息内容: ${event.content}")
+                                        Log.w(TAG, "   Bot Open ID: $botOpenId, Bot Name: $botName")
+                                        Log.w(TAG, "   Mentions: ${event.mentions}")
+                                        Log.w(TAG, "   MentionNames: ${event.mentionNames}")
+                                        return
+                                    }
                                 } else {
                                     Log.d(TAG, "✅ 群消息包含机器人的 @mention")
                                 }
