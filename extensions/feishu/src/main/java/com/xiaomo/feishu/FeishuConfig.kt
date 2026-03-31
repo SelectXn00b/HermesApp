@@ -65,6 +65,11 @@ data class FeishuConfig(
     val enableChatTools: Boolean = true,
     val enablePermTools: Boolean = true,
     val enableUrgentTools: Boolean = true,
+    val enableSheetTools: Boolean = true,
+    val enableCalendarTools: Boolean = true,
+    val enableImTools: Boolean = true,
+    val enableSearchTools: Boolean = true,
+    val enableCommonTools: Boolean = true,
 
     // ===== 其他配置 =====
     val typingIndicator: Boolean = true,

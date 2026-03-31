@@ -1,75 +1,92 @@
 ---
 name: feishu-doc
 description: |
-  Feishu document read/write operations. Activate when user mentions Feishu docs, cloud docs, or docx links.
+  Feishu document operations. Aligned with ByteDance official @larksuite/openclaw-lark plugin.
+  Activate when user mentions Feishu docs, cloud docs, or docx links.
 ---
 
-# Feishu Document Tool
+# Feishu Document Tools
 
-Single tool `feishu_doc` with action parameter for all document operations.
+Aligned with ByteDance official `@larksuite/openclaw-lark` plugin.
 
-## Token Extraction
+## Tools
 
-From URL `https://xxx.feishu.cn/docx/ABC123def` → `doc_token` = `ABC123def`
-
-## Actions
-
-### Read Document
+### feishu_fetch_doc — Read Document
 
 ```json
-{ "action": "read", "doc_token": "ABC123def" }
+{ "doc_id": "ABC123def", "offset": 0, "limit": 5000 }
 ```
 
-Returns: title, plain text content, block statistics.
+- `doc_id` (required): Document ID or full URL (auto-parsed)
+- `offset`: Character offset for pagination
+- `limit`: Max characters to return
+- Returns: title, content (plain text), total_length, has_more, next_offset
 
-### Write Document (Replace All)
+### feishu_create_doc — Create Document
 
 ```json
-{ "action": "write", "doc_token": "ABC123def", "content": "# Title\n\nMarkdown content..." }
+{ "title": "New Doc", "markdown": "# Hello\n\nContent...", "folder_token": "fldcnXXX" }
 ```
 
-Replaces entire document with markdown content. Supports: headings, lists, code blocks, quotes, links, images (`![](url)` auto-uploaded), bold/italic/strikethrough.
+- `markdown`: Markdown content
+- `title`: Document title
+- `folder_token`: Parent folder token
+- `wiki_node`: Wiki node token or URL (mutually exclusive with folder_token/wiki_space)
+- `wiki_space`: Wiki space ID or `my_library` (mutually exclusive with folder_token/wiki_node)
 
-**Note:** On Android, markdown is converted to Feishu block format using document API.
+### feishu_update_doc — Update Document
 
-### Append Content
+7 update modes with selection-based editing:
 
 ```json
-{ "action": "append", "doc_token": "ABC123def", "content": "Additional content" }
+{ "doc_id": "ABC123def", "mode": "append", "markdown": "New content..." }
 ```
 
-Appends markdown to end of document.
+**Modes:**
+- `overwrite` — Replace entire document content
+- `append` — Add content to end
+- `replace_range` — Replace selected range with new content
+- `replace_all` — Find and replace all occurrences
+- `insert_before` — Insert content before selection
+- `insert_after` — Insert content after selection
+- `delete_range` — Delete selected range (no markdown needed)
 
-### Create Document
+**Selection (required for range/insert/delete modes):**
+- `selection_with_ellipsis`: `"start text...end text"` — locates range by matching start and end content
+- `selection_by_title`: `"## Section Title"` — locates the section under this heading
+
+**Additional:**
+- `new_title`: Set new document title
+
+### feishu_doc_media — Document Media
 
 ```json
-{ "action": "create", "title": "New Document", "folder_token": "fldcnXXX" }
+{ "action": "insert", "doc_id": "ABC123def", "file_path": "/path/to/image.png", "type": "image" }
 ```
 
-Creates a new document in specified folder.
+**Actions:**
+- `insert` — Insert image or file into document
+  - `doc_id`, `file_path` (required), `type` (image/file), `align` (left/center/right)
+- `download` — Download document media
+  - `resource_token`, `resource_type` (media/whiteboard), `output_path` (required)
 
-## AndroidForClaw Implementation
+### feishu_doc_comments — Document Comments
 
-**Tool Class**: `FeishuDocTools.kt`
-
-**Available Tools**:
-- `feishu_doc_read` - Read document content
-- `feishu_doc_write` - Write/replace document content
-- `feishu_doc_append` - Append content to document
-- `feishu_doc_create` - Create new document
-
-**Example Usage**:
-```kotlin
-// Read document
-val result = feishuDocTools.readDoc(docToken = "ABC123def")
-
-// Write document
-val result = feishuDocTools.writeDoc(
-    docToken = "ABC123def",
-    content = "# Title\n\nContent..."
-)
+```json
+{ "action": "list", "file_token": "ABC123def", "file_type": "docx" }
 ```
+
+**Actions:**
+- `list` — List comments with replies (supports pagination, filtering)
+- `create` — Create whole-document comment with rich text elements
+- `patch` — Resolve or restore a comment
+
+## URL Parsing
+
+Document ID is auto-extracted from URLs:
+- `https://xxx.feishu.cn/docx/ABC123def` → `ABC123def`
+- `https://xxx.larksuite.com/docx/ABC123def` → `ABC123def`
 
 ## Permissions
 
-Required: `docx:document`, `docx:document:readonly`
+Required: `docx:document`, `docx:document:readonly`, `drive:drive`

@@ -14,6 +14,7 @@ import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -307,6 +308,109 @@ class FeishuClient(private val config: FeishuConfig) {
 
         } catch (e: Exception) {
             Log.e(TAG, "Download failed: $path", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Download binary data with Content-Type header.
+     * @aligned openclaw-lark v2026.3.30
+     * Returns Pair(bytes, contentType) where contentType may be empty.
+     */
+    suspend fun downloadRawWithHeaders(path: String): Result<Pair<ByteArray, String>> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl$path"
+            val token = getTenantAccessToken().getOrThrow()
+
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            val response = mediaHttpClient.newCall(request).execute()
+
+            if (!response.isSuccessful) {
+                val errorBody = response.body?.string() ?: ""
+                Log.e(TAG, "Download failed: HTTP ${response.code} - $errorBody")
+                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+            }
+
+            val bytes = response.body?.bytes()
+                ?: return@withContext Result.failure(Exception("Empty response body"))
+
+            val contentType = response.header("Content-Type") ?: ""
+
+            Log.d(TAG, "Downloaded ${bytes.size} bytes from $path, content-type=$contentType")
+            Result.success(bytes to contentType)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Download failed: $path", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 上传媒体文件（图片/文件）到飞书
+     * Aligned with @larksuite/openclaw-lark doc-media insert flow.
+     *
+     * @param fileName File name
+     * @param parentType Parent type: docx_image, docx_file, etc.
+     * @param parentNode Parent block ID
+     * @param data File bytes
+     * @param extra Optional extra JSON string (e.g. drive_route_token)
+     */
+    suspend fun uploadMedia(
+        fileName: String,
+        parentType: String,
+        parentNode: String,
+        data: ByteArray,
+        extra: String? = null
+    ): Result<JsonObject> = withContext(Dispatchers.IO) {
+        try {
+            val token = getTenantAccessToken().getOrThrow()
+            val url = "$baseUrl/open-apis/drive/v1/medias/upload_all"
+
+            val bodyBuilder = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file_name", fileName)
+                .addFormDataPart("parent_type", parentType)
+                .addFormDataPart("parent_node", parentNode)
+                .addFormDataPart("size", data.size.toString())
+                .addFormDataPart(
+                    "file", fileName,
+                    data.toRequestBody("application/octet-stream".toMediaType())
+                )
+
+            if (extra != null) {
+                bodyBuilder.addFormDataPart("extra", extra)
+            }
+
+            val request = Request.Builder()
+                .url(url)
+                .post(bodyBuilder.build())
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            val response = mediaHttpClient.newCall(request).execute()
+            val responseBody = response.body?.string() ?: "{}"
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Upload media failed: HTTP ${response.code} - $responseBody")
+                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+            }
+
+            val json = gson.fromJson(responseBody, JsonObject::class.java)
+            val code = json.get("code")?.asInt ?: 0
+            if (code != 0) {
+                val msg = json.get("msg")?.asString ?: "Unknown error"
+                Log.e(TAG, "Upload media error: $msg (code=$code)")
+                return@withContext Result.failure(Exception("$msg (code=$code)"))
+            }
+
+            Result.success(json.getAsJsonObject("data") ?: JsonObject())
+        } catch (e: Exception) {
+            Log.e(TAG, "Upload media failed", e)
             Result.failure(e)
         }
     }

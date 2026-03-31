@@ -1,76 +1,33 @@
 ---
 name: feishu-chat
 description: |
-  Feishu chat management. Activate when user wants to create groups, manage chat members, or get chat info.
+  飞书群聊管理。Activate when user wants to search groups, get chat info, or list members.
 ---
 
-# Feishu Chat Tool
+# Feishu Chat Tools
 
-Tool `feishu_chat` for chat management operations.
+Aligned with `@larksuite/openclaw-lark` official plugin.
 
-## Actions
+## Tools
 
-### Get Chat Info
+### feishu_chat — 飞书群聊管理工具
 
 ```json
+{ "action": "search", "query": "project team" }
 { "action": "get", "chat_id": "oc_xxx" }
 ```
 
-Returns: chat name, description, owner, member count, chat type (group/p2p).
+**Actions:**
+- `search` — Search group chats by keyword
+- `get` — Get chat details (name, description, owner, member count, chat type)
 
-### List Chat Members
-
-```json
-{ "action": "members", "chat_id": "oc_xxx" }
-```
-
-Returns: all members in the chat with their user info.
-
-### Create Group Chat
+### feishu_chat_members — 获取指定群组的成员列表
 
 ```json
-{
-  "action": "create",
-  "name": "Project Team",
-  "description": "Project discussion group",
-  "member_ids": ["ou_xxx", "ou_yyy"]
-}
+{ "chat_id": "oc_xxx" }
 ```
 
-### Add Members
-
-```json
-{
-  "action": "add_members",
-  "chat_id": "oc_xxx",
-  "member_ids": ["ou_zzz"]
-}
-```
-
-### Remove Members
-
-```json
-{
-  "action": "remove_members",
-  "chat_id": "oc_xxx",
-  "member_ids": ["ou_zzz"]
-}
-```
-
-Requires admin permissions.
-
-## Chat Types
-
-| Type    | Description                          |
-| ------- | ------------------------------------ |
-| `p2p`   | Private chat between two users       |
-| `group` | Group chat with multiple members     |
-
-## Notes
-
-- Bots can only manage chats they are members of
-- Some actions (remove members, update settings) require admin permissions
-- Member IDs use `open_id` format (`ou_xxx`)
+Returns all members in the specified chat with their user info (open_id, name, tenant_key).
 
 ## Permissions
 

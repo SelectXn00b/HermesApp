@@ -1,41 +1,30 @@
 package com.xiaomo.feishu.tools.doc
 
 /**
- * OpenClaw Source Reference:
- * - ../openclaw/src/channels/feishu/(all)
- *
- * AndroidForClaw adaptation: Feishu channel tool definitions.
+ * Feishu document tool set.
+ * Aligned with ByteDance official @larksuite/openclaw-lark plugin:
+ * - feishu_fetch_doc  (MCP: fetch-doc)   — read document with pagination
+ * - feishu_create_doc (MCP: create-doc)   — create document from markdown
+ * - feishu_update_doc (MCP: update-doc)   — update with 7 modes + selection
+ * - feishu_doc_media  (OAPI)              — insert/download media
+ * - feishu_doc_comments (OAPI)            — list/create/patch comments
  */
 
-
-import android.util.Log
-import com.google.gson.JsonObject
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
 import com.xiaomo.feishu.tools.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
-/**
- * 飞书文档工具集
- * 对齐 OpenClaw src/doc-tools
- */
 class FeishuDocTools(config: FeishuConfig, client: FeishuClient) {
-    private val createTool = DocCreateTool(config, client)
-    private val readTool = DocReadTool(config, client)
-    private val updateTool = DocUpdateTool(config, client)
-    private val deleteTool = DocDeleteTool(config, client)
+    private val fetchDocTool = FeishuFetchDocTool(config, client)
+    private val createDocTool = FeishuCreateDocTool(config, client)
+    private val updateDocTool = FeishuUpdateDocTool(config, client)
+    private val docMediaTool = FeishuDocMediaTool(config, client)
+    private val docCommentsTool = FeishuDocCommentsTool(config, client)
 
-    /**
-     * 获取所有工具
-     */
     fun getAllTools(): List<FeishuToolBase> {
-        return listOf(createTool, readTool, updateTool, deleteTool)
+        return listOf(fetchDocTool, createDocTool, updateDocTool, docMediaTool, docCommentsTool)
     }
 
-    /**
-     * 获取工具定义（用于 Agent）
-     */
     fun getToolDefinitions(): List<ToolDefinition> {
         return getAllTools().filter { it.isEnabled() }.map { it.getToolDefinition() }
     }

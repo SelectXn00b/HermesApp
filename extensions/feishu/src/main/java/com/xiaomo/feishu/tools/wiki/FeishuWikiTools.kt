@@ -1,13 +1,5 @@
 package com.xiaomo.feishu.tools.wiki
 
-/**
- * OpenClaw Source Reference:
- * - ../openclaw/src/channels/feishu/(all)
- *
- * AndroidForClaw adaptation: Feishu channel tool definitions.
- */
-
-
 import android.util.Log
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
@@ -17,240 +9,365 @@ import kotlinx.coroutines.withContext
 
 /**
  * 飞书知识库工具集
- * 对齐 OpenClaw src/wiki-tools
+ * 对齐 @larksuite/openclaw-lark wiki-tools
  */
 class FeishuWikiTools(config: FeishuConfig, client: FeishuClient) {
-    private val createTool = WikiCreateTool(config, client)
-    private val readTool = WikiReadTool(config, client)
-    private val updateTool = WikiUpdateTool(config, client)
-    private val listTool = WikiListTool(config, client)
+    private val spaceTool = FeishuWikiSpaceTool(config, client)
+    private val nodeTool = FeishuWikiSpaceNodeTool(config, client)
 
-    fun getAllTools(): List<FeishuToolBase> {
-        return listOf(createTool, readTool, updateTool, listTool)
-    }
+    fun getAllTools(): List<FeishuToolBase> = listOf(spaceTool, nodeTool)
 
     fun getToolDefinitions(): List<ToolDefinition> {
         return getAllTools().filter { it.isEnabled() }.map { it.getToolDefinition() }
     }
 }
 
-/**
- * 创建知识库工具
- */
-class WikiCreateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
-    override val name = "feishu_wiki_create"
-    override val description = "创建飞书知识库"
+// ---------------------------------------------------------------------------
+// FeishuWikiSpaceTool
+// ---------------------------------------------------------------------------
+
+class FeishuWikiSpaceTool(
+    config: FeishuConfig,
+    client: FeishuClient
+) : FeishuToolBase(config, client) {
+
+    companion object {
+        private const val TAG = "FeishuWikiSpaceTool"
+    }
+
+    override val name = "feishu_wiki_space"
+
+    // @aligned openclaw-lark v2026.3.30
+    override val description = "飞书知识空间管理工具。当用户要求查看知识库列表、获取知识库信息、创建知识库时使用。" +
+            "Actions: list（列出知识空间）, get（获取知识空间信息）, create（创建知识空间）。" +
+            "【重要】space_id 可以从浏览器 URL 中获取，或通过 list 接口获取。" +
+            "【重要】知识空间（Space）是知识库的基本组成单位，包含多个具有层级关系的文档节点。"
 
     override fun isEnabled() = config.enableWikiTools
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
         try {
-            val name = args["name"] as? String ?: return@withContext ToolResult.error("Missing name")
-            val description = args["description"] as? String ?: ""
+            val action = args["action"] as? String
+                ?: return@withContext ToolResult.error("Missing required parameter: action")
 
-            val body = mapOf(
-                "name" to name,
-                "description" to description
-            )
-
-            val result = client.post("/open-apis/wiki/v2/spaces", body)
-
-            if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
+            when (action) {
+                "list" -> executeList(args)
+                "get" -> executeGet(args)
+                "create" -> executeCreate(args)
+                else -> ToolResult.error("Unknown action: $action. Supported: list, get, create")
             }
-
-            val data = result.getOrNull()?.getAsJsonObject("data")
-            val spaceId = data?.getAsJsonObject("space")?.get("space_id")?.asString
-                ?: return@withContext ToolResult.error("Missing space_id")
-
-            Log.d("WikiCreateTool", "Wiki created: $spaceId")
-            ToolResult.success(mapOf("space_id" to spaceId, "name" to name))
-
         } catch (e: Exception) {
-            Log.e("WikiCreateTool", "Failed", e)
+            Log.e(TAG, "execute failed", e)
             ToolResult.error(e.message ?: "Unknown error")
         }
     }
 
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeList(args: Map<String, Any?>): ToolResult {
+        val params = mutableListOf<String>()
+        (args["page_size"] as? Number)?.let { params.add("page_size=${it.toInt()}") }
+        (args["page_token"] as? String)?.let { params.add("page_token=$it") }
+
+        val query = if (params.isNotEmpty()) "?${params.joinToString("&")}" else ""
+        val result = client.get("/open-apis/wiki/v2/spaces$query")
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to list wiki spaces")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki spaces listed")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeGet(args: Map<String, Any?>): ToolResult {
+        val spaceId = args["space_id"] as? String
+            ?: return ToolResult.error("Missing required parameter: space_id")
+
+        val result = client.get("/open-apis/wiki/v2/spaces/$spaceId")
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to get wiki space")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki space retrieved: $spaceId")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeCreate(args: Map<String, Any?>): ToolResult {
+        val body = mutableMapOf<String, Any>()
+        (args["name"] as? String)?.let { body["name"] = it }
+        (args["description"] as? String)?.let { body["description"] = it }
+
+        val result = client.post("/open-apis/wiki/v2/spaces", body)
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to create wiki space")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki space created: ${body["name"]}")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
     override fun getToolDefinition() = ToolDefinition(
         function = FunctionDefinition(
             name = name,
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "name" to PropertySchema("string", "知识库名称"),
-                    "description" to PropertySchema("string", "知识库描述（可选）")
+                    "action" to PropertySchema(
+                        type = "string",
+                        description = "操作类型",
+                        enum = listOf("list", "get", "create")
+                    ),
+                    "space_id" to PropertySchema(
+                        type = "string",
+                        description = "知识空间 ID（get 操作必填）"
+                    ),
+                    "name" to PropertySchema(
+                        type = "string",
+                        description = "知识空间名称（create 操作可选）"
+                    ),
+                    "description" to PropertySchema(
+                        type = "string",
+                        description = "知识空间描述（create 操作可选）"
+                    ),
+                    "page_size" to PropertySchema(
+                        type = "number",
+                        description = "分页大小（list 操作可选）"
+                    ),
+                    "page_token" to PropertySchema(
+                        type = "string",
+                        description = "分页标记（list 操作可选）"
+                    )
                 ),
-                required = listOf("name")
-            )
-        )
-    )
-}
-
-/**
- * 读取知识库工具
- */
-class WikiReadTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
-    override val name = "feishu_wiki_read"
-    override val description = "读取飞书知识库信息"
-
-    override fun isEnabled() = config.enableWikiTools
-
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
-        try {
-            val spaceId = args["space_id"] as? String ?: return@withContext ToolResult.error("Missing space_id")
-
-            val result = client.get("/open-apis/wiki/v2/spaces/$spaceId")
-
-            if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
-            }
-
-            val data = result.getOrNull()?.getAsJsonObject("data")
-            val space = data?.getAsJsonObject("space")
-
-            val name = space?.get("name")?.asString ?: ""
-            val description = space?.get("description")?.asString ?: ""
-
-            Log.d("WikiReadTool", "Wiki read: $spaceId")
-            ToolResult.success(mapOf(
-                "space_id" to spaceId,
-                "name" to name,
-                "description" to description
-            ))
-
-        } catch (e: Exception) {
-            Log.e("WikiReadTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
-        }
-    }
-
-    override fun getToolDefinition() = ToolDefinition(
-        function = FunctionDefinition(
-            name = name,
-            description = description,
-            parameters = ParametersSchema(
-                properties = mapOf(
-                    "space_id" to PropertySchema("string", "知识库ID")
-                ),
-                required = listOf("space_id")
-            )
-        )
-    )
-}
-
-/**
- * 更新知识库工具
- */
-class WikiUpdateTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
-    override val name = "feishu_wiki_update"
-    override val description = "更新飞书知识库信息"
-
-    override fun isEnabled() = config.enableWikiTools
-
-    override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
-        try {
-            val spaceId = args["space_id"] as? String ?: return@withContext ToolResult.error("Missing space_id")
-            val name = args["name"] as? String
-            val description = args["description"] as? String
-
-            val body = mutableMapOf<String, Any>()
-            if (name != null) body["name"] = name
-            if (description != null) body["description"] = description
-
-            if (body.isEmpty()) {
-                return@withContext ToolResult.error("No update fields provided")
-            }
-
-            val result = client.patch("/open-apis/wiki/v2/spaces/$spaceId", body)
-
-            if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
-            }
-
-            Log.d("WikiUpdateTool", "Wiki updated: $spaceId")
-            ToolResult.success(mapOf("space_id" to spaceId))
-
-        } catch (e: Exception) {
-            Log.e("WikiUpdateTool", "Failed", e)
-            ToolResult.error(e.message ?: "Unknown error")
-        }
-    }
-
-    override fun getToolDefinition() = ToolDefinition(
-        function = FunctionDefinition(
-            name = name,
-            description = description,
-            parameters = ParametersSchema(
-                properties = mapOf(
-                    "space_id" to PropertySchema("string", "知识库ID"),
-                    "name" to PropertySchema("string", "新名称（可选）"),
-                    "description" to PropertySchema("string", "新描述（可选）")
-                ),
-                required = listOf("space_id")
+                required = listOf("action")
             )
         )
     )
 }
 
-/**
- * 列出知识库节点工具
- */
-class WikiListTool(config: FeishuConfig, client: FeishuClient) : FeishuToolBase(config, client) {
-    override val name = "feishu_wiki_list"
-    override val description = "列出飞书知识库节点"
+// ---------------------------------------------------------------------------
+// FeishuWikiSpaceNodeTool
+// ---------------------------------------------------------------------------
+
+class FeishuWikiSpaceNodeTool(
+    config: FeishuConfig,
+    client: FeishuClient
+) : FeishuToolBase(config, client) {
+
+    companion object {
+        private const val TAG = "FeishuWikiSpaceNodeTool"
+    }
+
+    override val name = "feishu_wiki_space_node"
+
+    // @aligned openclaw-lark v2026.3.30
+    override val description = "飞书知识库节点管理工具。操作：list（列表）、get（获取）、create（创建）、move（移动）、copy（复制）。" +
+            "节点是知识库中的文档，包括 doc、bitable(多维表格)、sheet(电子表格) 等类型。" +
+            "node_token 是节点的唯一标识符，obj_token 是实际文档的 token。" +
+            "可通过 get 操作将 wiki 类型的 node_token 转换为实际文档的 obj_token。"
 
     override fun isEnabled() = config.enableWikiTools
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult = withContext(Dispatchers.IO) {
         try {
-            val spaceId = args["space_id"] as? String ?: return@withContext ToolResult.error("Missing space_id")
-            val parentNodeToken = args["parent_node_token"] as? String
+            val action = args["action"] as? String
+                ?: return@withContext ToolResult.error("Missing required parameter: action")
 
-            val params = mutableListOf("space_id=$spaceId")
-            if (parentNodeToken != null) {
-                params.add("parent_node_token=$parentNodeToken")
+            when (action) {
+                "list" -> executeList(args)
+                "get" -> executeGet(args)
+                "create" -> executeCreate(args)
+                "move" -> executeMove(args)
+                "copy" -> executeCopy(args)
+                else -> ToolResult.error("Unknown action: $action. Supported: list, get, create, move, copy")
             }
-
-            val path = "/open-apis/wiki/v2/spaces/$spaceId/nodes?" + params.joinToString("&")
-            val result = client.get(path)
-
-            if (result.isFailure) {
-                return@withContext ToolResult.error(result.exceptionOrNull()?.message ?: "Failed")
-            }
-
-            val data = result.getOrNull()?.getAsJsonObject("data")
-            val items = data?.getAsJsonArray("items") ?: return@withContext ToolResult.success(mapOf("nodes" to emptyList<Map<String, Any>>()))
-
-            val nodes = items.map { item ->
-                val obj = item.asJsonObject
-                mapOf(
-                    "node_token" to (obj.get("node_token")?.asString ?: ""),
-                    "title" to (obj.get("title")?.asString ?: ""),
-                    "obj_type" to (obj.get("obj_type")?.asString ?: ""),
-                    "has_child" to (obj.get("has_child")?.asBoolean ?: false)
-                )
-            }
-
-            Log.d("WikiListTool", "Wiki nodes listed: ${nodes.size}")
-            ToolResult.success(mapOf("space_id" to spaceId, "nodes" to nodes))
-
         } catch (e: Exception) {
-            Log.e("WikiListTool", "Failed", e)
+            Log.e(TAG, "execute failed", e)
             ToolResult.error(e.message ?: "Unknown error")
         }
     }
 
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeList(args: Map<String, Any?>): ToolResult {
+        val spaceId = args["space_id"] as? String
+            ?: return ToolResult.error("Missing required parameter: space_id")
+
+        val params = mutableListOf<String>()
+        (args["parent_node_token"] as? String)?.let { params.add("parent_node_token=$it") }
+        (args["page_size"] as? Number)?.let { params.add("page_size=${it.toInt()}") }
+        (args["page_token"] as? String)?.let { params.add("page_token=$it") }
+
+        val query = if (params.isNotEmpty()) "?${params.joinToString("&")}" else ""
+        val result = client.get("/open-apis/wiki/v2/spaces/$spaceId/nodes$query")
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to list wiki nodes")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki nodes listed for space: $spaceId")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeGet(args: Map<String, Any?>): ToolResult {
+        val token = args["token"] as? String
+            ?: return ToolResult.error("Missing required parameter: token")
+        val objType = args["obj_type"] as? String ?: "wiki"
+
+        val result = client.get("/open-apis/wiki/v2/spaces/get_node?token=$token&obj_type=$objType")
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to get wiki node")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki node retrieved: $token")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeCreate(args: Map<String, Any?>): ToolResult {
+        val spaceId = args["space_id"] as? String
+            ?: return ToolResult.error("Missing required parameter: space_id")
+        val objType = args["obj_type"] as? String
+            ?: return ToolResult.error("Missing required parameter: obj_type")
+        val nodeType = args["node_type"] as? String
+            ?: return ToolResult.error("Missing required parameter: node_type")
+
+        val body = mutableMapOf<String, Any>(
+            "obj_type" to objType,
+            "node_type" to nodeType
+        )
+        (args["parent_node_token"] as? String)?.let { body["parent_node_token"] = it }
+        (args["origin_node_token"] as? String)?.let { body["origin_node_token"] = it }
+        (args["title"] as? String)?.let { body["title"] = it }
+
+        val result = client.post("/open-apis/wiki/v2/spaces/$spaceId/nodes", body)
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to create wiki node")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki node created in space: $spaceId")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeMove(args: Map<String, Any?>): ToolResult {
+        val spaceId = args["space_id"] as? String
+            ?: return ToolResult.error("Missing required parameter: space_id")
+        val nodeToken = args["node_token"] as? String
+            ?: return ToolResult.error("Missing required parameter: node_token")
+
+        val body = mutableMapOf<String, Any>()
+        (args["target_parent_token"] as? String)?.let { body["target_parent_token"] = it }
+        val result = client.post("/open-apis/wiki/v2/spaces/$spaceId/nodes/$nodeToken/move", body)
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to move wiki node")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki node moved: $nodeToken")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
+    private suspend fun executeCopy(args: Map<String, Any?>): ToolResult {
+        val spaceId = args["space_id"] as? String
+            ?: return ToolResult.error("Missing required parameter: space_id")
+        val nodeToken = args["node_token"] as? String
+            ?: return ToolResult.error("Missing required parameter: node_token")
+
+        val body = mutableMapOf<String, Any>()
+        (args["target_space_id"] as? String)?.let { body["target_space_id"] = it }
+        (args["target_parent_token"] as? String)?.let { body["target_parent_token"] = it }
+        (args["title"] as? String)?.let { body["title"] = it }
+
+        val result = client.post("/open-apis/wiki/v2/spaces/$spaceId/nodes/$nodeToken/copy", body)
+
+        if (result.isFailure) {
+            return ToolResult.error(result.exceptionOrNull()?.message ?: "Failed to copy wiki node")
+        }
+
+        val data = result.getOrNull()?.getAsJsonObject("data")
+        Log.d(TAG, "Wiki node copied: $nodeToken")
+        return ToolResult.success(data)
+    }
+
+    // @aligned openclaw-lark v2026.3.30
     override fun getToolDefinition() = ToolDefinition(
         function = FunctionDefinition(
             name = name,
             description = description,
             parameters = ParametersSchema(
                 properties = mapOf(
-                    "space_id" to PropertySchema("string", "知识库ID"),
-                    "parent_node_token" to PropertySchema("string", "父节点token（可选，不传则列出根节点）")
+                    "action" to PropertySchema(
+                        type = "string",
+                        description = "操作类型",
+                        enum = listOf("list", "get", "create", "move", "copy")
+                    ),
+                    "space_id" to PropertySchema(
+                        type = "string",
+                        description = "知识空间 ID（list/create/move/copy 操作必填）"
+                    ),
+                    "token" to PropertySchema(
+                        type = "string",
+                        description = "节点 token（get 操作必填，可以是 node_token 或 obj_token）"
+                    ),
+                    "obj_type" to PropertySchema(
+                        type = "string",
+                        description = "文档类型（get 操作可选，默认 wiki；create 操作必填）",
+                        enum = listOf("doc", "sheet", "mindnote", "bitable", "file", "docx", "slides", "wiki")
+                    ),
+                    "node_token" to PropertySchema(
+                        type = "string",
+                        description = "节点 token（move/copy 操作必填）"
+                    ),
+                    "parent_node_token" to PropertySchema(
+                        type = "string",
+                        description = "父节点 token（list 操作可选，不传则列出根节点；create 操作可选）"
+                    ),
+                    "node_type" to PropertySchema(
+                        type = "string",
+                        description = "节点类型（create 操作必填）",
+                        enum = listOf("origin", "shortcut")
+                    ),
+                    "origin_node_token" to PropertySchema(
+                        type = "string",
+                        description = "源节点 token（create 操作可选，node_type 为 shortcut 时使用）"
+                    ),
+                    "title" to PropertySchema(
+                        type = "string",
+                        description = "节点标题（create/copy 操作可选）"
+                    ),
+                    "target_parent_token" to PropertySchema(
+                        type = "string",
+                        description = "目标父节点 token（move/copy 操作可选）"
+                    ),
+                    "target_space_id" to PropertySchema(
+                        type = "string",
+                        description = "目标知识空间 ID（copy 操作可选）"
+                    ),
+                    "page_size" to PropertySchema(
+                        type = "number",
+                        description = "分页大小（list 操作可选）"
+                    ),
+                    "page_token" to PropertySchema(
+                        type = "string",
+                        description = "分页标记（list 操作可选）"
+                    )
                 ),
-                required = listOf("space_id")
+                required = listOf("action")
             )
         )
     )

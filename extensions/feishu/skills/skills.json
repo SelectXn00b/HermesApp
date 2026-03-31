@@ -3,14 +3,26 @@
     {
       "name": "feishu-doc",
       "path": "feishu-doc/SKILL.md",
-      "description": "Feishu document read/write operations",
+      "description": "Feishu document operations (aligned with @larksuite/openclaw-lark)",
       "enabled": true,
       "priority": 1,
       "tools": [
-        "feishu_doc_read",
-        "feishu_doc_write",
-        "feishu_doc_append",
-        "feishu_doc_create"
+        "feishu_fetch_doc",
+        "feishu_create_doc",
+        "feishu_update_doc",
+        "feishu_doc_media",
+        "feishu_doc_comments"
+      ]
+    },
+    {
+      "name": "feishu-wiki",
+      "path": "feishu-wiki/SKILL.md",
+      "description": "Feishu knowledge base space and node management",
+      "enabled": true,
+      "priority": 2,
+      "tools": [
+        "feishu_wiki_space",
+        "feishu_wiki_space_node"
       ]
     },
     {
@@ -18,33 +30,114 @@
       "path": "feishu-drive/SKILL.md",
       "description": "Feishu cloud storage file management",
       "enabled": true,
-      "priority": 2,
+      "priority": 3,
       "tools": [
-        "feishu_drive_list",
-        "feishu_drive_create_folder",
-        "feishu_drive_move",
-        "feishu_drive_delete"
+        "feishu_drive_file"
       ]
     },
     {
-      "name": "feishu-wiki",
-      "path": "feishu-wiki/SKILL.md",
-      "description": "Feishu knowledge base navigation",
+      "name": "feishu-chat",
+      "path": "feishu-chat/SKILL.md",
+      "description": "Feishu chat and member management",
       "enabled": true,
-      "priority": 3,
+      "priority": 4,
       "tools": [
-        "feishu_wiki_spaces",
-        "feishu_wiki_nodes",
-        "feishu_wiki_get",
-        "feishu_wiki_create"
+        "feishu_chat",
+        "feishu_chat_members"
+      ]
+    },
+    {
+      "name": "feishu-bitable",
+      "path": "feishu-bitable/SKILL.md",
+      "description": "Feishu multi-dimensional table (Bitable) management",
+      "enabled": true,
+      "priority": 5,
+      "tools": [
+        "feishu_bitable_app",
+        "feishu_bitable_app_table",
+        "feishu_bitable_app_table_field",
+        "feishu_bitable_app_table_record",
+        "feishu_bitable_app_table_view"
+      ]
+    },
+    {
+      "name": "feishu-task",
+      "path": "feishu-task/SKILL.md",
+      "description": "Feishu task, tasklist, subtask, and comment management",
+      "enabled": true,
+      "priority": 6,
+      "tools": [
+        "feishu_task_task",
+        "feishu_task_tasklist",
+        "feishu_task_subtask",
+        "feishu_task_comment"
+      ]
+    },
+    {
+      "name": "feishu-sheets",
+      "path": "feishu-sheets/SKILL.md",
+      "description": "Feishu spreadsheet operations",
+      "enabled": true,
+      "priority": 7,
+      "tools": [
+        "feishu_sheet"
+      ]
+    },
+    {
+      "name": "feishu-calendar",
+      "path": "feishu-calendar/SKILL.md",
+      "description": "Feishu calendar, event, attendee, and freebusy management",
+      "enabled": true,
+      "priority": 8,
+      "tools": [
+        "feishu_calendar_calendar",
+        "feishu_calendar_event",
+        "feishu_calendar_event_attendee",
+        "feishu_calendar_freebusy"
+      ]
+    },
+    {
+      "name": "feishu-im",
+      "path": "feishu-im/SKILL.md",
+      "description": "Feishu instant messaging tools",
+      "enabled": true,
+      "priority": 9,
+      "tools": [
+        "feishu_im_user_message",
+        "feishu_im_user_get_messages",
+        "feishu_im_user_get_thread_messages",
+        "feishu_im_user_search_messages",
+        "feishu_im_user_fetch_resource",
+        "feishu_im_bot_image"
+      ]
+    },
+    {
+      "name": "feishu-search",
+      "path": "feishu-search/SKILL.md",
+      "description": "Feishu document and wiki unified search",
+      "enabled": true,
+      "priority": 10,
+      "tools": [
+        "feishu_search_doc_wiki"
+      ]
+    },
+    {
+      "name": "feishu-common",
+      "path": "feishu-common/SKILL.md",
+      "description": "Feishu user information and search",
+      "enabled": true,
+      "priority": 11,
+      "tools": [
+        "feishu_get_user",
+        "feishu_search_user"
       ]
     },
     {
       "name": "feishu-perm",
       "path": "feishu-perm/SKILL.md",
-      "description": "Feishu permission management",
+      "description": "Feishu permission management (Android-only)",
       "enabled": false,
-      "priority": 4,
+      "priority": 12,
       "tools": [
         "feishu_perm_list",
         "feishu_perm_add",
@@ -53,51 +146,11 @@
       "note": "Disabled by default - sensitive operations"
     },
     {
-      "name": "feishu-bitable",
-      "path": "feishu-bitable/SKILL.md",
-      "description": "Feishu multi-dimensional table operations",
-      "enabled": true,
-      "priority": 5,
-      "tools": [
-        "feishu_bitable_list_tables",
-        "feishu_bitable_query",
-        "feishu_bitable_create",
-        "feishu_bitable_update",
-        "feishu_bitable_delete"
-      ]
-    },
-    {
-      "name": "feishu-task",
-      "path": "feishu-task/SKILL.md",
-      "description": "Feishu task management",
-      "enabled": true,
-      "priority": 6,
-      "tools": [
-        "feishu_task_list",
-        "feishu_task_get",
-        "feishu_task_create",
-        "feishu_task_update"
-      ]
-    },
-    {
-      "name": "feishu-chat",
-      "path": "feishu-chat/SKILL.md",
-      "description": "Feishu chat operations",
-      "enabled": true,
-      "priority": 7,
-      "tools": [
-        "feishu_chat_get",
-        "feishu_chat_members",
-        "feishu_chat_create",
-        "feishu_chat_add_members"
-      ]
-    },
-    {
       "name": "feishu-urgent",
       "path": "feishu-urgent/SKILL.md",
-      "description": "Feishu urgent notification",
+      "description": "Feishu urgent notification (Android-only)",
       "enabled": true,
-      "priority": 8,
+      "priority": 13,
       "tools": [
         "feishu_urgent_send",
         "feishu_urgent_batch"
@@ -105,11 +158,11 @@
     }
   ],
   "metadata": {
-    "version": "1.0.0",
-    "aligned_with": "OpenClaw @m1heng/clawdbot-feishu",
-    "total_skills": 8,
-    "total_tools": 30,
+    "version": "2.0.0",
+    "aligned_with": "@larksuite/openclaw-lark v2026.3.30 (ByteDance official)",
+    "total_skills": 13,
+    "total_tools": 36,
     "format": "AgentSkills.io compatible",
-    "last_updated": "2024-03-07"
+    "last_updated": "2026-03-31"
   }
 }

@@ -11,11 +11,16 @@ package com.xiaomo.feishu.tools
 import com.xiaomo.feishu.FeishuClient
 import com.xiaomo.feishu.FeishuConfig
 import com.xiaomo.feishu.tools.bitable.FeishuBitableTools
+import com.xiaomo.feishu.tools.calendar.FeishuCalendarTools
 import com.xiaomo.feishu.tools.chat.FeishuChatTools
+import com.xiaomo.feishu.tools.common.FeishuCommonTools
 import com.xiaomo.feishu.tools.doc.FeishuDocTools
 import com.xiaomo.feishu.tools.drive.FeishuDriveTools
+import com.xiaomo.feishu.tools.im.FeishuImTools
 import com.xiaomo.feishu.tools.media.FeishuMediaTools
 import com.xiaomo.feishu.tools.perm.FeishuPermTools
+import com.xiaomo.feishu.tools.search.FeishuSearchTools
+import com.xiaomo.feishu.tools.sheets.FeishuSheetTools
 import com.xiaomo.feishu.tools.task.FeishuTaskTools
 import com.xiaomo.feishu.tools.urgent.FeishuUrgentTools
 import com.xiaomo.feishu.tools.wiki.FeishuWikiTools
@@ -37,6 +42,11 @@ class FeishuToolRegistry(
     private val permTools = FeishuPermTools(config, client)
     private val urgentTools = FeishuUrgentTools(config, client)
     private val mediaTools = FeishuMediaTools(config, client)
+    private val sheetTools = FeishuSheetTools(config, client)
+    private val calendarTools = FeishuCalendarTools(config, client)
+    private val imTools = FeishuImTools(config, client)
+    private val searchTools = FeishuSearchTools(config, client)
+    private val commonTools = FeishuCommonTools(config, client)
 
     /**
      * 获取所有工具
@@ -52,6 +62,11 @@ class FeishuToolRegistry(
             addAll(permTools.getAllTools())
             addAll(urgentTools.getAllTools())
             addAll(mediaTools.getAllTools())
+            addAll(sheetTools.getAllTools())
+            addAll(calendarTools.getAllTools())
+            addAll(imTools.getAllTools())
+            addAll(searchTools.getAllTools())
+            addAll(commonTools.getAllTools())
         }
     }
 
@@ -104,7 +119,12 @@ class FeishuToolRegistry(
                 "chat" to chatTools.getAllTools().size,
                 "perm" to permTools.getAllTools().size,
                 "urgent" to urgentTools.getAllTools().size,
-                "media" to mediaTools.getAllTools().size
+                "media" to mediaTools.getAllTools().size,
+                "sheet" to sheetTools.getAllTools().size,
+                "calendar" to calendarTools.getAllTools().size,
+                "im" to imTools.getAllTools().size,
+                "search" to searchTools.getAllTools().size,
+                "common" to commonTools.getAllTools().size
             )
         )
     }

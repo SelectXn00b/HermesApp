@@ -1,103 +1,57 @@
 ---
 name: feishu-task
 description: |
-  Feishu task management operations. Activate when user mentions tasks, todos, task lists.
+  飞书任务管理。Activate when user mentions tasks, todos, task lists, subtasks.
 ---
 
-# Feishu Task Tool
+# Feishu Task Tools
 
-Tool `feishu_task` for task management operations.
+Aligned with `@larksuite/openclaw-lark` official plugin.
 
-## Actions
+## Tools
 
-### List Tasks
-
-```json
-{ "action": "list", "page_size": 20 }
-```
-
-Returns: user's tasks with details.
-
-### Get Task Details
+### feishu_task_task — 飞书任务管理工具
 
 ```json
+{ "action": "create", "title": "New Task", "description": "Details...", "due_date": "2026-12-31" }
 { "action": "get", "task_id": "task_xxx" }
+{ "action": "list", "page_size": 20 }
+{ "action": "patch", "task_id": "task_xxx", "title": "Updated Title", "completed_at": "2026-03-31" }
 ```
 
-Returns: complete task information including title, description, status, assignee, due date.
+**Actions:** `create`, `get`, `list`, `patch`
 
-### Create Task
+### feishu_task_tasklist — 飞书任务清单管理工具
 
 ```json
-{
-  "action": "create",
-  "title": "New Task",
-  "description": "Task description",
-  "due_date": "2024-12-31",
-  "assignee_id": "ou_xxx"
-}
+{ "action": "create", "name": "Sprint 1" }
+{ "action": "get", "tasklist_id": "tl_xxx" }
+{ "action": "list" }
+{ "action": "tasks", "tasklist_id": "tl_xxx" }
+{ "action": "patch", "tasklist_id": "tl_xxx", "name": "Sprint 1 (Done)" }
+{ "action": "add_members", "tasklist_id": "tl_xxx", "member_ids": ["ou_xxx"] }
 ```
 
-Creates a new task.
+**Actions:** `create`, `get`, `list`, `tasks` (list tasks in a tasklist), `patch`, `add_members`
 
-### Update Task
+### feishu_task_subtask — 飞书任务的子任务管理工具
 
 ```json
-{
-  "action": "update",
-  "task_id": "task_xxx",
-  "title": "Updated Title",
-  "status": "completed"
-}
+{ "action": "create", "task_id": "task_xxx", "title": "Sub-task 1" }
+{ "action": "list", "task_id": "task_xxx" }
 ```
 
-Updates an existing task.
+**Actions:** `create`, `list`
 
-## Task Status
+### feishu_task_comment — 飞书任务评论管理工具
 
-| Status | Description |
-|--------|-------------|
-| `todo` | Not started |
-| `in_progress` | In progress |
-| `completed` | Completed |
-| `canceled` | Canceled |
-
-## AndroidForClaw Implementation
-
-**Tool Class**: `FeishuTaskTools.kt`
-
-**Available Tools**:
-- `feishu_task_list` - List tasks
-- `feishu_task_get` - Get task details
-- `feishu_task_create` - Create task
-- `feishu_task_update` - Update task
-
-**Example Usage**:
-```kotlin
-// List tasks
-val result = feishuTaskTools.listTasks(pageSize = 20)
-
-// Create task
-val result = feishuTaskTools.createTask(
-    title = "New Task",
-    description = "Description",
-    dueDate = "2024-12-31",
-    assigneeId = "ou_xxx"
-)
-
-// Update task status
-val result = feishuTaskTools.updateTask(
-    taskId = "task_xxx",
-    status = "completed"
-)
+```json
+{ "action": "create", "task_id": "task_xxx", "content": "Comment text" }
+{ "action": "list", "task_id": "task_xxx" }
+{ "action": "get", "task_id": "task_xxx", "comment_id": "cm_xxx" }
 ```
 
-## Use Cases
-
-- **Task Management**: Create, update, list tasks
-- **Project Tracking**: Track task status and progress
-- **Team Collaboration**: Assign tasks to team members
-- **Reminders**: Set due dates and reminders
+**Actions:** `create`, `list`, `get`
 
 ## Permissions
 
