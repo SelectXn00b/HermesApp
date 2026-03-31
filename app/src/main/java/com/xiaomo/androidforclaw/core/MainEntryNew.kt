@@ -7,6 +7,7 @@ package com.xiaomo.androidforclaw.core
 
 
 import android.app.Application
+import java.util.concurrent.ConcurrentHashMap
 import android.os.Build
 import android.text.TextUtils
 import com.xiaomo.androidforclaw.logging.Log
@@ -73,7 +74,7 @@ object MainEntryNew {
     var user: String = ""
     private var currentTaskId: String? = null
     private var currentDocId: String? = null
-    private var job: Job? = null
+    private val sessionJobs = ConcurrentHashMap<String, Job>()
     @Volatile
     private var activeSessionId: String? = null  // For block reply broadcasting
     @Volatile
@@ -302,17 +303,18 @@ object MainEntryNew {
             user = Build.MODEL
         }
 
-        // Cancel previous run if still active (prevents stuck state)
-        job?.let { oldJob ->
+        // Cancel previous run for THE SAME session only (prevents stuck state).
+        // Different sessions are independent and must not cancel each other.
+        sessionJobs[effectiveSessionId]?.let { oldJob ->
             if (oldJob.isActive) {
-                Log.w(TAG, "🛑 [Session] Cancelling previous run before starting new one")
+                Log.w(TAG, "🛑 [Session] Cancelling previous run for session $effectiveSessionId")
                 agentLoop.stop()
                 oldJob.cancel()
             }
         }
 
         // Start coroutine execution (without showing floating window)
-        job = scope.simpleSafeLaunch(
+        val job = scope.simpleSafeLaunch(
             {
                 Log.d(TAG, "========== Agent Session Execution Start ==========")
                 Log.d(TAG, "🆔 Session ID: $effectiveSessionId")
@@ -431,6 +433,8 @@ object MainEntryNew {
                 }
             }
         )
+        sessionJobs[effectiveSessionId] = job
+        job.invokeOnCompletion { sessionJobs.remove(effectiveSessionId) }
     }
 
     /**
@@ -469,9 +473,6 @@ object MainEntryNew {
         val testMode = openClawConfig.agent.mode
         Log.d(TAG, "测试模式: $testMode (from openclaw.json)")
 
-        // Cancel old task
-        cancelCurrentJobWithoutClearingTaskData()
-
         // Set new task as running
         val newTaskData = taskDataManager.getCurrentTaskData()
         newTaskData?.setIsRunning(true)
@@ -480,9 +481,19 @@ object MainEntryNew {
         WakeLockManager.acquireScreenWakeLock()
         Log.d(TAG, "已获取屏幕唤醒锁")
 
+        // Cancel previous local task only
+        val localSessionKey = "__local__"
+        sessionJobs[localSessionKey]?.let { oldJob ->
+            if (oldJob.isActive) {
+                Log.w(TAG, "🛑 Cancelling previous local task")
+                agentLoop.stop()
+                oldJob.cancel()
+            }
+        }
+
         // Start coroutine to execute test
         Log.d(TAG, "🚀 About to start coroutine for test task...")
-        job = scope.simpleSafeLaunch(
+        val job = scope.simpleSafeLaunch(
             {
                 Log.d(TAG, "✅ Coroutine started, executing test task...")
 
@@ -555,6 +566,8 @@ object MainEntryNew {
                 _summaryFinished.value = true
             }
         )
+        sessionJobs[localSessionKey] = job
+        job.invokeOnCompletion { sessionJobs.remove(localSessionKey) }
     }
 
     private fun emitProgressToUi(type: String, title: String, content: String) {
@@ -725,7 +738,12 @@ object MainEntryNew {
 
         currentTaskId = null
         taskDataManager.clearCurrentTask()
-        job?.cancel()
+        // Cancel all session jobs
+        sessionJobs.forEach { (id, j) ->
+            Log.d(TAG, "Cancelling job for session: $id")
+            j.cancel()
+        }
+        sessionJobs.clear()
 
         val currentTaskData = taskDataManager.getCurrentTaskData()
         currentTaskData?.setIsRunning(isRunning)
@@ -745,7 +763,9 @@ object MainEntryNew {
         Log.d(TAG, "cancelCurrentJobWithoutClearingTaskData")
 
         WakeLockManager.releaseScreenWakeLock()
-        job?.cancel()
+        // Cancel local task only
+        sessionJobs["__local__"]?.cancel()
+        sessionJobs.remove("__local__")
 
         val currentTaskData = taskDataManager.getCurrentTaskData()
         currentTaskData?.setIsRunning(false)
