@@ -2329,22 +2329,43 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                         .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                         .trim()
-                    // Deduplicate: if final content exactly matches a block reply already sent, skip entirely.
-                    // Otherwise, remove block reply substrings from final content.
+                    // Deduplicate: remove block reply content from final content.
+                    // Strategy: (1) exact match → skip entirely,
+                    // (2) final starts with block reply → strip prefix,
+                    // (3) block reply is substantial substring of final → remove it.
                     if (blockRepliesSent.isNotEmpty()) {
-                        val normalizedSanitized = sanitized.replace(Regex("\\s+"), " ")
-                        val exactMatch = blockRepliesSent.any { sent ->
-                            val normalizedSent = sent.replace(Regex("\\s+"), " ")
-                            normalizedSanitized == normalizedSent
-                        }
-                        if (exactMatch) {
-                            Log.d(TAG, "Weixin: final content matches block reply, skipping send")
-                            sanitized = ""
-                        } else {
-                            for (sent in blockRepliesSent) {
-                                sanitized = sanitized.replace(sent, "").trim()
+                        val normFinal = sanitized.replace(Regex("\\s+"), " ").trim()
+                        var deduped = sanitized
+                        var fullySkipped = false
+
+                        for (sent in blockRepliesSent) {
+                            val normSent = sent.replace(Regex("\\s+"), " ").trim()
+                            if (normSent.isEmpty()) continue
+
+                            // Case 1: exact match → skip entirely
+                            if (normFinal == normSent) {
+                                Log.d(TAG, "Weixin: final matches block reply exactly, skipping")
+                                fullySkipped = true
+                                break
+                            }
+
+                            // Case 2: final starts with block reply → strip prefix
+                            if (normFinal.startsWith(normSent)) {
+                                val remainder = normFinal.substring(normSent.length).trim()
+                                // Strip leading punctuation/separators from remainder
+                                deduped = remainder.replace(Regex("^[,;.:!?，；。！？\\s\\-—]+"), "").trim()
+                                Log.d(TAG, "Weixin: final starts with block reply, stripped prefix (${normSent.length} chars)")
+                                continue
+                            }
+
+                            // Case 3: block reply is a significant substring (>10 chars) → remove
+                            if (normSent.length > 10 && deduped.contains(sent)) {
+                                deduped = deduped.replace(sent, "").trim()
+                                Log.d(TAG, "Weixin: removed block reply substring (${sent.length} chars)")
                             }
                         }
+
+                        sanitized = if (fullySkipped) "" else deduped.trim()
                     }
                     if (sanitized.isNotBlank()) {
                         sender?.sendText(toUser, sanitized)
