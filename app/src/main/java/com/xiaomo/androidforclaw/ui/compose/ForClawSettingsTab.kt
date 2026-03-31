@@ -237,12 +237,6 @@ fun ForClawSettingsTab() {
         // ── 配置 ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_config)) {
             SettingsNavItem(
-                icon = Icons.Default.Extension,
-                title = stringResource(R.string.settings_skills),
-                subtitle = stringResource(R.string.settings_skills_desc),
-                onClick = { context.startActivity(Intent(context, SkillsActivity::class.java)) }
-            )
-            SettingsNavItem(
                 icon = Icons.Default.Terminal,
                 title = stringResource(R.string.settings_termux),
                 subtitle = stringResource(R.string.settings_termux_desc),
