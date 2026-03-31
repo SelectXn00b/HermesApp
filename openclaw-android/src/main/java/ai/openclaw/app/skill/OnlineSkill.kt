@@ -12,5 +12,4 @@ data class OnlineSkill(
     val specialty: String,
     val category: String,
     val filename: String,
-    val content: String = "",
 )

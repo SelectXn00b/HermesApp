@@ -171,6 +171,9 @@ class MainActivityCompose : ComponentActivity() {
             (application as? com.xiaomo.androidforclaw.core.MyApplication)?.startAllChannels()
         }
 
+        // Termux RUN_COMMAND permission: dangerous level, must request at runtime
+        requestTermuxPermissionIfNeeded()
+
         // Auto-prune old sessions (>30 days) on startup
         lifecycleScope.launch {
             try {
@@ -224,6 +227,7 @@ class MainActivityCompose : ComponentActivity() {
                 RootScreen(
                     viewModel = openClawViewModel,
                     settingsTabSlot = { ForClawSettingsTab() },
+                    skillActions = remember { com.xiaomo.androidforclaw.agent.skills.SkillActionsImpl() },
                 )
             }
         }
@@ -379,6 +383,43 @@ class MainActivityCompose : ComponentActivity() {
         } else {
             true // Android 10 and below use scoped storage or legacy permissions
         }
+    }
+
+    /**
+     * Request Termux RUN_COMMAND permission if Termux is installed and permission not yet granted.
+     * Shows an explanation dialog before requesting.
+     */
+    private fun requestTermuxPermissionIfNeeded() {
+        val termuxPermission = "com.termux.permission.RUN_COMMAND"
+        val termuxInstalled = try {
+            packageManager.getPackageInfo("com.termux", 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
+        if (!termuxInstalled) return
+        if (checkSelfPermission(termuxPermission) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
+
+        // 先弹说明对话框，再申请权限
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Termux 命令执行权限")
+            .setMessage(
+                "ForClaw 需要「Termux 命令执行」权限来实现以下功能：\n\n" +
+                "• 让 AI 在手机终端中执行命令（如安装软件、运行脚本）\n" +
+                "• 自动启动 Termux SSH 服务，无需手动操作\n" +
+                "• 当 SSH 密钥丢失时自动修复连接\n\n" +
+                "此权限仅用于与 Termux 通信，不会访问您的其他数据。\n\n" +
+                "点击「同意」后，系统会弹出权限请求，请选择「允许」。"
+            )
+            .setCancelable(true)
+            .setPositiveButton("同意") { _, _ ->
+                Log.i(TAG, "Requesting Termux RUN_COMMAND permission...")
+                requestPermissions(arrayOf(termuxPermission), 1002)
+            }
+            .setNegativeButton("暂不") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     /**

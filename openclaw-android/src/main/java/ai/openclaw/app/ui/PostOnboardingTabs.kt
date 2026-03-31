@@ -48,6 +48,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ai.openclaw.app.MainViewModel
 import ai.openclaw.app.R
+import ai.openclaw.app.skill.NoOpSkillActions
+import ai.openclaw.app.skill.SkillActions
 
 private enum class HomeTab(
   @StringRes val labelRes: Int,
@@ -65,32 +67,33 @@ fun PostOnboardingTabs(
   viewModel: MainViewModel,
   modifier: Modifier = Modifier,
   settingsTabSlot: (@Composable () -> Unit)? = null,
+  skillActions: SkillActions = NoOpSkillActions,
 ) {
   var activeTab by rememberSaveable { mutableStateOf(HomeTab.Chat) }
   var chatTabStarted by rememberSaveable { mutableStateOf(false) }
+  var skillsTabStarted by rememberSaveable { mutableStateOf(false) }
+  var skillDetailActive by rememberSaveable { mutableStateOf(false) }
   var screenTabStarted by rememberSaveable { mutableStateOf(false) }
 
-  // Stop TTS when user navigates away from voice tab, and lazily keep the Chat/Screen tabs
+  // Stop TTS when user navigates away from voice tab, and lazily keep the Chat/Screen/Skills tabs
   // alive after the first visit so repeated tab switches do not rebuild their UI trees.
   LaunchedEffect(activeTab) {
     viewModel.setVoiceScreenActive(activeTab == HomeTab.Voice)
-    if (activeTab == HomeTab.Chat) {
-      chatTabStarted = true
-    }
-    if (activeTab == HomeTab.Screen) {
-      screenTabStarted = true
-    }
+    if (activeTab == HomeTab.Chat) chatTabStarted = true
+    if (activeTab == HomeTab.Skills) skillsTabStarted = true
+    if (activeTab == HomeTab.Screen) screenTabStarted = true
   }
 
   val density = LocalDensity.current
   val imeVisible = WindowInsets.ime.getBottom(density) > 0
-  val hideBottomTabBar = activeTab == HomeTab.Chat && imeVisible
+  val hideBottomTabBar = (activeTab == HomeTab.Chat && imeVisible) ||
+      (activeTab == HomeTab.Skills && skillDetailActive)
 
   Scaffold(
     modifier = modifier,
     containerColor = Color.Transparent,
     contentWindowInsets = WindowInsets(0, 0, 0, 0),
-    topBar = { if (activeTab != HomeTab.Screen) TopStatusBar() },
+    topBar = { if (activeTab != HomeTab.Screen && !(activeTab == HomeTab.Skills && skillDetailActive)) TopStatusBar() },
     bottomBar = {
       if (!hideBottomTabBar) {
         BottomTabBar(
@@ -120,6 +123,18 @@ fun PostOnboardingTabs(
         }
       }
 
+      if (skillsTabStarted) {
+        Box(
+          modifier =
+            Modifier
+              .matchParentSize()
+              .alpha(if (activeTab == HomeTab.Skills) 1f else 0f)
+              .zIndex(if (activeTab == HomeTab.Skills) 1f else 0f),
+        ) {
+          SkillTabScreen(skillActions = skillActions, onDetailPageChanged = { skillDetailActive = it })
+        }
+      }
+
       if (screenTabStarted) {
         ScreenTabScreen(
           viewModel = viewModel,
@@ -134,7 +149,7 @@ fun PostOnboardingTabs(
 
       when (activeTab) {
         HomeTab.Chat -> if (!chatTabStarted) ChatSheet(viewModel = viewModel)
-        HomeTab.Skills -> SkillTabScreen()
+        HomeTab.Skills -> if (!skillsTabStarted) SkillTabScreen(skillActions = skillActions, onDetailPageChanged = { skillDetailActive = it })
         HomeTab.Voice -> VoiceTabScreen(viewModel = viewModel)
         HomeTab.Screen -> Unit
         HomeTab.Settings -> if (settingsTabSlot != null) settingsTabSlot() else SettingsSheet(viewModel = viewModel)

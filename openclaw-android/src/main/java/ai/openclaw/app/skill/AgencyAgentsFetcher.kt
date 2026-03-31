@@ -1,30 +1,43 @@
 package ai.openclaw.app.skill
 
 import android.content.Context
+import android.util.Log
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Fetches agency-agents skill list from GitHub with local cache.
+ * Unified skill loader: merges bundled skills (from assets/skills/) with
+ * online skills (from GitHub agency-agents repo).
  */
 object AgencyAgentsFetcher {
 
+    private const val TAG = "AgencyAgentsFetcher"
     private const val CACHE_PREFS = "agency_agents_cache"
     private const val KEY_SKILL_LIST = "skill_list_json"
     private const val KEY_TIMESTAMP = "skill_list_ts"
     private const val CACHE_TTL_MS = 24L * 60 * 60 * 1000 // 24h
+    private const val CONTENT_CACHE_TTL_MS = 7 * CACHE_TTL_MS // 7 days
+    private const val HTTP_CACHE_SIZE = 10L * 1024 * 1024 // 10 MB
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
-        .build()
+    private var httpClient: OkHttpClient? = null
+
+    private fun getClient(context: Context): OkHttpClient {
+        return httpClient ?: OkHttpClient.Builder()
+            .cache(Cache(File(context.cacheDir, "skill_http_cache"), HTTP_CACHE_SIZE))
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
+            .also { httpClient = it }
+    }
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    // ── Hardcoded metadata from README (emoji + specialty + category) ──
+    // ── Hardcoded online skill metadata (emoji + specialty + category) ──
     private val catalog = listOf(
         OnlineSkill("Frontend Developer", "🎨", "React/Vue/Angular, UI implementation, performance", "engineering", "engineering-frontend-developer.md"),
         OnlineSkill("Backend Architect", "🏗️", "API design, database architecture, scalability", "engineering", "engineering-backend-architect.md"),
@@ -82,52 +95,98 @@ object AgencyAgentsFetcher {
         OnlineSkill("Reddit Community Builder", "🤝", "Authentic engagement, value-driven content", "social", "social-reddit-community-builder.md"),
     )
 
-    /** The 4 featured (hot) skills shown at the top of the online tab. */
-    val featuredSkills: List<OnlineSkill> = listOf(
-        catalog.first { it.name == "Frontend Developer" },
-        catalog.first { it.name == "AI Engineer" },
-        catalog.first { it.name == "Mobile App Builder" },
-        catalog.first { it.name == "DevOps Automator" },
+    /** The 4 featured (hot) skills shown at the top. */
+    val featuredSkills: List<OnlineSkill> = listOfNotNull(
+        catalog.firstOrNull { it.name == "Frontend Developer" },
+        catalog.firstOrNull { it.name == "AI Engineer" },
+        catalog.firstOrNull { it.name == "Mobile App Builder" },
+        catalog.firstOrNull { it.name == "DevOps Automator" },
     )
 
-    /** Load skill list — returns catalog (with cache). */
+    // ── Bundled skills cache ──
+    private var bundledSkillsCache: List<OnlineSkill>? = null
+
+    /** Load bundled skills from assets/skills/. Each subdirectory with SKILL.md is a bundled skill. */
+    fun loadBundledSkills(context: Context): List<OnlineSkill> {
+        bundledSkillsCache?.let { return it }
+        val skills = mutableListOf<OnlineSkill>()
+        try {
+            val dirs = context.assets.list("skills") ?: emptyArray()
+            for (dir in dirs) {
+                try {
+                    val content = context.assets.open("skills/$dir/SKILL.md").bufferedReader().use { it.readText() }
+                    val skill = parseBundledSkill(dir, content)
+                    if (skill != null) skills.add(skill)
+                } catch (_: Exception) {}
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to load bundled skills", e)
+        }
+        bundledSkillsCache = skills
+        return skills
+    }
+
+    /** Parse SKILL.md frontmatter to extract name, description, emoji. */
+    private fun parseBundledSkill(dirName: String, content: String): OnlineSkill? {
+        if (!content.startsWith("---")) return null
+        val endIdx = content.indexOf("---", 3)
+        if (endIdx < 0) return null
+        val frontmatter = content.substring(3, endIdx).trim()
+
+        val name = Regex("""^name:\s*(.+)$""", RegexOption.MULTILINE)
+            .find(frontmatter)?.groupValues?.get(1)?.trim()?.removeSurrounding("\"") ?: dirName
+        val description = Regex("""^description:\s*(.+)$""", RegexOption.MULTILINE)
+            .find(frontmatter)?.groupValues?.get(1)?.trim()?.removeSurrounding("\"") ?: ""
+        val emoji = Regex(""""emoji"\s*:\s*"([^"]+)"""")
+            .find(frontmatter)?.groupValues?.get(1) ?: "🔧"
+
+        return OnlineSkill(name = name, emoji = emoji, specialty = description, category = "bundled", filename = "__bundled__$dirName")
+    }
+
+    /** Get the set of bundled skill filenames (always considered "installed"). */
+    fun getBundledFilenames(context: Context): Set<String> {
+        return loadBundledSkills(context).map { it.filename }.toSet()
+    }
+
+    /** Load online skill list — returns catalog (with cache). */
     fun loadSkills(context: Context): List<OnlineSkill> {
         val prefs = context.getSharedPreferences(CACHE_PREFS, Context.MODE_PRIVATE)
         val cachedTs = prefs.getLong(KEY_TIMESTAMP, 0)
         val cachedJson = prefs.getString(KEY_SKILL_LIST, null)
 
-        // Return cache if fresh
         if (cachedJson != null && System.currentTimeMillis() - cachedTs < CACHE_TTL_MS) {
             return try {
                 json.decodeFromString<List<OnlineSkill>>(cachedJson)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to decode cached skills", e)
                 catalog
             }
         }
 
-        // Refresh from GitHub API
         return try {
-            val fetched = fetchFromGitHub()
+            val client = getClient(context)
+            val fetched = fetchFromGitHub(client)
             prefs.edit()
                 .putString(KEY_SKILL_LIST, json.encodeToString(fetched))
                 .putLong(KEY_TIMESTAMP, System.currentTimeMillis())
                 .apply()
             fetched
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch from GitHub", e)
             if (cachedJson != null) {
-                try {
-                    json.decodeFromString<List<OnlineSkill>>(cachedJson)
-                } catch (_: Exception) {
-                    catalog
-                }
-            } else {
-                catalog
-            }
+                try { json.decodeFromString<List<OnlineSkill>>(cachedJson) }
+                catch (_: Exception) { catalog }
+            } else catalog
         }
     }
 
+    /** Load all skills: bundled + online, unified list. */
+    fun loadAllSkills(context: Context): List<OnlineSkill> {
+        return loadBundledSkills(context) + loadSkills(context)
+    }
+
     /** Fetch skill list from GitHub API, discovering files not in our catalog. */
-    private fun fetchFromGitHub(): List<OnlineSkill> {
+    private fun fetchFromGitHub(client: OkHttpClient): List<OnlineSkill> {
         val categories = listOf("engineering", "design", "marketing", "sales", "social")
         val discovered = mutableListOf<OnlineSkill>()
 
@@ -138,21 +197,19 @@ object AgencyAgentsFetcher {
                 .build()
 
             val resp = client.newCall(request).execute()
-            if (resp.isSuccessful.not()) {
-                resp.close()
-                continue
-            }
+            if (!resp.isSuccessful) { resp.close(); continue }
             val body = resp.body?.string() ?: run { resp.close(); continue }
             resp.close()
 
             val files = try {
                 json.decodeFromString<List<GithubFile>>(body)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to parse GitHub response for $cat", e)
                 continue
             }
 
             for (file in files) {
-                if (file.name.endsWith(".md").not()) continue
+                if (!file.name.endsWith(".md")) continue
                 if (catalog.any { it.filename == file.name }) continue
                 val displayName = file.name
                     .removePrefix("$cat-")
@@ -168,19 +225,30 @@ object AgencyAgentsFetcher {
 
     /** Fetch raw markdown content for a specific skill. */
     fun fetchContent(context: Context, skill: OnlineSkill): String {
+        // Bundled skills: read from assets
+        if (skill.filename.startsWith("__bundled__")) {
+            val dirName = skill.filename.removePrefix("__bundled__")
+            return try {
+                context.assets.open("skills/$dirName/SKILL.md").bufferedReader().use { it.readText() }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to read bundled skill $dirName", e)
+                ""
+            }
+        }
+
+        // Online skills: fetch from GitHub with cache
         val cacheKey = "skill_content_${skill.filename}"
         val prefs = context.getSharedPreferences(CACHE_PREFS, Context.MODE_PRIVATE)
-
-        // Check content cache (7-day TTL)
         val cached = prefs.getString(cacheKey, null)
         val cachedTs = prefs.getLong("${cacheKey}_ts", 0)
-        if (cached != null && System.currentTimeMillis() - cachedTs < 7 * CACHE_TTL_MS) {
+        if (cached != null && System.currentTimeMillis() - cachedTs < CONTENT_CACHE_TTL_MS) {
             return cached
         }
 
         return try {
             val url = "https://raw.githubusercontent.com/msitarzewski/agency-agents/main/${skill.category}/${skill.filename}"
             val request = Request.Builder().url(url).build()
+            val client = getClient(context)
             val content = client.newCall(request).execute().use { resp ->
                 if (resp.isSuccessful) resp.body?.string() ?: "" else ""
             }
@@ -191,16 +259,20 @@ object AgencyAgentsFetcher {
                     .apply()
             }
             content
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch content for ${skill.filename}", e)
             cached ?: ""
         }
     }
 
-    /** Force refresh — clears cache and reloads. */
+    /** Force refresh — clears list cache only (preserves content cache). */
     fun forceRefresh(context: Context): List<OnlineSkill> {
         context.getSharedPreferences(CACHE_PREFS, Context.MODE_PRIVATE)
-            .edit().clear().apply()
-        return loadSkills(context)
+            .edit()
+            .remove(KEY_SKILL_LIST)
+            .remove(KEY_TIMESTAMP)
+            .apply()
+        return loadAllSkills(context)
     }
 
     @Serializable
