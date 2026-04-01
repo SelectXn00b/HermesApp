@@ -2262,9 +2262,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 channelContext = channelCtx
             )
 
-            // Collect intermediate progress updates and send to Weixin user
-            val blockRepliesSent = mutableListOf<String>()
-
+            // Collect intermediate progress updates — WeChat does NOT send BlockReply
+            // as separate messages to avoid duplicate-looking output.
+            // Only send Error events immediately; everything else goes into finalContent.
             val progressJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
                 agentLoop.progressFlow.collect { update ->
                     when (update) {
@@ -2272,20 +2272,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                             Log.d(TAG, "Weixin: ToolCall ${update.name}")
                         }
                         is ProgressUpdate.BlockReply -> {
-                            val text = update.text.trim()
-                            if (text.isNotEmpty()) {
-                                try {
-                                    val sanitized = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
-                                        .stripControlTokensFromText(text)
-                                        .trim()
-                                    if (sanitized.isNotBlank()) {
-                                        sender?.sendText(toUser, sanitized)
-                                        blockRepliesSent.add(sanitized)
-                                    }
-                                } catch (e: Exception) {
-                                    Log.w(TAG, "Weixin: 发送中间回复失败: ${e.message}")
-                                }
-                            }
+                            // Log only — do NOT send as separate message.
+                            // The final response will contain this content.
+                            Log.d(TAG, "Weixin: BlockReply suppressed (${update.text.take(100)})")
                         }
                         is ProgressUpdate.Error -> {
                             try {
@@ -2329,44 +2318,6 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                         .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
                         .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                         .trim()
-                    // Deduplicate: remove block reply content from final content.
-                    // Strategy: (1) exact match → skip entirely,
-                    // (2) final starts with block reply → strip prefix,
-                    // (3) block reply is substantial substring of final → remove it.
-                    if (blockRepliesSent.isNotEmpty()) {
-                        val normFinal = sanitized.replace(Regex("\\s+"), " ").trim()
-                        var deduped = sanitized
-                        var fullySkipped = false
-
-                        for (sent in blockRepliesSent) {
-                            val normSent = sent.replace(Regex("\\s+"), " ").trim()
-                            if (normSent.isEmpty()) continue
-
-                            // Case 1: exact match → skip entirely
-                            if (normFinal == normSent) {
-                                Log.d(TAG, "Weixin: final matches block reply exactly, skipping")
-                                fullySkipped = true
-                                break
-                            }
-
-                            // Case 2: final starts with block reply → strip prefix
-                            if (normFinal.startsWith(normSent)) {
-                                val remainder = normFinal.substring(normSent.length).trim()
-                                // Strip leading punctuation/separators from remainder
-                                deduped = remainder.replace(Regex("^[,;.:!?，；。！？\\s\\-—]+"), "").trim()
-                                Log.d(TAG, "Weixin: final starts with block reply, stripped prefix (${normSent.length} chars)")
-                                continue
-                            }
-
-                            // Case 3: block reply is a significant substring (>10 chars) → remove
-                            if (normSent.length > 10 && deduped.contains(sent)) {
-                                deduped = deduped.replace(sent, "").trim()
-                                Log.d(TAG, "Weixin: removed block reply substring (${sent.length} chars)")
-                            }
-                        }
-
-                        sanitized = if (fullySkipped) "" else deduped.trim()
-                    }
                     if (sanitized.isNotBlank()) {
                         sender?.sendText(toUser, sanitized)
                     }
