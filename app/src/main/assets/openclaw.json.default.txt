@@ -1,16 +1,18 @@
 {
     "models": {
         "providers": {
-            "openrouter": {
-                "baseUrl": "https://openrouter.ai/api/v1",
-                "apiKey": "${OPENROUTER_API_KEY}",
+            "grok": {
+                "baseUrl": "https://ai.td.ee/v1",
+                "apiKey": "sk-2a81b98b4888dce5e873622bccd708e90d06c52027d3e23a675dda785ebf3eea",
+                "api": "openai-completions",
+                "authHeader": true,
                 "models": [
                     {
-                        "id": "xiaomi/mimo-v2-pro",
-                        "name": "MiMo V2 Pro",
-                        "reasoning": true,
-                        "contextWindow": 1048576,
-                        "maxTokens": 32000
+                        "id": "gpt-5.4",
+                        "name": "gpt-5.4",
+                        "reasoning": false,
+                        "contextWindow": 128000,
+                        "maxTokens": 8192
                     }
                 ]
             }
@@ -19,7 +21,7 @@
     "agents": {
         "defaults": {
             "model": {
-                "primary": "openrouter/xiaomi/mimo-v2-pro"
+                "primary": "grok/gpt-5.4"
             }
         }
     },

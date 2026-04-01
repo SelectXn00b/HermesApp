@@ -1408,6 +1408,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 } else if (blockRepliesSent.isNotEmpty() && blockRepliesSent.last().trim() == finalContent.trim()) {
                     Log.i(TAG, "📤 Final content matches last block reply, marking as already sent")
                     "\u0000BLOCK_REPLY_ALREADY_SENT"
+                } else if (streamingFailed && blockRepliesSent.isNotEmpty() && blockRepliesSent.any { it.trim() == finalContent.trim() }) {
+                    // Streaming card failed; final content was already sent via block reply fallback
+                    Log.i(TAG, "📤 Final content matches a block reply (streaming failed), skipping duplicate")
+                    "\u0000BLOCK_REPLY_ALREADY_SENT"
                 } else {
                     finalContent
                 }

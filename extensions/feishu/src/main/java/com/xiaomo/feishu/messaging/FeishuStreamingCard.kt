@@ -31,7 +31,7 @@ class FeishuStreamingCard(
 ) {
     companion object {
         private const val TAG = "FeishuStreamingCard"
-        private const val ELEMENT_ID = "streaming_content"
+        private const val ELEMENT_ID = "content"
         private const val THROTTLE_MS = 100L // Max 10 updates/second
     }
 
@@ -54,30 +54,35 @@ class FeishuStreamingCard(
      */
     suspend fun start(initialText: String = "Thinking..."): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val cardPayload = mapOf(
-                "type" to "card_kit",
-                "data" to mapOf(
-                    "schema" to "2.0",
-                    "config" to mapOf(
-                        "wide_screen_mode" to true
-                    ),
-                    "body" to mapOf(
-                        "elements" to listOf(
-                            mapOf(
-                                "tag" to "markdown",
-                                "content" to initialText,
-                                "element_id" to ELEMENT_ID
-                            )
-                        )
+            // Aligned with OpenClaw streaming-card.ts:
+            // - type: "card_json" (not "card_kit")
+            // - data: JSON string (not object)
+            // - streaming_mode/streaming_config inside config
+            val cardJson = mapOf(
+                "schema" to "2.0",
+                "config" to mapOf(
+                    "wide_screen_mode" to true,
+                    "streaming_mode" to true,
+                    "summary" to mapOf("content" to "[Generating...]"),
+                    "streaming_config" to mapOf(
+                        "print_frequency_ms" to mapOf("default" to 50),
+                        "print_step" to mapOf("default" to 1)
                     )
                 ),
-                "settings" to mapOf(
-                    "streaming_mode" to true,
-                    "streaming_config" to mapOf(
-                        "print_frequency_ms" to 50,
-                        "print_step" to 1
+                "body" to mapOf(
+                    "elements" to listOf(
+                        mapOf(
+                            "tag" to "markdown",
+                            "content" to initialText,
+                            "element_id" to ELEMENT_ID
+                        )
                     )
                 )
+            )
+
+            val cardPayload = mapOf(
+                "type" to "card_json",
+                "data" to gson.toJson(cardJson)
             )
 
             val result = client.post("/open-apis/cardkit/v1/cards", cardPayload)
