@@ -125,7 +125,7 @@ fun CanvasScreen(viewModel: MainViewModel, visible: Boolean, modifier: Modifier 
                       b.style.flexDirection = 'column';
                       b.style.alignItems = 'center';
                       b.style.justifyContent = 'center';
-                      b.style.minHeight = '100vh';
+                      b.style.minHeight = '100dvh';
                     }
                   } catch(_){}
                 })();
