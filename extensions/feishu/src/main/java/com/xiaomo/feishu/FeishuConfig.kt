@@ -107,7 +107,14 @@ data class FeishuConfig(
         return when (domain.lowercase()) {
             "feishu" -> "https://open.feishu.cn"
             "lark" -> "https://open.larksuite.com"
-            else -> domain // 自定义域名
+            else -> {
+                // 自定义域名: 确保有 https:// 前缀
+                if (domain.startsWith("http://") || domain.startsWith("https://")) {
+                    domain
+                } else {
+                    "https://$domain"
+                }
+            }
         }
     }
 

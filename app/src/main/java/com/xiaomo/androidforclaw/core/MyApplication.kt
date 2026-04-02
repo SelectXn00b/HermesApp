@@ -580,13 +580,26 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     /**
      * Start all messaging channels. Called after storage permission is granted.
-     * Safe to call multiple times — each channel checks its own enabled flag.
+     * Safe to call multiple times — guarded by AtomicBoolean to prevent duplicate collectors.
+     * Use [restartAllChannels] to force restart.
      */
+    private val channelsStarted = java.util.concurrent.atomic.AtomicBoolean(false)
+
     fun startAllChannels() {
+        if (!channelsStarted.compareAndSet(false, true)) {
+            Log.i(TAG, "⏭️ startAllChannels() 已启动过，跳过重复调用")
+            return
+        }
         Log.i(TAG, "🚀 startAllChannels() — 启动所有消息通道")
         startFeishuChannelIfEnabled()
         startDiscordChannelIfEnabled()
         startWeixinChannelIfEnabled()
+    }
+
+    fun restartAllChannels() {
+        Log.i(TAG, "🔄 restartAllChannels() — 重启所有消息通道")
+        channelsStarted.set(false)
+        startAllChannels()
     }
 
     /**

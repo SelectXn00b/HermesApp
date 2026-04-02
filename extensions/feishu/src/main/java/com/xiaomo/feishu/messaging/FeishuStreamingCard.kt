@@ -2,10 +2,11 @@ package com.xiaomo.feishu.messaging
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/channels/feishu/streaming-card.ts
+ * - openclaw-lark/src/card/cardkit.js
+ * - openclaw-lark/src/card/streaming-card-controller.js
  *
  * Manages a single streaming card session using Feishu Card Kit API (schema 2.0).
- * Lifecycle: start() → update() (repeated) → close()
+ * Lifecycle: start() → appendText() (repeated) → close()
  */
 
 import android.util.Log
@@ -15,28 +16,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.UUID
 
 /**
  * 飞书流式卡片会话
- * 对齐 OpenClaw FeishuStreamingSession
+ * 对齐 OpenClaw streaming-card-controller.js
  *
  * Uses Card Kit API to create a streaming card that updates in real-time:
- * 1. POST /cardkit/v1/cards — create card with streaming_mode: true
- * 2. PUT /cardkit/v1/cards/{cardId}/elements/{elementId}/content — update content
- * 3. PATCH /cardkit/v1/cards/{cardId}/settings — close streaming mode
+ * 1. POST /cardkit/v1/cards — create card entity with streaming_mode: true
+ * 2. PUT /cardkit/v1/cards/{cardId}/elements/{elementId}/content — stream content updates
+ * 3. PUT /cardkit/v1/cards/{cardId}/settings — close streaming mode
+ * 4. PUT /cardkit/v1/cards/{cardId} — final card update (optional)
  */
 class FeishuStreamingCard(
     private val client: FeishuClient
 ) {
     companion object {
         private const val TAG = "FeishuStreamingCard"
-        private const val ELEMENT_ID = "content"
-        private const val THROTTLE_MS = 100L // Max 10 updates/second
+        private const val ELEMENT_ID = "streaming_content"
+        private const val THROTTLE_MS = 100L // Max 10 updates/second, aligned with OpenClaw CARDKIT_MS
     }
 
     private val gson = Gson()
-    private val mutex = Mutex() // Serialize updates
+    private val mutex = Mutex()
 
     // State
     var cardId: String? = null
@@ -48,44 +49,39 @@ class FeishuStreamingCard(
 
     /**
      * 创建流式卡片
-     * 对齐 OpenClaw FeishuStreamingSession.start()
+     * 对齐 OpenClaw streaming-card-controller.js STREAMING_THINKING_CARD
      *
      * @return cardId on success
      */
-    suspend fun start(initialText: String = "Thinking..."): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun start(initialText: String = ""): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // Aligned with OpenClaw streaming-card.ts:
-            // - type: "card_json" (not "card_kit")
-            // - data: JSON string (not object)
-            // - streaming_mode/streaming_config inside config
-            val cardJson = mapOf(
+            // Card JSON 2.0 payload — aligned with OpenClaw STREAMING_THINKING_CARD
+            val cardData = mapOf(
                 "schema" to "2.0",
                 "config" to mapOf(
-                    "wide_screen_mode" to true,
                     "streaming_mode" to true,
-                    "summary" to mapOf("content" to "[Generating...]"),
-                    "streaming_config" to mapOf(
-                        "print_frequency_ms" to mapOf("default" to 50),
-                        "print_step" to mapOf("default" to 1)
-                    )
+                    "summary" to mapOf("content" to "Thinking...")
                 ),
                 "body" to mapOf(
                     "elements" to listOf(
                         mapOf(
                             "tag" to "markdown",
                             "content" to initialText,
+                            "text_align" to "left",
+                            "text_size" to "normal_v2",
                             "element_id" to ELEMENT_ID
                         )
                     )
                 )
             )
 
-            val cardPayload = mapOf(
+            // Outer request body: type=card_json, data=JSON string
+            val requestBody = mapOf(
                 "type" to "card_json",
-                "data" to gson.toJson(cardJson)
+                "data" to gson.toJson(cardData)
             )
 
-            val result = client.post("/open-apis/cardkit/v1/cards", cardPayload)
+            val result = client.post("/open-apis/cardkit/v1/cards", requestBody)
             if (result.isFailure) {
                 return@withContext Result.failure(result.exceptionOrNull()!!)
             }
@@ -95,7 +91,7 @@ class FeishuStreamingCard(
                 ?: return@withContext Result.failure(Exception("Missing card_id in response"))
 
             cardId = id
-            sequence = 0
+            sequence = 1 // OpenClaw starts at 1
             isOpen = true
             accumulatedText = initialText
             lastUpdateTime = System.currentTimeMillis()
@@ -111,7 +107,7 @@ class FeishuStreamingCard(
 
     /**
      * 追加文本到流式卡片
-     * 对齐 OpenClaw FeishuStreamingSession.update()
+     * 对齐 OpenClaw streaming-card-controller.js performFlush()
      *
      * Throttled to max 10 updates/second. Text is accumulated and sent in batch.
      */
@@ -127,7 +123,7 @@ class FeishuStreamingCard(
                 // Throttle: skip if too soon since last update
                 val now = System.currentTimeMillis()
                 if (now - lastUpdateTime < THROTTLE_MS) {
-                    return@withLock Result.success(Unit) // Text buffered, will be sent on next update
+                    return@withLock Result.success(Unit)
                 }
 
                 flushUpdate()
@@ -140,7 +136,12 @@ class FeishuStreamingCard(
 
     /**
      * 关闭流式卡片，显示最终内容
-     * 对齐 OpenClaw FeishuStreamingSession.close()
+     * 对齐 OpenClaw streaming-card-controller.js closeStreamingAndUpdate()
+     *
+     * Steps:
+     * 1. Flush final content update
+     * 2. Close streaming mode via PUT settings
+     * 3. (Optional) Update full card with final layout
      */
     suspend fun close(finalText: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isOpen || cardId == null) {
@@ -148,25 +149,24 @@ class FeishuStreamingCard(
         }
 
         try {
+            // 1. Final content flush
             mutex.withLock {
-                // Final content update if provided
                 if (finalText != null && finalText != accumulatedText) {
                     accumulatedText = finalText
                     flushUpdate()
                 } else if (accumulatedText.isNotEmpty()) {
-                    // Flush any buffered text
                     flushUpdate()
                 }
             }
 
-            // Close streaming mode
+            // 2. Close streaming mode — PUT with settings as JSON string + sequence
+            sequence++
             val settingsPayload = mapOf(
-                "settings" to mapOf(
-                    "streaming_mode" to false
-                )
+                "settings" to gson.toJson(mapOf("streaming_mode" to false)),
+                "sequence" to sequence
             )
 
-            val result = client.patch("/open-apis/cardkit/v1/cards/$cardId/settings", settingsPayload)
+            val result = client.put("/open-apis/cardkit/v1/cards/$cardId/settings", settingsPayload)
             if (result.isFailure) {
                 Log.w(TAG, "Failed to close streaming mode: ${result.exceptionOrNull()?.message}")
             }
@@ -182,13 +182,11 @@ class FeishuStreamingCard(
         }
     }
 
-    /**
-     * 是否处于打开状态
-     */
     fun isActive(): Boolean = isOpen && cardId != null
 
     /**
-     * 刷新累积文本到卡片
+     * 刷新累积文本到卡片元素
+     * 对齐 OpenClaw cardkit.js updateCardKitElement()
      */
     private suspend fun flushUpdate(): Result<Unit> = withContext(Dispatchers.IO) {
         val id = cardId ?: return@withContext Result.failure(Exception("No card_id"))
@@ -196,8 +194,7 @@ class FeishuStreamingCard(
         sequence++
         val updatePayload = mapOf(
             "content" to accumulatedText,
-            "sequence" to sequence,
-            "uuid" to UUID.randomUUID().toString()
+            "sequence" to sequence
         )
 
         val result = client.put(

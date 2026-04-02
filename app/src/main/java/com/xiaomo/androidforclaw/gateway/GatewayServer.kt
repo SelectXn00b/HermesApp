@@ -628,7 +628,7 @@ loadHistory();
         private fun handleChannelRestart(): JSONObject {
             val app = context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication
             if (app != null) {
-                app.startAllChannels()
+                app.restartAllChannels()
                 return JSONObject().apply {
                     put("ok", true)
                     put("message", "Channel restart triggered")
