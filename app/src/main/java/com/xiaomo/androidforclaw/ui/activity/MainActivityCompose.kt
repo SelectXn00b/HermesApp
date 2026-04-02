@@ -270,7 +270,7 @@ class MainActivityCompose : ComponentActivity() {
     }
 
     /**
-     * Check GitHub Releases for updates in background.
+     * Check file server for updates in background.
      * 同一版本号每天最多弹一次更新弹窗。
      */
     fun silentUpdateCheck() {

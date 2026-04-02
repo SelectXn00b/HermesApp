@@ -28,31 +28,28 @@ import kotlin.coroutines.resume
 /**
  * App Auto-Updater
  *
- * Checks GitHub Releases for new versions and handles download + install.
+ * Checks our own file server for new versions and handles download + install.
+ * Version config: https://claw.devset.top/files/version.json
  *
  * Flow:
- * 1. checkForUpdate() → queries GitHub API for latest release
+ * 1. checkForUpdate() → queries server version.json
  * 2. Compares version with current app version
  * 3. If newer: downloadAndInstall() → DownloadManager + install intent
- *
- * GitHub Release URL: https://github.com/SelectXn00b/AndroidForClaw/releases
- * API: https://api.github.com/repos/SelectXn00b/AndroidForClaw/releases/latest
  */
 class AppUpdater(private val context: Context) {
 
     companion object {
         private const val TAG = "AppUpdater"
 
-        const val GITHUB_OWNER = "SelectXn00b"
-        const val GITHUB_REPO = "AndroidForClaw"
-        const val GITHUB_RELEASES_URL = "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases"
-        const val GITHUB_API_LATEST = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest"
+        /** Version check endpoint — hosted on our own server */
+        const val UPDATE_BASE_URL = "https://claw.devset.top/files"
+        const val VERSION_JSON_URL = "$UPDATE_BASE_URL/version.json"
 
-        // APK asset name pattern
+        // APK name pattern
         const val APK_NAME_PREFIX = "AndroidForClaw"
         const val APK_NAME_SUFFIX = "-release.apk"
 
-        private const val TIMEOUT_SECONDS = 30L
+        private const val TIMEOUT_SECONDS = 15L
     }
 
     private val httpClient = OkHttpClient.Builder()
@@ -69,63 +66,52 @@ class AppUpdater(private val context: Context) {
         val currentVersion: String,
         val downloadUrl: String? = null,
         val releaseNotes: String? = null,
-        val releaseUrl: String = GITHUB_RELEASES_URL,
+        val releaseUrl: String? = null,
         val fileSize: Long = 0,
         val publishedAt: String? = null
     )
 
     /**
-     * Check GitHub for the latest release
+     * Check our file server for the latest version
      */
     suspend fun checkForUpdate(): UpdateInfo = withContext(Dispatchers.IO) {
         try {
             val currentVersion = getCurrentVersion()
-            Log.d(TAG, "Current version: $currentVersion")
+            Log.d(TAG, "Current version: $currentVersion, checking $VERSION_JSON_URL")
 
             val request = Request.Builder()
-                .url(GITHUB_API_LATEST)
-                .header("Accept", "application/vnd.github.v3+json")
+                .url(VERSION_JSON_URL)
                 .header("User-Agent", "AndroidForClaw/$currentVersion")
                 .build()
 
             val response = httpClient.newCall(request).execute()
             if (!response.isSuccessful) {
-                Log.w(TAG, "GitHub API returned ${response.code}, trying redirect fallback")
-                return@withContext checkViaRedirect(currentVersion)
+                Log.w(TAG, "Version check returned ${response.code}")
+                return@withContext UpdateInfo(
+                    hasUpdate = false,
+                    latestVersion = currentVersion,
+                    currentVersion = currentVersion
+                )
             }
 
             val json = JSONObject(response.body?.string() ?: "{}")
-            val tagName = json.optString("tag_name", "").removePrefix("v")
-            val releaseNotes = json.optString("body", "").take(500)
-            val publishedAt = json.optString("published_at", "")
-            val htmlUrl = json.optString("html_url", GITHUB_RELEASES_URL)
+            val latestVersion = json.optString("latestVersion", currentVersion)
+            val downloadUrl = json.optString("downloadUrl", "")
+            val releaseNotes = json.optString("releaseNotes", "")
+            val releaseUrl = json.optString("releaseUrl", "")
+            val fileSize = json.optLong("fileSize", 0)
+            val publishedAt = json.optString("publishedAt", "")
 
-            // Find the release APK asset
-            var downloadUrl: String? = null
-            var fileSize: Long = 0
-            val assets = json.optJSONArray("assets")
-            if (assets != null) {
-                for (i in 0 until assets.length()) {
-                    val asset = assets.getJSONObject(i)
-                    val name = asset.optString("name", "")
-                    if (name.startsWith(APK_NAME_PREFIX) && name.endsWith(APK_NAME_SUFFIX)) {
-                        downloadUrl = asset.optString("browser_download_url")
-                        fileSize = asset.optLong("size", 0)
-                        break
-                    }
-                }
-            }
-
-            val hasUpdate = isNewerVersion(tagName, currentVersion)
-            Log.d(TAG, "Latest: $tagName, Current: $currentVersion, hasUpdate: $hasUpdate")
+            val hasUpdate = isNewerVersion(latestVersion, currentVersion)
+            Log.d(TAG, "Latest: $latestVersion, Current: $currentVersion, hasUpdate: $hasUpdate")
 
             UpdateInfo(
                 hasUpdate = hasUpdate,
-                latestVersion = tagName,
+                latestVersion = latestVersion,
                 currentVersion = currentVersion,
-                downloadUrl = downloadUrl,
+                downloadUrl = if (hasUpdate && downloadUrl.isNotEmpty()) downloadUrl else null,
                 releaseNotes = releaseNotes,
-                releaseUrl = htmlUrl,
+                releaseUrl = releaseUrl,
                 fileSize = fileSize,
                 publishedAt = publishedAt
             )
@@ -243,47 +229,6 @@ class AppUpdater(private val context: Context) {
     /**
      * Get current app version name
      */
-    /**
-     * Fallback: check version via GitHub releases/latest 302 redirect.
-     * No API rate limit — just follows the redirect URL to extract tag name.
-     * Download URL constructed from tag name.
-     */
-    private fun checkViaRedirect(currentVersion: String): UpdateInfo {
-        try {
-            val noRedirectClient = httpClient.newBuilder().followRedirects(false).build()
-            val request = Request.Builder()
-                .url("$GITHUB_RELEASES_URL/latest")
-                .header("User-Agent", "AndroidForClaw/$currentVersion")
-                .build()
-
-            val response = noRedirectClient.newCall(request).execute()
-            val location = response.header("Location") ?: response.header("location")
-            response.close()
-
-            if (location != null && location.contains("/tag/")) {
-                val tagName = location.substringAfterLast("/tag/").removePrefix("v")
-                val hasUpdate = isNewerVersion(tagName, currentVersion)
-                Log.d(TAG, "Redirect fallback: latest=$tagName, current=$currentVersion, hasUpdate=$hasUpdate")
-
-                val downloadUrl = if (hasUpdate) {
-                    "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/v$tagName/${APK_NAME_PREFIX}-v${tagName}${APK_NAME_SUFFIX}"
-                } else null
-
-                return UpdateInfo(
-                    hasUpdate = hasUpdate,
-                    latestVersion = tagName,
-                    currentVersion = currentVersion,
-                    downloadUrl = downloadUrl,
-                    releaseUrl = location
-                )
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Redirect fallback also failed", e)
-        }
-
-        return UpdateInfo(hasUpdate = false, latestVersion = currentVersion, currentVersion = currentVersion)
-    }
-
     fun getCurrentVersion(): String {
         return try {
             val info = context.packageManager.getPackageInfo(context.packageName, 0)
