@@ -156,111 +156,155 @@ class UnifiedLLMProvider(private val context: Context) {
         modelRef: String? = null,
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
-        reasoningEnabled: Boolean = false
+        reasoningEnabled: Boolean = false,
+        maxRetries: Int = 3
     ): Flow<StreamChunk> = flow {
         val newTools = tools?.map { convertToolDefinition(it) }
         val (resolvedProviderName, resolvedModelId) = parseModelRef(modelRef)
+        val config = configLoader.loadOpenClawConfig()
 
-        // Resolve provider/model config (same logic as performRequest)
-        val aliasResolved = configLoader.resolveModelId(resolvedModelId)
-        val normalizedModelId = ModelIdNormalization.normalizeModelId(resolvedProviderName, aliasResolved)
-        val providerRaw = configLoader.getProviderConfig(resolvedProviderName)
-            ?: throw LLMException("Provider not found: $resolvedProviderName")
-        val modelRaw = providerRaw.models.find { it.id == normalizedModelId }
-            ?: providerRaw.models.find { it.id == resolvedModelId }
-            ?: throw LLMException("Model not found: $normalizedModelId in provider: $resolvedProviderName")
-        val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, resolvedProviderName)
-
-        val api = model.api ?: provider.api
-
-        // Gemini/Responses APIs don't support our SSE parser — fallback to batch
-        if (api == ModelApi.GOOGLE_GENERATIVE_AI || api == ModelApi.OPENAI_RESPONSES || api == ModelApi.OPENAI_CODEX_RESPONSES) {
-            Log.d(TAG, "⚠️ API $api does not support streaming, falling back to batch")
-            val batchResponse = performRequest(messages, newTools, resolvedProviderName, resolvedModelId, temperature, maxTokens, reasoningEnabled)
-            batchResponse.thinkingContent?.let { emit(StreamChunk(type = ChunkType.THINKING_DELTA, text = it)) }
-            batchResponse.content?.let { emit(StreamChunk(type = ChunkType.TEXT_DELTA, text = it)) }
-            emit(StreamChunk(type = ChunkType.DONE, finishReason = batchResponse.finishReason))
-            return@flow
-        }
-
-        // Build streaming request
-        val apiKeys = ApiKeyRotation.splitApiKeys(provider.apiKey)
-        val activeKey = apiKeys.firstOrNull() ?: provider.apiKey
-        val activeProvider = if (activeKey != provider.apiKey) provider.copy(apiKey = activeKey) else provider
-
-        val requestBody = ApiAdapter.buildRequestBody(
-            provider = activeProvider,
-            model = model,
-            messages = messages,
-            tools = newTools,
-            temperature = temperature,
-            maxTokens = maxTokens,
-            reasoningEnabled = reasoningEnabled,
-            stream = true
+        // === Layer 1: Model Fallback ===
+        val candidates = ModelFallback.resolveFallbackCandidates(
+            config, configLoader, resolvedProviderName, resolvedModelId, null
         )
+        var lastException: Exception? = null
 
-        val headers = ApiAdapter.buildHeaders(activeProvider, model)
-        val apiUrl = buildApiUrl(activeProvider, model)
+        for (candidate in candidates) {
+            try {
+                // Resolve candidate provider/model config
+                val aliasResolved = configLoader.resolveModelId(candidate.model)
+                val normalizedModelId = ModelIdNormalization.normalizeModelId(candidate.provider, aliasResolved)
+                val providerRaw = configLoader.getProviderConfig(candidate.provider)
+                    ?: throw LLMException("Provider not found: ${candidate.provider}")
+                val modelRaw = providerRaw.models.find { it.id == normalizedModelId }
+                    ?: providerRaw.models.find { it.id == candidate.model }
+                    ?: throw LLMException("Model not found: $normalizedModelId in provider: ${candidate.provider}")
+                val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, candidate.provider)
+                val api = model.api ?: provider.api
 
-        val finalRequestBody = normalizeOpenAiTokenField(model, requestBody)
-        Log.d(TAG, "📤 Streaming request to $apiUrl")
-
-        val request = Request.Builder()
-            .url(apiUrl)
-            .headers(headers)
-            .post(finalRequestBody.toString().toRequestBody("application/json".toMediaType()))
-            .build()
-
-        val response = httpClient.newCall(request).execute()
-
-        if (!response.isSuccessful) {
-            val errorBody = response.body?.string() ?: "Unknown error"
-            response.close()
-            throw LLMException("Streaming API request failed: ${response.code} - $errorBody")
-        }
-
-        val source = response.body?.source()
-            ?: throw LLMException("Empty streaming response body")
-
-        try {
-            var currentEventType: String? = null
-            val isAnthropic = api == ModelApi.ANTHROPIC_MESSAGES
-
-            while (!source.exhausted()) {
-                val line = source.readUtf8Line() ?: break
-
-                // SSE format: "event: <type>" followed by "data: <json>"
-                if (line.startsWith("event: ")) {
-                    currentEventType = line.removePrefix("event: ").trim()
-                    continue
-                }
-
-                if (line.startsWith("data: ")) {
-                    val data = line.removePrefix("data: ").trim()
-                    if (data == "[DONE]") {
-                        emit(StreamChunk(type = ChunkType.DONE))
-                        break
-                    }
-                    if (data.isEmpty()) continue
-
-                    val chunk = ApiAdapter.parseStreamChunk(
-                        api = api,
-                        eventType = if (isAnthropic) currentEventType else null,
-                        dataLine = data
+                // Non-streaming APIs → batch fallback (already has full retry/rotation via performRequestForModel)
+                if (api == ModelApi.GOOGLE_GENERATIVE_AI || api == ModelApi.OPENAI_RESPONSES || api == ModelApi.OPENAI_CODEX_RESPONSES) {
+                    Log.d(TAG, "⚠️ API $api does not support streaming, falling back to batch")
+                    val batchResponse = performRequestForModel(
+                        messages, newTools, candidate.provider, candidate.model,
+                        temperature, maxTokens, reasoningEnabled, maxRetries
                     )
-                    if (chunk != null && chunk.type != ChunkType.PING) {
-                        emit(chunk)
-                    }
-                    currentEventType = null
-                    continue
+                    batchResponse.thinkingContent?.let { emit(StreamChunk(type = ChunkType.THINKING_DELTA, text = it)) }
+                    batchResponse.content?.let { emit(StreamChunk(type = ChunkType.TEXT_DELTA, text = it)) }
+                    emit(StreamChunk(type = ChunkType.DONE, finishReason = batchResponse.finishReason))
+                    return@flow
                 }
 
-                // Empty line or comment — ignore
+                val apiKeys = ApiKeyRotation.splitApiKeys(provider.apiKey)
+
+                // === Layer 2: Retry with Backoff ===
+                for (attempt in 1..maxRetries) {
+                    try {
+                        // === Layer 3: API Key Rotation ===
+                        var keyException: Exception? = null
+                        for ((keyIdx, apiKey) in apiKeys.withIndex()) {
+                            try {
+                                val activeProvider = provider.copy(apiKey = apiKey)
+
+                                val requestBody = ApiAdapter.buildRequestBody(
+                                    provider = activeProvider, model = model,
+                                    messages = messages, tools = newTools,
+                                    temperature = temperature, maxTokens = maxTokens,
+                                    reasoningEnabled = reasoningEnabled, stream = true
+                                )
+                                val headers = ApiAdapter.buildHeaders(activeProvider, model)
+                                val apiUrl = buildApiUrl(activeProvider, model)
+                                val finalRequestBody = normalizeOpenAiTokenField(model, requestBody)
+
+                                Log.d(TAG, "📤 Streaming request to $apiUrl (candidate=${candidate.provider}/${candidate.model}, attempt=$attempt, key=${keyIdx + 1}/${apiKeys.size})")
+
+                                val request = Request.Builder()
+                                    .url(apiUrl)
+                                    .headers(headers)
+                                    .post(finalRequestBody.toString().toRequestBody("application/json".toMediaType()))
+                                    .build()
+
+                                val response = httpClient.newCall(request).execute()
+
+                                if (!response.isSuccessful) {
+                                    val errorBody = response.body?.string() ?: "Unknown error"
+                                    response.close()
+                                    throw LLMException("Streaming API request failed: ${response.code} - $errorBody")
+                                }
+
+                                // === Connection established — stream SSE chunks ===
+                                val source = response.body?.source()
+                                    ?: throw LLMException("Empty streaming response body")
+
+                                try {
+                                    var currentEventType: String? = null
+                                    val isAnthropic = api == ModelApi.ANTHROPIC_MESSAGES
+
+                                    while (!source.exhausted()) {
+                                        val line = source.readUtf8Line() ?: break
+
+                                        if (line.startsWith("event: ")) {
+                                            currentEventType = line.removePrefix("event: ").trim()
+                                            continue
+                                        }
+
+                                        if (line.startsWith("data: ")) {
+                                            val data = line.removePrefix("data: ").trim()
+                                            if (data == "[DONE]") {
+                                                emit(StreamChunk(type = ChunkType.DONE))
+                                                break
+                                            }
+                                            if (data.isEmpty()) continue
+
+                                            val chunk = ApiAdapter.parseStreamChunk(
+                                                api = api,
+                                                eventType = if (isAnthropic) currentEventType else null,
+                                                dataLine = data
+                                            )
+                                            if (chunk != null && chunk.type != ChunkType.PING) {
+                                                emit(chunk)
+                                            }
+                                            currentEventType = null
+                                            continue
+                                        }
+                                    }
+                                } finally {
+                                    source.close()
+                                    response.close()
+                                }
+
+                                // Streaming completed successfully
+                                return@flow
+
+                            } catch (e: Exception) {
+                                keyException = e
+                                if (!ApiKeyRotation.isApiKeyRateLimitError(e) || keyIdx + 1 >= apiKeys.size) throw e
+                                Log.w(TAG, "⚠️ Streaming: key #${keyIdx + 1} rate limited, rotating to next key")
+                            }
+                        }
+                        throw keyException!!
+
+                    } catch (e: LLMException) {
+                        if (!isRetryable(e) || attempt == maxRetries) throw e
+                        val isRateLimit = e.message?.lowercase()?.let {
+                            it.contains("429") || it.contains("rate limit")
+                        } == true
+                        val baseDelay = if (isRateLimit) 5000L else 1000L
+                        val delayMs = baseDelay * attempt
+                        Log.w(TAG, "⚠️ Streaming retry $attempt/$maxRetries in ${delayMs}ms: ${e.message}")
+                        delay(delayMs)
+                    }
+                }
+
+            } catch (e: Exception) {
+                lastException = e
+                if (ModelFallback.isLikelyContextOverflowError(e)) throw e
+                if (!ModelFallback.isRetryableForFallback(e)) throw e
+                Log.w(TAG, "⚠️ Streaming fallback: ${candidate.provider}/${candidate.model} failed: ${e.message}, trying next candidate")
             }
-        } finally {
-            source.close()
-            response.close()
         }
+
+        throw lastException ?: LLMException("All streaming models failed")
     }.flowOn(Dispatchers.IO)
 
     /**

@@ -146,7 +146,7 @@ object ModelFallback {
     /**
      * Build the ordered list of fallback candidates.
      */
-    private fun resolveFallbackCandidates(
+    internal fun resolveFallbackCandidates(
         config: OpenClawConfig?,
         configLoader: ConfigLoader,
         provider: String,
@@ -198,7 +198,7 @@ object ModelFallback {
     /**
      * Parse a model reference string ("provider/model" or "model") into (provider, model).
      */
-    private fun parseModelRefString(ref: String, configLoader: ConfigLoader): Pair<String, String>? {
+    internal fun parseModelRefString(ref: String, configLoader: ConfigLoader): Pair<String, String>? {
         val trimmed = ref.trim()
         if (trimmed.isEmpty()) return null
 
@@ -224,7 +224,7 @@ object ModelFallback {
     /**
      * Check if an error is likely a context overflow / context length exceeded.
      */
-    private fun isLikelyContextOverflowError(e: Exception): Boolean {
+    internal fun isLikelyContextOverflowError(e: Exception): Boolean {
         val msg = e.message?.lowercase() ?: ""
         return msg.contains("context_length_exceeded") ||
             msg.contains("context window") ||
@@ -238,7 +238,7 @@ object ModelFallback {
      * More permissive than the per-request retry — any error that isn't
      * a clear client bug should allow trying the next model.
      */
-    private fun isRetryableForFallback(e: Exception): Boolean {
+    internal fun isRetryableForFallback(e: Exception): Boolean {
         val msg = e.message?.lowercase() ?: ""
         return when {
             msg.contains("429") || msg.contains("rate limit") -> true
