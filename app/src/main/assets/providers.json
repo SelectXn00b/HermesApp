@@ -783,13 +783,13 @@
           "maxTokens": 4096
         },
         {
-          "id": "meta/llama-3.3-70b-instruct",
-          "name": "Llama 3.3 70B",
+          "id": "nvidia/mistral-nemo-minitron-8b-8k-instruct",
+          "name": "Mistral Nemo Minitron 8B",
           "reasoning": false,
           "input": [
             "text"
           ],
-          "contextWindow": 131072,
+          "contextWindow": 8192,
           "maxTokens": 4096
         }
       ]
