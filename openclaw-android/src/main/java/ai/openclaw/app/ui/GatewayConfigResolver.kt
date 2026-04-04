@@ -1,5 +1,6 @@
 package ai.openclaw.app.ui
 
+import ai.openclaw.app.gateway.isLoopbackGatewayHost
 import java.util.Base64
 import java.util.Locale
 import java.net.URI
@@ -130,6 +131,11 @@ internal fun parseGatewayEndpoint(rawInput: String): GatewayEndpointConfig? {
     } else {
       "${if (tls) "https" else "http"}://$host:$port"
     }
+
+  // Non-loopback hosts require TLS — reject cleartext remote URLs
+  if (!tls && !isLoopbackGatewayHost(host)) {
+    return null
+  }
 
   return GatewayEndpointConfig(host = host, port = port, tls = tls, displayUrl = displayUrl)
 }
