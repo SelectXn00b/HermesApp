@@ -464,8 +464,8 @@ class GatewaySession(
       token: String,
       scopes: List<String>,
     ) {
-      if (filteredBootstrapHandoffScopes(role, scopes) == null) return
-      deviceAuthStore.saveToken(deviceId, role, token)
+      val filteredScopes = filteredBootstrapHandoffScopes(role, scopes) ?: return
+      deviceAuthStore.saveToken(deviceId, role, token, filteredScopes)
     }
 
     private fun persistIssuedDeviceToken(
@@ -480,7 +480,7 @@ class GatewaySession(
         persistBootstrapHandoffToken(deviceId, role, token, scopes)
         return
       }
-      deviceAuthStore.saveToken(deviceId, role, token)
+      deviceAuthStore.saveToken(deviceId, role, token, scopes)
     }
 
     private fun handleConnectSuccess(
