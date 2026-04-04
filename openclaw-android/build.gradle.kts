@@ -115,6 +115,10 @@ dependencies {
     // Live2D Cubism SDK for avatar rendering
     implementation(project(":live2d-core"))
     implementation(project(":live2d-framework"))
+
+    // Rive animation engine for AIBI-style character avatar
+    implementation("app.rive:rive-android:11.3.1")
+    implementation("androidx.startup:startup-runtime:1.1.1")
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     implementation("org.commonmark:commonmark:0.27.1")
     implementation("org.commonmark:commonmark-ext-autolink:0.27.1")

@@ -327,6 +327,7 @@ fun ForClawSettingsTab() {
         // ── 界面 ─────────────────────────────────────────────────
         SettingsSection(stringResource(R.string.settings_section_ui)) {
             AvatarToggleItem()
+            RiveAvatarToggleItem()
             FloatWindowToggleItem()
         }
 
@@ -546,6 +547,70 @@ private fun AvatarToggleItem() {
                     enabled = v
                     prefs.edit().putBoolean("enabled", v).apply()
                     if (v) FloatingAvatarService.start(context) else FloatingAvatarService.stop(context)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun RiveAvatarToggleItem() {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("forclaw_rive_avatar", Context.MODE_PRIVATE)
+    var enabled by remember { mutableStateOf(prefs.getBoolean("enabled", false)) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.SmartToy,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Rive \u5316\u8eab", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Rive \u52a8\u753b\u89d2\u8272\u60ac\u6d6e\u7a97",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = { v ->
+                    if (v && !android.provider.Settings.canDrawOverlays(context)) {
+                        context.startActivity(
+                            Intent(
+                                android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:${context.packageName}"),
+                            ),
+                        )
+                        return@Switch
+                    }
+                    // Mutual exclusion: turn off Live2D avatar when enabling Rive
+                    if (v) {
+                        val live2dPrefs = context.getSharedPreferences("forclaw_avatar", Context.MODE_PRIVATE)
+                        if (live2dPrefs.getBoolean("enabled", false)) {
+                            live2dPrefs.edit().putBoolean("enabled", false).apply()
+                            FloatingAvatarService.stop(context)
+                        }
+                    }
+                    enabled = v
+                    prefs.edit().putBoolean("enabled", v).apply()
+                    if (v) {
+                        ai.openclaw.app.rive.FloatingRiveService.start(context)
+                    } else {
+                        ai.openclaw.app.rive.FloatingRiveService.stop(context)
+                    }
                 },
             )
         }

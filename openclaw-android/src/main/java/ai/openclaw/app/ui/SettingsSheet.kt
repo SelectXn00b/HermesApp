@@ -264,6 +264,7 @@ fun SettingsSheet(viewModel: MainViewModel) {
     }
 
   var avatarRunning by remember { mutableStateOf(FloatingAvatarService.isRunning) }
+  var riveAvatarRunning by remember { mutableStateOf(ai.openclaw.app.rive.FloatingRiveService.isRunning) }
   var overlayPermissionGranted by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
 
   DisposableEffect(lifecycleOwner, context) {
@@ -271,6 +272,7 @@ fun SettingsSheet(viewModel: MainViewModel) {
       LifecycleEventObserver { _, event ->
         if (event == Lifecycle.Event.ON_RESUME) {
           avatarRunning = FloatingAvatarService.isRunning
+          riveAvatarRunning = ai.openclaw.app.rive.FloatingRiveService.isRunning
           overlayPermissionGranted = Settings.canDrawOverlays(context)
           micPermissionGranted =
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
@@ -772,6 +774,42 @@ fun SettingsSheet(viewModel: MainViewModel) {
                   }
                   if (checked) FloatingAvatarService.start(context) else FloatingAvatarService.stop(context)
                   avatarRunning = FloatingAvatarService.isRunning
+                },
+              )
+            },
+          )
+          HorizontalDivider(color = mobileBorder)
+          ListItem(
+            modifier = Modifier.fillMaxWidth(),
+            colors = listItemColors,
+            headlineContent = { Text("Rive \u5316\u8eab", style = mobileHeadline) },
+            supportingContent = { Text("Rive \u52a8\u753b\u89d2\u8272\u60ac\u6d6e\u7a97\u3002", style = mobileCallout) },
+            trailingContent = {
+              Switch(
+                checked = riveAvatarRunning,
+                onCheckedChange = { checked ->
+                  if (checked && !overlayPermissionGranted) {
+                    context.startActivity(
+                      Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${context.packageName}"),
+                      ),
+                    )
+                    return@Switch
+                  }
+                  val rivePrefs = context.getSharedPreferences("forclaw_rive_avatar", Context.MODE_PRIVATE)
+                  if (checked) {
+                    // Mutual exclusion: stop Live2D if running
+                    if (FloatingAvatarService.isRunning) {
+                      FloatingAvatarService.stop(context)
+                      avatarRunning = false
+                    }
+                    ai.openclaw.app.rive.FloatingRiveService.start(context)
+                  } else {
+                    ai.openclaw.app.rive.FloatingRiveService.stop(context)
+                  }
+                  rivePrefs.edit().putBoolean("enabled", checked).apply()
+                  riveAvatarRunning = ai.openclaw.app.rive.FloatingRiveService.isRunning
                 },
               )
             },
