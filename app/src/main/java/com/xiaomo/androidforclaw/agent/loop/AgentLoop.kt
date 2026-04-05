@@ -233,6 +233,9 @@ class AgentLoop(
 
     // Timeout compaction counter (aligned with OpenClaw timeoutCompactionAttempts)
     private var timeoutCompactionAttempts = 0
+    // Empty/suspicious response retry counter
+    private var emptyResponseRetryAttempts = 0
+    private val MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS = 2
 
     // Transient HTTP retry guard (aligned with OpenClaw didRetryTransientHttpError)
     private var didRetryTransientHttpError = false
@@ -983,12 +986,47 @@ class AgentLoop(
                     rawContent = response.thinkingContent
                 }
 
-                // Warn if LLM returned suspicious default text
-                if (rawContent == "无响应" || rawContent == "无响应。" || rawContent == "没有响应") {
-                    writeLog("⚠️ LLM returned suspicious default text: '$rawContent'")
-                    writeLog("   This usually indicates: context too large, model confusion, or corrupted history")
+                // Detect suspicious default text from LLM (e.g. "无响应")
+                // Instead of silently accepting, try to compact context and retry
+                val isSuspiciousResponse = rawContent == "无响应" || rawContent == "无响应。" || rawContent == "没有响应"
+                if (isSuspiciousResponse && emptyResponseRetryAttempts < MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS) {
+                    emptyResponseRetryAttempts++
+                    writeLog("⚠️ LLM returned suspicious default text: '$rawContent' (retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS)")
                     writeLog("   Messages count: ${messages.size}, Total context chars: ${ToolResultContextGuard.estimateContextChars(messages)}")
-                    Log.w(TAG, "⚠️ LLM returned suspicious default text: '$rawContent' (context may be too large)")
+                    Log.w(TAG, "⚠️ Suspicious response '$rawContent', retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS")
+
+                    if (contextManager != null) {
+                        writeLog("🔄 正在压缩上下文后重试...")
+                        val recoveryResult = contextManager.handleContextOverflow(
+                            error = Exception("Suspicious default response: $rawContent"),
+                            messages = messages
+                        )
+                        when (recoveryResult) {
+                            is ContextRecoveryResult.Recovered -> {
+                                writeLog("✅ 上下文压缩成功: ${recoveryResult.strategy}")
+                                messages.clear()
+                                messages.addAll(recoveryResult.messages)
+                                _progressFlow.emit(ProgressUpdate.ContextRecovered(
+                                    strategy = recoveryResult.strategy,
+                                    attempt = recoveryResult.attempt
+                                ))
+                            }
+                            is ContextRecoveryResult.CannotRecover -> {
+                                writeLog("⚠️ 上下文压缩失败，尝试工具结果截断...")
+                                val ctxTokens = resolveContextWindowTokens()
+                                pruneOldToolResults(messages, ctxTokens)
+                                ToolResultContextGuard.enforceContextBudget(messages, ctxTokens)
+                            }
+                        }
+                    } else {
+                        writeLog("🔄 无 contextManager，直接重试...")
+                    }
+                    continue
+                }
+
+                if (isSuspiciousResponse) {
+                    writeLog("❌ LLM 多次返回可疑默认文本 '$rawContent'，放弃重试")
+                    Log.e(TAG, "❌ LLM returned suspicious response after $emptyResponseRetryAttempts retries")
                 }
 
                 finalContent = if (SubagentPromptBuilder.isSilentReplyText(rawContent)) null else rawContent
@@ -1448,6 +1486,7 @@ class AgentLoop(
     fun reset() {
         shouldStop = false
         timeoutCompactionAttempts = 0
+        emptyResponseRetryAttempts = 0
         didRetryTransientHttpError = false
         loopDetectionState.toolCallHistory.clear()
         // Drain steer channel to remove stale messages
