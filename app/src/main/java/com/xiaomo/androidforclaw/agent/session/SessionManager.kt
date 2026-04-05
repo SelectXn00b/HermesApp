@@ -162,6 +162,31 @@ class SessionManager(
 
         // Opportunistic cleanup: remove orphan JSONL files not referenced by any index entry
         cleanOrphanJsonlFiles()
+
+        // Clean up agentloop session log files
+        cleanSessionLogs()
+    }
+
+    /**
+     * Clean up agentloop session log files from workspace/logs/
+     */
+    fun cleanSessionLogs() {
+        try {
+            val logDir = File(workspace, "logs")
+            if (!logDir.exists()) return
+            val logFiles = logDir.listFiles { file -> file.extension == "log" } ?: return
+            var cleaned = 0
+            for (file in logFiles) {
+                if (file.delete()) {
+                    cleaned++
+                }
+            }
+            if (cleaned > 0) {
+                Log.i(TAG, "🧹 Cleaned $cleaned session log file(s)")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to clean session logs: ${e.message}")
+        }
     }
 
     /**
@@ -204,6 +229,9 @@ class SessionManager(
         }
         indexFile.delete()
         Log.d(TAG, "All sessions cleared")
+
+        // Clean up agentloop session log files
+        cleanSessionLogs()
     }
 
     /**
