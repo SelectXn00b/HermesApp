@@ -689,6 +689,14 @@ class AgentLoop(
                 val llmDuration = System.currentTimeMillis() - llmStartTime
 
                 writeLog("✅ LLM 流式响应完成 [耗时: ${llmDuration}ms]")
+                // Debug: log raw LLM response for diagnosing empty/unexpected responses
+                writeLog("   Raw content length: ${response.content?.length ?: 0}")
+                writeLog("   Raw content: [${response.content?.take(500) ?: "null"}]")
+                writeLog("   Tool calls: ${response.toolCalls?.size ?: 0}")
+                writeLog("   Finish reason: ${response.finishReason ?: "null"}")
+                if (response.content != null && response.content.length > 500) {
+                    writeLog("   Raw content tail: ...${response.content.takeLast(200)}")
+                }
 
                 if (llmDuration > 30_000) {
                     writeLog("⚠️ LLM 响应耗时较长: ${llmDuration}ms")
@@ -966,6 +974,15 @@ class AgentLoop(
                 // Filter SILENT_REPLY_TOKEN (aligned with OpenClaw normalizeStreamingText)
                 val rawContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
                     ?: response.content
+
+                // Warn if LLM returned suspicious default text
+                if (rawContent == "无响应" || rawContent == "无响应。" || rawContent == "没有响应") {
+                    writeLog("⚠️ LLM returned suspicious default text: '$rawContent'")
+                    writeLog("   This usually indicates: context too large, model confusion, or corrupted history")
+                    writeLog("   Messages count: ${messages.size}, Total context chars: ${ToolResultContextGuard.estimateContextChars(messages)}")
+                    Log.w(TAG, "⚠️ LLM returned suspicious default text: '$rawContent' (context may be too large)")
+                }
+
                 finalContent = if (SubagentPromptBuilder.isSilentReplyText(rawContent)) null else rawContent
                 messages.add(assistantMessage(content = finalContent))
 
