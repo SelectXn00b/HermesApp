@@ -1006,6 +1006,43 @@ class AgentLoop(
                     rawContent = response.thinkingContent
                 }
 
+                // Detect token-loop: finish_reason=length + no tool calls → model hit max_tokens in repetitive loop
+                // Also detect repetitive content (e.g. same sentence repeated 100+ times)
+                val isTokenLoop = response.finishReason == "length" && response.toolCalls.isNullOrEmpty()
+                val isRepetitiveContent = rawContent != null && rawContent.length > 500 && isHighlyRepetitive(rawContent)
+                if ((isTokenLoop || isRepetitiveContent) && emptyResponseRetryAttempts < MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS) {
+                    emptyResponseRetryAttempts++
+                    val reason = if (isTokenLoop) "finish_reason=length, no tools" else "repetitive content (${rawContent!!.length} chars)"
+                    writeLog("⚠️ LLM 陷入 token 循环: $reason (retry $emptyResponseRetryAttempts/$MAX_EMPTY_RESPONSE_RETRY_ATTEMPTS)")
+                    Log.w(TAG, "⚠️ Token loop detected: $reason, retry $emptyResponseRetryAttempts")
+
+                    if (contextManager != null) {
+                        writeLog("🔄 压缩上下文后重试...")
+                        val recoveryResult = contextManager.handleContextOverflow(
+                            error = Exception("Token loop: $reason"),
+                            messages = messages
+                        )
+                        when (recoveryResult) {
+                            is ContextRecoveryResult.Recovered -> {
+                                messages.clear()
+                                messages.addAll(recoveryResult.messages)
+                                _progressFlow.emit(ProgressUpdate.ContextRecovered(
+                                    strategy = recoveryResult.strategy,
+                                    attempt = recoveryResult.attempt
+                                ))
+                            }
+                            is ContextRecoveryResult.CannotRecover -> {
+                                val ctxTokens = resolveContextWindowTokens()
+                                pruneOldToolResults(messages, ctxTokens)
+                                ToolResultContextGuard.enforceContextBudget(messages, ctxTokens)
+                            }
+                        }
+                    } else {
+                        writeLog("🔄 无 contextManager，直接重试...")
+                    }
+                    continue
+                }
+
                 // Detect suspicious default text from LLM (e.g. "无响应")
                 // Instead of silently accepting, try to compact context and retry
                 val isSuspiciousResponse = rawContent == "无响应" || rawContent == "无响应。" || rawContent == "没有响应"
@@ -1514,6 +1551,30 @@ class AgentLoop(
         // Clear yield signal
         yieldSignal = null
         Log.d(TAG, "AgentLoop reset for steer-restart")
+    }
+
+    /**
+     * Detect highly repetitive content (model stuck in a loop).
+     * Takes the first 50 chars as a "chunk" and checks how many times it repeats.
+     * Returns true if >50% of the content is the same chunk repeated.
+     */
+    private fun isHighlyRepetitive(content: String): Boolean {
+        if (content.length < 500) return false
+        val chunkSize = 50
+        val chunk = content.take(chunkSize)
+        if (chunk.isBlank()) return false
+        var repeatCount = 0
+        var pos = 0
+        while (pos + chunkSize <= content.length) {
+            if (content.regionMatches(pos, chunk, 0, chunkSize)) {
+                repeatCount++
+            } else {
+                break // Stop at first mismatch — repetitive content is typically at the start
+            }
+            pos += chunkSize
+        }
+        val repeatedChars = repeatCount * chunkSize
+        return repeatedChars > content.length * 0.5
     }
 }
 
