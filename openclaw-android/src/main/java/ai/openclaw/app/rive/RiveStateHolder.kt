@@ -12,6 +12,16 @@ import kotlinx.coroutines.flow.receiveAsFlow
  */
 object RiveStateHolder {
 
+    /** Display config passed from app module (ConfigLoader cannot be accessed in openclaw-android). */
+    data class DisplayConfig(
+        val containerSizeDp: Int = 80,
+        val zoomFactor: Float = 2.0f,
+        val offsetXDp: Int = 0,
+        val offsetYDp: Int = 0
+    )
+
+    val displayConfig = MutableStateFlow(DisplayConfig())
+
     private val _triggers = Channel<String>(Channel.BUFFERED)
     val triggers = _triggers.receiveAsFlow()
 

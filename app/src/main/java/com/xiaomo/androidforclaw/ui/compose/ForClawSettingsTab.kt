@@ -607,6 +607,7 @@ private fun RiveAvatarToggleItem() {
                     enabled = v
                     prefs.edit().putBoolean("enabled", v).apply()
                     if (v) {
+                        injectRiveDisplayConfig()
                         ai.openclaw.app.rive.FloatingRiveService.start(context)
                     } else {
                         ai.openclaw.app.rive.FloatingRiveService.stop(context)
@@ -615,6 +616,19 @@ private fun RiveAvatarToggleItem() {
             )
         }
     }
+}
+
+private fun injectRiveDisplayConfig() {
+    try {
+        val config = com.xiaomo.androidforclaw.config.ConfigLoader.getInstance().loadOpenClawConfig().rive
+        ai.openclaw.app.rive.RiveStateHolder.displayConfig.value =
+            ai.openclaw.app.rive.RiveStateHolder.DisplayConfig(
+                containerSizeDp = config.containerSizeDp,
+                zoomFactor = config.zoomFactor,
+                offsetXDp = config.offsetXDp,
+                offsetYDp = config.offsetYDp
+            )
+    } catch (_: Exception) {}
 }
 
 @Composable

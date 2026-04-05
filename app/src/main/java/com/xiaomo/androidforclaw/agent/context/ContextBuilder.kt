@@ -157,6 +157,7 @@ class ContextBuilder(
 
         // 1.6 Rive expression (lightweight emotion tag per reply)
         val riveSection = buildRiveBodySection()
+        Log.d(TAG, "buildRiveBodySection: ${if (riveSection.isEmpty()) "EMPTY (disabled)" else "INJECTED (${riveSection.length} chars)"}")
         if (riveSection.isNotEmpty()) {
             parts.add(riveSection)
         }
@@ -352,31 +353,13 @@ You have 17 individually controllable parameters:
     private fun buildRiveBodySection(): String {
         val enabled = context.getSharedPreferences("forclaw_rive_avatar", android.content.Context.MODE_PRIVATE)
             .getBoolean("enabled", false)
+        Log.d(TAG, "buildRiveBodySection: pref forclaw_rive_avatar/enabled = $enabled")
         if (!enabled) return ""
 
         return """
 ## Your Expression
 
-You have a Rive animated avatar on the user's screen.
-You MUST end every reply with exactly ONE expression tag: [rive:TAG]
-
-Available tags:
-| Tag | When to use |
-|-----|------------|
-| happy | Positive, cheerful, good news |
-| sad | Empathy, bad news, apology |
-| angry | Frustration, strong disagreement |
-| surprised | Unexpected info, impressed |
-| thinking | Processing, considering, uncertain |
-| neutral | Factual, informational, calm |
-| excited | Very enthusiastic, celebrating |
-| sleepy | Tired, bored, low energy |
-
-Rules:
-- Place the tag at the very end of your reply, on its own line
-- Use exactly one tag per reply
-- Match the expression to the emotional tone of your response
-- The tag will be stripped before the user sees it
+A Rive robot avatar is active on the user's screen. You MUST end EVERY reply with a `[rive:TAG]` tag on its own line. The rive-expression skill (always loaded) has full documentation. This is mandatory — never skip the tag.
 """.trimIndent()
     }
 

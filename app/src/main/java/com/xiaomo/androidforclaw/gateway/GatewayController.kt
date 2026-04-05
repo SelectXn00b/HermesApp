@@ -324,7 +324,8 @@ class GatewayController(
                             )
                             streamJob.cancel()
 
-                            val text = result.finalContent
+                            val text = com.xiaomo.androidforclaw.util.RiveEmotionDispatcher
+                                .processAndDispatch(context, result.finalContent)
                             val msgId = "msg_${UUID.randomUUID()}"
                             val nowMs = System.currentTimeMillis()
 

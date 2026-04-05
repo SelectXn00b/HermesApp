@@ -259,6 +259,10 @@ class ConfigLoader private constructor() {
         val sessionJson = root.optJSONObject("session")
         val session = sessionJson?.let { parseSessionConfig(it) } ?: SessionConfig()
 
+        // Rive
+        val riveJson = root.optJSONObject("rive")
+        val rive = riveJson?.let { parseRiveConfig(it) } ?: RiveConfig()
+
         // Legacy providers (top-level)
         val legacyProviders = root.optJSONObject("providers")?.let { parseProvidersMap(it) } ?: emptyMap()
 
@@ -297,6 +301,7 @@ class ConfigLoader private constructor() {
             modelAliases = modelAliases,
             modelAllowlist = modelAllowlist,
             agent = agent,
+            rive = rive,
             providers = legacyProviders
         )
     }
@@ -840,6 +845,26 @@ class ConfigLoader private constructor() {
             maxEntries = json.optInt("maxEntries", 500),
             maxDiskBytes = json.optLong("maxDiskBytes", 100_000_000L),
             highWaterRatio = json.optDouble("highWaterRatio", 0.8).toFloat()
+        )
+    }
+
+    private fun parseRiveConfig(json: JSONObject): RiveConfig {
+        val emotionMapJson = json.optJSONObject("emotionMap")
+        val emotionMap = if (emotionMapJson != null) {
+            val map = mutableMapOf<String, Float>()
+            emotionMapJson.keys().forEach { key ->
+                map[key] = emotionMapJson.optDouble(key, 0.0).toFloat()
+            }
+            map
+        } else {
+            RiveConfig().emotionMap
+        }
+        return RiveConfig(
+            emotionMap = emotionMap,
+            containerSizeDp = json.optInt("containerSizeDp", 80),
+            zoomFactor = json.optDouble("zoomFactor", 1.6).toFloat(),
+            offsetXDp = json.optInt("offsetXDp", 17),
+            offsetYDp = json.optInt("offsetYDp", 0)
         )
     }
 

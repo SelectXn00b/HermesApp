@@ -39,6 +39,7 @@ data class OpenClawConfig(
 
     // ======= Android 扩展 =======
     val agent: AgentConfig = AgentConfig(),
+    val rive: RiveConfig = RiveConfig(),
 
     // ======= Legacy =======
     val providers: Map<String, ProviderConfig> = emptyMap()
@@ -459,6 +460,24 @@ data class UIConfig(
 data class ThinkingConfig(
     val enabled: Boolean = true,
     val budgetTokens: Int = 10000
+)
+
+data class RiveConfig(
+    /** Emotion name -> Rive Expressions number input value */
+    val emotionMap: Map<String, Float> = mapOf(
+        "happy" to 1f, "smile" to 1f, "excited" to 2f,
+        "sad" to 3f, "scared" to 4f, "angry" to 4f,
+        "surprised" to 5f, "thinking" to 0f, "neutral" to 0f,
+        "sleepy" to 0f, "idle" to 0f
+    ),
+    /** Floating avatar container size in dp */
+    val containerSizeDp: Int = 80,
+    /** Zoom factor: riveViewSize = containerSize * zoomFactor */
+    val zoomFactor: Float = 1.6f,
+    /** Horizontal offset in dp to fine-tune face centering (positive = shift right) */
+    val offsetXDp: Int = 17,
+    /** Vertical offset in dp to fine-tune face centering (positive = shift down) */
+    val offsetYDp: Int = 0
 )
 
 // ============ 配置常量 ============

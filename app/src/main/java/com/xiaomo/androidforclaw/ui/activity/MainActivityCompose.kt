@@ -182,6 +182,16 @@ class MainActivityCompose : ComponentActivity() {
             val avatarEnabled = getSharedPreferences("forclaw_avatar", MODE_PRIVATE)
                 .getBoolean("enabled", false)
             if (riveAvatarEnabled && !ai.openclaw.app.rive.FloatingRiveService.isRunning) {
+                try {
+                    val riveCfg = com.xiaomo.androidforclaw.config.ConfigLoader.getInstance().loadOpenClawConfig().rive
+                    ai.openclaw.app.rive.RiveStateHolder.displayConfig.value =
+                        ai.openclaw.app.rive.RiveStateHolder.DisplayConfig(
+                            containerSizeDp = riveCfg.containerSizeDp,
+                            zoomFactor = riveCfg.zoomFactor,
+                            offsetXDp = riveCfg.offsetXDp,
+                            offsetYDp = riveCfg.offsetYDp
+                        )
+                } catch (_: Exception) {}
                 ai.openclaw.app.rive.FloatingRiveService.start(this)
             } else if (avatarEnabled && !ai.openclaw.app.avatar.FloatingAvatarService.isRunning) {
                 ai.openclaw.app.avatar.FloatingAvatarService.start(this)

@@ -5,13 +5,16 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
+import android.graphics.Outline
 import android.graphics.PixelFormat
 import android.os.IBinder
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.core.app.NotificationCompat
 import app.rive.runtime.kotlin.RiveAnimationView
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +26,7 @@ import kotlinx.coroutines.launch
 class FloatingRiveService : Service() {
 
     private var windowManager: WindowManager? = null
+    private var containerView: FrameLayout? = null
     private var riveView: RiveAnimationView? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -40,10 +44,14 @@ class FloatingRiveService : Service() {
         isRunning = false
         scope.cancel()
         val view = riveView
+        val container = containerView
         riveView = null
+        containerView = null
         if (view != null) {
             try { view.stop() } catch (_: Exception) {}
-            try { windowManager?.removeView(view) } catch (_: Exception) {}
+        }
+        if (container != null) {
+            try { windowManager?.removeView(container) } catch (_: Exception) {}
         }
         super.onDestroy()
     }
@@ -78,10 +86,14 @@ class FloatingRiveService : Service() {
         }
 
         val density = resources.displayMetrics.density
-        val size = (160 * density).toInt()
+        val cfg = RiveStateHolder.displayConfig.value
+        val containerSize = (cfg.containerSizeDp * density).toInt()
+        val riveSize = (cfg.containerSizeDp * cfg.zoomFactor * density).toInt()
+        val offsetX = -(riveSize - containerSize) / 2 + (cfg.offsetXDp * density).toInt()
+        val offsetY = -(riveSize - containerSize) / 2 + (cfg.offsetYDp * density).toInt()
 
         val params = WindowManager.LayoutParams(
-            size, size,
+            containerSize, containerSize,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -100,7 +112,6 @@ class FloatingRiveService : Service() {
                     stateMachineName = STATE_MACHINE_NAME,
                     autoplay = true,
                 )
-                setBackgroundColor(Color.TRANSPARENT)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load .riv (stateMachine=$STATE_MACHINE_NAME)", e)
@@ -108,11 +119,36 @@ class FloatingRiveService : Service() {
             return
         }
         riveView = view
-        Log.i(TAG, "Rive loaded: artboard=default, stateMachine=$STATE_MACHINE_NAME")
+        // Disable cursor tracking — we don't need it in the floating window
+        try { view.setBooleanState(STATE_MACHINE_NAME, "IsTracking", false) } catch (_: Exception) {}
+        Log.i(TAG, "Rive loaded: stateMachine=$STATE_MACHINE_NAME, container=${cfg.containerSizeDp}dp, zoom=${cfg.zoomFactor}")
 
-        // Drag handling (same pattern as FloatingAvatarService)
+        // Container: intercepts all touches for drag
+        val container = object : FrameLayout(this@FloatingRiveService) {
+            override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean = true
+        }.apply {
+            clipChildren = true
+            clipToPadding = true
+        }
+        val riveLayoutParams = FrameLayout.LayoutParams(riveSize, riveSize).apply {
+            leftMargin = offsetX
+            topMargin = offsetY
+        }
+        container.addView(view, riveLayoutParams)
+
+        // Circular clipping — crop to just the robot face
+        container.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(v: View, outline: Outline) {
+                outline.setOval(0, 0, containerSize, containerSize)
+            }
+        }
+        container.clipToOutline = true
+
+        containerView = container
+
+        // Drag handling
         var initX = 0; var initY = 0; var touchX = 0f; var touchY = 0f
-        view.setOnTouchListener { _, event ->
+        container.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initX = params.x; initY = params.y
@@ -122,14 +158,14 @@ class FloatingRiveService : Service() {
                 MotionEvent.ACTION_MOVE -> {
                     params.x = initX - (event.rawX - touchX).toInt()
                     params.y = initY - (event.rawY - touchY).toInt()
-                    windowManager?.updateViewLayout(view, params)
+                    windowManager?.updateViewLayout(container, params)
                     true
                 }
                 else -> false
             }
         }
 
-        windowManager?.addView(view, params)
+        windowManager?.addView(container, params)
     }
 
     private fun observeRiveState() {
