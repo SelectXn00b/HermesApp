@@ -218,6 +218,13 @@ class UnifiedLLMProvider(private val context: Context) {
 
                                 Log.d(TAG, "📤 Streaming request to $apiUrl (candidate=${candidate.provider}/${candidate.model}, attempt=$attempt, key=${keyIdx + 1}/${apiKeys.size})")
 
+                                // 🔍 Debug: Log request summary before sending
+                                val msgCount = messages.size
+                                val sysLen = messages.firstOrNull { it.role == "system" }?.content?.length ?: 0
+                                val toolCount = newTools?.size ?: 0
+                                Log.d(TAG, "🔍 LLM Request: model=${model.id}, provider=${candidate.provider}, reasoning=$reasoningEnabled, messages=$msgCount, tools=$toolCount, systemPrompt=$sysLen chars")
+                                Log.d(TAG, "🔍 API URL: $apiUrl")
+
                                 val request = Request.Builder()
                                     .url(apiUrl)
                                     .headers(headers)
@@ -236,9 +243,12 @@ class UnifiedLLMProvider(private val context: Context) {
                                 val source = response.body?.source()
                                     ?: throw LLMException("Empty streaming response body")
 
+                                var currentEventType: String? = null
+                                val isAnthropic = api == ModelApi.ANTHROPIC_MESSAGES
+                                var chunkCount = 0
+                                val rawChunkLog = StringBuilder() // Collect first 5 raw chunks for debug
+
                                 try {
-                                    var currentEventType: String? = null
-                                    val isAnthropic = api == ModelApi.ANTHROPIC_MESSAGES
 
                                     while (!source.exhausted()) {
                                         val line = source.readUtf8Line() ?: break
@@ -256,6 +266,13 @@ class UnifiedLLMProvider(private val context: Context) {
                                             }
                                             if (data.isEmpty()) continue
 
+                                            // Log first 5 raw SSE data lines for debugging
+                                            chunkCount++
+                                            if (chunkCount <= 5) {
+                                                val preview = if (data.length > 300) data.take(300) + "..." else data
+                                                rawChunkLog.append("  chunk[$chunkCount]: $preview\n")
+                                            }
+
                                             val chunk = ApiAdapter.parseStreamChunk(
                                                 api = api,
                                                 eventType = if (isAnthropic) currentEventType else null,
@@ -269,6 +286,11 @@ class UnifiedLLMProvider(private val context: Context) {
                                         }
                                     }
                                 } finally {
+                                    // Log raw chunk summary for debugging
+                                    if (rawChunkLog.isNotEmpty()) {
+                                        Log.d(TAG, "🔍 Raw SSE chunks (first 5):\n$rawChunkLog")
+                                    }
+                                    Log.d(TAG, "🔍 Streaming done: totalChunks=$chunkCount")
                                     source.close()
                                     response.close()
                                 }
