@@ -1213,6 +1213,14 @@ object ApiAdapter {
         try {
             val json = JSONObject(dataLine)
 
+            // Check for inline error (e.g. upstream 502/429 returned inside SSE stream)
+            val error = json.optJSONObject("error")
+            if (error != null) {
+                val code = error.optInt("code", 0)
+                val message = error.optString("message", "Unknown streaming error")
+                throw LLMException("Streaming API request failed: $code - $message")
+            }
+
             // Usage-only chunk (sent at end with stream_options.include_usage)
             val usage = json.optJSONObject("usage")
             if (usage != null && !json.has("choices")) {
