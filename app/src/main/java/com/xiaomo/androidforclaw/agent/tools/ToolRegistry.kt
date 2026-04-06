@@ -110,6 +110,9 @@ class ToolRegistry(
         // === Lark CLI (飞书官方 CLI) ===
         register(LarkCliTool(context))
 
+        // === Message tool (OpenClaw message-tool.ts) ===
+        register(MessageTool(context))
+
         Log.d(TAG, "✅ Registered ${tools.size} universal tools (memory tools in AndroidToolRegistry)")
     }
 

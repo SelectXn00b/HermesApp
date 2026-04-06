@@ -2,28 +2,28 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/session-tool-result-guard.ts (session-level guard)
- * - ../openclaw/src/agents/pi-embedded-runner/tool-result-context-guard.ts (per-run guard)
+ * - ../openclaw/src/agents/pi-embedded-runner/tool-result-context-guard.ts
  *
  * AndroidForClaw adaptation: bound tool result size within context limits.
+ *
+ * Upstream commit a42ee69ad4:
+ * - Removed CONTEXT_INPUT_HEADROOM_RATIO (0.75)
+ * - Uses PREEMPTIVE_OVERFLOW_RATIO (0.9) directly
+ * - Simplified threshold: exceedsPreemptiveOverflowThreshold()
+ * - "Context overflow: estimated context size exceeds safe threshold..."
  */
-
 
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.providers.llm.Message
 
 /**
- * Tool Result Context Guard — Gap 1 alignment with OpenClaw tool-result-context-guard.ts
+ * Tool Result Context Guard — Enforce context budget for tool results.
  *
- * Dynamically enforces context budget by:
- * 1. Truncating individual oversized tool results
- * 2. Compacting oldest tool results when total context exceeds budget
- *
- * Constants aligned with OpenClaw:
+ * Upstream: tool-result-context-guard.ts
  * - CHARS_PER_TOKEN_ESTIMATE = 4
  * - TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE = 2
- * - CONTEXT_INPUT_HEADROOM_RATIO = 0.75
  * - SINGLE_TOOL_RESULT_CONTEXT_SHARE = 0.5
+ * - PREEMPTIVE_OVERFLOW_RATIO = 0.9
  */
 object ToolResultContextGuard {
     private const val TAG = "ToolResultContextGuard"
@@ -33,16 +33,40 @@ object ToolResultContextGuard {
     const val TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE = 2
     const val IMAGE_CHAR_ESTIMATE = 8_000
 
-    // Aligned with OpenClaw tool-result-context-guard.ts
-    const val CONTEXT_INPUT_HEADROOM_RATIO = 0.75
+    // Aligned with OpenClaw tool-result-context-guard.ts (upstream a42ee69ad4)
     const val SINGLE_TOOL_RESULT_CONTEXT_SHARE = 0.5
-    const val MAX_TOOL_RESULT_CONTEXT_SHARE = 0.3  // OpenClaw: max share of context for ALL tool results
-    const val HARD_MAX_TOOL_RESULT_CHARS = 40_000  // OpenClaw: DEFAULT_MAX_LIVE_TOOL_RESULT_CHARS (was 400K, reduced 10x)
+    const val PREEMPTIVE_OVERFLOW_RATIO = 0.9
 
-    const val CONTEXT_LIMIT_TRUNCATION_NOTICE = "[truncated: output exceeded context limit]"
+    const val CONTEXT_LIMIT_TRUNCATION_NOTICE = "more characters truncated"
     const val PREEMPTIVE_COMPACTION_PLACEHOLDER = "[compacted: tool output removed to free context]"
+    const val PREEMPTIVE_CONTEXT_OVERFLOW_MESSAGE =
+        "Context overflow: estimated context size exceeds safe threshold during tool loop."
 
     private const val MIN_BUDGET_CHARS = 1_024
+
+    /**
+     * Format truncation notice suffix.
+     * Upstream: formatContextLimitTruncationNotice()
+     */
+    fun formatContextLimitTruncationNotice(truncatedChars: Int): String {
+        return "[... ${maxOf(1, truncatedChars)} $CONTEXT_LIMIT_TRUNCATION_NOTICE]"
+    }
+
+    /**
+     * Check if estimated context exceeds preemptive overflow threshold.
+     * Upstream: exceedsPreemptiveOverflowThreshold()
+     *
+     * @param estimatedContextChars Estimated total context characters
+     * @param contextWindowTokens Context window size in tokens
+     * @return true if overflow threshold exceeded
+     */
+    fun exceedsPreemptiveOverflowThreshold(
+        estimatedContextChars: Int,
+        contextWindowTokens: Int
+    ): Boolean {
+        val maxContextChars = contextWindowTokens * CHARS_PER_TOKEN_ESTIMATE
+        return estimatedContextChars > maxContextChars * PREEMPTIVE_OVERFLOW_RATIO
+    }
 
     /**
      * Enforce tool result context budget on a mutable list of messages.
@@ -57,7 +81,7 @@ object ToolResultContextGuard {
     ): MutableList<Message> {
         val contextBudgetChars = maxOf(
             MIN_BUDGET_CHARS,
-            (contextWindowTokens * CHARS_PER_TOKEN_ESTIMATE * CONTEXT_INPUT_HEADROOM_RATIO).toInt()
+            (contextWindowTokens * CHARS_PER_TOKEN_ESTIMATE * PREEMPTIVE_OVERFLOW_RATIO).toInt()
         )
         val maxSingleToolResultChars = maxOf(
             MIN_BUDGET_CHARS,
@@ -66,14 +90,17 @@ object ToolResultContextGuard {
 
         Log.d(TAG, "Context budget: $contextBudgetChars chars, single tool max: $maxSingleToolResultChars chars")
 
-        // Step 0: Hard max — truncate any tool result exceeding absolute limit (OpenClaw HARD_MAX_TOOL_RESULT_CHARS)
+        // Step 0: Hard max — truncate any tool result exceeding ToolResultTruncator limit
+        val hardMaxChars = ToolResultTruncator.DEFAULT_MAX_LIVE_TOOL_RESULT_CHARS
         for (i in messages.indices) {
             val msg = messages[i]
             if (!isToolResultMessage(msg)) continue
             val contentStr = msg.content ?: continue
-            if (contentStr.length > HARD_MAX_TOOL_RESULT_CHARS) {
-                messages[i] = msg.copy(content = truncateTextToBudget(contentStr, HARD_MAX_TOOL_RESULT_CHARS))
-                Log.d(TAG, "Hard-max truncated tool result ${msg.name ?: msg.toolCallId}: ${contentStr.length} -> $HARD_MAX_TOOL_RESULT_CHARS chars")
+            if (contentStr.length > hardMaxChars) {
+                messages[i] = msg.copy(
+                    content = ToolResultTruncator.truncateText(contentStr, hardMaxChars)
+                )
+                Log.d(TAG, "Hard-max truncated tool result ${msg.name ?: msg.toolCallId}: ${contentStr.length} -> $hardMaxChars chars")
             }
         }
 
@@ -86,7 +113,7 @@ object ToolResultContextGuard {
             val estimatedChars = estimateMessageChars(msg)
 
             if (estimatedChars > maxSingleToolResultChars) {
-                val truncated = truncateTextToBudget(contentStr, maxSingleToolResultChars)
+                val truncated = ToolResultTruncator.truncateText(contentStr, maxSingleToolResultChars)
                 messages[i] = msg.copy(content = truncated)
                 Log.d(TAG, "Truncated tool result ${msg.name ?: msg.toolCallId}: $estimatedChars -> ${truncated.length} chars")
             }
@@ -99,7 +126,7 @@ object ToolResultContextGuard {
             return messages
         }
 
-        Log.d(TAG, "Context over budget: $currentChars / $contextBudgetChars chars, compacting old tool results...")
+        Log.d(TAG, PREEMPTIVE_CONTEXT_OVERFLOW_MESSAGE)
 
         val charsNeeded = currentChars - contextBudgetChars
         var reduced = 0
@@ -143,7 +170,7 @@ object ToolResultContextGuard {
             "tool" -> {
                 val contentChars = msg.content?.length ?: 0
                 // Tool results use TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE (2 chars/token)
-                // but we need to weight them for comparison with regular text (4 chars/token)
+                // Weight them for comparison with regular text (4 chars/token)
                 val weightedChars = (contentChars * CHARS_PER_TOKEN_ESTIMATE / TOOL_RESULT_CHARS_PER_TOKEN_ESTIMATE)
                 maxOf(contentChars, weightedChars)
             }
@@ -165,27 +192,5 @@ object ToolResultContextGuard {
      */
     fun estimateContextChars(messages: List<Message>): Int {
         return messages.sumOf { estimateMessageChars(it) }
-    }
-
-    /**
-     * Truncate text to a budget, trying to break at newline boundary.
-     * Aligned with OpenClaw truncateTextToBudget.
-     */
-    private fun truncateTextToBudget(text: String, maxChars: Int): String {
-        if (text.length <= maxChars) return text
-        if (maxChars <= 0) return CONTEXT_LIMIT_TRUNCATION_NOTICE
-
-        val suffix = "\n$CONTEXT_LIMIT_TRUNCATION_NOTICE"
-        val bodyBudget = maxOf(0, maxChars - suffix.length)
-        if (bodyBudget <= 0) return CONTEXT_LIMIT_TRUNCATION_NOTICE
-
-        // Try to break at a newline for cleaner output
-        var cutPoint = bodyBudget
-        val newline = text.lastIndexOf('\n', bodyBudget)
-        if (newline > bodyBudget * 0.7) {
-            cutPoint = newline
-        }
-
-        return text.substring(0, cutPoint) + suffix
     }
 }
