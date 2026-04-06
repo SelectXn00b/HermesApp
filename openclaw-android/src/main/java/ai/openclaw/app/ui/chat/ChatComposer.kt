@@ -161,13 +161,37 @@ fun ChatComposer(
         onClick = onRefresh,
       )
 
-      SecondaryActionButton(
-        label = "中止",
-        icon = Icons.Default.Stop,
-        enabled = pendingRunCount > 0,
-        compact = true,
-        onClick = onAbort,
-      )
+      // Stop button: show as full button when AI is busy, compact icon otherwise
+      if (sendBusy) {
+        Button(
+          onClick = onAbort,
+          modifier = Modifier.height(44.dp),
+          shape = RoundedCornerShape(14.dp),
+          contentPadding = PaddingValues(horizontal = 14.dp),
+          colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFE53935),
+            contentColor = Color.White,
+          ),
+          border = BorderStroke(1.dp, Color(0xFFC62828)),
+        ) {
+          Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(16.dp))
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = "停止",
+            style = mobileHeadline.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
+      } else {
+        SecondaryActionButton(
+          label = "中止",
+          icon = Icons.Default.Stop,
+          enabled = false,
+          compact = true,
+          onClick = onAbort,
+        )
+      }
 
       Spacer(modifier = Modifier.weight(1f))
 
