@@ -126,19 +126,8 @@ object ContextErrors {
     fun isTransientHttpError(errorMessage: String?): Boolean {
         if (errorMessage.isNullOrBlank()) return false
         val trimmed = errorMessage.trim()
-        // HTTP status code check
-        val status = extractLeadingHttpStatus(trimmed)
-        if (status != null && status in TRANSIENT_HTTP_ERROR_CODES) return true
-        // Connection-level errors: cancelled streams, reset connections, broken pipes
-        val lower = trimmed.lowercase()
-        return lower.contains("cancelled") ||
-            lower.contains("connection reset") ||
-            lower.contains("broken pipe") ||
-            lower.contains("connection was closed") ||
-            lower.contains("unexpected end of stream") ||
-            lower.contains("stream was reset") ||
-            lower.contains("socket closed") ||
-            lower.contains("canceled") // OkHttp American spelling
+        val status = extractLeadingHttpStatus(trimmed) ?: return false
+        return status in TRANSIENT_HTTP_ERROR_CODES
     }
 
     /**
