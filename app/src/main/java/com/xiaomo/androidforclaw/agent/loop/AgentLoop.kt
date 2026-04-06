@@ -392,6 +392,20 @@ class AgentLoop(
         images: List<ImageBlock>? = null
     ): AgentResult {
         shouldStop = false
+
+        // Planning-Only Retry / ACK Fast Path state (对齐 OpenClaw run.ts L332-335)
+        var planningOnlyRetryAttempts = 0
+        var planningOnlyRetryInstruction: String? = null
+
+        // Parse provider/model from modelRef for ack fast path check
+        val refParts = modelRef?.split("/", limit = 2)
+        val resolvedProviderName = if (refParts != null && refParts.size == 2) refParts[0] else null
+        val resolvedModelId = if (refParts != null && refParts.size == 2) refParts[1] else modelRef
+
+        val ackExecutionFastPathInstruction = resolveAckExecutionFastPathInstruction(
+            AckExecutionParams(provider = resolvedProviderName, modelId = resolvedModelId, prompt = userMessage)
+        )
+
         val messages = mutableListOf<Message>()
         conversationMessages = messages  // Expose for sessions_history
 
@@ -424,12 +438,23 @@ class AgentLoop(
         }
 
         // 3. Add user message (with images if present — aligned with OpenClaw native image injection)
-        if (!images.isNullOrEmpty()) {
-            messages.add(userMessage(userMessage, images))
-            writeLog("✅ User message: $userMessage [+${images.size} image(s)]")
+        // Append ack/fast path + planning-only instructions if present (对齐 OpenClaw run.ts L508-514)
+        val promptAdditions = listOfNotNull(ackExecutionFastPathInstruction, planningOnlyRetryInstruction)
+        val effectiveUserMessage = if (promptAdditions.isNotEmpty()) {
+            "$userMessage\n\n${promptAdditions.joinToString("\n\n")}"
         } else {
-            messages.add(userMessage(userMessage))
-            writeLog("✅ User message: $userMessage")
+            userMessage
+        }
+        if (promptAdditions.isNotEmpty()) {
+            writeLog("📝 Appended ${promptAdditions.size} prompt addition(s): ${promptAdditions.map { it.take(40) }}")
+        }
+
+        if (!images.isNullOrEmpty()) {
+            messages.add(userMessage(effectiveUserMessage, images))
+            writeLog("✅ User message: $effectiveUserMessage [+${images.size} image(s)]")
+        } else {
+            messages.add(userMessage(effectiveUserMessage))
+            writeLog("✅ User message: $effectiveUserMessage")
         }
 
         // 3b. Detect image references in user message text (aligned with OpenClaw detectAndLoadPromptImages)
@@ -971,6 +996,17 @@ class AgentLoop(
                 }
 
                 // 4.4 No tool calls, meaning LLM provided final answer
+
+                // 4.4a. Stop Reason Recovery (对齐 OpenClaw attempt.stop-reason-recovery.ts)
+                // Detect unhandled stop_reason and convert to friendly error
+                val stopReasonError = detectUnhandledStopReason(response.finishReason)
+                if (stopReasonError != null) {
+                    writeLog("⚠️ Unhandled stop reason detected: ${response.finishReason}")
+                    messages.add(assistantMessage(content = stopReasonError))
+                    finalContent = stopReasonError
+                    break
+                }
+
                 // Filter SILENT_REPLY_TOKEN (aligned with OpenClaw normalizeStreamingText)
                 var rawContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
                     ?: response.content
@@ -991,6 +1027,73 @@ class AgentLoop(
                     Log.w(TAG, "⚠️ LLM returned suspicious default text: '$rawContent' (context may be too large)")
                 }
 
+                // 4.4b. Incomplete Turn Detection (对齐 OpenClaw incomplete-turn.ts L1378-1448)
+                // Build replay metadata for this attempt
+                val attemptReplayMeta = buildAttemptReplayMetadata(
+                    toolNames = toolsUsed.toList(),
+                    didSendViaMessagingTool = false
+                )
+
+                // Check incomplete turn: stop_reason is toolUse/error but no payload
+                val incompleteTurnText = resolveIncompleteTurnPayloadText(IncompleteTurnParams(
+                    payloadCount = 0,
+                    aborted = shouldStop,
+                    timedOut = false,
+                    hasClientToolCall = false,
+                    yieldDetected = false,
+                    didSendDeterministicApprovalPrompt = false,
+                    lastToolError = null,
+                    stopReason = response.finishReason,
+                    hadPotentialSideEffects = attemptReplayMeta.hadPotentialSideEffects
+                ))
+
+                // 4.4c. Planning-Only Retry (对齐 OpenClaw incomplete-turn.ts L1392-1422)
+                if (incompleteTurnText == null && planningOnlyRetryAttempts < 1) {
+                    val planningOnlyInstruction = resolvePlanningOnlyRetryInstruction(PlanningOnlyParams(
+                        provider = resolvedProviderName,
+                        modelId = resolvedModelId,
+                        aborted = shouldStop,
+                        timedOut = false,
+                        hasClientToolCall = false,
+                        yieldDetected = false,
+                        didSendDeterministicApprovalPrompt = false,
+                        didSendViaMessagingTool = false,
+                        lastToolError = null,
+                        startedToolCount = toolsUsed.size,
+                        hadPotentialSideEffects = attemptReplayMeta.hadPotentialSideEffects,
+                        stopReason = response.finishReason,
+                        assistantText = rawContent
+                    ))
+                    if (planningOnlyInstruction != null) {
+                        planningOnlyRetryAttempts += 1
+                        planningOnlyRetryInstruction = planningOnlyInstruction
+                        writeLog("🔄 Planning-only turn detected, injecting retry instruction (attempt $planningOnlyRetryAttempts)")
+                        Log.i(TAG, "Planning-only retry: attempt=$planningOnlyRetryAttempts")
+                        // Add the assistant message and inject retry instruction as user message
+                        messages.add(assistantMessage(content = rawContent))
+                        messages.add(userMessage(planningOnlyInstruction))
+                        _progressFlow.emit(ProgressUpdate.BlockReply(
+                            text = "🔄 Planning-only detected, retrying with action...",
+                            iteration = iteration
+                        ))
+                        continue
+                    }
+                }
+
+                // 4.4d. Incomplete turn recovery
+                if (incompleteTurnText != null) {
+                    writeLog("⚠️ Incomplete turn detected, injecting warning")
+                    Log.w(TAG, "Incomplete turn: finish_reason=${response.finishReason}")
+                    messages.add(assistantMessage(content = rawContent))
+                    messages.add(userMessage(incompleteTurnText))
+                    _progressFlow.emit(ProgressUpdate.BlockReply(
+                        text = incompleteTurnText,
+                        iteration = iteration
+                    ))
+                    continue
+                }
+
+                // 4.4e. Normal final answer
                 finalContent = if (SubagentPromptBuilder.isSilentReplyText(rawContent)) null else rawContent
                 messages.add(assistantMessage(content = finalContent))
 
@@ -1347,44 +1450,70 @@ class AgentLoop(
 
     /**
      * Sanitize and repair tool calls from LLM response.
-     * Aligned with OpenClaw stream wrapper chain:
-     * 1. wrapStreamFnTrimToolCallNames — trim whitespace from tool names
-     * 2. wrapStreamFnRepairMalformedToolCallArguments — repair Anthropic JSON issues
-     * 3. wrapStreamFnDecodeXaiToolCallArguments — decode HTML entities in xAI responses
+     * 对齐 OpenClaw stream wrapper chain:
+     * 1. ToolCallNormalization.normalizeToolCallNameForDispatch — 工具名规范化（候选名 + toolId 推断）
+     * 2. ToolCallArgumentRepair.tryExtractUsableToolCallArguments — 参数修复（平衡 JSON 提取）
+     * 3. ToolCallArgumentRepair.decodeHtmlEntitiesInObject — HTML 实体解码
      */
     private fun sanitizeToolCalls(toolCalls: List<LLMToolCall>): List<LLMToolCall> {
+        // 构建允许的工具名集合（用于规范化匹配）
+        val allowedToolNames = allToolDefinitions.map { it.function.name }.toSet()
+
         return toolCalls.map { tc ->
-            val trimmedName = tc.name.trim()
-            val repairedArgs = repairToolCallArguments(tc.arguments)
-            val decodedArgs = decodeHtmlEntities(repairedArgs)
-            if (trimmedName != tc.name || repairedArgs != tc.arguments || decodedArgs != repairedArgs) {
-                if (trimmedName != tc.name) writeLog("🔧 Trimmed tool name: '${tc.name}' → '${trimmedName}'")
-                if (repairedArgs != tc.arguments) writeLog("🔧 Repaired tool arguments for $trimmedName")
-                LLMToolCall(id = tc.id, name = trimmedName, arguments = decodedArgs)
+            // 1. 工具名规范化（对齐 OpenClaw normalizeToolCallNameForDispatch）
+            val normalizedName = normalizeToolCallNameForDispatch(
+                rawName = tc.name,
+                allowedToolNames = allowedToolNames,
+                rawToolCallId = tc.id
+            )
+
+            // 2. 参数修复（对齐 OpenClaw tryExtractUsableToolCallArguments）
+            val repairedArgs = if (tc.arguments.isBlank()) {
+                tc.arguments
             } else {
-                tc
+                val repairResult = tryExtractUsableToolCallArguments(tc.arguments)
+                if (repairResult != null && repairResult.kind == "repaired") {
+                    writeLog("🔧 Repaired tool arguments for $normalizedName " +
+                        "(leading: ${repairResult.leadingPrefix.length} chars, " +
+                        "trailing: ${repairResult.trailingSuffix.length} chars)")
+                    com.google.gson.Gson().toJson(repairResult.args)
+                } else if (repairResult != null) {
+                    tc.arguments  // preserved, no change needed
+                } else {
+                    // Fallback: 旧版修复逻辑（补充缺失括号）
+                    repairMalformedJsonFallback(tc.arguments)
+                }
             }
+
+            // 3. HTML 实体解码（对齐 OpenClaw decodeHtmlEntitiesInObject）
+            val decodedArgs = if (repairedArgs.contains("&#") || repairedArgs.contains("&amp;") ||
+                repairedArgs.contains("&lt;") || repairedArgs.contains("&gt;")) {
+                val decoded = decodeHtmlEntities(repairedArgs)
+                if (decoded != repairedArgs) writeLog("🔧 Decoded HTML entities in tool call args for $normalizedName")
+                decoded
+            } else {
+                repairedArgs
+            }
+
+            if (normalizedName != tc.name) {
+                writeLog("🔧 Normalized tool name: '${tc.name}' → '${normalizedName}'")
+            }
+
+            LLMToolCall(id = tc.id, name = normalizedName, arguments = decodedArgs)
         }
     }
 
     /**
-     * Repair malformed tool call arguments (aligned with OpenClaw wrapStreamFnRepairMalformedToolCallArguments).
-     * Handles common Anthropic streaming issues:
-     * - Missing closing braces
-     * - Double-encoded JSON strings
-     * - Truncated JSON at natural break points
+     * Fallback JSON repair — 仅在 tryExtractUsableToolCallArguments 失败时使用。
+     * 补充缺失的闭合括号/花括号。
      */
-    private fun repairToolCallArguments(arguments: String): String {
-        if (arguments.isBlank()) return arguments
+    private fun repairMalformedJsonFallback(arguments: String): String {
         val trimmed = arguments.trim()
-
-        // Try parsing as-is first
         try {
             com.google.gson.JsonParser.parseString(trimmed)
-            return trimmed // Valid JSON, no repair needed
-        } catch (_: Exception) { /* continue to repair */ }
+            return trimmed
+        } catch (_: Exception) { /* continue */ }
 
-        // Attempt 1: Fix missing closing braces/brackets
         var repaired = trimmed
         val openBraces = repaired.count { it == '{' }
         val closeBraces = repaired.count { it == '}' }
@@ -1396,39 +1525,9 @@ class AgentLoop(
         try {
             com.google.gson.JsonParser.parseString(repaired)
             return repaired
-        } catch (_: Exception) { /* continue */ }
+        } catch (_: Exception) { /* give up */ }
 
-        // Attempt 2: If it looks like a JSON string value, try removing trailing incomplete value
-        val lastColon = repaired.lastIndexOf(':')
-        val lastComma = repaired.lastIndexOf(',')
-        if (lastComma > lastColon && lastComma < repaired.length - 1) {
-            val truncated = repaired.substring(0, lastComma) + "}"
-            try {
-                com.google.gson.JsonParser.parseString(truncated)
-                return truncated
-            } catch (_: Exception) { /* give up */ }
-        }
-
-        return trimmed // Return original if all repairs fail
-    }
-
-    /**
-     * Decode HTML entities in tool call arguments (aligned with OpenClaw wrapStreamFnDecodeXaiToolCallArguments).
-     * xAI models sometimes emit HTML-encoded characters in JSON arguments.
-     */
-    private fun decodeHtmlEntities(arguments: String): String {
-        if (!arguments.contains("&#")) return arguments
-        return arguments
-            .replace("&#39;", "'")
-            .replace("&#34;", "\"")
-            .replace("&#38;", "&")
-            .replace("&#60;", "<")
-            .replace("&#62;", ">")
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .replace("&apos;", "'")
+        return trimmed
     }
 
     /**
