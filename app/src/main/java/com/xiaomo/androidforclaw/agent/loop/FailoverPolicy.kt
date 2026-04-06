@@ -167,7 +167,7 @@ fun classifyFailoverReason(errorMessage: String?, statusCode: Int? = null): Fail
     return when {
         statusCode == 401 || statusCode == 403 || msg.contains("unauthorized") || msg.contains("api key") || msg.contains("authentication") -> FailoverReason.AUTH_FAILURE
         statusCode == 429 || msg.contains("rate limit") || msg.contains("too many requests") || msg.contains("rate_limit") -> FailoverReason.RATE_LIMIT
-        statusCode == 402 || msg.contains("billing") || msg.contains("quota") || msg.contains("insufficient") -> FailoverReason.BILLING
+        statusCode == 402 || msg.contains("billing") || msg.contains("quota") || msg.contains("insufficient") || msg.contains("out of extra usage") || msg.contains("extra usage is required") || msg.contains("requires more credits") -> FailoverReason.BILLING
         statusCode == 529 || statusCode == 503 || msg.contains("overloaded") || msg.contains("capacity") -> FailoverReason.OVERLOADED
         statusCode == 404 || msg.contains("model not found") || msg.contains("model_not_found") -> FailoverReason.MODEL_UNAVAILABLE
         msg.contains("timeout") || msg.contains("timed out") -> FailoverReason.TIMEOUT
