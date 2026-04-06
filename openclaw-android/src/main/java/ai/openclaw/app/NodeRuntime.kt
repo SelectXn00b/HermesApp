@@ -809,7 +809,8 @@ class NodeRuntime(
       // First-time TLS: capture fingerprint, ask user to verify out-of-band, then store and connect.
       _statusText.value = "Verify gateway TLS fingerprint…"
       scope.launch {
-        val fp = probeGatewayTlsFingerprint(endpoint.host, endpoint.port) ?: run {
+        val probeResult = probeGatewayTlsFingerprint(endpoint.host, endpoint.port)
+        val fp = probeResult.fingerprintSha256 ?: run {
           _statusText.value = "Failed: can't read TLS fingerprint"
           return@launch
         }

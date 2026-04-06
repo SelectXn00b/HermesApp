@@ -64,6 +64,7 @@ data class GatewayConnectErrorDetails(
   val code: String?,
   val canRetryWithDeviceToken: Boolean,
   val recommendedNextStep: String?,
+  val reason: String? = null,
 )
 
 private data class SelectedConnectAuth(
@@ -115,6 +116,8 @@ class GatewaySession(
     val message: String,
     val details: GatewayConnectErrorDetails? = null,
   )
+
+  data class RpcResult(val ok: Boolean, val payloadJson: String?, val error: ErrorShape?)
 
   private val json = Json { ignoreUnknownKeys = true }
   private val writeLock = Mutex()
@@ -181,17 +184,10 @@ class GatewaySession(
 
   override suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean {
     val conn = currentConnection ?: return false
-    val parsedPayload = payloadJson?.let { parseJsonOrNull(it) }
     val params =
       buildJsonObject {
         put("event", JsonPrimitive(event))
-        if (parsedPayload != null) {
-          put("payload", parsedPayload)
-        } else if (payloadJson != null) {
-          put("payloadJSON", JsonPrimitive(payloadJson))
-        } else {
-          put("payloadJSON", JsonNull)
-        }
+        put("payloadJSON", JsonPrimitive(payloadJson ?: "{}"))
       }
     try {
       conn.request("node.event", params, timeoutMs = 8_000)
@@ -202,7 +198,14 @@ class GatewaySession(
     }
   }
 
-  override suspend fun request(method: String, paramsJson: String?, timeoutMs: Long): String {
+  override suspend fun request(method: String, paramsJson: String?, timeoutMs: Long = 15_000): String {
+    val res = requestDetailed(method = method, paramsJson = paramsJson, timeoutMs = timeoutMs)
+    if (res.ok) return res.payloadJson ?: ""
+    val err = res.error
+    throw IllegalStateException("${err?.code ?: "UNAVAILABLE"}: ${err?.message ?: "request failed"}")
+  }
+
+  suspend fun requestDetailed(method: String, paramsJson: String?, timeoutMs: Long = 15_000): RpcResult {
     val conn = currentConnection ?: throw IllegalStateException("not connected")
     val params =
       if (paramsJson.isNullOrBlank()) {
@@ -211,9 +214,7 @@ class GatewaySession(
         json.parseToJsonElement(paramsJson)
       }
     val res = conn.request(method, params, timeoutMs)
-    if (res.ok) return res.payloadJson ?: ""
-    val err = res.error
-    throw IllegalStateException("${err?.code ?: "UNAVAILABLE"}: ${err?.message ?: "request failed"}")
+    return RpcResult(ok = res.ok, payloadJson = res.payloadJson, error = res.error)
   }
 
   suspend fun refreshNodeCanvasCapability(timeoutMs: Long = 8_000): Boolean {
@@ -275,16 +276,10 @@ class GatewaySession(
     private var socket: WebSocket? = null
     private val loggerTag = "OpenClawGateway"
 
-    val remoteAddress: String =
-      if (endpoint.host.contains(":")) {
-        "[${endpoint.host}]:${endpoint.port}"
-      } else {
-        "${endpoint.host}:${endpoint.port}"
-      }
+    val remoteAddress: String = formatGatewayAuthority(endpoint.host, endpoint.port)
 
     suspend fun connect() {
-      val scheme = if (tls != null) "wss" else "ws"
-      val url = "$scheme://${endpoint.host}:${endpoint.port}"
+      val url = buildGatewayWebSocketUrl(endpoint.host, endpoint.port, tls != null)
       val request = Request.Builder().url(url).build()
       socket = client.newWebSocket(request, Listener())
       try {
@@ -644,6 +639,7 @@ class GatewaySession(
                 code = it["code"].asStringOrNull(),
                 canRetryWithDeviceToken = it["canRetryWithDeviceToken"].asBooleanOrNull() == true,
                 recommendedNextStep = it["recommendedNextStep"].asStringOrNull(),
+                reason = it["reason"].asStringOrNull(),
               )
             }
           ErrorShape(code, msg, details)
@@ -859,7 +855,7 @@ class GatewaySession(
 
   private fun buildCanvasUrl(host: String, scheme: String, port: Int, suffix: String): String {
     val loweredScheme = scheme.lowercase()
-    val formattedHost = if (host.contains(":")) "[${host}]" else host
+    val formattedHost = formatGatewayAuthorityHost(host)
     val portSuffix = if ((loweredScheme == "https" && port == 443) || (loweredScheme == "http" && port == 80)) "" else ":$port"
     return "$loweredScheme://$formattedHost$portSuffix$suffix"
   }
@@ -965,6 +961,20 @@ class GatewaySession(
     }
     return tls?.expectedFingerprint?.trim()?.isNotEmpty() == true
   }
+}
+
+internal fun buildGatewayWebSocketUrl(host: String, port: Int, useTls: Boolean): String {
+  val scheme = if (useTls) "wss" else "ws"
+  return "$scheme://${formatGatewayAuthority(host, port)}"
+}
+
+internal fun formatGatewayAuthority(host: String, port: Int): String {
+  return "${formatGatewayAuthorityHost(host)}:$port"
+}
+
+private fun formatGatewayAuthorityHost(host: String): String {
+  val normalizedHost = host.trim().trim('[', ']')
+  return if (normalizedHost.contains(":")) "[${normalizedHost}]" else normalizedHost
 }
 
 private fun JsonElement?.asObjectOrNull(): JsonObject? = this as? JsonObject
