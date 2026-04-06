@@ -27,8 +27,8 @@
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <!-- 服务权限 -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" tools:node="remove" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
@@ -203,28 +203,9 @@
             android:theme="@style/Theme.PhoneClaw" />
 
 
-        <!-- 前台服务（保活） -->
-        <service
-            android:name="com.xiaomo.androidforclaw.core.ForegroundService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="specialUse"
-            tools:replace="android:foregroundServiceType">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="ai_assistant_keepalive" />
-        </service>
-
-        <!-- OpenClaw: Node foreground service (gateway connection keepalive) -->
-        <service
-            android:name="ai.openclaw.app.NodeForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse"
-            tools:replace="android:foregroundServiceType">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="ai_gateway_connection" />
-        </service>
+        <!-- Store: 移除前台服务 -->
+        <service android:name="com.xiaomo.androidforclaw.core.ForegroundService" tools:node="remove" />
+        <service android:name="ai.openclaw.app.NodeForegroundService" tools:node="remove" />
 
         <!-- Store: 移除无障碍相关服务（来自 observer 模块） -->
         <service android:name="com.xiaomo.androidforclaw.accessibility.service.PhoneAccessibilityService" tools:node="remove" />

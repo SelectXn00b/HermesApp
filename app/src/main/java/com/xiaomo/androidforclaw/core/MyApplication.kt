@@ -276,7 +276,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler())
 
         // Start foreground service keep-alive
-        startForegroundServiceKeepAlive()
+        if (!BuildConfig.IS_STORE_BUILD) {
+            startForegroundServiceKeepAlive()
+        }
 
         // Start Gateway server
         startGatewayServer()
