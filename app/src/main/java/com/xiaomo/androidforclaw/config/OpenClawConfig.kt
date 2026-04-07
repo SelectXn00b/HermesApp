@@ -383,7 +383,12 @@ data class SkillConfig(
 // ============ plugins（对齐 types.plugins.d.ts）============
 
 data class PluginsConfig(
-    val entries: Map<String, PluginEntry> = emptyMap()
+    val entries: Map<String, PluginEntry> = emptyMap(),
+    val slots: PluginSlotsConfig = PluginSlotsConfig()
+)
+
+data class PluginSlotsConfig(
+    val contextEngine: String? = null
 )
 
 data class PluginEntry(

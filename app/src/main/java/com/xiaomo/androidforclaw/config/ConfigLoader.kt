@@ -783,20 +783,26 @@ class ConfigLoader private constructor() {
     }
 
     private fun parsePluginsConfig(json: JSONObject): PluginsConfig {
-        val entriesJson = json.optJSONObject("entries") ?: return PluginsConfig()
         val map = mutableMapOf<String, PluginEntry>()
-        entriesJson.keys().forEach { key ->
-            entriesJson.optJSONObject(key)?.let { pe ->
-                val skills = pe.optJSONArray("skills")?.let { arr ->
-                    (0 until arr.length()).map { arr.getString(it) }
-                } ?: emptyList()
-                map[key] = PluginEntry(
-                    enabled = pe.optBoolean("enabled", false),
-                    skills = skills
-                )
+        json.optJSONObject("entries")?.let { entriesJson ->
+            entriesJson.keys().forEach { key ->
+                entriesJson.optJSONObject(key)?.let { pe ->
+                    val skills = pe.optJSONArray("skills")?.let { arr ->
+                        (0 until arr.length()).map { arr.getString(it) }
+                    } ?: emptyList()
+                    map[key] = PluginEntry(
+                        enabled = pe.optBoolean("enabled", false),
+                        skills = skills
+                    )
+                }
             }
         }
-        return PluginsConfig(entries = map)
+        val slots = json.optJSONObject("slots")?.let { slotsJson ->
+            PluginSlotsConfig(
+                contextEngine = slotsJson.optString("contextEngine", null)
+            )
+        } ?: PluginSlotsConfig()
+        return PluginsConfig(entries = map, slots = slots)
     }
 
     private fun parseToolsConfig(json: JSONObject): ToolsConfig {
