@@ -134,8 +134,8 @@ data class FeishuChannelConfig(
     // 流式卡片自定义文案（Android 扩展）
     /** 流式卡片启动文案，支持 Markdown。默认 "*Thinking...*" */
     val thinkingLabel: String = "*Thinking...*",
-    /** 是否在流式卡片中显示工具调用信息。默认 false（只显示思考过程和最终回复） */
-    val showToolCalls: Boolean = false,
+    /** 是否在流式卡片中显示工具调用信息。默认 true */
+    val showToolCalls: Boolean = true,
     /** 工具调用文案模板（showToolCalls=true 时生效），\${name} 替换为工具名，\${args} 替换为参数摘要 */
     val toolCallLabel: String = "`Using: \${name}...` \${args}"
 )

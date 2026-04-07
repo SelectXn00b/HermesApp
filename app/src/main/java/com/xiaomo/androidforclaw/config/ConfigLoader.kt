@@ -598,7 +598,7 @@ class ConfigLoader private constructor() {
             accounts = accounts,
             defaultAccount = if (json.has("defaultAccount")) json.optString("defaultAccount") else null,
             thinkingLabel = json.optString("thinkingLabel", "*Thinking...*"),
-            showToolCalls = json.optBoolean("showToolCalls", false),
+            showToolCalls = json.optBoolean("showToolCalls", true),
             toolCallLabel = json.optString("toolCallLabel", "`Using: \${name}...` \${args}")
         )
     }
