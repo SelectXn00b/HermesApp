@@ -113,6 +113,12 @@ class DeviceTool(private val context: Context) : Tool {
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
         val action = args["action"] as? String ?: return ToolResult.error("Missing action")
 
+        // 前置检查：status 不需要，其余操作均需无障碍服务已开启
+        if (action != "status") {
+            val readiness = checkReadiness()
+            if (readiness != null) return readiness
+        }
+
         return when (action) {
             "snapshot" -> executeSnapshot(args)
             "screenshot" -> executeScreenshot()
@@ -121,6 +127,43 @@ class DeviceTool(private val context: Context) : Tool {
             "status" -> executeStatus()
             else -> ToolResult.error("Unknown action: $action")
         }
+    }
+
+    /**
+     * 前置检查：无障碍服务 + 模型配置是否就绪。
+     * 未授权时禁止前台操作，返回明确的错误引导。
+     */
+    private fun checkReadiness(): ToolResult? {
+        val issues = mutableListOf<String>()
+
+        // 1. 无障碍服务
+        val a11yReady = try {
+            AccessibilityProxy.isConnected.value == true && AccessibilityProxy.isServiceReady()
+        } catch (_: Exception) { false }
+        if (!a11yReady) {
+            issues.add("❌ 无障碍服务未开启 → 设置 → 无障碍 → AndroidForClaw → 开启")
+        }
+
+        // 2. 模型配置（API Key）
+        val modelConfigured = try {
+            val cfg = com.xiaomo.androidforclaw.config.ConfigLoader(context).loadOpenClawConfig()
+            val providers = cfg.resolveProviders()
+            providers.any { (_, p) ->
+                val key = p.apiKey
+                !key.isNullOrBlank() && !key.startsWith("\${") && key != "未配置"
+            }
+        } catch (_: Exception) { false }
+        if (!modelConfigured) {
+            issues.add("❌ 模型未配置 → 打开 App → 模型配置 → 添加 API Key")
+        }
+
+        return if (issues.isNotEmpty()) {
+            ToolResult.error(
+                "⛔ 未满足前置条件，无法执行设备操作：\n" +
+                issues.joinToString("\n") + "\n\n" +
+                "配置完成后重试。可通过 device(status) 检查当前状态。"
+            )
+        } else null
     }
 
     // ==================== snapshot ====================
