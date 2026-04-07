@@ -130,7 +130,12 @@ data class FeishuChannelConfig(
     val debugMode: Boolean = false,
     // 多账号
     val accounts: Map<String, FeishuAccountConfig>? = null,
-    val defaultAccount: String? = null
+    val defaultAccount: String? = null,
+    // 流式卡片自定义文案（Android 扩展）
+    /** 流式卡片启动文案，支持 Markdown。默认 "*Thinking...*" */
+    val thinkingLabel: String = "*Thinking...*",
+    /** 工具调用文案模板，\${name} 替换为工具名，\${args} 替换为参数摘要。默认 "`Using: \${name}...` \${args}" */
+    val toolCallLabel: String = "`Using: \${name}...` \${args}"
 )
 
 data class FeishuToolsConfig(

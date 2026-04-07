@@ -596,7 +596,9 @@ class ConfigLoader private constructor() {
             reactionDedup = json.optBoolean("reactionDedup", true),
             debugMode = json.optBoolean("debugMode", false),
             accounts = accounts,
-            defaultAccount = if (json.has("defaultAccount")) json.optString("defaultAccount") else null
+            defaultAccount = if (json.has("defaultAccount")) json.optString("defaultAccount") else null,
+            thinkingLabel = json.optString("thinkingLabel", "*Thinking...*"),
+            toolCallLabel = json.optString("toolCallLabel", "`Using: \${name}...` \${args}")
         )
     }
 
@@ -990,6 +992,8 @@ class ConfigLoader private constructor() {
         feishu.requireMention?.let { feishuObj.put("requireMention", it) }
         feishuObj.put("groupCommandMentionBypass", feishu.groupCommandMentionBypass)
         feishuObj.put("allowMentionlessInMultiBotGroup", feishu.allowMentionlessInMultiBotGroup)
+        feishuObj.put("thinkingLabel", feishu.thinkingLabel)
+        feishuObj.put("toolCallLabel", feishu.toolCallLabel)
         channelsObj.put("feishu", feishuObj)
 
         config.channels.discord?.let { discord ->
