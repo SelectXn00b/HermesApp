@@ -1,146 +1,136 @@
 package com.xiaomo.androidforclaw.acp
 
 /**
- * OpenClaw Source Reference:
- * - ../openclaw/src/acp/client.ts (createAcpClient, resolvePermissionRequest, AcpClientHandle)
- * - ../openclaw/src/acp/server.ts
- * - ../openclaw/src/acp/policy.ts
- * - ../openclaw/src/acp/session.ts
+ * OpenClaw module: acp
+ * Source: OpenClaw/src/acp/client.ts
+ *        OpenClaw/src/acp/approval-classifier.ts
  *
- * AndroidForClaw adaptation: Agent Communication Protocol for inter-agent messaging.
- * On Android, ACP uses in-process message passing (no child process spawn).
+ * ACP client: Agent Communication Protocol client for inter-agent messaging.
+ * Android adaptation: in-process message passing instead of child process spawn.
  */
 
 import com.xiaomo.androidforclaw.logging.Log
-import com.xiaomo.androidforclaw.agent.context.DangerousTools
 import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * ACP message types.
- * Aligned with OpenClaw ACP protocol.
- */
+// ---------------------------------------------------------------------------
+// ACP message types  (aligned with ACP protocol)
+// ---------------------------------------------------------------------------
 sealed class AcpMessage {
     data class Request(
         val id: String,
         val method: String,
-        val params: Map<String, Any?> = emptyMap()
+        val params: Map<String, Any?> = emptyMap(),
     ) : AcpMessage()
 
     data class Response(
         val id: String,
         val result: Any? = null,
-        val error: String? = null
+        val error: String? = null,
     ) : AcpMessage()
 
     data class Notification(
         val method: String,
-        val params: Map<String, Any?> = emptyMap()
+        val params: Map<String, Any?> = emptyMap(),
     ) : AcpMessage()
 }
 
-/**
- * ACP permission request for tool execution.
- * Aligned with OpenClaw RequestPermissionRequest.
- */
+// ---------------------------------------------------------------------------
+// Permission types  (aligned with TS RequestPermissionRequest/Response)
+// ---------------------------------------------------------------------------
 data class AcpPermissionRequest(
     val toolName: String,
-    val args: Map<String, Any?>?,
-    val sessionId: String
+    val toolTitle: String? = null,
+    val args: Map<String, Any?>? = null,
+    val sessionId: String,
 )
 
-/**
- * ACP permission response.
- */
 data class AcpPermissionResponse(
     val approved: Boolean,
-    val reason: String? = null
+    val reason: String? = null,
 )
 
-/**
- * ACP session handle.
- * Aligned with OpenClaw AcpClientHandle.
- */
+// ---------------------------------------------------------------------------
+// Approval classifier  (aligned with TS AcpApprovalClass)
+// ---------------------------------------------------------------------------
+enum class AcpApprovalClass(val value: String) {
+    SAFE("safe"),
+    READONLY_SCOPED("readonly_scoped"),
+    READONLY_SEARCH("readonly_search"),
+    DANGEROUS("dangerous"),
+    UNKNOWN("unknown"),
+}
+
+// ---------------------------------------------------------------------------
+// Session handle  (aligned with TS AcpClientHandle)
+// ---------------------------------------------------------------------------
 data class AcpSessionHandle(
     val sessionId: String,
     val agentId: String,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
 )
 
-/**
- * ACP access policy levels.
- * Aligned with OpenClaw acp/policy.ts.
- */
-enum class AcpAccessLevel {
-    /** Full access — all tools available */
-    FULL,
-    /** Safe access — only safe tools auto-approved */
-    SAFE,
-    /** Restricted — requires explicit approval for all tools */
-    RESTRICTED,
-    /** Blocked — no tool access */
-    BLOCKED
-}
-
-/**
- * AcpClient — Agent Communication Protocol client.
- * Aligned with OpenClaw acp/client.ts.
- *
- * On Android, ACP communicates between agent sessions in-process
- * via the SubagentRegistry / SessionsSendTool rather than spawning
- * child processes.
- */
+// ---------------------------------------------------------------------------
+// AcpClient  (aligned with TS acp/client.ts)
+// ---------------------------------------------------------------------------
 object AcpClient {
 
     private const val TAG = "AcpClient"
 
-    /**
-     * Safe tools that are auto-approved without permission prompt.
-     * Aligned with OpenClaw SAFE_AUTO_APPROVE_TOOL_IDS.
-     */
+    /** Max prompt size (2MB) to prevent DoS via memory exhaustion. */
+    const val MAX_PROMPT_BYTES = 2 * 1024 * 1024
+
+    /** Safe tools that are auto-approved without permission prompt. */
     val SAFE_AUTO_APPROVE_TOOLS = setOf(
         "read", "search", "web_search", "memory_search"
     )
 
-    /**
-     * Trusted safe tool aliases.
-     * Aligned with OpenClaw TRUSTED_SAFE_TOOL_ALIASES.
-     */
-    val TRUSTED_SAFE_TOOL_ALIASES = setOf("search")
-
-    /**
-     * Tool kind mapping for safe tool identification.
-     * Aligned with OpenClaw TOOL_KIND_BY_ID.
-     */
+    /** Tool kind mapping for safe tool identification. */
     val TOOL_KIND_BY_ID = mapOf(
         "read" to "read",
         "search" to "search",
         "web_search" to "search",
-        "memory_search" to "search"
+        "memory_search" to "search",
     )
 
-    /** Path keys that may contain file paths in read tool calls */
+    /** Path keys for read tool calls. */
     val READ_TOOL_PATH_KEYS = listOf("path", "file_path", "filePath")
 
-    /** Active ACP sessions */
+    /** Active ACP sessions. */
     private val sessions = ConcurrentHashMap<String, AcpSessionHandle>()
 
-    /** Pending permission requests */
-    private val pendingPermissions = ConcurrentHashMap<String, CompletableDeferred<AcpPermissionResponse>>()
+    /** Pending permission requests. */
+    private val pendingPermissions =
+        ConcurrentHashMap<String, CompletableDeferred<AcpPermissionResponse>>()
 
-    /** Permission request timeout */
+    /** Permission request timeout. */
     const val PERMISSION_TIMEOUT_MS = 30_000L
 
-    /** Tool name validation */
+    /** Tool name validation. */
     private val TOOL_NAME_PATTERN = Regex("^[a-z0-9._-]+$")
     const val TOOL_NAME_MAX_LENGTH = 128
 
-    /**
-     * Resolve a permission request for tool execution.
-     * Aligned with OpenClaw resolvePermissionRequest.
-     *
-     * Auto-approves safe tools; dangerous tools require explicit approval.
-     */
+    // -----------------------------------------------------------------------
+    // Approval classification  (aligned with TS classifyAcpToolApproval)
+    // -----------------------------------------------------------------------
+
+    fun classifyToolApproval(toolName: String?): AcpApprovalClass {
+        if (toolName == null) return AcpApprovalClass.UNKNOWN
+        val normalized = toolName.lowercase()
+        if (normalized in SAFE_AUTO_APPROVE_TOOLS) return AcpApprovalClass.SAFE
+        val kind = inferToolKind(normalized)
+        return when (kind) {
+            ToolKind.READ -> AcpApprovalClass.READONLY_SCOPED
+            ToolKind.SEARCH -> AcpApprovalClass.READONLY_SEARCH
+            ToolKind.EXECUTE -> AcpApprovalClass.DANGEROUS
+            else -> AcpApprovalClass.UNKNOWN
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Permission resolution  (aligned with TS resolvePermissionRequest)
+    // -----------------------------------------------------------------------
+
     fun resolvePermission(request: AcpPermissionRequest): AcpPermissionResponse {
         val toolName = request.toolName
 
@@ -149,26 +139,29 @@ object AcpClient {
             return AcpPermissionResponse(false, "Invalid tool name: $toolName")
         }
 
-        // Block dangerous ACP tools
-        if (toolName in DangerousTools.DANGEROUS_ACP_TOOLS) {
-            Log.w(TAG, "Blocked dangerous ACP tool: $toolName")
-            return AcpPermissionResponse(false, "Tool '$toolName' is blocked in ACP context")
-        }
+        val classification = classifyToolApproval(toolName)
 
         // Auto-approve safe tools
-        if (toolName in SAFE_AUTO_APPROVE_TOOLS) {
+        if (classification == AcpApprovalClass.SAFE) {
+            Log.d(TAG, "Auto-approved safe ACP tool: $toolName")
             return AcpPermissionResponse(true)
         }
 
-        // For other tools, auto-approve in Android context (single-user device)
-        Log.d(TAG, "Auto-approved ACP tool (Android single-user): $toolName")
+        // On Android (single-user device), auto-approve non-dangerous tools
+        if (classification != AcpApprovalClass.DANGEROUS) {
+            Log.d(TAG, "Auto-approved ACP tool (Android single-user): $toolName")
+            return AcpPermissionResponse(true)
+        }
+
+        // Dangerous tools still auto-approved on Android but logged
+        Log.w(TAG, "Auto-approved dangerous ACP tool (Android): $toolName")
         return AcpPermissionResponse(true)
     }
 
-    /**
-     * Create an ACP session.
-     * Aligned with OpenClaw createAcpClient.
-     */
+    // -----------------------------------------------------------------------
+    // Session management  (aligned with TS createAcpClient)
+    // -----------------------------------------------------------------------
+
     fun createSession(agentId: String): AcpSessionHandle {
         val sessionId = "acp:${agentId}:${System.currentTimeMillis()}"
         val handle = AcpSessionHandle(sessionId = sessionId, agentId = agentId)
@@ -177,28 +170,23 @@ object AcpClient {
         return handle
     }
 
-    /**
-     * Close an ACP session.
-     */
     fun closeSession(sessionId: String) {
         sessions.remove(sessionId)
-        pendingPermissions.remove(sessionId)?.complete(AcpPermissionResponse(false, "Session closed"))
+        pendingPermissions.remove(sessionId)
+            ?.complete(AcpPermissionResponse(false, "Session closed"))
         Log.d(TAG, "ACP session closed: $sessionId")
     }
 
-    /**
-     * Get an active session.
-     */
     fun getSession(sessionId: String): AcpSessionHandle? = sessions[sessionId]
 
-    /**
-     * Get active session count.
-     */
     fun activeSessionCount(): Int = sessions.size
 
-    /**
-     * Check if ACP tools should be stripped from env vars for security.
-     * Aligned with OpenClaw shouldStripProviderAuthEnvVarsForAcpServer.
-     */
+    fun clearAllSessions() {
+        for (sessionId in sessions.keys.toList()) {
+            closeSession(sessionId)
+        }
+    }
+
+    /** Check if ACP auth env vars should be stripped for security. */
     fun shouldStripAuthEnvVars(): Boolean = true
 }

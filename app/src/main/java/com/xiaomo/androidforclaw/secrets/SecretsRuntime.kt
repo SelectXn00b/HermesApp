@@ -2,40 +2,20 @@ package com.xiaomo.androidforclaw.secrets
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/secrets/runtime.ts
- *   (prepareSecretsRuntimeSnapshot, activateSecretsRuntimeSnapshot)
- * - ../openclaw/src/secrets/resolve.ts (resolveSecretRef)
- * - ../openclaw/src/secrets/target-registry.ts
+ * - src/secrets/runtime.ts
+ *   (prepareSecretsRuntimeSnapshot, activateSecretsRuntimeSnapshot,
+ *    getActiveSecretsRuntimeSnapshot, clearSecretsRuntimeSnapshot)
  *
  * AndroidForClaw adaptation: runtime secrets management.
- * Manages secrets lifecycle (prepare → activate → query → clear).
+ * Manages secrets lifecycle (prepare -> activate -> query -> clear).
  */
 
 import com.xiaomo.androidforclaw.config.OpenClawConfig
 import com.xiaomo.androidforclaw.logging.Log
 
 /**
- * Secret reference — pointer to a secret value in external storage.
- * Aligned with OpenClaw SecretRef.
- */
-data class SecretRef(
-    val source: String,   // "env", "config", "exec", "file"
-    val key: String,
-    val fallback: String? = null
-)
-
-/**
- * Secret resolver warning.
- * Aligned with OpenClaw SecretResolverWarning.
- */
-data class SecretResolverWarning(
-    val path: String,
-    val message: String
-)
-
-/**
  * Auth store snapshot for a single agent directory.
- * Aligned with OpenClaw PreparedSecretsRuntimeSnapshot.authStores.
+ * Aligned with TS PreparedSecretsRuntimeSnapshot.authStores.
  */
 data class AuthStoreSnapshot(
     val agentDir: String,
@@ -43,38 +23,21 @@ data class AuthStoreSnapshot(
 )
 
 /**
- * Web tools metadata.
- * Aligned with OpenClaw RuntimeWebToolsMetadata.
- */
-data class RuntimeWebToolsMetadata(
-    val search: RuntimeWebSearchMetadata = RuntimeWebSearchMetadata(),
-    val fetchFirecrawlActive: Boolean = false,
-    val diagnostics: List<String> = emptyList()
-)
-
-data class RuntimeWebSearchMetadata(
-    val providerConfigured: String? = null,
-    val providerSource: String = "none",  // "configured" | "auto-detect" | "none"
-    val selectedProvider: String? = null,
-    val diagnostics: List<String> = emptyList()
-)
-
-/**
  * Runtime secrets snapshot.
- * Aligned with OpenClaw PreparedSecretsRuntimeSnapshot.
+ * Aligned with TS PreparedSecretsRuntimeSnapshot.
  */
 data class SecretsRuntimeSnapshot(
     val sourceConfig: OpenClawConfig,
     val config: OpenClawConfig,
     val authStores: List<AuthStoreSnapshot> = emptyList(),
     val webTools: RuntimeWebToolsMetadata = RuntimeWebToolsMetadata(),
-    val warnings: List<SecretResolverWarning>,
+    val warnings: List<SecretResolverWarning> = emptyList(),
     val preparedAt: Long = System.currentTimeMillis()
 )
 
 /**
- * Secret target — a config path that expects a secret value.
- * Aligned with OpenClaw target-registry.ts.
+ * Secret target - a config path that expects a secret value.
+ * Aligned with TS target-registry.ts.
  */
 data class SecretTarget(
     val configPath: String,
@@ -83,8 +46,8 @@ data class SecretTarget(
 )
 
 /**
- * SecretsRuntime — Runtime secrets management.
- * Aligned with OpenClaw secrets/runtime.ts.
+ * SecretsRuntime - Runtime secrets management.
+ * Aligned with TS secrets/runtime.ts.
  */
 object SecretsRuntime {
 
@@ -93,6 +56,7 @@ object SecretsRuntime {
     @Volatile
     private var activeSnapshot: SecretsRuntimeSnapshot? = null
 
+    /** Well-known secret targets for validation. */
     val SECRET_TARGETS = listOf(
         SecretTarget("channels.feishu.appSecret", "Feishu App Secret", true),
         SecretTarget("channels.feishu.encryptKey", "Feishu Encrypt Key"),
@@ -107,79 +71,168 @@ object SecretsRuntime {
 
     /**
      * Prepare a secrets runtime snapshot.
-     * Aligned with OpenClaw prepareSecretsRuntimeSnapshot.
+     * Aligned with TS prepareSecretsRuntimeSnapshot.
+     *
+     * Collects secret assignments from the config, resolves refs via env/file providers,
+     * applies resolved values, and returns a snapshot with warnings.
      */
-    fun prepare(
+    suspend fun prepare(
         config: OpenClawConfig,
-        authStores: List<AuthStoreSnapshot> = emptyList()
+        authStores: List<AuthStoreSnapshot> = emptyList(),
+        envOverrides: Map<String, String> = emptyMap(),
+        secretProviders: Map<String, SecretProviderConfig> = emptyMap()
     ): SecretsRuntimeSnapshot {
-        val warnings = mutableListOf<SecretResolverWarning>()
-        validateSecretTargets(config, warnings)
+        val context = ResolverContext(
+            envOverrides = envOverrides,
+            cache = SecretRefResolveCache()
+        )
+
+        // Collect secret input assignments from config
+        collectConfigAssignments(config, context)
+
+        // Resolve all collected assignments
+        if (context.assignments.isNotEmpty()) {
+            val refs = context.assignments.map { it.ref }
+            try {
+                val resolved = resolveSecretRefValues(
+                    refs = refs,
+                    options = ResolveSecretRefOptions(
+                        secretProviders = secretProviders,
+                        envOverrides = envOverrides,
+                        cache = context.cache
+                    )
+                )
+                applyResolvedAssignments(
+                    assignments = context.assignments,
+                    resolved = resolved
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "Secret resolution failed: ${e.message}")
+                context.pushWarning(SecretResolverWarning(
+                    code = SecretResolverWarningCode.SECRETS_REF_OVERRIDES_PLAINTEXT,
+                    path = "secrets",
+                    message = "Secret resolution error: ${e.message}"
+                ))
+            }
+        }
+
+        // Validate required targets
+        validateSecretTargets(config, context)
+
+        // Resolve web tools metadata
+        val webTools = resolveRuntimeWebTools(config, context)
 
         return SecretsRuntimeSnapshot(
             sourceConfig = config,
             config = config,
             authStores = authStores,
-            warnings = warnings
+            webTools = webTools,
+            warnings = context.warnings.toList()
         )
     }
 
+    /**
+     * Activate a prepared snapshot as the current runtime state.
+     * Aligned with TS activateSecretsRuntimeSnapshot.
+     */
     fun activate(snapshot: SecretsRuntimeSnapshot) {
         activeSnapshot = snapshot
+        RuntimeWebToolsState.set(snapshot.webTools)
         Log.i(TAG, "Secrets runtime snapshot activated (${snapshot.warnings.size} warnings)")
     }
 
+    /**
+     * Get the currently active snapshot.
+     * Aligned with TS getActiveSecretsRuntimeSnapshot.
+     */
     fun getActiveSnapshot(): SecretsRuntimeSnapshot? = activeSnapshot
 
+    /**
+     * Clear the active snapshot.
+     * Aligned with TS clearSecretsRuntimeSnapshot.
+     */
     fun clear() {
         activeSnapshot = null
+        RuntimeWebToolsState.clear()
         Log.d(TAG, "Secrets runtime snapshot cleared")
     }
 
     /**
-     * Resolve a secret reference to its value.
-     * Aligned with OpenClaw resolveSecretRef.
-     * Supports: env, config, exec (stub), file (stub).
+     * Get active web tools metadata.
+     * Aligned with TS getActiveRuntimeWebToolsMetadata.
      */
-    fun resolveSecretRef(ref: SecretRef): String? {
-        return when (ref.source) {
-            "env" -> System.getenv(ref.key) ?: ref.fallback
+    fun getActiveWebToolsMetadata(): RuntimeWebToolsMetadata? =
+        RuntimeWebToolsState.get()
+
+    /**
+     * Resolve a secret reference to its value from the active snapshot or env.
+     * Android adaptation: supports env and file sources. Exec is not supported.
+     */
+    suspend fun resolveSecretRef(
+        ref: SecretRef,
+        options: ResolveSecretRefOptions = ResolveSecretRefOptions()
+    ): Any? = resolveSecretRefValue(ref, options)
+
+    /**
+     * Resolve a simple secret ref by source/key to a string.
+     * Convenience wrapper for backward compatibility.
+     */
+    fun resolveSimpleSecretRef(source: String, key: String, fallback: String? = null): String? {
+        return when (source) {
+            "env" -> System.getenv(key) ?: fallback
             "config" -> {
                 val config = activeSnapshot?.config
-                resolveConfigPath(config, ref.key) ?: ref.fallback
-            }
-            "exec" -> {
-                // On Android, exec source is not supported (no shell spawning)
-                Log.w(TAG, "Secret source 'exec' not supported on Android: ${ref.key}")
-                ref.fallback
+                resolveConfigPath(config, key) ?: fallback
             }
             "file" -> {
-                // File source: read from file path
                 try {
-                    val content = java.io.File(ref.key).readText().trim()
-                    content.ifEmpty { ref.fallback }
+                    val content = java.io.File(key).readText().trim()
+                    content.ifEmpty { fallback }
                 } catch (_: Exception) {
-                    ref.fallback
+                    fallback
                 }
             }
-            else -> ref.fallback
+            "exec" -> {
+                Log.w(TAG, "Secret source 'exec' not supported on Android: $key")
+                fallback
+            }
+            else -> fallback
         }
     }
 
+    // ---------- Private helpers ----------
+
     /**
-     * Get active web tools metadata.
-     * Aligned with OpenClaw getActiveRuntimeWebToolsMetadata.
+     * Collect secret input assignments from config paths.
+     * Simplified version of TS collectConfigAssignments.
      */
-    fun getActiveWebToolsMetadata(): RuntimeWebToolsMetadata? {
-        return activeSnapshot?.webTools
+    private fun collectConfigAssignments(config: OpenClawConfig, context: ResolverContext) {
+        // Provider API keys
+        config.resolveProviders().forEach { (providerId, providerConfig) ->
+            val apiKey = providerConfig.apiKey
+            if (apiKey != null) {
+                val ref = coerceSecretRef(apiKey as? Map<*, *>, null)
+                if (ref != null) {
+                    collectSecretInputAssignment(
+                        value = apiKey,
+                        path = "models.providers.$providerId.apiKey",
+                        expected = SecretExpectedResolvedValue.STRING,
+                        defaults = null,
+                        context = context,
+                        apply = { /* On Android config is immutable at this point */ }
+                    )
+                }
+            }
+        }
     }
 
-    private fun validateSecretTargets(config: OpenClawConfig, warnings: MutableList<SecretResolverWarning>) {
+    private fun validateSecretTargets(config: OpenClawConfig, context: ResolverContext) {
         for (target in SECRET_TARGETS) {
             if (!target.required) continue
             val value = resolveConfigPath(config, target.configPath)
             if (value.isNullOrBlank()) {
-                warnings.add(SecretResolverWarning(
+                context.pushWarning(SecretResolverWarning(
+                    code = SecretResolverWarningCode.SECRETS_REF_OVERRIDES_PLAINTEXT,
                     path = target.configPath,
                     message = "${target.description} is not configured"
                 ))
@@ -187,15 +240,30 @@ object SecretsRuntime {
         }
     }
 
+    /**
+     * Resolve web tools metadata from config.
+     * Simplified version of TS resolveRuntimeWebTools.
+     */
+    private fun resolveRuntimeWebTools(
+        config: OpenClawConfig,
+        context: ResolverContext
+    ): RuntimeWebToolsMetadata {
+        return RuntimeWebToolsMetadata(
+            search = RuntimeWebSearchMetadata(),
+            fetch = RuntimeWebFetchMetadata(),
+            diagnostics = emptyList()
+        )
+    }
+
     private fun resolveConfigPath(config: OpenClawConfig?, path: String): String? {
         if (config == null) return null
         return when (path) {
-            "channels.feishu.appSecret" -> config.channels?.feishu?.appSecret
-            "channels.feishu.encryptKey" -> config.channels?.feishu?.encryptKey
-            "channels.discord.token" -> config.channels?.discord?.token
-            "channels.telegram.botToken" -> config.channels?.telegram?.botToken
-            "channels.slack.botToken" -> config.channels?.slack?.botToken
-            "channels.slack.appToken" -> config.channels?.slack?.appToken
+            "channels.feishu.appSecret" -> config.channels.feishu.appSecret
+            "channels.feishu.encryptKey" -> config.channels.feishu.encryptKey
+            "channels.discord.token" -> config.channels.discord?.token
+            "channels.telegram.botToken" -> config.channels.telegram?.botToken
+            "channels.slack.botToken" -> config.channels.slack?.botToken
+            "channels.slack.appToken" -> config.channels.slack?.appToken
             "gateway.authToken" -> config.gateway.auth?.token
             else -> null
         }
