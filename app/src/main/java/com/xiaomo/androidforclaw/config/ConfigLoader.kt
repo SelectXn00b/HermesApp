@@ -598,6 +598,7 @@ class ConfigLoader private constructor() {
             accounts = accounts,
             defaultAccount = if (json.has("defaultAccount")) json.optString("defaultAccount") else null,
             thinkingLabel = json.optString("thinkingLabel", "*Thinking...*"),
+            showToolCalls = json.optBoolean("showToolCalls", false),
             toolCallLabel = json.optString("toolCallLabel", "`Using: \${name}...` \${args}")
         )
     }
@@ -993,6 +994,7 @@ class ConfigLoader private constructor() {
         feishuObj.put("groupCommandMentionBypass", feishu.groupCommandMentionBypass)
         feishuObj.put("allowMentionlessInMultiBotGroup", feishu.allowMentionlessInMultiBotGroup)
         feishuObj.put("thinkingLabel", feishu.thinkingLabel)
+        feishuObj.put("showToolCalls", feishu.showToolCalls)
         feishuObj.put("toolCallLabel", feishu.toolCallLabel)
         channelsObj.put("feishu", feishuObj)
 

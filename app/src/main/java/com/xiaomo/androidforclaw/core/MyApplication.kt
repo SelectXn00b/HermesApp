@@ -1382,6 +1382,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                 // 自定义流式卡片文案（openclaw.json → channels.feishu.thinkingLabel / toolCallLabel）
                 val feishuUiConfig = try { configLoader.loadOpenClawConfig().channels.feishu } catch (_: Exception) { null }
                 val thinkingLabel = feishuUiConfig?.thinkingLabel ?: "*Thinking...*"
+                val showToolCalls = feishuUiConfig?.showToolCalls ?: false
                 val toolCallLabel = feishuUiConfig?.toolCallLabel ?: "`Using: \${name}...` \${args}"
                 var streamingCardMessageId: String? = null
                 var streamingFailed = false
@@ -1425,8 +1426,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                                 }
                             }
 
-                            // Update streaming card with tool call info
-                            update is ProgressUpdate.ToolCall && streamingCard?.isActive() == true -> {
+                            // Update streaming card with tool call info（仅 showToolCalls=true 时显示）
+                            update is ProgressUpdate.ToolCall && showToolCalls && streamingCard?.isActive() == true -> {
                                 try {
                                     val argsSummary = formatToolCallArgs(update.name, update.arguments)
                                     val text = toolCallLabel
