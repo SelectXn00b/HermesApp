@@ -14,6 +14,7 @@ import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.tts.TtsRuntime
 
 class TtsTool(private val context: Context) : Tool {
 
@@ -53,14 +54,23 @@ class TtsTool(private val context: Context) : Tool {
     }
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
-        val text = args["text"] as? String
+        val rawText = args["text"] as? String
             ?: return ToolResult.error("Missing required parameter: text")
 
-        if (text.isBlank()) {
+        if (rawText.isBlank()) {
             return ToolResult.error("Text cannot be empty")
         }
 
-        val params = mutableMapOf<String, Any?>("text" to text)
+        // Use TtsRuntime to extract tagged text and handle length limits
+        val text = TtsRuntime.extractTtsTaggedText(rawText) ?: TtsRuntime.stripTtsMarkers(rawText)
+        val maxLength = TtsRuntime.getTtsMaxLength()
+        val finalText = if (text.length > maxLength) {
+            text.take(maxLength - 3) + "..."
+        } else {
+            text
+        }
+
+        val params = mutableMapOf<String, Any?>("text" to finalText)
         args["language"]?.let { params["language"] = it }
         args["speed"]?.let { params["speed"] = it }
 

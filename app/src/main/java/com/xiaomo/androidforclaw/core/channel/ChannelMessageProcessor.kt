@@ -1,9 +1,15 @@
 package com.xiaomo.androidforclaw.core.channel
 
 import com.xiaomo.androidforclaw.agent.context.ContextSecurityGuard
+import com.xiaomo.androidforclaw.shared.chunkTextByBreakResolver
+import com.xiaomo.androidforclaw.shared.normalizeString
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
+import com.xiaomo.androidforclaw.autoreply.isHeartbeatUserMessage
+import com.xiaomo.androidforclaw.autoreply.isSilentReplyText
+import com.xiaomo.androidforclaw.autoreply.stripSilentToken
+import com.xiaomo.androidforclaw.commands.CommandRegistry
 import com.xiaomo.androidforclaw.core.MainEntryNew
 import com.xiaomo.androidforclaw.core.MyApplication
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
@@ -32,36 +38,26 @@ class ChannelMessageProcessor(private val app: MyApplication) {
                 return listOf(message)
             }
 
-            val chunks = mutableListOf<String>()
-            var remaining = message
-
-            while (remaining.length > maxChunkSize) {
-                var splitIndex = maxChunkSize
-
-                val lastNewline = remaining.substring(0, maxChunkSize).lastIndexOf('\n')
+            // Delegate to shared.chunkTextByBreakResolver() with a break resolver
+            // that prefers newline > period > space boundaries (same logic as before)
+            return chunkTextByBreakResolver(message, maxChunkSize) { window ->
+                val lastNewline = window.lastIndexOf('\n')
                 if (lastNewline > maxChunkSize / 2) {
-                    splitIndex = lastNewline + 1
+                    lastNewline + 1
                 } else {
-                    val lastPeriod = remaining.substring(0, maxChunkSize).lastIndexOf('\u3002')
+                    val lastPeriod = window.lastIndexOf('\u3002')
                     if (lastPeriod > maxChunkSize / 2) {
-                        splitIndex = lastPeriod + 1
+                        lastPeriod + 1
                     } else {
-                        val lastSpace = remaining.substring(0, maxChunkSize).lastIndexOf(' ')
+                        val lastSpace = window.lastIndexOf(' ')
                         if (lastSpace > maxChunkSize / 2) {
-                            splitIndex = lastSpace + 1
+                            lastSpace + 1
+                        } else {
+                            maxChunkSize
                         }
                     }
                 }
-
-                chunks.add(remaining.substring(0, splitIndex))
-                remaining = remaining.substring(splitIndex)
             }
-
-            if (remaining.isNotEmpty()) {
-                chunks.add(remaining)
-            }
-
-            return chunks
         }
     }
 
@@ -101,7 +97,36 @@ class ChannelMessageProcessor(private val app: MyApplication) {
             val contextHistory = cleanupToolMessages(rawHistory)
             Log.i(TAG, "[Session] loaded ${session.messageCount()} msgs, cleaned to ${contextHistory.size}")
 
-            // 4. System prompt
+            // 4a. Heartbeat filtering — skip heartbeat poll messages
+            val userMessage = normalizeString(adapter.getUserMessage())
+            if (isHeartbeatUserMessage(role = "user", content = userMessage)) {
+                Log.i(TAG, "Heartbeat message detected, skipping agent loop")
+                if (thinkingReactionAdded) {
+                    try { adapter.removeThinkingReaction() } catch (_: Exception) {}
+                }
+                if (typingStarted) {
+                    try { adapter.stopTyping() } catch (_: Exception) {}
+                }
+                return
+            }
+
+            // 4b. Command detection — short-circuit control commands
+            if (CommandRegistry.isCommandMessage(userMessage)) {
+                val resolved = CommandRegistry.resolveTextCommand(userMessage)
+                if (resolved != null) {
+                    Log.i(TAG, "Control command detected: ${resolved.command.key}")
+                    if (thinkingReactionAdded) {
+                        try { adapter.removeThinkingReaction() } catch (_: Exception) {}
+                    }
+                    if (typingStarted) {
+                        try { adapter.stopTyping() } catch (_: Exception) {}
+                    }
+                    adapter.sendMessageChunk("Command /${resolved.command.key} received.", isFirstChunk = true)
+                    return
+                }
+            }
+
+            // 4c. System prompt
             val systemPrompt = adapter.buildSystemPrompt()
 
             // 5. AgentLoop
@@ -157,6 +182,21 @@ class ChannelMessageProcessor(private val app: MyApplication) {
                     result.finalContent ?: "\u62b1\u6b49\uff0c\u6211\u65e0\u6cd5\u5904\u7406\u8fd9\u4e2a\u8bf7\u6c42\u3002"
                 )
             )
+
+            // 9a. Silent reply detection — suppress NO_REPLY responses
+            if (isSilentReplyText(replyContent)) {
+                Log.i(TAG, "Silent reply detected, suppressing outbound message")
+                if (adapter.supportsReactions) {
+                    try { adapter.addCompletionReaction() } catch (_: Exception) {}
+                }
+                val elapsed = System.currentTimeMillis() - startTime
+                Log.i(TAG, "${adapter.channelName} silent reply in ${elapsed}ms")
+                return
+            }
+
+            // 9b. Strip trailing silent tokens from mixed-content replies
+            replyContent = stripSilentToken(replyContent)
+
             if (adapter.isGroupContext()) {
                 replyContent = ContextSecurityGuard.redactForSharedContext(replyContent)
             }

@@ -22,6 +22,11 @@ import kotlinx.coroutines.flow.onEach
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
+import com.xiaomo.androidforclaw.tasks.TaskRegistry
+import com.xiaomo.androidforclaw.tasks.CreateTaskParams
+import com.xiaomo.androidforclaw.tasks.TaskRuntime
+import com.xiaomo.androidforclaw.tasks.TaskStatus
+import com.xiaomo.androidforclaw.tasks.MarkTerminalByRunIdParams
 
 /**
  * Agent RPC methods implementation with async execution
@@ -54,6 +59,21 @@ class AgentMethods(
             status = "running"
         )
         runningTasks[runId] = task
+
+        // Register in TaskRegistry (Wave module)
+        try {
+            TaskRegistry.createTaskRecord(CreateTaskParams(
+                runtime = TaskRuntime.CLI,
+                requesterSessionKey = params.sessionKey,
+                runId = runId,
+                task = params.message,
+                status = TaskStatus.RUNNING,
+                startedAt = acceptedAt,
+            ))
+            Log.d(TAG, "Registered task in TaskRegistry: $runId")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to register task in TaskRegistry: ${e.message}")
+        }
 
         // Send agent.start event
         broadcastEvent("agent.start", mapOf(
@@ -357,9 +377,33 @@ Instructions:
 
             Log.i(TAG, "Agent completed: $runId, iterations=${result.iterations}")
 
+            // Update TaskRegistry: mark as succeeded
+            try {
+                TaskRegistry.markTaskTerminalByRunId(MarkTerminalByRunIdParams(
+                    runId = runId,
+                    status = TaskStatus.SUCCEEDED,
+                    endedAt = System.currentTimeMillis(),
+                ))
+            } catch (e2: Exception) {
+                Log.w(TAG, "Failed to update task status in TaskRegistry: ${e2.message}")
+            }
+
         } catch (e: Exception) {
             task.status = "error"
             task.error = e.message
+
+            // Update TaskRegistry: mark as failed
+            try {
+                TaskRegistry.markTaskTerminalByRunId(MarkTerminalByRunIdParams(
+                    runId = runId,
+                    status = TaskStatus.FAILED,
+                    endedAt = System.currentTimeMillis(),
+                    error = e.message,
+                ))
+            } catch (e2: Exception) {
+                Log.w(TAG, "Failed to update task status in TaskRegistry: ${e2.message}")
+            }
+
             throw e
         }
     }

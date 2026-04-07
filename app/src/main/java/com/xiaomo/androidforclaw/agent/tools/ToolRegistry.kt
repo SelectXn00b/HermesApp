@@ -11,6 +11,7 @@ package com.xiaomo.androidforclaw.agent.tools
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
+import com.xiaomo.androidforclaw.plugins.PluginRegistry
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
 import com.xiaomo.androidforclaw.workspace.StoragePaths
@@ -78,7 +79,10 @@ class ToolRegistry(
                 json.optJSONObject("tools")
                     ?.optJSONObject("web")
                     ?.optJSONObject("search")
-                    ?.optString("apiKey", null)
+                    ?.let { search ->
+                        val v = search.optString("apiKey", "")
+                        v.ifEmpty { null }
+                    }
             } catch (_: Exception) { null }
         })
 
@@ -113,7 +117,14 @@ class ToolRegistry(
         // === Message tool (OpenClaw message-tool.ts) ===
         register(MessageTool(context))
 
-        Log.d(TAG, "✅ Registered ${tools.size} universal tools (memory tools in AndroidToolRegistry)")
+        // === Plugin-contributed tools (from PluginRegistry) ===
+        val pluginSnapshot = PluginRegistry.requireActive()
+        val pluginToolNames = pluginSnapshot.tools.flatMap { it.names }
+        if (pluginToolNames.isNotEmpty()) {
+            Log.d(TAG, "Plugin-contributed tool names: ${pluginToolNames.joinToString(", ")}")
+        }
+
+        Log.d(TAG, "✅ Registered ${tools.size} universal tools + ${pluginToolNames.size} plugin tool names (memory tools in AndroidToolRegistry)")
     }
 
     /**
@@ -175,7 +186,15 @@ class ToolRegistry(
     }
 
     /**
-     * Get tool count
+     * Get tool count (includes plugin-contributed tool names)
      */
     fun getToolCount(): Int = tools.size
+
+    /**
+     * Get the list of plugin-contributed tool names from the active PluginRegistry snapshot.
+     * These are tools declared by plugins but may be resolved externally.
+     */
+    fun getPluginToolNames(): List<String> {
+        return PluginRegistry.requireActive().tools.flatMap { it.names }
+    }
 }

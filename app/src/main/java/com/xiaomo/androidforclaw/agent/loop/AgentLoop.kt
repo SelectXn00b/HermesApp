@@ -1,6 +1,11 @@
 package com.xiaomo.androidforclaw.agent.loop
 
 import com.xiaomo.androidforclaw.agent.subagent.SubagentPromptBuilder
+import com.xiaomo.androidforclaw.infra.BackoffPolicy
+import com.xiaomo.androidforclaw.infra.computeBackoff
+import com.xiaomo.androidforclaw.infra.sleepWithAbort
+import com.xiaomo.androidforclaw.infra.GlobalEventBus
+import com.xiaomo.androidforclaw.routing.parseAgentSessionKey
 import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 
 /**
@@ -122,12 +127,14 @@ class AgentLoop(
         /**
          * Overload backoff: aligned with OpenClaw OVERLOAD_FAILOVER_BACKOFF_POLICY.
          * Used for HTTP 529 (overloaded) and 503+overload message.
-         * exponential: initialMs=250, maxMs=1500, factor=2, jitter=0.2
+         * Delegates to infra.BackoffPolicy / computeBackoff().
          */
-        private const val OVERLOAD_BACKOFF_INITIAL_MS = 250L
-        private const val OVERLOAD_BACKOFF_MAX_MS = 1_500L
-        private const val OVERLOAD_BACKOFF_FACTOR = 2
-        private const val OVERLOAD_BACKOFF_JITTER = 0.2
+        private val OVERLOAD_BACKOFF_POLICY = BackoffPolicy(
+            initialMs = 250L,
+            maxMs = 1_500L,
+            factor = 2.0,
+            jitter = 0.2
+        )
 
         // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
         private const val SOFT_TRIM_RATIO = 0.3f
@@ -393,6 +400,10 @@ class AgentLoop(
     ): AgentResult {
         shouldStop = false
 
+        // Emit agent run started event via GlobalEventBus
+        val agentEventBus = GlobalEventBus.resolve<Map<String, Any?>>("agent.events")
+        agentEventBus.emit(mapOf("type" to "agent.run.started", "sessionKey" to sessionKey))
+
         // Planning-Only Retry / ACK Fast Path state (对齐 OpenClaw run.ts L332-335)
         var planningOnlyRetryAttempts = 0
         var planningOnlyRetryInstruction: String? = null
@@ -418,6 +429,11 @@ class AgentLoop(
         writeLog("========== Agent Loop 开始 ==========")
         writeLog("Model: ${modelRef ?: "default"}")
         writeLog("Reasoning: ${if (reasoningEnabled) "enabled" else "disabled"}")
+        // Parse session key for structured logging (routing.SessionKey)
+        val parsedSessionKey = parseAgentSessionKey(sessionKey)
+        if (parsedSessionKey != null) {
+            writeLog("Session: agentId=${parsedSessionKey.agentId}, rest=${parsedSessionKey.rest}")
+        }
         writeLog("🔧 Universal tools: ${toolRegistry.getToolCount()}")
         writeLog("📱 Android tools: ${androidToolRegistry.getToolCount()}")
         writeLog("🔄 Context manager: ${if (contextManager != null) "enabled" else "disabled"}")
@@ -1202,19 +1218,15 @@ class AgentLoop(
                         val isOverloaded = ContextErrors.isOverloadedError(errorMessage)
                         if (isOverloaded) {
                             writeLog("⚠️ Overloaded error, exponential backoff...")
-                            var backoffDelay = OVERLOAD_BACKOFF_INITIAL_MS
                             val maxRetries = 4  // 250 → 500 → 1000 → 1500ms
                             for (backoffAttempt in 1..maxRetries) {
-                                // Add jitter: delay * (1 ± jitter)
-                                val jitter = backoffDelay * OVERLOAD_BACKOFF_JITTER * (Math.random() * 2 - 1)
-                                val actualDelay = (backoffDelay + jitter).toLong().coerceAtLeast(0)
+                                val actualDelay = computeBackoff(OVERLOAD_BACKOFF_POLICY, backoffAttempt)
                                 writeLog("   Backoff $backoffAttempt/$maxRetries: ${actualDelay}ms")
-                                kotlinx.coroutines.delay(actualDelay)
-                                backoffDelay = (backoffDelay * OVERLOAD_BACKOFF_FACTOR).coerceAtMost(OVERLOAD_BACKOFF_MAX_MS)
+                                sleepWithAbort(actualDelay)
                             }
                         } else {
                             writeLog("⚠️ Transient HTTP error, retrying in ${TRANSIENT_HTTP_RETRY_DELAY_MS}ms... ($errorMessage)")
-                            kotlinx.coroutines.delay(TRANSIENT_HTTP_RETRY_DELAY_MS)
+                            sleepWithAbort(TRANSIENT_HTTP_RETRY_DELAY_MS)
                         }
                         didRetryTransientHttpError = true
                         Log.w(TAG, "Transient HTTP error, retrying: $errorMessage")
@@ -1302,6 +1314,13 @@ class AgentLoop(
 
         // Finalize session log
         finalizeSessionLog(result)
+
+        // Emit agent run completed event via GlobalEventBus
+        agentEventBus.emit(mapOf(
+            "type" to "agent.run.completed",
+            "sessionKey" to sessionKey,
+            "iterations" to iteration
+        ))
 
         return result
     }

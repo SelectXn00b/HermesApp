@@ -1,5 +1,10 @@
 package com.xiaomo.androidforclaw.agent.hook
 
+import com.xiaomo.androidforclaw.hooks.HookEntry
+import com.xiaomo.androidforclaw.hooks.InternalHookEventType
+import com.xiaomo.androidforclaw.hooks.InternalHooks
+import com.xiaomo.androidforclaw.hooks.createHookEvent
+
 /**
  * Hook system for agent lifecycle events.
  *
@@ -66,12 +71,42 @@ class HookRunner {
         const val ON_ERROR = "on_error"
     }
 
+    /** Registered HookEntry objects (from the ported hooks module). */
+    private val hookEntries = mutableListOf<HookEntry>()
+
     /**
      * Register a hook handler for a given phase.
      */
     fun on(phase: String, handler: HookHandler) {
         hooks.getOrPut(phase) { mutableListOf() }.add(handler)
     }
+
+    /**
+     * Register a [HookEntry] from the ported hooks type system.
+     * Hooks matching agent-lifecycle events are mapped to the corresponding phase.
+     */
+    fun registerEntry(entry: HookEntry) {
+        hookEntries.add(entry)
+        val events = entry.metadata?.events ?: return
+        for (event in events) {
+            val phase = when (event) {
+                "before_compaction" -> BEFORE_COMPACTION
+                "after_compaction" -> AFTER_COMPACTION
+                "before_tool_call" -> BEFORE_TOOL_CALL
+                "after_tool_call" -> AFTER_TOOL_CALL
+                "on_error" -> ON_ERROR
+                else -> null
+            }
+            if (phase != null) {
+                android.util.Log.d("HookRunner", "Registered HookEntry '${entry.hook.name}' for phase=$phase")
+            }
+        }
+    }
+
+    /**
+     * Get all registered [HookEntry] objects.
+     */
+    fun getRegisteredEntries(): List<HookEntry> = hookEntries.toList()
 
     /**
      * Check if any hooks are registered for a phase.
@@ -87,6 +122,17 @@ class HookRunner {
      * Aligned with OpenClaw hookRunner.runBeforeCompaction().
      */
     suspend fun run(phase: String, event: HookEvent, context: HookContext): HookResult {
+        // Also fire internal hook event for cross-module listeners
+        if (InternalHooks.hasListeners(InternalHookEventType.AGENT, phase)) {
+            val internalEvent = createHookEvent(
+                type = InternalHookEventType.AGENT,
+                action = phase,
+                sessionKey = context.sessionKey ?: "",
+                context = event.data.toMutableMap()
+            )
+            InternalHooks.trigger(internalEvent)
+        }
+
         val phaseHooks = hooks[phase] ?: return HookResult(success = true)
         var lastResult = HookResult(success = true)
 

@@ -9,6 +9,8 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
+import com.xiaomo.androidforclaw.autoreply.isSilentReplyText
+import com.xiaomo.androidforclaw.autoreply.stripSilentToken
 import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
@@ -116,14 +118,31 @@ class MainEntryAgentHandler(
 
                 Log.d(TAG, "AgentLoop completed: ${result.iterations} iterations")
 
-                // 5. Return result
-                completeCallback(mapOf(
+                // 5. Process reply — detect and handle silent tokens
+                val rawContent = result.finalContent
+                val isSilent = isSilentReplyText(rawContent)
+                val cleanedContent = if (!isSilent) {
+                    stripSilentToken(rawContent)
+                } else {
+                    rawContent
+                }
+
+                if (isSilent) {
+                    Log.d(TAG, "Silent reply detected (NO_REPLY), suppressing content")
+                }
+
+                // 6. Return result
+                val resultMap = mutableMapOf<String, Any>(
                     "success" to true,
                     "iterations" to result.iterations,
                     "toolsUsed" to result.toolsUsed,
-                    "finalContent" to result.finalContent,
-                    "sessionId" to sessionId
-                ))
+                    "sessionId" to sessionId,
+                    "isSilentReply" to isSilent
+                )
+                if (!isSilent) {
+                    resultMap["finalContent"] = cleanedContent
+                }
+                completeCallback(resultMap)
 
                 progressJob.cancel()
 

@@ -17,6 +17,9 @@ import com.xiaomo.androidforclaw.camera.CameraCaptureManager
 import com.xiaomo.androidforclaw.camera.CameraPermissionActivity
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.media.ImageSanitizer
+import com.xiaomo.androidforclaw.media.MAX_IMAGE_BYTES
+import com.xiaomo.androidforclaw.media.detectMime
+import com.xiaomo.androidforclaw.media.extensionForMime
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -200,9 +203,20 @@ class EyeSkill(
                 deviceId = deviceId,
             )
 
+            // Detect MIME type from raw bytes via media.MimeDetection
+            val rawBytes = android.util.Base64.decode(result.base64, android.util.Base64.NO_WRAP)
+            val detectedMime = detectMime(buffer = rawBytes, filePath = "photo.jpg") ?: "image/jpeg"
+            val ext = extensionForMime(detectedMime) ?: ".jpg"
+            Log.d(TAG, "Detected MIME: $detectedMime (ext=$ext), raw size: ${rawBytes.size} bytes (max: $MAX_IMAGE_BYTES)")
+
+            // Reject images exceeding the media constant limit
+            if (rawBytes.size > MAX_IMAGE_BYTES) {
+                Log.w(TAG, "Image exceeds MAX_IMAGE_BYTES ($MAX_IMAGE_BYTES), proceeding with sanitization")
+            }
+
             // 压缩图片（对齐 OpenClaw image-sanitization 策略）
             val sanitized = withContext(Dispatchers.IO) {
-                ImageSanitizer.sanitize(result.base64, "image/jpeg")
+                ImageSanitizer.sanitize(result.base64, detectedMime)
             } ?: return SkillResult.error("图片压缩失败")
 
             // 保存到工作空间

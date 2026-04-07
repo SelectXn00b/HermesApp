@@ -10,8 +10,10 @@ package com.xiaomo.androidforclaw.agent.context
  * with hard code gates that cannot be bypassed by the LLM.
  */
 
+import com.xiaomo.androidforclaw.infra.NetUtils
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.logging.SensitiveTextRedactor
+import com.xiaomo.androidforclaw.shared.redactSensitiveUrl
 
 /**
  * ContextSecurityGuard — Code-level security for shared/group contexts.
@@ -61,15 +63,44 @@ object ContextSecurityGuard {
     /**
      * Redact sensitive content before sending to a shared context.
      * Applied to outbound messages in group chats to prevent secret leakage.
+     * Uses both SensitiveTextRedactor (secrets) and RedactSensitiveUrl (URL credentials/params).
      *
      * @param text The text to potentially redact
      * @return Redacted text (secrets masked)
      */
     fun redactForSharedContext(text: String): String {
-        val (redacted, wasRedacted) = SensitiveTextRedactor.redactSensitiveText(text)
-        if (wasRedacted) {
+        // 1. Redact secrets (tokens, keys, passwords, etc.)
+        val (secretRedacted, wasSecretRedacted) = SensitiveTextRedactor.redactSensitiveText(text)
+        if (wasSecretRedacted) {
             Log.i(TAG, "Redacted sensitive content in outbound group message")
         }
-        return redacted
+
+        // 2. Redact sensitive URL query params and credentials
+        val urlRedacted = URL_PATTERN.replace(secretRedacted) { match ->
+            redactSensitiveUrl(match.value)
+        }
+        if (urlRedacted != secretRedacted) {
+            Log.i(TAG, "Redacted sensitive URL parameters in outbound group message")
+        }
+
+        return urlRedacted
+    }
+
+    /** Regex to find URLs in text for redaction. */
+    private val URL_PATTERN = Regex("""https?://[^\s<>"')\]]+""")
+
+    /**
+     * Validate a URL for SSRF safety before allowing outbound requests.
+     * Returns null if safe, or an error message describing the block reason.
+     *
+     * @param url The URL to validate
+     * @return null if safe, error message if blocked
+     */
+    fun validateUrlForSsrf(url: String): String? {
+        val result = NetUtils.validateUrlForSsrf(url)
+        if (result != null) {
+            Log.w(TAG, "SSRF blocked: $result")
+        }
+        return result
     }
 }

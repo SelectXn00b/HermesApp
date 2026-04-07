@@ -10,9 +10,13 @@
  */
 package com.xiaomo.androidforclaw.agent.subagent
 
+import com.xiaomo.androidforclaw.acp.AcpClient
 import com.xiaomo.androidforclaw.agent.context.ContextManager
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.routing.isSubagentSessionKey
+import com.xiaomo.androidforclaw.routing.getSubagentDepth
+import com.xiaomo.androidforclaw.routing.isAcpSessionKey
 import com.xiaomo.androidforclaw.agent.tools.SessionsHistoryTool
 import com.xiaomo.androidforclaw.agent.tools.SessionsKillTool
 import com.xiaomo.androidforclaw.agent.tools.SessionsListTool
@@ -125,6 +129,11 @@ class SubagentSpawner(
             )
         }
 
+        // ACP session key check — if parent is an ACP session, log it
+        if (isAcpSessionKey(parentSessionKey)) {
+            Log.d(TAG, "Spawn requested from ACP session: $parentSessionKey")
+        }
+
         // ACP runtime check — not supported on Android
         if (params.runtime == "acp") {
             return SpawnSubagentResult(
@@ -141,8 +150,12 @@ class SubagentSpawner(
             )
         }
 
-        // 1. Depth check (aligned with OpenClaw: callerDepth >= maxSpawnDepth → forbidden)
+        // 1. Depth check — use routing.getSubagentDepth() for cross-validation
+        val routingDepth = getSubagentDepth(parentSessionKey)
         val childDepth = parentDepth + 1
+        if (routingDepth > 0) {
+            Log.d(TAG, "Routing depth for $parentSessionKey: $routingDepth (param depth: $parentDepth)")
+        }
         if (parentDepth >= config.maxSpawnDepth) {
             return SpawnSubagentResult(
                 status = SpawnStatus.FORBIDDEN,
@@ -161,6 +174,15 @@ class SubagentSpawner(
         // 3. Generate identifiers
         val runId = UUID.randomUUID().toString()
         val childSessionKey = "agent:main:subagent:$runId"
+
+        // Validate generated session key with routing module
+        check(isSubagentSessionKey(childSessionKey)) {
+            "Generated session key is not recognized as subagent: $childSessionKey"
+        }
+
+        // ACP permission check: classify the spawn action
+        val acpApproval = AcpClient.classifyToolApproval("sessions_spawn")
+        Log.d(TAG, "ACP approval for spawn: ${acpApproval.value}")
 
         // 3a. Run SUBAGENT_SPAWNING hook (can deny spawn, aligned with OpenClaw)
         // Label defaults to empty string (aligned with OpenClaw: params.label?.trim() || "")

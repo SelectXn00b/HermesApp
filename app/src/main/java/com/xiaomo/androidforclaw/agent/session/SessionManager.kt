@@ -9,6 +9,9 @@ package com.xiaomo.androidforclaw.agent.session
 
 
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.infra.JsonFile
+import com.xiaomo.androidforclaw.sessions.SessionLifecycleEvent
+import com.xiaomo.androidforclaw.sessions.emitSessionLifecycleEvent
 import com.xiaomo.androidforclaw.agent.memory.ContextCompressor
 import com.xiaomo.androidforclaw.agent.memory.TokenEstimator
 import com.xiaomo.androidforclaw.providers.LegacyMessage
@@ -159,6 +162,12 @@ class SessionManager(
 
             Log.d(TAG, "Session cleared: $sessionKey")
         }
+
+        // Notify session lifecycle listeners (sessions module)
+        emitSessionLifecycleEvent(SessionLifecycleEvent(
+            sessionKey = sessionKey,
+            reason = "destroyed"
+        ))
 
         // Opportunistic cleanup: remove orphan JSONL files not referenced by any index entry
         cleanOrphanJsonlFiles()
@@ -395,6 +404,12 @@ class SessionManager(
         )
         saveIndex()
 
+        // Notify session lifecycle listeners (sessions module)
+        emitSessionLifecycleEvent(SessionLifecycleEvent(
+            sessionKey = sessionKey,
+            reason = "created"
+        ))
+
         return session
     }
 
@@ -402,12 +417,8 @@ class SessionManager(
      * Load index file
      */
     private fun loadIndex() {
-        if (!indexFile.exists()) {
-            return
-        }
-
         try {
-            val json = indexFile.readText()
+            val json = JsonFile.loadJsonFile(indexFile) ?: return
             val jsonObject = JsonParser.parseString(json).asJsonObject
 
             sessionIndex.clear()
@@ -443,7 +454,7 @@ class SessionManager(
             }
 
             Log.d(TAG, "💾 Saving index to: ${indexFile.absolutePath}")
-            indexFile.writeText(gsonPretty.toJson(jsonObject))
+            JsonFile.saveJsonFile(indexFile, gsonPretty.toJson(jsonObject))
             Log.d(TAG, "✅ Index saved: ${sessionIndex.size} sessions")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to save index: ${e.message}", e)

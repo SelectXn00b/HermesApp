@@ -13,6 +13,7 @@ import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.websearch.WebSearchRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -88,6 +89,10 @@ class WebSearchTool(private val apiKeyProvider: () -> String?) : Tool {
         val country = args["country"] as? String
         val language = args["language"] as? String
         val freshness = args["freshness"] as? String
+
+        // Check provider resolution via WebSearchRuntime
+        val resolvedProvider = WebSearchRuntime.resolveWebSearchProviderId()
+        Log.d(TAG, "WebSearchRuntime resolved provider: ${resolvedProvider ?: "none (using direct Brave API)"}")
 
         val apiKey = apiKeyProvider()
         if (apiKey.isNullOrBlank()) {

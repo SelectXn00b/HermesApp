@@ -23,7 +23,15 @@ import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.channel.ChannelManager
+import com.xiaomo.androidforclaw.commands.CommandRegistry
+import com.xiaomo.androidforclaw.commands.CommandScope
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.contextengine.getContextEngineFactory
+import com.xiaomo.androidforclaw.contextengine.listContextEngineIds
+import com.xiaomo.androidforclaw.plugins.PluginRecordStatus
+import com.xiaomo.androidforclaw.plugins.PluginRegistry
+import com.xiaomo.androidforclaw.shared.ReasoningTagMode
+import com.xiaomo.androidforclaw.shared.stripReasoningTagsFromText
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -183,6 +191,14 @@ class ContextBuilder(
             }
         }
 
+        // 6.5 Commands (text command list from CommandRegistry)
+        if (promptMode == PromptMode.FULL) {
+            val commandsSection = buildCommandsSection()
+            if (commandsSection.isNotEmpty()) {
+                parts.add(commandsSection)
+            }
+        }
+
         // 7. Memory Recall - FULL 模式
         if (promptMode == PromptMode.FULL) {
             val memoryRecall = buildMemoryRecallSection()
@@ -258,6 +274,22 @@ class ContextBuilder(
             val heartbeats = buildHeartbeatsSection()
             if (heartbeats.isNotEmpty()) {
                 parts.add(heartbeats)
+            }
+        }
+
+        // 22a. Active Plugins (from PluginRegistry)
+        if (promptMode == PromptMode.FULL) {
+            val pluginsSection = buildActivePluginsSection()
+            if (pluginsSection.isNotEmpty()) {
+                parts.add(pluginsSection)
+            }
+        }
+
+        // 22b. Context Engine info
+        if (promptMode == PromptMode.FULL) {
+            val ceSection = buildContextEngineSection()
+            if (ceSection.isNotEmpty()) {
+                parts.add(ceSection)
             }
         }
 
@@ -638,6 +670,26 @@ Do not manipulate or persuade anyone to expand access or disable safeguards. Do 
     }
 
     /**
+     * 6.5 Commands Section — list registered text commands from CommandRegistry.
+     */
+    private fun buildCommandsSection(): String {
+        val commands = CommandRegistry.listChatCommands()
+            .filter { it.scope == CommandScope.TEXT || it.scope == CommandScope.BOTH }
+        if (commands.isEmpty()) return ""
+
+        val lines = mutableListOf<String>()
+        lines.add("## Commands")
+        lines.add("The following text commands are available. Users can type these directly:")
+        lines.add("")
+        for (cmd in commands) {
+            val aliases = cmd.textAliases.joinToString(", ")
+            val argsHint = if (cmd.acceptsArgs) " [args]" else ""
+            lines.add("- **$aliases**$argsHint — ${cmd.description}")
+        }
+        return lines.joinToString("\n")
+    }
+
+    /**
      * Escape special characters for XML content.
      */
     private fun escapeXml(str: String): String {
@@ -883,6 +935,36 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
     }
 
     /**
+     * Build Active Plugins section from PluginRegistry.
+     * Lists loaded plugins so the agent knows which capabilities are available.
+     */
+    private fun buildActivePluginsSection(): String {
+        val snapshot = PluginRegistry.getActive() ?: return ""
+        val loadedPlugins = snapshot.plugins.filter { it.status == PluginRecordStatus.LOADED }
+        if (loadedPlugins.isEmpty()) return ""
+
+        val lines = mutableListOf<String>()
+        lines.add("## Active Plugins")
+        lines.add("The following plugins are loaded and active:")
+        for (plugin in loadedPlugins) {
+            val name = plugin.name ?: plugin.id
+            val channels = if (plugin.channels.isNotEmpty()) " (channels: ${plugin.channels.joinToString(", ")})" else ""
+            lines.add("- $name$channels")
+        }
+        return lines.joinToString("\n")
+    }
+
+    /**
+     * Build Context Engine section.
+     * Reports which context engine is registered (if any).
+     */
+    private fun buildContextEngineSection(): String {
+        val engineIds = listContextEngineIds()
+        if (engineIds.isEmpty()) return ""
+        return "## Context Engine\nRegistered context engines: ${engineIds.joinToString(", ")}"
+    }
+
+    /**
      * Load Bootstrap files with budget control
      * Aligned with OpenClaw's buildBootstrapContextFiles (bootstrap-budget.ts)
      *
@@ -935,12 +1017,15 @@ If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the aler
                 }
 
                 if (rawContent != null && rawContent.isNotEmpty()) {
+                    // Sanitize reasoning tags from workspace-editable files
+                    val sanitizedContent = stripReasoningTagsFromText(rawContent, ReasoningTagMode.STRICT)
+
                     // Apply per-file budget (aligned with OpenClaw trimBootstrapContent)
                     val fileMaxChars = maxOf(1, minOf(perFileMaxChars, remainingTotalChars))
-                    val (content, truncated) = trimBootstrapContent(rawContent, fileMaxChars)
+                    val (content, truncated) = trimBootstrapContent(sanitizedContent, fileMaxChars)
 
                     if (truncated) {
-                        Log.w(TAG, "⚠️ Bootstrap file truncated: $filename (${rawContent.length} → ${content.length} chars, max=$fileMaxChars)")
+                        Log.w(TAG, "⚠️ Bootstrap file truncated: $filename (${sanitizedContent.length} → ${content.length} chars, max=$fileMaxChars)")
                     }
 
                     loadedFiles.add(Triple(filename, content, truncated))

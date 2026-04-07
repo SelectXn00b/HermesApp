@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import android.os.Build
 import android.text.TextUtils
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.routing.buildAgentMainSessionKey
 import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.workspace.StoragePaths
@@ -225,7 +226,7 @@ object MainEntryNew {
                 // Wire subagent tools into main AgentLoop (depth=0)
                 val subagentTools = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner.buildSubagentTools(
                     spawner = spawner,
-                    parentSessionKey = "agent:main:main",
+                    parentSessionKey = buildAgentMainSessionKey("main"),
                     parentAgentLoop = agentLoop,
                     parentDepth = 0,
                     configLoader = configLoader,
@@ -262,7 +263,7 @@ object MainEntryNew {
             initialize(application)
         }
 
-        val effectiveSessionId = sessionId ?: "default"
+        val effectiveSessionId = sessionId ?: buildAgentMainSessionKey("main")
         activeSessionId = effectiveSessionId  // Set for block reply broadcasting
         lastBlockReplyText = null  // Reset block reply tracking
         Log.d(TAG, "🆔 [Session] Session ID: $effectiveSessionId")

@@ -6,6 +6,7 @@ package com.xiaomo.androidforclaw.agent.tools
  */
 
 import android.content.Context
+import com.xiaomo.androidforclaw.process.enqueueCommand
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -67,10 +68,13 @@ class ExecFacadeTool private constructor(
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
         val backend = (args["backend"] as? String)?.lowercase() ?: "auto"
-        return when (backend) {
-            "termux" -> termuxExec.execute(args)
-            "internal" -> internalExec.execute(args)
-            else -> if (termuxAvailable()) termuxExec.execute(args) else internalExec.execute(args)
-        }
+        // Route through the process command queue for concurrency control
+        return enqueueCommand(task = {
+            when (backend) {
+                "termux" -> termuxExec.execute(args)
+                "internal" -> internalExec.execute(args)
+                else -> if (termuxAvailable()) termuxExec.execute(args) else internalExec.execute(args)
+            }
+        })
     }
 }

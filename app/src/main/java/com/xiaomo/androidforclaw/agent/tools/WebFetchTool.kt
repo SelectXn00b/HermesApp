@@ -13,6 +13,8 @@ import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.webfetch.WebFetchRequest
+import com.xiaomo.androidforclaw.webfetch.WebFetchRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -74,34 +76,25 @@ class WebFetchTool(
         Log.d(TAG, "Fetching URL: $url")
         return withContext(Dispatchers.IO) {
             try {
-                val request = Request.Builder()
-                    .url(url)
-                    .header("User-Agent", USER_AGENT)
-                    .build()
+                // Delegate to WebFetchRuntime (Wave module) for URL normalization and fetch
+                val fetchResult = WebFetchRuntime.fetchWebPage(WebFetchRequest(
+                    url = url,
+                    timeoutMs = 30_000,
+                    maxBytes = maxCharsParam.toLong() * 2 // bytes > chars, allow extra
+                ))
 
-                val response = client.newCall(request).execute()
+                val contentType = fetchResult.contentType
+                val body = fetchResult.content
 
-                if (!response.isSuccessful) {
-                    return@withContext ToolResult.error("HTTP ${response.code}: ${response.message}")
+                if (fetchResult.statusCode !in 200..399) {
+                    return@withContext ToolResult.error("HTTP ${fetchResult.statusCode}")
                 }
-
-                val contentType = response.header("Content-Type") ?: ""
-                val body = response.body?.string() ?: ""
 
                 // Simple content extraction (strip HTML tags)
                 val content = when {
-                    contentType.contains("application/json", ignoreCase = true) -> {
-                        // Return JSON content directly
-                        body
-                    }
-                    contentType.contains("text/html", ignoreCase = true) -> {
-                        // Simple HTML cleanup
-                        stripHtmlTags(body)
-                    }
-                    else -> {
-                        // Other text content
-                        body
-                    }
+                    contentType.contains("application/json", ignoreCase = true) -> body
+                    contentType.contains("text/html", ignoreCase = true) -> stripHtmlTags(body)
+                    else -> body
                 }
 
                 // Truncate overly long content
@@ -111,7 +104,13 @@ class WebFetchTool(
                     content
                 }
 
-                ToolResult.success(finalContent, mapOf("url" to url, "length" to content.length))
+                val metadata = mutableMapOf<String, Any>(
+                    "url" to fetchResult.url,
+                    "length" to content.length
+                )
+                if (fetchResult.truncated) metadata["truncated"] = true
+
+                ToolResult.success(finalContent, metadata)
             } catch (e: Exception) {
                 Log.e(TAG, "Web fetch failed", e)
                 ToolResult.error("Web fetch failed: ${e.message}")

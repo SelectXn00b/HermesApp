@@ -9,6 +9,8 @@ package com.xiaomo.androidforclaw.agent.tools
 
 
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.process.ProcessManager
+import com.xiaomo.androidforclaw.process.ExecOptions
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -75,92 +77,59 @@ class ExecTool(
         }
 
         Log.d(TAG, "Executing command: $command")
-        return withContext(Dispatchers.IO) {
-            try {
-                val processBuilder = ProcessBuilder()
-                if (workDir != null) {
-                    processBuilder.directory(java.io.File(workDir))
-                }
-
-                // Split command (simple implementation, doesn't handle complex quotes)
-                val cmdArray = if (command.contains(" ")) {
-                    listOf("sh", "-c", command)
-                } else {
-                    command.split(" ")
-                }
-
-                processBuilder.command(cmdArray)
-                processBuilder.redirectErrorStream(false)
-
-                val process = processBuilder.start()
-
-                // Wait with real process timeout (blocking IO immune to coroutine cancellation)
-                val timeoutSec = (timeout / 1000).coerceAtLeast(5)
-                val finished = process.waitFor(timeoutSec, java.util.concurrent.TimeUnit.SECONDS)
-                if (!finished) {
-                    process.destroyForcibly()
-                    return@withContext ToolResult.error("Command timed out after ${timeoutSec}s")
-                }
-
-                val result = run {
-                    val stdout = process.inputStream.bufferedReader().readText()
-                    val stderr = process.errorStream.bufferedReader().readText()
-
-                    val exitCode = process.exitValue()
-
-                    val rendered = buildString {
-                        if (stdout.isNotEmpty()) {
-                            append(stdout)
-                        }
-                        if (stderr.isNotEmpty()) {
-                            if (isNotEmpty()) append("\n")
-                            append("STDERR:\n$stderr")
-                        }
-                        if (exitCode != 0) {
-                            if (isNotEmpty()) append("\n")
-                            append("Exit code: $exitCode")
-                        }
-                    }.ifEmpty { "(no output)" }
-
-                    mapOf(
-                        "rendered" to rendered,
-                        "stdout" to stdout,
-                        "stderr" to stderr,
-                        "exitCode" to exitCode
-                    )
-                }
-
-                @Suppress("UNCHECKED_CAST")
-                val rendered = result["rendered"] as String
-                val stdout = result["stdout"] as String
-                val stderr = result["stderr"] as String
-                val exitCode = result["exitCode"] as Int
-
-                // Truncate overly long output
-                val maxLen = 10000
-                val finalResult = if (rendered.length > maxLen) {
-                    rendered.take(maxLen) + "\n... (truncated, ${rendered.length - maxLen} more chars)"
-                } else {
-                    rendered
-                }
-
-                ToolResult.success(
-                    finalResult,
-                    metadata = mapOf(
-                        "backend" to "android-internal",
-                        "stdout" to stdout,
-                        "stderr" to stderr,
-                        "exitCode" to exitCode,
-                        "working_dir" to (workDir ?: ""),
-                        "command" to command
-                    )
+        return try {
+            val execResult = ProcessManager.exec(
+                command = command,
+                options = ExecOptions(
+                    timeoutMs = timeout,
+                    workingDir = workDir
                 )
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                ToolResult.error("Command timed out after ${timeout}ms")
-            } catch (e: Exception) {
-                Log.e(TAG, "Command execution failed", e)
-                ToolResult.error("Command execution failed: ${e.message}")
+            )
+
+            val stdout = execResult.stdout
+            val stderr = execResult.stderr
+            val exitCode = execResult.exitCode
+
+            if (execResult.timedOut) {
+                return ToolResult.error("Command timed out after ${timeout / 1000}s")
             }
+
+            val rendered = buildString {
+                if (stdout.isNotEmpty()) {
+                    append(stdout)
+                }
+                if (stderr.isNotEmpty()) {
+                    if (isNotEmpty()) append("\n")
+                    append("STDERR:\n$stderr")
+                }
+                if (exitCode != 0) {
+                    if (isNotEmpty()) append("\n")
+                    append("Exit code: $exitCode")
+                }
+            }.ifEmpty { "(no output)" }
+
+            // Truncate overly long output
+            val maxLen = 10000
+            val finalResult = if (rendered.length > maxLen) {
+                rendered.take(maxLen) + "\n... (truncated, ${rendered.length - maxLen} more chars)"
+            } else {
+                rendered
+            }
+
+            ToolResult.success(
+                finalResult,
+                metadata = mapOf(
+                    "backend" to "android-internal",
+                    "stdout" to stdout,
+                    "stderr" to stderr,
+                    "exitCode" to exitCode,
+                    "working_dir" to (workDir ?: ""),
+                    "command" to command
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Command execution failed", e)
+            ToolResult.error("Command execution failed: ${e.message}")
         }
     }
 

@@ -7,6 +7,9 @@
 package com.xiaomo.androidforclaw.gateway
 
 import android.content.Context
+import com.xiaomo.androidforclaw.infra.FixedWindowRateLimiter
+import com.xiaomo.androidforclaw.process.resetAllLanes
+import com.xiaomo.androidforclaw.routing.buildAgentMainSessionKey
 import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.session.SessionManager
@@ -22,6 +25,12 @@ import com.xiaomo.androidforclaw.gateway.methods.CronMethods
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.hooks.loadInternalHooks
+import com.xiaomo.androidforclaw.plugins.PluginLoader
+import com.xiaomo.androidforclaw.plugins.PluginRegistry
+import com.xiaomo.androidforclaw.plugins.PluginRecordStatus
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.gateway.protocol.AgentParams
 import com.xiaomo.androidforclaw.gateway.protocol.AgentWaitParams
 import com.xiaomo.androidforclaw.gateway.protocol.EventFrame
@@ -80,6 +89,9 @@ class GatewayController(
     private var tokenAuth: TokenAuth? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
+    // Per-session rate limiter: max 10 requests per 60 seconds (infra.FixedWindowRateLimiter)
+    private val sessionRateLimiters = ConcurrentHashMap<String, FixedWindowRateLimiter>()
+
     // Active agent runs: runId -> coroutine Job (for abort support)
     private val activeJobs = ConcurrentHashMap<String, Job>()
     // Per-session AgentLoop instances (so sessions don't share shouldStop flag)
@@ -123,6 +135,29 @@ class GatewayController(
         }
 
         try {
+            // Reset process command lanes on gateway (re)start
+            resetAllLanes()
+
+            // Initialize plugins (PluginLoader) and hooks (HookLoader)
+            serviceScope.launch(Dispatchers.IO) {
+                try {
+                    val pluginSnapshot = PluginLoader.loadPlugins()
+                    Log.i(TAG, "Loaded ${pluginSnapshot.plugins.size} plugins at gateway startup")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to load plugins at gateway startup", e)
+                }
+                try {
+                    val cfg = ConfigLoader(context).loadOpenClawConfig()
+                    val hookCount = loadInternalHooks(
+                        cfg = cfg,
+                        workspaceDir = StoragePaths.workspace.absolutePath
+                    )
+                    Log.i(TAG, "Loaded $hookCount internal hooks at gateway startup")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to load hooks at gateway startup", e)
+                }
+            }
+
             // Initialize token auth if configured
             if (authToken != null) {
                 tokenAuth = TokenAuth(authToken)
@@ -168,8 +203,21 @@ class GatewayController(
                 registerMethod("chat.send") { params ->
                     @Suppress("UNCHECKED_CAST")
                     val p = params as? Map<String, Any?> ?: emptyMap()
-                    val sessionKey = p["sessionKey"] as? String ?: "default"
+                    val sessionKey = p["sessionKey"] as? String
+                        ?: buildAgentMainSessionKey("main")
                     val userMsg = p["message"] as? String ?: ""
+
+                    // Per-session rate limit check (infra.FixedWindowRateLimiter)
+                    val rateLimiter = sessionRateLimiters.getOrPut(sessionKey) {
+                        FixedWindowRateLimiter(maxRequests = 10, windowMs = 60_000L)
+                    }
+                    val rateLimitResult = rateLimiter.consume()
+                    if (!rateLimitResult.allowed) {
+                        return@registerMethod mapOf(
+                            "error" to "rate_limited",
+                            "retryAfterMs" to rateLimitResult.retryAfterMs
+                        )
+                    }
                     val thinking = p["thinking"] as? String ?: "off"
                     SPHelper.getInstance(context).saveData(PREF_THINKING_LEVEL, thinking)
                     val reasoningEnabled = thinking != "off"
@@ -388,7 +436,8 @@ class GatewayController(
                 registerMethod("chat.history") { params ->
                     @Suppress("UNCHECKED_CAST")
                     val p = params as? Map<String, Any?> ?: emptyMap()
-                    val sessionKey = p["sessionKey"] as? String ?: "default"
+                    val sessionKey = p["sessionKey"] as? String
+                        ?: buildAgentMainSessionKey("main")
                     val session = sessionManager.get(sessionKey)
                     val messageList = session?.messages?.mapIndexed { idx, msg ->
                         val ts = session.messageTimestamps.getOrElse(idx) { System.currentTimeMillis() }
@@ -456,6 +505,44 @@ class GatewayController(
                             "description" to "AI Agent for Android"
                         )
                     ))
+                }
+
+                // ── Plugin RPC methods ────────────────────────────────
+                registerMethod("plugins.list") { _ ->
+                    val snapshot = PluginRegistry.requireActive()
+                    mapOf("plugins" to snapshot.plugins.map { plugin ->
+                        mapOf(
+                            "id" to plugin.id,
+                            "name" to plugin.name,
+                            "status" to plugin.status.value,
+                            "origin" to plugin.origin.value,
+                            "channels" to plugin.channels,
+                            "providers" to plugin.providers,
+                        )
+                    })
+                }
+
+                registerMethod("plugins.enable") { params ->
+                    @Suppress("UNCHECKED_CAST")
+                    val p = params as? Map<String, Any?> ?: emptyMap()
+                    val pluginId = p["pluginId"] as? String
+                        ?: throw IllegalArgumentException("pluginId required")
+                    // Re-load plugins to pick up activation changes
+                    val snapshot = PluginLoader.loadPlugins()
+                    val found = snapshot.plugins.any { it.id == pluginId }
+                    mapOf("ok" to found, "pluginId" to pluginId)
+                }
+
+                registerMethod("plugins.disable") { params ->
+                    @Suppress("UNCHECKED_CAST")
+                    val p = params as? Map<String, Any?> ?: emptyMap()
+                    val pluginId = p["pluginId"] as? String
+                        ?: throw IllegalArgumentException("pluginId required")
+                    val info = PluginRegistry.get(pluginId)
+                    if (info != null) {
+                        PluginRegistry.unregister(pluginId)
+                    }
+                    mapOf("ok" to (info != null), "pluginId" to pluginId)
                 }
 
                 // Register Agent methods

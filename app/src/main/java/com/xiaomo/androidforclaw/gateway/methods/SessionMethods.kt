@@ -7,6 +7,9 @@ package com.xiaomo.androidforclaw.gateway.methods
 import com.xiaomo.androidforclaw.agent.session.SessionManager
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.gateway.protocol.*
+import com.xiaomo.androidforclaw.sessions.looksLikeSessionId
+import com.xiaomo.androidforclaw.sessions.ParsedSessionLabel
+import com.xiaomo.androidforclaw.sessions.parseSessionLabel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -27,12 +30,20 @@ class SessionMethods(
         val keys = sessionManager.getAllKeys()
         val sessions = keys.map { key ->
             val session = sessionManager.get(key)
+            val rawDisplayName = session?.metadata?.get("displayName") as? String
+            // Validate display name via sessions.SessionLabel
+            val displayName = if (rawDisplayName != null) {
+                when (val parsed = parseSessionLabel(rawDisplayName)) {
+                    is ParsedSessionLabel.Ok -> parsed.label
+                    is ParsedSessionLabel.Error -> rawDisplayName // keep as-is on parse failure
+                }
+            } else null
             SessionInfo(
                 key = key,
                 messageCount = session?.messageCount() ?: 0,
                 createdAt = parseIso8601(session?.createdAt),
                 updatedAt = parseIso8601(session?.updatedAt),
-                displayName = session?.metadata?.get("displayName") as? String
+                displayName = displayName
             )
         }.sortedByDescending { it.updatedAt }.take(limit)
         return SessionListResult(sessions = sessions)
@@ -57,6 +68,11 @@ class SessionMethods(
             ?: throw IllegalArgumentException("params must be an object")
         val key = paramsMap["key"] as? String
             ?: throw IllegalArgumentException("key required")
+
+        // Validate session key format using sessions.SessionId if it looks UUID-like
+        if (looksLikeSessionId(key)) {
+            // Key is a raw session ID, not a session key — still allowed, just noted
+        }
 
         val session = sessionManager.get(key)
             ?: throw IllegalArgumentException("Session not found: $key")
@@ -117,10 +133,19 @@ class SessionMethods(
         val session = sessionManager.get(key)
             ?: throw IllegalArgumentException("Session not found: $key")
 
-        // Update metadata
+        // Update metadata (validate label via sessions.SessionLabel)
         val metadata = paramsMap["metadata"] as? Map<String, Any?>
         if (metadata != null) {
-            session.metadata.putAll(metadata)
+            val patchedMetadata = metadata.toMutableMap()
+            // Validate displayName/label if provided
+            val rawLabel = patchedMetadata["displayName"]
+            if (rawLabel != null) {
+                when (val parsed = parseSessionLabel(rawLabel)) {
+                    is ParsedSessionLabel.Ok -> patchedMetadata["displayName"] = parsed.label
+                    is ParsedSessionLabel.Error -> throw IllegalArgumentException(parsed.error)
+                }
+            }
+            session.metadata.putAll(patchedMetadata)
         }
 
         // Manipulate messages
