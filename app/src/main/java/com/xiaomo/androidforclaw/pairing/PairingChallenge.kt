@@ -1,25 +1,42 @@
 package com.xiaomo.androidforclaw.pairing
 
-import com.xiaomo.androidforclaw.infra.generateNumericCode
-import com.xiaomo.androidforclaw.infra.generateSecureToken
-
 /**
  * OpenClaw module: pairing
- * Source: OpenClaw/src/pairing/challenge.ts
+ * Source: OpenClaw/src/pairing/pairing-challenge.ts
  *
- * Generates and validates pairing challenge tokens.
+ * Shared pairing challenge issuance for DM pairing policy pathways.
+ * Ensures every channel follows the same create-if-missing + reply flow.
+ * Aligned 1:1 with TS issuePairingChallenge.
  */
 object PairingChallenge {
 
-    fun generatePairingCode(digits: Int = 6): String = generateNumericCode(digits)
+    /**
+     * Issue a pairing challenge.
+     * Creates a pairing request if one doesn't exist, then sends a reply.
+     * Aligned with TS issuePairingChallenge.
+     */
+    suspend fun issuePairingChallenge(params: PairingChallengeParams): IssuePairingChallengeResult {
+        val upsertResult = params.upsertPairingRequest(params.senderId, params.meta)
 
-    fun generateChallengeToken(): String = generateSecureToken(32)
+        if (!upsertResult.created) {
+            return IssuePairingChallengeResult(created = false)
+        }
 
-    fun isCodeExpired(request: PairingRequest): Boolean =
-        System.currentTimeMillis() > request.expiresAt
+        params.onCreated?.invoke(upsertResult.code)
 
-    fun validateCode(input: String, request: PairingRequest): Boolean {
-        if (isCodeExpired(request)) return false
-        return input.trim() == request.code
+        val replyText = params.buildReplyText?.invoke(upsertResult.code, params.senderIdLine)
+            ?: PairingMessages.buildPairingReply(
+                channel = params.channel,
+                idLine = params.senderIdLine,
+                code = upsertResult.code,
+            )
+
+        try {
+            params.sendPairingReply(replyText)
+        } catch (err: Throwable) {
+            params.onReplyError?.invoke(err)
+        }
+
+        return IssuePairingChallengeResult(created = true, code = upsertResult.code)
     }
 }
