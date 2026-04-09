@@ -23,8 +23,8 @@ import kotlinx.coroutines.runBlocking
 object DeviceController {
     private val TAG = "agent1Controller"
 
-    /** 检查 Shizuku 授权状态 — 未授权时禁止前台操作 */
-    fun isShizukuAuthorized(): Boolean = ShizukuManager.isReady
+    /** 检查 Shizuku 是否可用且已授权（可选能力，后台命令操作） */
+    fun isShizukuReady(): Boolean = ShizukuManager.isReady
 
 
     /** Capture a screenshot of the device via AccessibilityProxy */
@@ -190,10 +190,6 @@ object DeviceController {
 
     /** Simulate a tap on the screen at coordinates (x, y) via Accessibility gesture. */
     fun tap(x: Int, y: Int) {
-        if (!isShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 tap 操作")
-            return
-        }
         runBlocking {
             AccessibilityProxy.tap(x, y)
         }
@@ -201,10 +197,6 @@ object DeviceController {
 
     /** Simulate a swipe from (x1, y1) to (x2, y2) via Accessibility gesture. */
     fun swipe(x1: Int, y1: Int, x2: Int, y2: Int, durationMs: Long = 500) {
-        if (!isShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 swipe 操作")
-            return
-        }
         runBlocking {
             AccessibilityProxy.swipe(x1, y1, x2, y2, durationMs)
         }
@@ -212,28 +204,16 @@ object DeviceController {
 
     /** Input text into the currently focused element (e.g., an input box). */
     fun inputText(text: String, context: Context) {
-        if (!isShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 inputText 操作")
-            return
-        }
         AccessibilityProxy.inputText(text)
     }
 
     /** Simulate a Back button press. */
     fun pressBack() {
-        if (!isShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 pressBack 操作")
-            return
-        }
         AccessibilityProxy.pressBack()
     }
 
     /** Return to the Home screen. */
     fun pressHome() {
-        if (!isShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 pressHome 操作")
-            return
-        }
         AccessibilityProxy.pressHome()
     }
 

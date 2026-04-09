@@ -27,10 +27,8 @@ object AccessibilityProxy {
     private val _screenCaptureGranted = MutableLiveData(false)
     val screenCaptureGranted: LiveData<Boolean> = _screenCaptureGranted
 
-    /** 检查 Shizuku 授权状态 — 未授权时禁止前台操作 */
-    private fun checkShizukuAuthorized(): Boolean {
-        return ShizukuManager.isReady
-    }
+    /** 检查 Shizuku 是否可用且已授权（可选能力，不影响无障碍操作） */
+    fun isShizukuReady(): Boolean = ShizukuManager.isReady
 
     /** 从任意地方调用来刷新权限状态（PermissionActivity 授权后调用） */
     fun refreshPermissions(context: android.content.Context) {
@@ -78,19 +76,11 @@ object AccessibilityProxy {
     }
 
     suspend fun tap(x: Int, y: Int): Boolean = withContext(Dispatchers.IO) {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 tap 操作")
-            return@withContext false
-        }
         ensureConnectedWithRetry(requireReady = true)
         service?.performClickAt(x.toFloat(), y.toFloat(), isLongClick = false) ?: false
     }
 
     suspend fun longPress(x: Int, y: Int): Boolean = withContext(Dispatchers.IO) {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 longPress 操作")
-            return@withContext false
-        }
         ensureConnectedWithRetry(requireReady = true)
         service?.performClickAt(x.toFloat(), y.toFloat(), isLongClick = true) ?: false
     }
@@ -100,10 +90,6 @@ object AccessibilityProxy {
         endX: Int, endY: Int,
         durationMs: Long = 300
     ): Boolean = withContext(Dispatchers.IO) {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 swipe 操作")
-            return@withContext false
-        }
         val svc = service
         if (svc == null) {
             Log.w(TAG, "Service not available for swipe")
@@ -114,30 +100,18 @@ object AccessibilityProxy {
     }
 
     fun pressHome(): Boolean {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 pressHome 操作")
-            return false
-        }
         val svc = service ?: return false
         svc.pressHomeButton()
         return true
     }
 
     fun pressBack(): Boolean {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 pressBack 操作")
-            return false
-        }
         val svc = service ?: return false
         svc.pressBackButton()
         return true
     }
 
     fun inputText(text: String): Boolean {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 inputText 操作")
-            return false
-        }
         val svc = service ?: return false
         return svc.inputText(text)
     }
@@ -167,10 +141,6 @@ object AccessibilityProxy {
     }
 
     suspend fun captureScreen(): String = withContext(Dispatchers.IO) {
-        if (!checkShizukuAuthorized()) {
-            Log.w(TAG, "❌ Shizuku 未授权，禁止 captureScreen 操作")
-            return@withContext ""
-        }
         ensureConnectedWithRetry()
         MediaProjectionHelper.captureScreen()?.second ?: ""
     }
