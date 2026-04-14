@@ -221,7 +221,7 @@ data class SlackChannelConfig(
 )
 
 data class TelegramChannelConfig(
-    // 对齐 OpenClaw types.telegram.ts TelegramAccountConfig
+    // 对齐 OpenClaw types.telegram.ts TelegramConfig
     val enabled: Boolean = false,
     /** Bot Token (from @BotFather) */
     val botToken: String = "",
@@ -235,7 +235,20 @@ data class TelegramChannelConfig(
     /** Webhook URL (可选，不填则使用长轮询) */
     val webhookUrl: String? = null,
     /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
-    val model: String? = null
+    val model: String? = null,
+    /** 多账号支持（对齐 OpenClaw TelegramConfig.accounts） */
+    val accounts: Map<String, TelegramAccountConfig>? = null,
+    val defaultAccount: String? = null
+)
+
+data class TelegramAccountConfig(
+    val enabled: Boolean = true,
+    val name: String? = null,
+    val botToken: String? = null,
+    val dmPolicy: String? = null,
+    val groupPolicy: String? = null,
+    val requireMention: Boolean? = null,
+    val webhookUrl: String? = null
 )
 
 data class WhatsAppChannelConfig(

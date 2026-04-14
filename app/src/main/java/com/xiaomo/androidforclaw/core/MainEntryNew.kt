@@ -20,8 +20,6 @@ import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
 import com.xiaomo.androidforclaw.agent.session.SessionManager
 import com.xiaomo.androidforclaw.config.ConfigLoader
-import com.xiaomo.androidforclaw.config.AgentProfile
-import com.xiaomo.androidforclaw.config.AgentProfileRouter
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import kotlinx.coroutines.flow.asSharedFlow
 import com.xiaomo.androidforclaw.ext.mmkv
@@ -334,28 +332,6 @@ object MainEntryNew {
                     // Use default FULL mode to align with OpenClaw
                 )
 
-                // 1b. Multi-Agent Profile Routing
-                val multiAgentConfig = configLoader.loadOpenClawConfigFresh().multiAgent
-                var selectedProfile: AgentProfile? = null
-                if (multiAgentConfig.enabled) {
-                    val router = AgentProfileRouter(multiAgentConfig)
-                    val routeResult = router.route(userInput)
-                    if (routeResult.matched && routeResult.profile != null) {
-                        selectedProfile = routeResult.profile
-                        Log.i(TAG, "🤖 Agent Profile selected: ${selectedProfile.name} (${routeResult.matchReason})")
-                        // Append agent-specific system prompt
-                        if (selectedProfile.systemPrompt != null) {
-                            systemPrompt = systemPrompt + "\n\n" + selectedProfile.systemPrompt
-                        }
-                        // Override model and API key on agent loop
-                        if (selectedProfile.model != null) {
-                            agentLoop.setModelRef(selectedProfile.model)
-                        }
-                        if (selectedProfile.apiKey != null) {
-                            agentLoop.apiKeyOverride = selectedProfile.apiKey
-                        }
-                    }
-                }
                 Log.d(TAG, "✅ System prompt built (${systemPrompt.length} chars)")
 
                 // 2. Broadcast user message

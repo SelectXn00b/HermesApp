@@ -20,9 +20,6 @@ import com.xiaomo.androidforclaw.providers.llm.toLegacyMessage
 import com.xiaomo.androidforclaw.providers.llm.toNewMessage
 import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 import com.xiaomo.androidforclaw.util.ReplyTagFilter
-import com.xiaomo.androidforclaw.config.AgentProfile
-import com.xiaomo.androidforclaw.config.AgentProfileRouter
-import com.xiaomo.androidforclaw.config.ConfigLoader
 
 /**
  * Shared message processing pipeline for Discord, Telegram, Slack, and Signal.
@@ -129,25 +126,8 @@ class ChannelMessageProcessor(private val app: MyApplication) {
                 }
             }
 
-            // 4c. Multi-Agent Profile Routing
-            val configLoader = ConfigLoader(app)
-            val multiAgentConfig = configLoader.loadOpenClawConfigFresh().multiAgent
-            var selectedProfile: AgentProfile? = null
-            if (multiAgentConfig.enabled) {
-                val router = AgentProfileRouter(multiAgentConfig)
-                val routeResult = router.route(adapter.getUserMessage())
-                if (routeResult.matched && routeResult.profile != null) {
-                    selectedProfile = routeResult.profile
-                    Log.i(TAG, "🤖 Agent Profile selected: ${selectedProfile.name} (${routeResult.matchReason})")
-                }
-            }
-
-            // 4d. System prompt (with optional agent profile system prompt)
-            var systemPrompt = adapter.buildSystemPrompt()
-            if (selectedProfile?.systemPrompt != null) {
-                systemPrompt = systemPrompt + "\n\n" + selectedProfile.systemPrompt
-                Log.d(TAG, "📝 Agent system prompt appended (${selectedProfile.systemPrompt.length} chars)")
-            }
+            // 4c. System prompt
+            val systemPrompt = adapter.buildSystemPrompt()
 
             // 5. AgentLoop
             val llmProvider = UnifiedLLMProvider(app)
@@ -165,12 +145,8 @@ class ChannelMessageProcessor(private val app: MyApplication) {
                 androidToolRegistry = androidToolRegistry,
                 contextManager = contextManager,
                 maxIterations = 40,
-                modelRef = selectedProfile?.model  // Agent Profile model override
+                modelRef = null
             )
-            // Apply Agent Profile API key override
-            if (selectedProfile?.apiKey != null) {
-                agentLoop.apiKeyOverride = selectedProfile.apiKey
-            }
 
             val result = agentLoop.run(
                 systemPrompt = systemPrompt,

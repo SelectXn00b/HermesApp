@@ -81,17 +81,9 @@ class AgentLoop(
     private val contextManager: ContextManager? = null,  // Optional context manager
     @Deprecated("No longer used — aligned with OpenClaw (no iteration limit)")
     private val maxIterations: Int = Int.MAX_VALUE,  // Kept for call-site compat, ignored
-    modelRef: String? = null,
-    private val configLoader: ConfigLoader? = null,  // For context window resolution (Gap 2)
-    /** Agent Profile: API key override */
-    var apiKeyOverride: String? = null,
-    /** Agent Profile: additional system prompt */
-    var agentSystemPrompt: String? = null
+    private val modelRef: String? = null,
+    private val configLoader: ConfigLoader? = null  // For context window resolution (Gap 2)
 ) {
-    // _modelRef needs to be mutable for Agent Profile override
-    private var _modelRef: String? = modelRef
-    /** Set _modelRef from Agent Profile */
-    fun setModelRef(model: String?) { _modelRef = model }
     companion object {
         private const val TAG = "AgentLoop"
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw MAX_OVERFLOW_COMPACTION_ATTEMPTS
@@ -187,10 +179,10 @@ class AgentLoop(
     private fun resolveContextWindowTokens(): Int {
         if (configLoader == null) return ContextWindowGuard.DEFAULT_CONTEXT_WINDOW_TOKENS
 
-        // Parse provider/model from _modelRef (format: "provider/model" or just "model")
-        val parts = _modelRef?.split("/", limit = 2)
+        // Parse provider/model from modelRef (format: "provider/model" or just "model")
+        val parts = modelRef?.split("/", limit = 2)
         val providerName = if (parts != null && parts.size == 2) parts[0] else null
-        val modelId = if (parts != null && parts.size == 2) parts[1] else _modelRef
+        val modelId = if (parts != null && parts.size == 2) parts[1] else modelRef
 
         val guard = ContextWindowGuard.resolveAndEvaluate(configLoader, providerName, modelId)
         if (guard.shouldWarn) {
@@ -411,10 +403,10 @@ class AgentLoop(
         var planningOnlyRetryAttempts = 0
         var planningOnlyRetryInstruction: String? = null
 
-        // Parse provider/model from _modelRef for ack fast path check
-        val refParts = _modelRef?.split("/", limit = 2)
+        // Parse provider/model from modelRef for ack fast path check
+        val refParts = modelRef?.split("/", limit = 2)
         val resolvedProviderName = if (refParts != null && refParts.size == 2) refParts[0] else null
-        val resolvedModelId = if (refParts != null && refParts.size == 2) refParts[1] else _modelRef
+        val resolvedModelId = if (refParts != null && refParts.size == 2) refParts[1] else modelRef
 
         val ackExecutionFastPathInstruction = resolveAckExecutionFastPathInstruction(
             AckExecutionParams(provider = resolvedProviderName, modelId = resolvedModelId, prompt = userMessage)
@@ -430,7 +422,7 @@ class AgentLoop(
         contextManager?.reset()
 
         writeLog("========== Agent Loop 开始 ==========")
-        writeLog("Model: ${_modelRef ?: "default"}")
+        writeLog("Model: ${modelRef ?: "default"}")
         writeLog("Reasoning: ${if (reasoningEnabled) "enabled" else "disabled"}")
         // Parse session key for structured logging (routing.SessionKey)
         val parsedSessionKey = parseAgentSessionKey(sessionKey)
@@ -591,9 +583,8 @@ class AgentLoop(
                         llmProvider.chatWithToolsStreaming(
                             messages = scrubbedMessages,
                             tools = allToolDefinitions,
-                            modelRef = _modelRef,
-                            reasoningEnabled = reasoningEnabled,
-                            apiKeyOverride = apiKeyOverride
+                            modelRef = modelRef,
+                            reasoningEnabled = reasoningEnabled
                         ).collect { chunk ->
                             when (chunk.type) {
                                 ChunkType.THINKING_DELTA -> {
@@ -673,7 +664,7 @@ class AgentLoop(
                             sessionKey = null,
                             agentId = null,
                             provider = "",
-                            model = _modelRef ?: ""
+                            model = modelRef ?: ""
                         )
                         val hookResult = hookRunner.runBeforeCompaction(
                             data = mapOf("reason" to "timeout", "tokenUsedRatio" to tokenUsedRatio),
@@ -694,7 +685,7 @@ class AgentLoop(
                                     writeLog("🧠 Running memory flush before compaction...")
                                     val flushResult = memoryFlushManager.runFlush(
                                         llmProvider = llmProvider,
-                                        modelRef = _modelRef ?: "",
+                                        modelRef = modelRef ?: "",
                                         messages = messages
                                     )
                                     if (flushResult.success && flushResult.memoriesExtracted) {
@@ -882,7 +873,7 @@ class AgentLoop(
                             sessionKey = null,
                             agentId = null,
                             provider = "",
-                            model = _modelRef ?: ""
+                            model = modelRef ?: ""
                         )
                         val beforeToolHook = hookRunner.runBeforeToolCall(
                             toolName = functionName,

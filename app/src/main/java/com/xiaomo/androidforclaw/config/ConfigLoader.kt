@@ -748,6 +748,24 @@ class ConfigLoader private constructor() {
     private fun parseTelegramConfig(json: JSONObject): TelegramChannelConfig {
         // 兼容旧字段 token → botToken
         val botToken = json.optString("botToken", "").ifEmpty { json.optString("token", "") }
+        // 多账号
+        val accountsJson = json.optJSONObject("accounts")
+        val accounts = if (accountsJson != null) {
+            val map = mutableMapOf<String, TelegramAccountConfig>()
+            accountsJson.keys().forEach { key ->
+                val a = accountsJson.getJSONObject(key)
+                map[key] = TelegramAccountConfig(
+                    enabled = a.optBoolean("enabled", true),
+                    name = if (a.has("name")) a.optString("name") else null,
+                    botToken = if (a.has("botToken")) a.optString("botToken") else null,
+                    dmPolicy = if (a.has("dmPolicy")) a.optString("dmPolicy") else null,
+                    groupPolicy = if (a.has("groupPolicy")) a.optString("groupPolicy") else null,
+                    requireMention = if (a.has("requireMention")) a.optBoolean("requireMention") else null,
+                    webhookUrl = if (a.has("webhookUrl")) a.optString("webhookUrl") else null
+                )
+            }
+            map
+        } else null
         return TelegramChannelConfig(
             enabled = json.optBoolean("enabled", false),
             botToken = botToken,
@@ -757,7 +775,9 @@ class ConfigLoader private constructor() {
             historyLimit = if (json.has("historyLimit")) json.optInt("historyLimit") else null,
             streaming = json.optString("streaming", "partial"),
             webhookUrl = if (json.has("webhookUrl")) json.optString("webhookUrl") else null,
-            model = if (json.has("model")) json.optString("model") else null
+            model = if (json.has("model")) json.optString("model") else null,
+            accounts = accounts,
+            defaultAccount = if (json.has("defaultAccount")) json.optString("defaultAccount") else null
         )
     }
 
@@ -1255,6 +1275,25 @@ class ConfigLoader private constructor() {
             telegram.webhookUrl?.let { obj.put("webhookUrl", it) }
             if (telegram.historyLimit != null) obj.put("historyLimit", telegram.historyLimit) else obj.remove("historyLimit")
             if (telegram.model != null) obj.put("model", telegram.model) else obj.remove("model")
+            // 多账号
+            if (telegram.accounts != null) {
+                val acctsObj = JSONObject()
+                telegram.accounts.forEach { (key, acct) ->
+                    val aObj = JSONObject()
+                    aObj.put("enabled", acct.enabled)
+                    acct.name?.let { aObj.put("name", it) }
+                    acct.botToken?.let { aObj.put("botToken", it) }
+                    acct.dmPolicy?.let { aObj.put("dmPolicy", it) }
+                    acct.groupPolicy?.let { aObj.put("groupPolicy", it) }
+                    acct.requireMention?.let { aObj.put("requireMention", it) }
+                    acct.webhookUrl?.let { aObj.put("webhookUrl", it) }
+                    acctsObj.put(key, aObj)
+                }
+                obj.put("accounts", acctsObj)
+            } else {
+                obj.remove("accounts")
+            }
+            telegram.defaultAccount?.let { obj.put("defaultAccount", it) } ?: obj.remove("defaultAccount")
             channelsObj.put("telegram", obj)
         }
 

@@ -118,8 +118,7 @@ class UnifiedLLMProvider(private val context: Context) {
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
         reasoningEnabled: Boolean = false,
-        maxRetries: Int = 3,
-        apiKeyOverride: String? = null  // Agent Profile API key override
+        maxRetries: Int = 3
     ): LLMResponse = withContext(Dispatchers.IO) {
         // Convert tool definitions to new format
         val newTools = tools?.map { convertToolDefinition(it) }
@@ -136,7 +135,7 @@ class UnifiedLLMProvider(private val context: Context) {
             model = primaryModel,
             run = { provider, model ->
                 performRequestForModel(
-                    messages, newTools, provider, model, temperature, maxTokens, reasoningEnabled, maxRetries, apiKeyOverride
+                    messages, newTools, provider, model, temperature, maxTokens, reasoningEnabled, maxRetries
                 )
             },
             onError = { provider, model, error, attempt, total ->
@@ -158,8 +157,7 @@ class UnifiedLLMProvider(private val context: Context) {
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
         reasoningEnabled: Boolean = false,
-        maxRetries: Int = 3,
-        apiKeyOverride: String? = null  // Agent Profile API key override
+        maxRetries: Int = 3
     ): Flow<StreamChunk> = flow {
         val newTools = tools?.map { convertToolDefinition(it) }
         val (resolvedProviderName, resolvedModelId) = parseModelRef(modelRef)
@@ -182,14 +180,7 @@ class UnifiedLLMProvider(private val context: Context) {
                     ?: providerRaw.models.find { it.id == candidate.model }
                     ?: throw LLMException("Model not found: $normalizedModelId in provider: ${candidate.provider}")
                 val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, candidate.provider)
-                // Apply Agent Profile API key override
-                val effectiveProvider = if (apiKeyOverride != null) {
-                    Log.i(TAG, "🔑 Using Agent Profile API key override for ${candidate.provider}")
-                    provider.copy(apiKey = apiKeyOverride)
-                } else {
-                    provider
-                }
-                val api = model.api ?: effectiveProvider.api
+                val api = model.api ?: provider.api
 
                 // Non-streaming APIs → batch fallback (already has full retry/rotation via performRequestForModel)
                 if (api == ModelApi.GOOGLE_GENERATIVE_AI || api == ModelApi.OPENAI_RESPONSES || api == ModelApi.OPENAI_CODEX_RESPONSES) {
@@ -216,7 +207,7 @@ class UnifiedLLMProvider(private val context: Context) {
                     return@flow
                 }
 
-                val apiKeys = ApiKeyRotation.splitApiKeys(effectiveProvider.apiKey)
+                val apiKeys = ApiKeyRotation.splitApiKeys(provider.apiKey)
 
                 // === Layer 2: Retry with Backoff ===
                 for (attempt in 1..maxRetries) {
@@ -225,7 +216,7 @@ class UnifiedLLMProvider(private val context: Context) {
                         var keyException: Exception? = null
                         for ((keyIdx, apiKey) in apiKeys.withIndex()) {
                             try {
-                                val activeProvider = effectiveProvider.copy(apiKey = apiKey)
+                                val activeProvider = provider.copy(apiKey = apiKey)
 
                                 val requestBody = ApiAdapter.buildRequestBody(
                                     provider = activeProvider, model = model,
@@ -362,13 +353,12 @@ class UnifiedLLMProvider(private val context: Context) {
         temperature: Double,
         maxTokens: Int?,
         reasoningEnabled: Boolean,
-        maxRetries: Int,
-        apiKeyOverride: String? = null
+        maxRetries: Int
     ): LLMResponse {
         var lastException: Exception? = null
         for (attempt in 1..maxRetries) {
             try {
-                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnabled, apiKeyOverride)
+                return performRequest(messages, tools, providerName, modelId, temperature, maxTokens, reasoningEnabled)
             } catch (e: LLMException) {
                 lastException = e
                 if (!isRetryable(e) || attempt == maxRetries) throw e
@@ -392,8 +382,7 @@ class UnifiedLLMProvider(private val context: Context) {
         modelId: String,
         temperature: Double,
         maxTokens: Int?,
-        reasoningEnabled: Boolean,
-        apiKeyOverride: String? = null
+        reasoningEnabled: Boolean
     ): LLMResponse {
         try {
             // Resolve model aliases (OpenClaw model-selection.ts)
@@ -417,14 +406,7 @@ class UnifiedLLMProvider(private val context: Context) {
                 ?: throw IllegalArgumentException("Model not found: $normalizedModelId in provider: $providerName")
 
             // Apply model compat normalization (OpenClaw model-compat.ts)
-            val (rawProvider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, providerName)
-            // Apply Agent Profile API key override
-            val provider = if (apiKeyOverride != null) {
-                Log.i(TAG, "🔑 Using Agent Profile API key override for $providerName")
-                rawProvider.copy(apiKey = apiKeyOverride)
-            } else {
-                rawProvider
-            }
+            val (provider, model) = ModelCompat.normalizeModelCompat(providerRaw, modelRaw, providerName)
 
             Log.d(TAG, "📡 LLM Request:")
             Log.d(TAG, "  Provider: $providerName")

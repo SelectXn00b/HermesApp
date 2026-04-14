@@ -1392,26 +1392,6 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
                     channelContext = channelCtx
                 )
 
-                // Multi-Agent Profile Routing
-                val multiAgentConfig = config.multiAgent
-                if (multiAgentConfig.enabled) {
-                    val router = com.xiaomo.androidforclaw.config.AgentProfileRouter(multiAgentConfig)
-                    val routeResult = router.route(event.content, event.senderId, event.chatId)
-                    if (routeResult.matched && routeResult.profile != null) {
-                        val profile = routeResult.profile
-                        Log.i(TAG, "🤖 Agent Profile selected: ${profile.name} (${routeResult.matchReason})")
-                        if (profile.systemPrompt != null) {
-                            systemPrompt = systemPrompt + "\n\n" + profile.systemPrompt
-                        }
-                        if (profile.model != null) {
-                            agentLoop.setModelRef(profile.model)
-                        }
-                        if (profile.apiKey != null) {
-                            agentLoop.apiKeyOverride = profile.apiKey
-                        }
-                    }
-                }
-
                 // ✅ Streaming Card: real-time card updates during agent processing
                 // Aligned with OpenClaw reply-dispatcher.ts + streaming-card.ts
                 val blockRepliesSent = mutableListOf<String>()
@@ -2265,25 +2245,6 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             )
 
             // Multi-Agent Profile Routing
-            val wxConfig = configLoader.loadOpenClawConfigFresh().multiAgent
-            if (wxConfig.enabled) {
-                val router = com.xiaomo.androidforclaw.config.AgentProfileRouter(wxConfig)
-                val routeResult = router.route(agentContent, msg.fromUserId, msg.fromUserId)
-                if (routeResult.matched && routeResult.profile != null) {
-                    val profile = routeResult.profile
-                    Log.i(TAG, "🤖 [Weixin] Agent Profile selected: ${profile.name} (${routeResult.matchReason})")
-                    if (profile.systemPrompt != null) {
-                        systemPrompt = systemPrompt + "\n\n" + profile.systemPrompt
-                    }
-                    if (profile.model != null) {
-                        agentLoop.setModelRef(profile.model)
-                    }
-                    if (profile.apiKey != null) {
-                        agentLoop.apiKeyOverride = profile.apiKey
-                    }
-                }
-            }
-
             // Collect intermediate progress updates — WeChat does NOT send BlockReply
             // as separate messages to avoid duplicate-looking output.
             // Only send Error events immediately; everything else goes into finalContent.
