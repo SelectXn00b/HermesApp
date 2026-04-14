@@ -1093,7 +1093,12 @@ class ConfigLoader private constructor() {
         // Find matching binding: prefer exact accountId match, then wildcard
         val matchedBinding = bindings.firstOrNull { b ->
             b.match.channel == channel &&
-            (b.match.accountId == accountId || b.match.accountId.isBlank() || accountId.isBlank())
+            b.match.accountId == accountId &&
+            accountId.isNotBlank()
+        } ?: bindings.firstOrNull { b ->
+            // Fallback: wildcard (binding has no accountId or incoming accountId is empty)
+            b.match.channel == channel &&
+            (b.match.accountId.isBlank() || accountId.isBlank())
         } ?: return null
 
         // Look up agent in agents.list
