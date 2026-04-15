@@ -11,7 +11,7 @@
 **核心意图**:
 - 完整实现飞书 Channel 模块，不要简化版本
 - 实现所有飞书工具集（8 个类别）
-- 完全对齐 OpenClaw 的 clawdbot-feishu 插件
+- 完全对齐 Hermes 的 clawdbot-feishu 插件
 
 **技术要点**:
 - 8 个工具类别：Doc/Wiki/Drive/Bitable/Task/Chat/Perm/Urgent
@@ -88,7 +88,7 @@
 - Workspace Skills: `/sdcard/AndroidForClaw/workspace/skills/` (用户自定义，优先级最高)
 - Managed Skills: `/sdcard/AndroidForClaw/.skills/` (系统管理)
 - Bundled Skills: `app/src/main/assets/skills/` (应用内置，优先级最低)
-- 对齐 OpenClaw 的 Skills 加载机制
+- 对齐 Hermes 的 Skills 加载机制
 
 **实现状态**: ✅ 已完成
 
@@ -103,8 +103,8 @@
 
 ## 🎯 当前项目核心需求总结
 
-### 1. 架构对齐 OpenClaw
-**目标**: AndroidForClaw 完全对齐 OpenClaw 架构标准
+### 1. 架构对齐 Hermes
+**目标**: AndroidForClaw 完全对齐 Hermes 架构标准
 - Gateway + Runtime + Platform 三层架构
 - Skills 和 Tools 分层设计
 - Bootstrap 文件系统 (SOUL.md, USER.md)
@@ -152,7 +152,7 @@
 ## 历史意图概览
 
 ### 架构对齐
-- 项目架构对齐 OpenClaw 标准
+- 项目架构对齐 Hermes 标准
 - 实现 Gateway + Runtime + Platform 三层架构
 - Bootstrap 文件系统（SOUL.md、USER.md）
 - Skills 和 Tools 分层设计

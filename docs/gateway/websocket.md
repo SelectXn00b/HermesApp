@@ -896,11 +896,11 @@ Gateway 的价值在于：
 
 ---
 
-## 🎓 学习 OpenClaw 的方法
+## 🎓 学习 Hermes 的方法
 
 ### 1. 读文档，不读全部代码
 
-OpenClaw 的 `docs/` 目录非常完善：
+Hermes 的 `docs/` 目录非常完善：
 - `docs/concepts/agent.md` - Agent 核心概念
 - `docs/concepts/agent-loop.md` - Agent Loop 细节
 - `docs/tools/skills.md` - Skills 系统
@@ -911,7 +911,7 @@ OpenClaw 的 `docs/` 目录非常完善：
 
 ### 2. 提取理念，不复制代码
 
-OpenClaw 是 TypeScript + Node.js，我们是 Kotlin + Android。
+Hermes 是 TypeScript + Node.js，我们是 Kotlin + Android。
 
 **应该学习**:
 - ✅ 架构分层思想
@@ -927,7 +927,7 @@ OpenClaw 是 TypeScript + Node.js，我们是 Kotlin + Android。
 
 ### 3. 移动端优化
 
-OpenClaw 是通用平台，我们是移动端专用。
+Hermes 是通用平台，我们是移动端专用。
 
 **移动端特色**:
 - 📱 Android 专属工具（Accessibility、MediaProjection）
@@ -939,18 +939,18 @@ OpenClaw 是通用平台，我们是移动端专用。
 
 ## 📚 参考资源
 
-### OpenClaw 文档
-- [OpenClaw GitHub](https://github.com/openclaw/openclaw)
-- [概念: Agent Runtime](https://docs.openclaw.ai/concepts/agent)
-- [概念: Agent Loop](https://docs.openclaw.ai/concepts/agent-loop)
-- [工具: Skills](https://docs.openclaw.ai/tools/skills)
+### Hermes 文档
+- [Hermes GitHub](https://github.com/openclaw/openclaw)
+- [概念: Agent Runtime](https://docs.hermes.ai/concepts/agent)
+- [概念: Agent Loop](https://docs.hermes.ai/concepts/agent-loop)
+- [工具: Skills](https://docs.hermes.ai/tools/skills)
 
 ### 技术标准
 - [AgentSkills.io](https://agentskills.io) - Skills 标准格式
 - [Claude API Docs](https://www.anthropic.com/api) - AI 能力
 
 ### 相关项目
-- [pi-mono](https://github.com/anthropics/pi-mono) - OpenClaw 使用的 Agent 引擎
+- [pi-mono](https://github.com/anthropics/pi-mono) - Hermes 使用的 Agent 引擎
 - [nanobot](https://github.com/anthropics/nanobot) - CLI Agent 工具
 
 ---
@@ -979,4 +979,4 @@ OpenClaw 是通用平台，我们是移动端专用。
 
 ---
 
-**对齐是手段，不是目的** - 我们学习 OpenClaw 的优秀设计，但保持 AndroidForClaw 的移动端特色。
+**对齐是手段，不是目的** - 我们学习 Hermes 的优秀设计，但保持 AndroidForClaw 的移动端特色。

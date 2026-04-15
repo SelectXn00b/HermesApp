@@ -2,23 +2,23 @@
 
 ## 概述
 
-AndroidForClaw workspace 对齐 OpenClaw 架构，为用户提供可直接访问和编辑的工作区。
+AndroidForClaw workspace 对齐 Hermes 架构，为用户提供可直接访问和编辑的工作区。
 
 ## 🎯 Workspace 设计理念
 
-### OpenClaw vs AndroidForClaw
+### Hermes vs AndroidForClaw
 
-| 特性 | OpenClaw | AndroidForClaw |
+| 特性 | Hermes | AndroidForClaw |
 |------|----------|----------------|
-| **Workspace 路径** | `~/.openclaw/workspace/` | `/sdcard/.androidforclaw/workspace/` |
-| **Skills 路径** | `~/.openclaw/workspace/skills/` | `/sdcard/.androidforclaw/workspace/skills/` |
+| **Workspace 路径** | `~/.hermes/workspace/` | `/sdcard/.androidforclaw/workspace/` |
+| **Skills 路径** | `~/.hermes/workspace/skills/` | `/sdcard/.androidforclaw/workspace/skills/` |
 | **访问方式** | 文件系统直接访问 | 文件管理器直接访问 |
 | **权限要求** | 文件系统权限 | MANAGE_EXTERNAL_STORAGE |
 
 ### 为什么选择 `/sdcard/.androidforclaw/workspace/`？
 
 1. **用户可访问** - 位于外部存储根目录，任何文件管理器都能访问
-2. **独立目录** - 与 OpenClaw 类似，独立于应用数据目录
+2. **独立目录** - 与 Hermes 类似，独立于应用数据目录
 3. **易于备份** - 用户可以轻松备份整个 workspace
 4. **跨设备共享** - 可以在多个设备间同步 skills
 5. **版本控制** - 可以使用 Git 等工具管理 skills
@@ -29,7 +29,7 @@ AndroidForClaw workspace 对齐 OpenClaw 架构，为用户提供可直接访问
 
 ```
 /sdcard/
-├── androidforclaw-workspace/          ← 用户工作区（对标 ~/.openclaw/workspace/）
+├── androidforclaw-workspace/          ← 用户工作区（对标 ~/.hermes/workspace/）
 │   ├── skills/                        ← 用户自定义 Skills
 │   │   ├── my-custom-skill/
 │   │   │   └── SKILL.md
@@ -44,7 +44,7 @@ AndroidForClaw workspace 对齐 OpenClaw 架构，为用户提供可直接访问
 │
 └── AndroidForClaw/                    ← 应用数据目录
     ├── config/                        ← 配置文件
-    │   ├── openclaw.json              ← 主配置文件
+    │   ├── hermes.json              ← 主配置文件
     │   └── models.json                ← 模型提供商配置
     ├── .skills/                       ← 托管 Skills（未来功能）
     └── logs/                          ← 日志文件
@@ -72,7 +72,7 @@ AndroidForClaw workspace 对齐 OpenClaw 架构，为用户提供可直接访问
 2. 导航到 `/sdcard/.androidforclaw/workspace/skills/`
 3. 创建新目录，如 `my-skill/`
 4. 在目录内创建 `SKILL.md` 文件
-5. 编写 skill 内容（参考 OpenClaw 格式）
+5. 编写 skill 内容（参考 Hermes 格式）
 
 **示例**: 创建微信自动化 skill
 
@@ -90,7 +90,7 @@ name: wechat-automation
 description: 微信自动化操作 - WeChat automation operations
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": false,
       "emoji": "💬",
       "version": "1.0.0",
@@ -256,9 +256,9 @@ git push -u origin main
 
 ## 📝 Skill 开发指南
 
-### OpenClaw 格式规范
+### Hermes 格式规范
 
-所有 skills 必须遵循 OpenClaw AgentSkills.io 格式：
+所有 skills 必须遵循 Hermes AgentSkills.io 格式：
 
 **必需部分**:
 
@@ -308,7 +308,7 @@ SkillsLoader: Skills 加载完成: 总计 13 个
 ```yaml
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": false,
       "emoji": "🔧",
       "requires": {
@@ -327,7 +327,7 @@ metadata:
 ```yaml
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": true,  # 始终加载到系统提示词
       "emoji": "🤖"
     }
@@ -366,7 +366,7 @@ This skill uses helper scripts:
 - ✅ 包含故障排查指南
 - ✅ 定期备份 workspace
 - ✅ 使用版本控制管理 skills
-- ✅ 遵循 OpenClaw 格式规范
+- ✅ 遵循 Hermes 格式规范
 
 ### DON'T ❌
 
@@ -378,7 +378,7 @@ This skill uses helper scripts:
 
 ## 📚 资源
 
-- **OpenClaw Skills 文档**: https://docs.openclaw.ai/tools/skills
+- **Hermes Skills 文档**: https://docs.hermes.ai/tools/skills
 - **AgentSkills.io**: https://agentskills.io
 - **内置 Skill 参考**: `app/src/main/assets/skills/`
 - **Skill 创建模板**: `app/src/main/assets/skills/create-skill/SKILL.md`
@@ -417,7 +417,7 @@ name: unwanted-skill
 description: 此 skill 已禁用
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": false,
       "emoji": "🚫"
     }
@@ -455,9 +455,9 @@ metadata:
 
 ## 🎉 总结
 
-AndroidForClaw workspace 完全对齐 OpenClaw 架构，为用户提供：
+AndroidForClaw workspace 完全对齐 Hermes 架构，为用户提供：
 
-- 🎯 **独立工作区** - 与 OpenClaw 一致的目录结构
+- 🎯 **独立工作区** - 与 Hermes 一致的目录结构
 - 📝 **用户可编辑** - 通过文件管理器直接访问
 - ⚡ **热重载** - 修改立即生效
 - 🔄 **版本控制** - 可使用 Git 管理
@@ -467,4 +467,4 @@ AndroidForClaw workspace 完全对齐 OpenClaw 架构，为用户提供：
 
 ---
 
-**AndroidForClaw Workspace** - Aligned with OpenClaw Architecture 🤖📱
+**AndroidForClaw Workspace** - Aligned with Hermes Architecture 🤖📱

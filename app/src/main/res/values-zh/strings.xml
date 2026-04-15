@@ -29,8 +29,8 @@
     <string name="snackbar_intent_failed">Intent 启动失败</string>
 
     <!-- URL（不翻译） -->
-    <string name="developer_url">https://github.com/openclaw/openclaw</string>
-    <string name="source_url">https://github.com/openclaw/openclaw</string>
+    <string name="developer_url">https://github.com/Hermes</string>
+    <string name="source_url">https://github.com/Hermes</string>
     <string name="contact_url">mailto:support@example.com</string>
     <string name="tutorial_url">https://www.xda-developers.com/debloat-your-phone-run-adb-shell-commands-no-root-no-pc</string>
 
@@ -252,7 +252,7 @@
     <string name="settings_github">GitHub 仓库</string>
     <string name="settings_github_desc">查看源码 / 提交 Issue</string>
     <string name="settings_copyright">© 2024–2025 小龙虾</string>
-    <string name="settings_inspired">灵感来自 OpenClaw</string>
+    <string name="settings_inspired">基于 Hermes 构建</string>
     <string name="settings_copied">已复制</string>
     <string name="settings_cannot_open_link">无法打开链接</string>
 

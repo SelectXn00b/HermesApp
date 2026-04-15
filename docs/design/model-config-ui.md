@@ -6,9 +6,9 @@
 - **新用户引导**（快速开始）—— 单独页面，不变
 - **模型配置**（高级）—— 新的两页式设计
 
-## OpenClaw 模型配置体系
+## Hermes 模型配置体系
 
-### Provider 列表（从 OpenClaw 源码 `auth-profiles.js` 提取）
+### Provider 列表（从 Hermes 源码 `auth-profiles.js` 提取）
 
 | Provider ID | 显示名 | Base URL | API 类型 | 需要 Key | 备注 |
 |---|---|---|---|---|---|
@@ -325,9 +325,9 @@ data class PresetModel(
 
 ---
 
-## OpenClaw 源码引用
+## Hermes 源码引用
 
-所有 Provider 参数均从 OpenClaw v2026.3.8 (3caab92) 源码提取，引用如下：
+所有 Provider 参数均从 Hermes v2026.3.8 (3caab92) 源码提取，引用如下：
 
 | 数据 | 源文件 | 位置 |
 |---|---|---|
@@ -364,8 +364,8 @@ BYTEPLUS_BASE_URL       = "https://ark.ap-southeast.bytepluses.com/api/v3"    //
 ### Android 端代码
 
 Provider Registry: `config/ProviderRegistry.kt`
-- 所有常量注释标注了 OpenClaw 源文件和行号
-- `normalizeProviderId()` 对齐 OpenClaw 同名函数
+- 所有常量注释标注了 Hermes 源文件和行号
+- `normalizeProviderId()` 对齐 Hermes 同名函数
 - `buildProviderConfig()` 生成符合 `ModelProviderConfig` 类型的配置
 
 ---

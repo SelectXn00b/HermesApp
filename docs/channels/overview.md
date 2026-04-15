@@ -8,7 +8,7 @@ AndroidForClaw 的多渠道接入架构。
 
 **Channel** 是用户与 Agent 交互的入口。不同的 Channel 提供不同的访问方式。
 
-**设计理念** (来自 OpenClaw):
+**设计理念** (来自 Hermes):
 ```
 User → Channel → Gateway → Agent Runtime → Tools
 ```

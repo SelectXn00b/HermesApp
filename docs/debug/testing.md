@@ -65,7 +65,7 @@ adb logcat -s FeishuChannel DiscordChannel
 adb logcat -d | grep MainEntryNew
 
 # 检查模型配置
-adb shell cat /sdcard/.androidforclaw/config/openclaw.json | head -20
+adb shell cat /sdcard/.androidforclaw/config/hermes.json | head -20
 ```
 
 ### 工具调用失败

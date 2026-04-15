@@ -1,29 +1,29 @@
 # AndroidForClaw 目录结构设计
 
-## 对齐 OpenClaw 架构
+## 对齐 Hermes 架构
 
-参考 OpenClaw 的 `~/.openclaw/` 目录结构，AndroidForClaw 采用类似的组织方式。
+参考 Hermes 的 `~/.hermes/` 目录结构，AndroidForClaw 采用类似的组织方式。
 
 ## 📁 完整目录结构
 
 ### Android 路径映射
 
-| OpenClaw | AndroidForClaw | 说明 |
+| Hermes | AndroidForClaw | 说明 |
 |----------|----------------|------|
-| `~/.openclaw/` | `/sdcard/.androidforclaw/` | 主目录（隐藏目录） |
-| `~/.openclaw/workspace/` | `/sdcard/.androidforclaw/workspace/` | 用户工作区（可见） |
-| `~/.openclaw/skills/` | `/sdcard/.androidforclaw/skills/` | 托管 Skills |
-| `~/.openclaw/agents/` | `/sdcard/.androidforclaw/agents/` | Agent 数据 |
-| `~/.openclaw/openclaw.json` | `/sdcard/.androidforclaw/openclaw.json` | 主配置 |
+| `~/.hermes/` | `/sdcard/.androidforclaw/` | 主目录（隐藏目录） |
+| `~/.hermes/workspace/` | `/sdcard/.androidforclaw/workspace/` | 用户工作区（可见） |
+| `~/.hermes/skills/` | `/sdcard/.androidforclaw/skills/` | 托管 Skills |
+| `~/.hermes/agents/` | `/sdcard/.androidforclaw/agents/` | Agent 数据 |
+| `~/.hermes/openclaw.json` | `/sdcard/.androidforclaw/openclaw.json` | 主配置 |
 
 ### 详细结构
 
 ```
 /sdcard/
 │
-├── .androidforclaw/                      ← 主目录（隐藏，类似 ~/.openclaw/）
+├── .androidforclaw/                      ← 主目录（隐藏，类似 ~/.hermes/）
 │   ├── openclaw.json                     ← 主配置文件
-│   ├── openclaw.last-known-good.json     ← 配置备份
+│   ├── hermes.last-known-good.json     ← 配置备份
 │   ├── .device-id                        ← 设备唯一 ID
 │   ├── .builtin-mimo-provider            ← 内置提供商标记
 │   ├── app.log                           ← 应用日志
@@ -35,7 +35,7 @@
 │   │   └── channels.json                 ← 渠道配置
 │   │
 │   ├── config-backups/                   ← 配置备份
-│   │   └── openclaw-YYYYMMDD-HHMMSS.json
+│   │   └── hermes-YYYYMMDD-HHMMSS.json
 │   │
 │   ├── agents/                           ← Agent 数据（多 agent 支持）
 │   │   └── main/                         ← 默认 agent
@@ -70,7 +70,7 @@
     │       └── scripts/
     │           └── login.js
     │
-    ├── .openclaw/                        ← Workspace 元数据
+    ├── .hermes/                        ← Workspace 元数据
     │   └── .gitignore
     │
     ├── IDENTITY.md                       ← Agent 身份配置
@@ -326,7 +326,7 @@ android-xxxxxxxxxxxxx
 
 ### Phase 1 - 基础结构（当前）
 - [x] Workspace skills 路径更新
-- [x] 首次启动引导（OpenClaw 风格）
+- [x] 首次启动引导（Hermes 风格）
 - [x] 支持 IDENTITY.md, USER.md, SOUL.md 检测
 - [ ] 创建完整基础目录结构
 - [ ] Workspace 文件热重载
@@ -345,10 +345,10 @@ android-xxxxxxxxxxxxx
 
 ## 📚 参考
 
-- **OpenClaw 目录**: `~/.openclaw/`
-- **文档**: https://docs.openclaw.ai
+- **Hermes 目录**: `~/.hermes/`
+- **文档**: https://docs.hermes.ai
 - **当前实现**: `app/src/main/java/com/xiaomo/androidforclaw/agent/skills/SkillsLoader.kt`
 
 ---
 
-**Directory Structure** - Aligned with OpenClaw Architecture 📁
+**Directory Structure** - Aligned with Hermes Architecture 📁

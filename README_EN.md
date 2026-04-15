@@ -6,7 +6,7 @@
 
 > **Let AI truly control your Android phone.**
 
-Architecture aligned with [OpenClaw](https://github.com/openclaw/openclaw) (280k+ Stars), bringing full AI Agent capabilities to your phone — see the screen, tap apps, run code, connect platforms.
+Architecture aligned with [Hermes](https://github.com/openclaw/openclaw) framework, bringing full AI Agent capabilities to your phone — see the screen, tap apps, run code, connect platforms.
 
 **[📖 Docs (Chinese)](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** · **[🚀 Quick Start](#-quick-start)** · **[💬 Community](#-community)** · **[中文文档](README.md)**
 
@@ -54,7 +54,7 @@ Control your phone AI remotely via Feishu, Discord, Telegram, Slack and more:
 |---------|--------|
 | Feishu | ✅ Available |
 | Discord | ✅ Available |
-| Telegram | 🔧 Ready (config aligned with OpenClaw) |
+| Telegram | 🔧 Ready (config aligned with Hermes) |
 | Slack | 🔧 Ready (Socket / HTTP dual mode) |
 | Signal | 🔧 Ready (signal-cli integration) |
 | WhatsApp | 🔧 Ready |
@@ -142,13 +142,13 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 |---------|-------------|
 | **Playwright Mode** | Screen ops aligned with Playwright — `snapshot` gets UI tree + ref → `act` operates elements |
 | **Unified exec** | Auto-routes to Termux (SSH) or built-in Shell, transparent to the model |
-| **Context Management** | 4-layer protection aligned with OpenClaw: limitHistoryTurns + tool result trimming + budget guard |
+| **Context Management** | 4-layer protection aligned with Hermes: limitHistoryTurns + tool result trimming + budget guard |
 | **Model Smart Routing** | Model ID normalization + Fallback Chain (multi-candidate degradation) + API Key rotation + Allowlist/Blocklist |
 | **Session Maintenance** | 30-day auto-cleanup, 500 entry cap, 10MB rotation, disk budget auto-reclaim |
 | **Skill System** | 20 built-in Skills editable on device, ClawHub online installation |
 | **Multi-model** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
 | **MCP Server** | Expose accessibility/screenshot to external agents (port 8399, Streamable HTTP) |
-| **Per-channel Model** | Each messaging channel can independently select a model, fields aligned with OpenClaw types |
+| **Per-channel Model** | Each messaging channel can independently select a model, fields aligned with Hermes types |
 | **Steer Injection** | Inject messages into a running Agent Loop mid-run via Channel (mid-run steering) |
 
 ---
@@ -160,21 +160,21 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 | Tool | Function | Alignment |
 |------|----------|-----------|
 | `device` | Screen ops: snapshot/tap/type/scroll/press/open | Playwright |
-| `read_file` | Read file contents | OpenClaw |
-| `write_file` | Create or overwrite files | OpenClaw |
-| `edit_file` | Precise file editing | OpenClaw |
-| `list_dir` | List directory contents | OpenClaw |
-| `exec` | Execute commands (Termux SSH / built-in Shell) | OpenClaw |
-| `web_search` | Brave search engine | OpenClaw |
-| `web_fetch` | Fetch web page content | OpenClaw |
-| `javascript` | Execute JavaScript (QuickJS) | OpenClaw |
-| `tts` | Text-to-speech (device TTS engine) | OpenClaw |
-| `skills_search` | Search ClawHub skills | OpenClaw |
-| `skills_install` | Install skills from ClawHub | OpenClaw |
-| `memory_search` | Semantic memory search | OpenClaw |
-| `memory_get` | Read memory snippets | OpenClaw |
-| `config_get` | Read config entries | OpenClaw |
-| `config_set` | Write config entries | OpenClaw |
+| `read_file` | Read file contents | Hermes |
+| `write_file` | Create or overwrite files | Hermes |
+| `edit_file` | Precise file editing | Hermes |
+| `list_dir` | List directory contents | Hermes |
+| `exec` | Execute commands (Termux SSH / built-in Shell) | Hermes |
+| `web_search` | Brave search engine | Hermes |
+| `web_fetch` | Fetch web page content | Hermes |
+| `javascript` | Execute JavaScript (QuickJS) | Hermes |
+| `tts` | Text-to-speech (device TTS engine) | Hermes |
+| `skills_search` | Search ClawHub skills | Hermes |
+| `skills_install` | Install skills from ClawHub | Hermes |
+| `memory_search` | Semantic memory search | Hermes |
+| `memory_get` | Read memory snippets | Hermes |
+| `config_get` | Read config entries | Hermes |
+| `config_set` | Write config entries | Hermes |
 | `list_installed_apps` | List installed apps | Android-specific |
 | `install_app` | Install APK | Android-specific |
 | `start_activity` | Launch Activity | Android-specific |
@@ -204,7 +204,7 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 | **WhatsApp** | 🔧 Ready | WhatsApp Business API, model override |
 | **In-app Chat** | ✅ Available | Built-in chat UI |
 
-> All channel config fields are aligned with OpenClaw TypeScript type definitions (`types.slack.ts`, `types.telegram.ts`, etc.).
+> All channel config fields are aligned with Hermes TypeScript type definitions (`types.slack.ts`, `types.telegram.ts`, etc.).
 
 ### 🤖 Supported Models
 
@@ -282,9 +282,9 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 
 | Project | Description |
 |---------|-------------|
-| [OpenClaw](https://github.com/openclaw/openclaw) | AI Agent framework (Desktop) |
-| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | OpenClaw iOS client |
-| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | OpenClaw Android client (this project) |
+| [Hermes](https://github.com/openclaw/openclaw) | AI Agent framework (Desktop) |
+| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | Hermes iOS client |
+| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android client (this project) |
 
 ---
 
@@ -320,9 +320,8 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 
 ## 🔗 Links
 
-- [OpenClaw](https://github.com/openclaw/openclaw) — Architecture reference
+- [Hermes](https://github.com/openclaw/openclaw) — Architecture reference
 - [ClawHub](https://clawhub.com) — Skill marketplace
-- [Source Mapping](MAPPING.md) — OpenClaw ↔ AndroidForClaw alignment
 - [Architecture Doc](ARCHITECTURE.md) — Detailed design
 
 ---
@@ -333,7 +332,7 @@ MIT — [LICENSE](LICENSE)
 
 ## 🙏 Acknowledgments
 
-- **[OpenClaw](https://github.com/openclaw/openclaw)** — Architecture inspiration
+- **[Hermes](https://github.com/openclaw/openclaw)** — Architecture inspiration
 - **[Claude](https://www.anthropic.com/claude)** — AI reasoning capabilities
 
 ---

@@ -34,9 +34,9 @@ Welcome to AndroidForClaw! Give Claw a Phone.
 
 ### Reference
 
-- **[Config Examples](./config_examples/README.md)** — openclaw.json configuration
-- **[OpenClaw Alignment](./alignment-report.md)** — Alignment status (78%)
-- **[Android-Only Classes](./android-only-classes.md)** — Classes without OpenClaw counterpart
+- **[Config Examples](./config_examples/README.md)** — hermes.json configuration
+- **[Hermes Alignment](./alignment-report.md)** — Alignment status (78%)
+- **[Android-Only Classes](./android-only-classes.md)** — Classes without Hermes counterpart
 - **[JavaScript Examples](./JAVASCRIPT_EXECUTOR_EXAMPLES.md)** — QuickJS usage examples
 - **[Workspace Guide](./WORKSPACE_GUIDE.md)** — Workspace directory structure
 
@@ -47,7 +47,7 @@ Welcome to AndroidForClaw! Give Claw a Phone.
 AndroidForClaw is an **AI-powered Android automation agent** — Claude (or other LLMs) can observe and control Android devices through natural language.
 
 **Part of the forClaw family**:
-- **OpenClaw** — Personal AI assistant framework (Pi/Linux)
+- **Hermes** — Personal AI assistant framework (Pi/Linux)
 - **AndroidForClaw** — Android device control (this project)
 - **BrowserForClaw** — Web automation extension
 
@@ -55,7 +55,7 @@ AndroidForClaw is an **AI-powered Android automation agent** — Claude (or othe
 
 ## External Resources
 
-- **OpenClaw**: [github.com/openclaw/openclaw](https://github.com/openclaw/openclaw)
+- **Hermes**: [github.com/openclaw/openclaw](https://github.com/openclaw/openclaw)
 - **ClawHub**: [clawhub.com](https://clawhub.com) — Skills marketplace
 - **GitHub**: [github.com/SelectXn00b/AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw)
 

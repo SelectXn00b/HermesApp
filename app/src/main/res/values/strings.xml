@@ -17,8 +17,8 @@
     <string name="snackbar_intent_failed">Intent failed to start</string>
 
     <!-- URL（不翻译） -->
-    <string name="developer_url">https://github.com/openclaw/openclaw</string>
-    <string name="source_url">https://github.com/openclaw/openclaw</string>
+    <string name="developer_url">https://github.com/Hermes</string>
+    <string name="source_url">https://github.com/Hermes</string>
     <string name="contact_url">mailto:xiaomochn@gmail.com</string>
     <string name="privacy_policy_url">https://selectxn00b.github.io/AndroidForClaw/privacy-policy.html</string>
     <string name="terms_url">https://selectxn00b.github.io/AndroidForClaw/terms-of-service.html</string>
@@ -244,7 +244,7 @@
     <string name="settings_github">GitHub Repository</string>
     <string name="settings_github_desc">View source / Submit issue</string>
     <string name="settings_copyright">© 2024–2025 Claw</string>
-    <string name="settings_inspired">Inspired by OpenClaw</string>
+    <string name="settings_inspired">Powered by Hermes</string>
     <string name="settings_copied">Copied</string>
     <string name="settings_cannot_open_link">Cannot open link</string>
 

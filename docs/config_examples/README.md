@@ -2,13 +2,13 @@
 
 ## 配置文件位置
 
-**设备路径**: `/sdcard/.androidforclaw/openclaw.json`
+**设备路径**: `/sdcard/.androidforclaw/hermes.json`
 
-应用启动时会自动从 `app/src/main/assets/openclaw.json.default.txt` 复制默认配置到此位置。
+应用启动时会自动从 `app/src/main/assets/hermes.json.default.txt` 复制默认配置到此位置。
 
 ## 默认配置
 
-参考文件: [app/src/main/assets/openclaw.json.default.txt](../../app/src/main/assets/openclaw.json.default.txt)
+参考文件: [app/src/main/assets/hermes.json.default.txt](../../app/src/main/assets/hermes.json.default.txt)
 
 ```json
 // 完整配置请查看上述文件，以下为关键配置说明
@@ -135,7 +135,7 @@
 adb shell mkdir -p /sdcard/AndroidForClaw/config
 
 # 推送配置文件
-adb push openclaw.json /sdcard/AndroidForClaw/config/
+adb push hermes.json /sdcard/AndroidForClaw/config/
 ```
 
 ### 2. 修改配置
@@ -174,7 +174,7 @@ adb push openclaw.json /sdcard/AndroidForClaw/config/
 
 ⚠️ **路径说明**:
 - `/sdcard/.androidforclaw/`: 应用外部存储根目录（用户可访问）
-- `/sdcard/.androidforclaw/openclaw.json`: 主配置文件（从 assets/openclaw.json.default.txt 复制）
+- `/sdcard/.androidforclaw/hermes.json`: 主配置文件（从 assets/hermes.json.default.txt 复制）
 - `/sdcard/.androidforclaw/workspace/`: 工作区目录（sessions、skills、memory 等）
 
 ## 更多信息
@@ -182,4 +182,4 @@ adb push openclaw.json /sdcard/AndroidForClaw/config/
 详见项目文档：
 - [CLAUDE.md](../CLAUDE.md) - 项目架构和开发指南
 - [模型配置指南](../模型配置指南.md) - 模型配置详细说明
-- [OpenClaw架构深度分析](../OpenClaw架构深度分析.md) - 架构对齐说明
+- [Hermes架构深度分析](../Hermes架构深度分析.md) - 架构对齐说明

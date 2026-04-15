@@ -9,11 +9,11 @@
 **无需设备，JVM 本地运行，秒级完成**
 
 ### 1. ContextBuilderConstantsTest (5 cases)
-> 验证系统 prompt 构建器的常量与 OpenClaw 对齐
+> 验证系统 prompt 构建器的常量与 Hermes 对齐
 
 | # | 用例 | 验证内容 |
 |---|------|---------|
-| 1 | SILENT_REPLY_TOKEN matches OpenClaw | = "NO_REPLY" |
+| 1 | SILENT_REPLY_TOKEN matches Hermes | = "NO_REPLY" |
 | 2 | MIN_BOOTSTRAP_FILE_BUDGET_CHARS | = 64 |
 | 3 | DEFAULT_BOOTSTRAP_MAX_CHARS | = 20000 |
 | 4 | DEFAULT_BOOTSTRAP_TOTAL_MAX_CHARS | = 150000 |
@@ -53,7 +53,7 @@
 | 6 | install 工具 | 名称 = skills_install |
 
 ### 6. ModelIdNormalizationTest (11 cases)
-> 验证 Model ID 标准化逻辑与 OpenClaw model-id-normalization.ts 对齐
+> 验证 Model ID 标准化逻辑与 Hermes model-id-normalization.ts 对齐
 
 | # | 用例 | 验证内容 |
 |---|------|---------|
@@ -74,7 +74,7 @@
 | 10 | Block 优先级 | block 优先于 allow |
 
 ### 8. CronTypesTest (3 cases)
-> 验证定时任务配置默认值与 OpenClaw 对齐
+> 验证定时任务配置默认值与 Hermes 对齐
 
 | # | 用例 | 验证内容 |
 |---|------|---------|
@@ -122,7 +122,7 @@ adb shell am instrument -w \
 
 | # | 测试名 | 验证内容 |
 |---|--------|---------|
-| 01 | 配置初始化 | OpenClawConfig 加载正常 |
+| 01 | 配置初始化 | HermesConfig 加载正常 |
 | 02 | 工具注册 | ≥10 个工具注册成功 |
 | 03 | 基础流程: log | 日志工具执行成功 |
 | 04 | 时间流程: wait | 等待精度 ~100ms |
@@ -200,7 +200,7 @@ adb shell am instrument -w \
 ```
 AndroidForClaw Tests (327 total)
 ├── Unit Tests (91) ─── JVM, 无需设备
-│   ├── ContextBuilderConstantsTest (5)   — OpenClaw 常量对齐
+│   ├── ContextBuilderConstantsTest (5)   — Hermes 常量对齐
 │   ├── AgentLoopCapabilityTest (23)      — 能力目录 + 数据结构
 │   ├── ExecFacadeToolTest (3)            — exec 路由逻辑
 │   ├── SkillsHubToolTest (6)            — 技能商店

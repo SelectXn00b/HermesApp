@@ -21,7 +21,7 @@ Workspace Skills (用户自定义，最高优先级)
 ---
 name: my-custom-skill
 description: 这是我的自定义技能
-metadata: { "openclaw": { "always": false, "emoji": "🔧" } }
+metadata: { "hermes": { "always": false, "emoji": "🔧" } }
 ---
 
 # My Custom Skill
@@ -44,7 +44,7 @@ metadata: { "openclaw": { "always": false, "emoji": "🔧" } }
 
 ```json
 {
-  "openclaw": {
+  "hermes": {
     "always": false,     // 是否始终加载
     "emoji": "🔧"        // 图标
   }
@@ -115,7 +115,7 @@ adb shell mkdir -p /sdcard/AndroidForClaw/workspace/skills/taobao-search
 ---
 name: taobao-search
 description: 淘宝商品搜索流程
-metadata: { "openclaw": { "always": false, "emoji": "🛒" } }
+metadata: { "hermes": { "always": false, "emoji": "🛒" } }
 ---
 
 # 淘宝商品搜索
@@ -167,7 +167,7 @@ adb push SKILL.md /sdcard/AndroidForClaw/workspace/skills/taobao-search/
 ---
 name: wechat-send-message
 description: 微信发送消息流程
-metadata: { "openclaw": { "always": false, "emoji": "💬" } }
+metadata: { "hermes": { "always": false, "emoji": "💬" } }
 ---
 
 # 微信发送消息

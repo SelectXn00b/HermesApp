@@ -1,8 +1,8 @@
-# Device Tool 设计方案 — 对齐 Playwright/OpenClaw Browser Tool
+# Device Tool 设计方案 — 对齐 Playwright/Hermes Browser Tool
 
 ## 背景
 
-OpenClaw 的 `browser` tool 用 Playwright 模式：
+Hermes 的 `browser` tool 用 Playwright 模式：
 - `snapshot` 获取 accessibility tree（带 ref ID）
 - `act(kind, ref)` 通过 ref 操作元素
 - 模型不需要坐标，只需要 ref
@@ -11,7 +11,7 @@ AndroidForClaw 要用同样的模式操控 Android 屏幕。
 
 ## 对照关系
 
-| OpenClaw browser | AndroidForClaw device | 说明 |
+| Hermes browser | AndroidForClaw device | 说明 |
 |-----------------|----------------------|------|
 | `browser(action="snapshot")` | `device(action="snapshot")` | 获取 UI 树 + ref |
 | `browser(action="act", kind="click", ref="e5")` | `device(action="act", kind="tap", ref="e5")` | 点击元素 |

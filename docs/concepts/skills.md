@@ -1,6 +1,6 @@
 # Skills 系统设计
 
-> 学习自 OpenClaw 的 Skills 系统，应用到 AndroidForClaw
+> 学习自 Hermes 的 Skills 系统，应用到 AndroidForClaw
 
 ---
 
@@ -51,7 +51,7 @@ name: mobile-operations
 description: 移动设备操作核心技能
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": true,
       "emoji": "📱",
       "requires": {
@@ -251,7 +251,7 @@ name: skill-name
 description: 技能简短描述（1-2 句话）
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": false,
       "emoji": "🎯",
       "requires": {
@@ -309,7 +309,7 @@ metadata:
 **metadata**:
 ```json
 {
-  "openclaw": {
+  "hermes": {
     "always": true,
     "emoji": "📱"
   }
@@ -333,7 +333,7 @@ metadata:
 **metadata**:
 ```json
 {
-  "openclaw": {
+  "hermes": {
     "always": false,
     "emoji": "🧪"
   }
@@ -357,7 +357,7 @@ metadata:
 **metadata**:
 ```json
 {
-  "openclaw": {
+  "hermes": {
     "always": false,
     "emoji": "🐛"
   }
@@ -381,7 +381,7 @@ metadata:
 **metadata**:
 ```json
 {
-  "openclaw": {
+  "hermes": {
     "always": false,
     "emoji": "♿"
   }
@@ -497,12 +497,12 @@ object SkillParser {
         return try {
             val gson = Gson()
             val jsonObj = gson.fromJson(json, JsonObject::class.java)
-            val openclaw = jsonObj.getAsJsonObject("openclaw") ?: return SkillMetadata()
+            val hermes = jsonObj.getAsJsonObject("hermes") ?: return SkillMetadata()
 
             SkillMetadata(
-                always = openclaw.get("always")?.asBoolean ?: false,
-                emoji = openclaw.get("emoji")?.asString,
-                requires = parseRequires(openclaw)
+                always = hermes.get("always")?.asBoolean ?: false,
+                emoji = hermes.get("emoji")?.asString,
+                requires = parseRequires(hermes)
             )
         } catch (e: Exception) {
             Log.w(TAG, "Failed to parse metadata: $json", e)
@@ -513,8 +513,8 @@ object SkillParser {
     /**
      * 解析 requires 字段
      */
-    private fun parseRequires(openclaw: JsonObject): SkillRequires? {
-        val requires = openclaw.getAsJsonObject("requires") ?: return null
+    private fun parseRequires(hermes: JsonObject): SkillRequires? {
+        val requires = hermes.getAsJsonObject("requires") ?: return null
 
         return SkillRequires(
             bins = jsonArrayToList(requires.getAsJsonArray("bins")),
@@ -940,7 +940,7 @@ name: mobile-operations
 description: 移动设备操作核心技能
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": true,
       "emoji": "📱"
     }
@@ -1134,7 +1134,7 @@ name: app-testing
 description: 应用测试策略和方法
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": false,
       "emoji": "🧪"
     }
@@ -1307,7 +1307,7 @@ name: wechat-automation
 description: 微信自动化操作技能
 metadata:
   {
-    "openclaw": {
+    "hermes": {
       "always": false,
       "emoji": "💬"
     }
@@ -1375,10 +1375,10 @@ metadata:
 
 ## 🎓 学习资源
 
-- [OpenClaw Skills 文档](https://docs.openclaw.ai/tools/skills)
+- [Hermes Skills 文档](https://docs.hermes.ai/tools/skills)
 - [AgentSkills.io](https://agentskills.io)
 - [pi-mono Workspace](https://github.com/anthropics/pi-mono)
 
 ---
 
-**Skills 系统是 AndroidForClaw 对齐 OpenClaw 的核心** - 实现它，我们的对齐度将从 60% 提升到 85%+。
+**Skills 系统是 AndroidForClaw 对齐 Hermes 的核心** - 实现它，我们的对齐度将从 60% 提升到 85%+。

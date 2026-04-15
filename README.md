@@ -6,7 +6,7 @@
 
 > **让 AI 真正掌控你的 Android 手机。**
 
-底层架构对齐 [OpenClaw](https://github.com/openclaw/openclaw)（280k+ Star），在手机上实现完整的 AI Agent 能力——看屏幕、点 App、跑代码、连平台。
+底层架构对齐 [Hermes](https://github.com/openclaw/openclaw) 框架，在手机上实现完整的 AI Agent 能力——看屏幕、点 App、跑代码、连平台。
 
 **[详细文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[快速开始](#-快速开始)** | **[加入社区](#-社区)**
 
@@ -159,7 +159,7 @@ App 有两层 exec 工具，按需自动路由：
 |------|------|
 | **Playwright 模式** | 屏幕操作对齐 Playwright —— `snapshot` 获取 UI 树 + ref → `act` 操作元素 |
 | **统一 exec** | 自动路由 Termux SSH（连接池 + 活动超时 + 断线重连）或内置 Shell |
-| **Context 管理** | 4 层防护对齐 OpenClaw：limitHistoryTurns + 工具结果裁剪 + budget guard |
+| **Context 管理** | 4 层防护对齐 Hermes：limitHistoryTurns + 工具结果裁剪 + budget guard |
 | **Model 智能路由** | Model ID 标准化 + Fallback Chain + API Key 轮换 + Allowlist/Blocklist |
 | **Session 隔离** | 每个会话独立 AgentLoop，多 session 并行互不干扰；30 天自动清理 |
 | **Skill 体系** | 27 个内置 Skill，设备上可自由编辑，支持 ClawHub 在线安装 |
@@ -314,9 +314,9 @@ adb install releases/AndroidForClaw-v*.apk
 
 | 项目 | 说明 |
 |------|------|
-| [OpenClaw](https://github.com/openclaw/openclaw) | AI Agent 框架（桌面端） |
-| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | OpenClaw iOS 客户端 |
-| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | OpenClaw Android 客户端（本项目） |
+| [Hermes](https://github.com/openclaw/openclaw) | AI Agent 框架（桌面端） |
+| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | Hermes iOS 客户端 |
+| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android 客户端（本项目） |
 
 ---
 
@@ -352,9 +352,8 @@ adb install releases/AndroidForClaw-v*.apk
 
 ## 相关链接
 
-- [OpenClaw](https://github.com/openclaw/openclaw) — 架构参照
+- [Hermes](https://github.com/openclaw/openclaw) — 架构参照
 - [ClawHub](https://clawhub.com) — 技能市场
-- [源码映射](MAPPING.md) — OpenClaw ↔ AndroidForClaw 对照
 - [架构文档](ARCHITECTURE.md) — 详细设计
 
 ---
@@ -365,7 +364,7 @@ MIT — [LICENSE](LICENSE)
 
 ## 致谢
 
-- **[OpenClaw](https://github.com/openclaw/openclaw)** — 架构灵感
+- **[Hermes](https://github.com/openclaw/openclaw)** — 架构灵感
 - **[Claude](https://www.anthropic.com/claude)** — AI 推理能力
 
 ---
