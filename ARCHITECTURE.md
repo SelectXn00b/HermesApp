@@ -168,7 +168,11 @@ com.xiaomo.hermes/
 │   ├── tools/               # 19 个工具 + device/ + memory/
 │   ├── skills/SkillsLoader.kt    # Skills 三层加载
 │   └── session/SessionManager.kt # 会话管理
-├── gateway/                 # Gateway WebSocket RPC
+├── hermes/bridge/           # Hermes 桥接层 (新增)
+│   ├── HermesGatewayChannel.kt   # IGatewayChannel → Hermes 路由
+│   ├── HermesAgentLoop.kt        # Hermes ↔ App AgentLoop 桥接
+│   └── HermesChatGateway.kt      # 一键启动入口
+├── gateway/                 # Gateway WebSocket RPC (⚠️ DEPRECATED)
 │   ├── GatewayWebSocketServer.kt
 │   ├── GatewayController.kt
 │   └── methods/             # RPC 方法实现
@@ -202,11 +206,13 @@ self-control/                # AI 自我管理模块
 
 ## ⚙️ 配置
 
-**主配置文件**: `/sdcard/.hermes/config/openclaw.json`
+**主配置文件**: `/sdcard/.hermes/openclaw.json`
 
 包含：模型 Provider 配置、Agent 默认参数、渠道配置。
 
 **模型配置 UI**: `ModelConfigActivity` + `ModelSetupActivity`（首次启动引导）
+
+> 后续将统一为 Hermes 原生配置格式（`config.yaml` + `.env`）。
 
 ---
 

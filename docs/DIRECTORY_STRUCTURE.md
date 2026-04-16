@@ -21,7 +21,7 @@
 ```
 /sdcard/
 │
-├── .androidforclaw/                      ← 主目录（隐藏，类似 ~/.hermes/）
+├── .hermes/                      ← 主目录（隐藏，类似 ~/.hermes/）
 │   ├── openclaw.json                     ← 主配置文件
 │   ├── hermes.last-known-good.json     ← 配置备份
 │   ├── .device-id                        ← 设备唯一 ID
@@ -61,7 +61,7 @@
 │   └── canvas/                           ← Canvas 数据（未来功能）
 │       └── index.html
 │
-└── androidforclaw-workspace/             ← 用户工作区（可见目录）
+└── hermes-workspace/             ← 用户工作区（可见目录）
     ├── skills/                           ← 用户自定义 Skills
     │   ├── my-custom-skill/
     │   │   └── SKILL.md
@@ -91,13 +91,13 @@
 
 ### 1. 隐藏 vs 可见
 
-**隐藏目录** (`.androidforclaw/`):
+**隐藏目录** (`.hermes/`):
 - 系统配置和数据
 - 日志文件
 - 自动生成的内容
 - 用户通常不需要直接编辑
 
-**可见目录** (`androidforclaw-workspace/`):
+**可见目录** (`hermes-workspace/`):
 - 用户自定义 skills
 - 个性化配置（IDENTITY.md 等）
 - 会话工作目录
@@ -118,8 +118,8 @@
 ```
 优先级（高 → 低）:
 
-1. androidforclaw-workspace/skills/     ← 用户自定义（最高）
-2. .androidforclaw/skills/              ← 托管 Skills
+1. hermes-workspace/skills/     ← 用户自定义（最高）
+2. .hermes/skills/              ← 托管 Skills
 3. app/assets/skills/                   ← 内置 Skills
 ```
 
@@ -258,7 +258,7 @@ Health check: Active sessions, system resources
   },
   "agents": {
     "defaults": {
-      "workspace": "/sdcard/androidforclaw-workspace",
+      "workspace": "/sdcard/hermes-workspace",
       "model": {
         "provider": "anthropic",
         "id": "claude-opus-4-6"
@@ -332,7 +332,7 @@ android-xxxxxxxxxxxxx
 - [ ] Workspace 文件热重载
 
 ### Phase 2 - 完整对齐
-- [ ] 移动配置到 `.androidforclaw/`
+- [ ] 移动配置到 `.hermes/`
 - [ ] 实现 agents/ 目录结构
 - [ ] 添加配置备份机制
 - [ ] 完整 Bootstrap 文件支持
@@ -347,7 +347,7 @@ android-xxxxxxxxxxxxx
 
 - **Hermes 目录**: `~/.hermes/`
 - **文档**: https://docs.hermes.ai
-- **当前实现**: `app/src/main/java/com/xiaomo/androidforclaw/agent/skills/SkillsLoader.kt`
+- **当前实现**: `app/src/main/java/com/xiaomo/hermes/agent/skills/SkillsLoader.kt`
 
 ---
 

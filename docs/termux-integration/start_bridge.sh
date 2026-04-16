@@ -90,7 +90,7 @@ install_server() {
 
 # 创建共享目录
 setup_shared_dir() {
-    SHARED_DIR="/sdcard/.androidforclaw/.ipc"
+    SHARED_DIR="/sdcard/.hermes/.ipc"
     mkdir -p "$SHARED_DIR"
     echo -e "${GREEN}✓ Shared directory created: $SHARED_DIR${NC}"
 }
@@ -112,10 +112,10 @@ start_server() {
     echo
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        nohup python3 "$SERVER_SCRIPT" > /sdcard/.androidforclaw/.ipc/server.log 2>&1 &
+        nohup python3 "$SERVER_SCRIPT" > /sdcard/.hermes/.ipc/server.log 2>&1 &
         PID=$!
         echo -e "${GREEN}✓ Server started in background (PID: $PID)${NC}"
-        echo "Log file: /sdcard/.androidforclaw/.ipc/server.log"
+        echo "Log file: /sdcard/.hermes/.ipc/server.log"
         echo ""
         echo "To stop the server:"
         echo "  kill $PID"

@@ -426,7 +426,7 @@ ls ~/storage/
 Bridge Server 可以访问:
 - ✅ `/sdcard/` (共享存储)
 - ✅ `/data/data/com.termux/` (Termux home)
-- ❌ `/data/data/com.xiaomo.androidforclaw/` (AndroidForClaw 私有数据)
+- ❌ `/data/data/com.xiaomo.hermes/` (AndroidForClaw 私有数据)
 
 ### 代码执行
 

@@ -113,8 +113,8 @@
 **运行:**
 ```bash
 adb shell am instrument -w \
-  -e class com.xiaomo.androidforclaw.e2e.AgentLoopE2ETest \
-  com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
+  -e class com.xiaomo.hermes.e2e.AgentLoopE2ETest \
+  com.xiaomo.hermes.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 ### B. Agent 执行流程测试 (8 cases)
@@ -186,13 +186,13 @@ adb shell am instrument -w \
 
 # 4. 单个设备测试类（推荐通过 adb，避免 UTP 超时）
 adb shell am instrument -w \
-  -e class com.xiaomo.androidforclaw.e2e.AgentLoopE2ETest \
-  com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
+  -e class com.xiaomo.hermes.e2e.AgentLoopE2ETest \
+  com.xiaomo.hermes.test/androidx.test.runner.AndroidJUnitRunner
 
 # 5. 单个测试方法
 adb shell am instrument -w \
-  -e class "com.xiaomo.androidforclaw.e2e.AgentLoopE2ETest#test01_fileOps_createAndRead" \
-  com.xiaomo.androidforclaw.test/androidx.test.runner.AndroidJUnitRunner
+  -e class "com.xiaomo.hermes.e2e.AgentLoopE2ETest#test01_fileOps_createAndRead" \
+  com.xiaomo.hermes.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 ## 四、测试架构图

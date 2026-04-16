@@ -13,7 +13,7 @@ from pathlib import Path
 from datetime import datetime
 
 # 配置
-SHARED_DIR = Path("/sdcard/.androidforclaw/.ipc")
+SHARED_DIR = Path("/sdcard/.hermes/.ipc")
 REQUEST_FILE = SHARED_DIR / "request.json"
 RESPONSE_FILE = SHARED_DIR / "response.json"
 LOCK_FILE = SHARED_DIR / "server.lock"

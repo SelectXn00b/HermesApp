@@ -13,17 +13,17 @@
 请通过以下方式私下报告：
 
 1. **GitHub Security Advisory** (推荐)
-   - 访问 [Security Advisories](https://github.com/xiaomo/phoneforclaw/security/advisories)
+   - 访问 [Security Advisories](https://github.com/xiaomo/hermes/security/advisories)
    - 点击 "Report a vulnerability"
    - 填写漏洞详情
 
 2. **Email**
    - 发送邮件至：[INSERT EMAIL]
-   - 主题：[Security] phoneforclaw vulnerability report
+   - 主题：[Security] hermes vulnerability report
 
 ## 安全最佳实践
 
-使用 phoneforclaw 时，请遵循以下安全建议：
+使用 hermes 时，请遵循以下安全建议：
 
 ### 1. API Key 管理
 

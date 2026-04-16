@@ -5,7 +5,7 @@
 通过 ADB 广播发送消息给 Agent：
 
 ```bash
-adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "打开微信" com.xiaomo.androidforclaw
+adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "打开微信" com.xiaomo.hermes
 ```
 
 查看日志：

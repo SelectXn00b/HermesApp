@@ -23,7 +23,7 @@
 
 # 或直接使用 ADB
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method SKILL_NAME \
   --extra key:type:value
 ```
@@ -61,7 +61,7 @@ adb shell content call \
 **ADB 命令**：
 ```bash
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method navigate_app \
   --extra page:s:config
 ```
@@ -97,14 +97,14 @@ adb shell content call \
 ```bash
 # 读取
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:get \
   --extra key:s:exploration_mode
 
 # 设置
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:set \
   --extra key:s:exploration_mode \
@@ -142,13 +142,13 @@ adb shell content call \
 ```bash
 # 隐藏悬浮窗
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:hide_float
 
 # 显示悬浮窗（延迟）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:show_float \
   --extra delay_ms:i:500
@@ -182,14 +182,14 @@ adb shell content call \
 ```bash
 # 查询错误日志
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method query_logs \
   --extra level:s:E \
   --extra lines:i:50
 
 # 过滤查询
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method query_logs \
   --extra level:s:D \
   --extra filter:s:AgentLoop \
@@ -210,7 +210,7 @@ adb shell content call \
 **ADB 命令**：
 ```bash
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method health
 ```
 
@@ -228,7 +228,7 @@ adb shell content call \
 **ADB 命令**：
 ```bash
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method list_skills
 ```
 
@@ -326,17 +326,17 @@ adb devices
 
 ```bash
 # 检查应用是否运行
-adb shell ps | grep com.xiaomo.androidforclaw
+adb shell ps | grep com.xiaomo.hermes
 
 # 检查 Provider 是否注册
-adb shell dumpsys package com.xiaomo.androidforclaw | grep Provider
+adb shell dumpsys package com.xiaomo.hermes | grep Provider
 ```
 
 ### 问题 3: 权限被拒绝
 
 ```bash
 # 检查应用权限
-adb shell dumpsys package com.xiaomo.androidforclaw | grep permission
+adb shell dumpsys package com.xiaomo.hermes | grep permission
 ```
 
 ---

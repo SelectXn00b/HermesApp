@@ -49,7 +49,7 @@ ChatController → GatewayController → AgentLoop → UnifiedLLMProvider
 #### 1.1 创建适配器 `HermesBridge.kt`
 
 ```
-app/src/main/java/com/xiaomo/androidforclaw/hermes/HermesBridge.kt
+app/src/main/java/com/xiaomo/hermes/hermes/HermesBridge.kt
 ```
 
 职责：

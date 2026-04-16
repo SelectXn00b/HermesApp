@@ -79,8 +79,8 @@ WebUI → WebSocket → GatewayServer → MainEntryNew.runWithSession()
 **使用方式**:
 ```bash
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT \
-  -p com.xiaomo.androidforclaw.debug \
+  -a com.xiaomo.hermes.ACTION_EXECUTE_AGENT \
+  -p com.xiaomo.hermes.debug \
   --es message "你的消息"
 ```
 
@@ -89,11 +89,11 @@ adb shell am broadcast \
 ADB → AgentMessageReceiver → MainEntryNew.runWithSession()
 ```
 
-**代码**: `app/src/main/java/com/xiaomo/androidforclaw/core/AgentMessageReceiver.kt`
+**代码**: `app/src/main/java/com/xiaomo/hermes/core/AgentMessageReceiver.kt`
 
 **测试**:
 ```bash
-adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "测试" com.xiaomo.androidforclaw
+adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "测试" com.xiaomo.hermes
 ```
 
 ---
