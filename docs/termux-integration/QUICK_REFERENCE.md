@@ -184,7 +184,7 @@ pip3 install <package>
 ### Check server status
 ```bash
 ps aux | grep phoneforclaw_server
-tail -f /sdcard/.androidforclaw/.ipc/server.log
+tail -f /sdcard/.hermes/.ipc/server.log
 ```
 
 ---

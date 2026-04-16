@@ -116,7 +116,7 @@ bash ~/.termux/start_bridge.sh
 
 **后台运行**:
 ```bash
-nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.androidforclaw/.ipc/server.log 2>&1 &
+nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.hermes/.ipc/server.log 2>&1 &
 ```
 
 **开机自启动** (可选):
@@ -125,7 +125,7 @@ nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.androidforclaw/.ipc/se
 cat > ~/.termux/boot/start-bridge.sh <<'EOF'
 #!/data/data/com.termux/files/usr/bin/bash
 termux-wake-lock
-nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.androidforclaw/.ipc/server.log 2>&1 &
+nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.hermes/.ipc/server.log 2>&1 &
 EOF
 
 chmod +x ~/.termux/boot/start-bridge.sh
@@ -351,7 +351,7 @@ ps aux | grep phoneforclaw_server
 bash ~/.termux/start_bridge.sh
 
 # 或后台运行
-nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.androidforclaw/.ipc/server.log 2>&1 &
+nohup python3 ~/.termux/phoneforclaw_server.py > /sdcard/.hermes/.ipc/server.log 2>&1 &
 ```
 
 ### 问题 4: "ModuleNotFoundError"
@@ -382,10 +382,10 @@ pip3 install requests beautifulsoup4 pandas numpy
 查看日志:
 ```bash
 # 查看实时日志
-tail -f /sdcard/.androidforclaw/.ipc/server.log
+tail -f /sdcard/.hermes/.ipc/server.log
 
 # 查看最近 50 行
-tail -50 /sdcard/.androidforclaw/.ipc/server.log
+tail -50 /sdcard/.hermes/.ipc/server.log
 ```
 
 ### 问题 7: 权限问题

@@ -1,20 +1,20 @@
-# AndroidForClaw 目录结构设计
+# Hermes for Android 目录结构设计
 
 ## 对齐 Hermes 架构
 
-参考 Hermes 的 `~/.hermes/` 目录结构，AndroidForClaw 采用类似的组织方式。
+参考 Hermes 的 `~/.hermes/` 目录结构，Hermes for Android 采用类似的组织方式。
 
 ## 📁 完整目录结构
 
 ### Android 路径映射
 
-| Hermes | AndroidForClaw | 说明 |
+| Hermes | Hermes for Android | 说明 |
 |----------|----------------|------|
-| `~/.hermes/` | `/sdcard/.androidforclaw/` | 主目录（隐藏目录） |
-| `~/.hermes/workspace/` | `/sdcard/.androidforclaw/workspace/` | 用户工作区（可见） |
-| `~/.hermes/skills/` | `/sdcard/.androidforclaw/skills/` | 托管 Skills |
-| `~/.hermes/agents/` | `/sdcard/.androidforclaw/agents/` | Agent 数据 |
-| `~/.hermes/openclaw.json` | `/sdcard/.androidforclaw/openclaw.json` | 主配置 |
+| `~/.hermes/` | `/sdcard/.hermes/` | 主目录（隐藏目录） |
+| `~/.hermes/workspace/` | `/sdcard/.hermes/workspace/` | 用户工作区（可见） |
+| `~/.hermes/skills/` | `/sdcard/.hermes/skills/` | 托管 Skills |
+| `~/.hermes/agents/` | `/sdcard/.hermes/agents/` | Agent 数据 |
+| `~/.hermes/openclaw.json` | `/sdcard/.hermes/openclaw.json` | 主配置 |
 
 ### 详细结构
 
@@ -134,7 +134,7 @@
 
 _Fill this in during your first conversation. Make it yours._
 
-- **Name:** AndroidForClaw Agent
+- **Name:** Hermes for Android Agent
 - **Creature:** AI-powered mobile automation assistant
 - **Vibe:** Helpful, precise, reliable
 - **Emoji:** 🤖
@@ -293,7 +293,7 @@ android-xxxxxxxxxxxxx
 
 **当前**:
 ```
-/sdcard/AndroidForClaw/
+/sdcard/Hermes for Android/
 ├── config/
 │   ├── openclaw.json
 │   └── models.json
@@ -303,14 +303,14 @@ android-xxxxxxxxxxxxx
 
 **新结构**:
 ```
-/sdcard/.androidforclaw/
-├── openclaw.json              ← 移动自 AndroidForClaw/config/
+/sdcard/.hermes/
+├── openclaw.json              ← 移动自 Hermes for Android/config/
 ├── config/
 │   └── models.json            ← 保留作为可选配置
 └── ...
 
-/sdcard/.androidforclaw/workspace/
-├── skills/                    ← 移动自 AndroidForClaw/workspace/skills/
+/sdcard/.hermes/workspace/
+├── skills/                    ← 移动自 Hermes for Android/workspace/skills/
 ├── IDENTITY.md                ← 新增
 ├── BOOTSTRAP.md               ← 新增
 └── ...

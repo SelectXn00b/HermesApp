@@ -27,7 +27,7 @@
 
 ### 1. API Key 管理
 
-- ✅ **推荐**: 将 API Key 存储在配置文件中（`/sdcard/.androidforclaw/config/models.json`）
+- ✅ **推荐**: 将 API Key 存储在配置文件中（`/sdcard/.hermes/config/models.json`）
 - ✅ **推荐**: 使用环境变量（`${ANTHROPIC_API_KEY}`）
 - ❌ **禁止**: 将 API Key 硬编码在代码中
 - ❌ **禁止**: 将包含 API Key 的配置文件提交到版本控制

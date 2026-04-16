@@ -1,6 +1,6 @@
-# 📱 AndroidForClaw
+# 📱 Hermes for Android
 
-[![Release](https://img.shields.io/badge/Release-v1.3.0-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.1.17-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -69,7 +69,7 @@ Built-in MCP Server (port 8399) exposes the phone's accessibility and screenshot
 Tools: get_view_tree / screenshot / tap / swipe / input_text / press_home / press_back / get_current_app
 ```
 
-> This is NOT used by AndroidForClaw itself — it's for external agents like Claude Desktop, Cursor, etc.
+> This is NOT used by Hermes itself — it's for external agents like Claude Desktop, Cursor, etc.
 
 ### 🧩 Skill Extensions
 
@@ -90,13 +90,13 @@ Download from the [Release page](https://github.com/SelectXn00b/AndroidForClaw/r
 
 | APK | Description | Required? |
 |-----|-------------|-----------|
-| **AndroidForClaw** | Main app (Accessibility Service, Agent, Gateway) | ✅ Required |
+| **Hermes** | Main app (Accessibility Service, Agent, Gateway) | ✅ Required |
 | **BrowserForClaw** | AI Browser (web automation) | Optional |
 | **termux-app + termux-api** | Terminal (run Python/Node.js) | Optional |
 
 ### 3 Steps to Get Started
 
-1. **Install** — Download and install AndroidForClaw
+1. **Install** — Download and install Hermes
 2. **Configure** — Open the app, enter an API Key (or skip to use built-in Key), enable Accessibility + Screen Capture permissions
 3. **Chat** — Talk directly in the app, or send messages via Feishu/Discord
 
@@ -190,7 +190,7 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 | Dev & Debug | `debugging` · `data-processing` · `session-logs` |
 | Config Management | `model-config` · `channel-config` · `install-app` · `model-usage` |
 
-> Skills are stored at `/sdcard/.androidforclaw/skills/` — freely editable, addable, and removable.
+> Skills are stored at `/sdcard/.hermes/skills/` — freely editable, addable, and removable.
 
 ### 💬 Messaging Channels
 
@@ -223,7 +223,7 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 
 ## 🛠️ Configuration
 
-`/sdcard/.androidforclaw/openclaw.json`
+`/sdcard/.hermes/openclaw.json`
 
 ```json
 {
@@ -270,10 +270,10 @@ See **[📖 Feishu Docs](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRc
 
 ```bash
 git clone https://github.com/SelectXn00b/AndroidForClaw.git
-cd AndroidForClaw
+cd Hermes
 export JAVA_HOME=/path/to/jdk17
 ./gradlew assembleRelease
-adb install releases/AndroidForClaw-v1.3.0-release.apk
+adb install releases/Hermes-v1.3.0-release.apk
 ```
 
 ---
@@ -284,7 +284,7 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 |---------|-------------|
 | [Hermes](https://github.com/openclaw/openclaw) | AI Agent framework (Desktop) |
 | [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | Hermes iOS client |
-| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android client (this project) |
+| [Hermes](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android client (this project) |
 
 ---
 

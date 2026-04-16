@@ -95,7 +95,7 @@ hermesBridge?.recordTurn(
 #### 1.3 JSONL 存储路径
 
 ```
-/sdcard/.androidforclaw/trajectories/{sessionKey}/
+/sdcard/.hermes/trajectories/{sessionKey}/
     ├── 2026-04-15T20:31:00.jsonl    ← 单次对话的轨迹
     ├── 2026-04-15T21:00:00.jsonl
     └── compressed/
@@ -158,7 +158,7 @@ if (honchoApiKey != null) {
   "hermes": {
     "trajectory": {
       "enabled": true,
-      "dir": "/sdcard/.androidforclaw/trajectories",
+      "dir": "/sdcard/.hermes/trajectories",
       "auto_compress": true,
       "compress_threshold_kb": 100
     },
@@ -215,7 +215,7 @@ if (honchoApiKey != null) {
 ## 验证标准
 
 1. **编译**：`./gradlew :app:compileDebugKotlin` 通过
-2. **功能**：对话后检查 `/sdcard/.androidforclaw/trajectories/` 有 JSONL 文件
+2. **功能**：对话后检查 `/sdcard/.hermes/trajectories/` 有 JSONL 文件
 3. **压缩**：执行 `/compress` 后轨迹被压缩
 4. **不影响现有功能**：对话、工具执行、流式输出正常
 

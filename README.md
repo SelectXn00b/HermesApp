@@ -1,6 +1,6 @@
-# AndroidForClaw
+# Hermes for Android
 
-[![Release](https://img.shields.io/badge/Release-v1.3.1-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.1.17-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -68,7 +68,7 @@ AI：→ web_search("科技新闻") → 返回标题+链接+摘要
 工具：get_view_tree / screenshot / tap / swipe / input_text / press_home / press_back / get_current_app
 ```
 
-> 这不是 AndroidForClaw 自身使用的——是给 Claude Desktop、Cursor 等外部 Agent 调用的。
+> 这不是 Hermes 自身使用的——是给 Claude Desktop、Cursor 等外部 Agent 调用的。
 
 ### 技能扩展
 
@@ -89,7 +89,7 @@ AI：→ skills_search("") → 展示可用技能列表
 
 | APK | 说明 | 必装？ |
 |-----|------|--------|
-| **AndroidForClaw** | 主应用 (含无障碍服务、Agent、Gateway) | ✅ 必装 |
+| **Hermes** | 主应用 (含无障碍服务、Agent、Gateway) | ✅ 必装 |
 | **BrowserForClaw** | AI 浏览器 (网页自动化) | 可选 |
 
 > Termux 需从 [F-Droid](https://f-droid.org/packages/com.termux/) 单独安装（不要用 Play Store 版本）。
@@ -98,7 +98,7 @@ AI：→ skills_search("") → 展示可用技能列表
 
 ### 3 步上手
 
-1. **安装** — 下载安装 AndroidForClaw
+1. **安装** — 下载安装 Hermes
 2. **配置** — 打开 App，输入 API Key（或跳过使用内置 Key），开启无障碍 + 录屏权限
 3. **开聊** — 直接对话，或通过飞书/Discord 发消息
 
@@ -236,7 +236,9 @@ App 有两层 exec 工具，按需自动路由：
 | 开发调试 | `debugging` · `data-processing` · `session-logs` · `context-security` |
 | 配置管理 | `model-config` · `channel-config` · `install-app` · `model-usage` |
 
-> Skills 存储在 `/sdcard/.androidforclaw/skills/`，可自由编辑、添加、删除。
+> Skills 存储在 `/sdcard/.hermes/skills/`，可自由编辑、添加、删除。
+
+> **注意**：从旧版 AndroidForClaw 升级的用户，配置路径已从 `/sdcard/.androidforclaw/` 迁移到 `/sdcard/.hermes/`，请手动复制配置文件。
 
 ### 消息渠道
 
@@ -265,7 +267,7 @@ App 有两层 exec 工具，按需自动路由：
 
 ## 配置参考
 
-`/sdcard/.androidforclaw/openclaw.json`
+`/sdcard/.hermes/openclaw.json`
 
 ```json
 {
@@ -305,7 +307,7 @@ git clone https://github.com/SelectXn00b/AndroidForClaw.git
 cd AndroidForClaw
 export JAVA_HOME=/path/to/jdk17
 ./gradlew assembleRelease
-adb install releases/AndroidForClaw-v*.apk
+adb install releases/Hermes-v*.apk
 ```
 
 ---
@@ -316,7 +318,7 @@ adb install releases/AndroidForClaw-v*.apk
 |------|------|
 | [Hermes](https://github.com/openclaw/openclaw) | AI Agent 框架（桌面端） |
 | [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | Hermes iOS 客户端 |
-| [AndroidForClaw](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android 客户端（本项目） |
+| [Hermes for Android](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android 客户端（本项目） |
 
 ---
 

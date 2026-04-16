@@ -2,7 +2,7 @@
 
 ## 配置文件位置
 
-**设备路径**: `/sdcard/.androidforclaw/hermes.json`
+**设备路径**: `/sdcard/.hermes/hermes.json`
 
 应用启动时会自动从 `app/src/main/assets/hermes.json.default.txt` 复制默认配置到此位置。
 
@@ -173,9 +173,9 @@ adb push hermes.json /sdcard/AndroidForClaw/config/
 - 示例配置中的密钥已脱敏或使用占位符
 
 ⚠️ **路径说明**:
-- `/sdcard/.androidforclaw/`: 应用外部存储根目录（用户可访问）
-- `/sdcard/.androidforclaw/hermes.json`: 主配置文件（从 assets/hermes.json.default.txt 复制）
-- `/sdcard/.androidforclaw/workspace/`: 工作区目录（sessions、skills、memory 等）
+- `/sdcard/.hermes/`: 应用外部存储根目录（用户可访问）
+- `/sdcard/.hermes/hermes.json`: 主配置文件（从 assets/hermes.json.default.txt 复制）
+- `/sdcard/.hermes/workspace/`: 工作区目录（sessions、skills、memory 等）
 
 ## 更多信息
 
