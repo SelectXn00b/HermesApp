@@ -16,15 +16,13 @@ object RlTrainingTool {
         val datasetPath: String = "",
         val epochs: Int = 1,
         val batchSize: Int = 32,
-        val learningRate: Double = 0.001,
-    )
+        val learningRate: Double = 0.001)
 
     data class TrainingResult(
         val success: Boolean = false,
         val loss: Double = 0.0,
         val accuracy: Double = 0.0,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Start a training run. In Android, this is a placeholder

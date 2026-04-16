@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class WhatsAppAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.WHATSAPP) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.WHATSAPP) {
     companion object { private const val TAG = "WhatsAppAdapter" }
 
     override suspend fun connect(): Boolean {

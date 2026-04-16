@@ -30,8 +30,7 @@ object BrowserTool {
         val taskId: String,
         val provider: String,  // "local", "browserbase", "browser_use", "camofox"
         var currentUrl: String? = null,
-        var isActive: Boolean = true,
-    )
+        var isActive: Boolean = true)
 
     /**
      * Snapshot result from a browser page.
@@ -41,8 +40,7 @@ object BrowserTool {
         val title: String? = null,
         val content: String = "",
         val elements: List<Map<String, String>> = emptyList(),
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Navigation result.
@@ -51,8 +49,7 @@ object BrowserTool {
         val success: Boolean = false,
         val url: String = "",
         val title: String? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private val _sessions = ConcurrentHashMap<String, BrowserSession>()
     private val _httpClient = OkHttpClient.Builder()
@@ -108,8 +105,7 @@ object BrowserTool {
                 NavigationResult(
                     success = true,
                     url = result["url"] as? String ?: url,
-                    title = result["title"] as? String,
-                )
+                    title = result["title"] as? String)
             }
         } catch (e: Exception) {
             NavigationResult(error = "Navigation failed: ${e.message}")
@@ -138,8 +134,7 @@ object BrowserTool {
                 BrowserSnapshot(
                     url = result["url"] as? String,
                     title = result["title"] as? String,
-                    content = result["content"] as? String ?: "",
-                )
+                    content = result["content"] as? String ?: "")
             }
         } catch (e: Exception) {
             BrowserSnapshot(error = "Snapshot failed: ${e.message}")

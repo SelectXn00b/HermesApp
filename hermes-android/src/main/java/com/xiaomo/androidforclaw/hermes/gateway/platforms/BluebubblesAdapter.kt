@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class BluebubblesAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.BLUEBUBBLES) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.BLUEBUBBLES) {
     companion object { private const val TAG = "BluebubblesAdapter" }
 
     override suspend fun connect(): Boolean {

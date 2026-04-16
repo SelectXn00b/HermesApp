@@ -128,8 +128,7 @@ class ModelsDev {
             "mistral" to "mistral",
             "togetherai" to "togetherai",
             "perplexity" to "perplexity",
-            "cohere" to "cohere",
-        )
+            "cohere" to "cohere")
 
         private val NOISE_PATTERN = Regex(
             """-tts\b|embedding|live-|-(preview|exp)-\d{2,4}[-_]|-image\b|-image-preview\b|-customtools\b""",

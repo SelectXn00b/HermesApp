@@ -19,8 +19,7 @@ object SkillsTool {
             "skills" to skills.values.map {
                 mapOf("name" to it.name, "description" to it.description, "path" to it.path)
             },
-            "count" to skills.size,
-        ))
+            "count" to skills.size))
     }
 
     /**
@@ -34,8 +33,7 @@ object SkillsTool {
             "description" to skill.description,
             "path" to skill.path,
             "category" to skill.category,
-            "enabled" to skill.enabled,
-        ))
+            "enabled" to skill.enabled))
     }
 
     /**
@@ -59,8 +57,7 @@ object SkillsTool {
         }
         return gson.toJson(mapOf(
             "matches" to matches.map { mapOf("name" to it.name, "description" to it.description) },
-            "count" to matches.size,
-        ))
+            "count" to matches.size))
     }
 
 

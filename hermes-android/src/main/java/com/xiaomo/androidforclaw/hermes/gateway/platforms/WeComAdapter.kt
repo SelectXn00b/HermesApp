@@ -22,8 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class WeComAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.WECOM) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.WECOM) {
     companion object { private const val TAG = "WeComAdapter" }
 
     private val _corpId: String = config.extra("corp_id") ?: System.getenv("WECOM_CORP_ID") ?: ""
@@ -89,8 +88,7 @@ class WeComAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 

@@ -99,8 +99,7 @@ class Trajectory(
                 "conversations" to trajectory,
                 "timestamp" to java.time.Instant.now().toString(),
                 "model" to model,
-                "completed" to completed,
-            )
+                "completed" to completed)
             try {
                 java.io.File(file).appendText(gson.toJson(entry) + "\n")
             } catch (_unused: Exception) {}

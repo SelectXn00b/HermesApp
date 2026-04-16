@@ -4,6 +4,8 @@
  */
 package com.xiaomo.androidforclaw.gateway.protocol
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser

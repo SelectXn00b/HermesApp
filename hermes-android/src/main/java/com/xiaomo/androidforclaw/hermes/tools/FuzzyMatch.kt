@@ -28,8 +28,7 @@ object FuzzyMatch {
         val content: String,
         val matchCount: Int,
         val strategy: String?,
-        val error: String?,
-    )
+        val error: String?)
 
     /**
      * Find and replace text using a chain of increasingly fuzzy matching strategies.
@@ -38,8 +37,7 @@ object FuzzyMatch {
         content: String,
         oldString: String,
         newString: String,
-        replaceAll: Boolean = false,
-    ): FuzzyReplaceResult {
+        replaceAll: Boolean = false): FuzzyReplaceResult {
         if (oldString.isEmpty()) return FuzzyReplaceResult(content, 0, null, "old_string cannot be empty")
         if (oldString == newString) return FuzzyReplaceResult(content, 0, null, "old_string and new_string are identical")
 
@@ -52,8 +50,7 @@ object FuzzyMatch {
             "trimmed_boundary" to ::strategyTrimmedBoundary,
             "unicode_normalized" to ::strategyUnicodeNormalized,
             "block_anchor" to ::strategyBlockAnchor,
-            "context_aware" to ::strategyContextAware,
-        )
+            "context_aware" to ::strategyContextAware)
 
         for ((name, strategyFn) in strategies) {
             val matches = strategyFn(content, oldString)
@@ -216,8 +213,7 @@ object FuzzyMatch {
         contentLines: List<String>,
         contentNormalizedLines: List<String>,
         pattern: String,
-        patternNormalized: String,
-    ): List<Pair<Int, Int>> {
+        patternNormalized: String): List<Pair<Int, Int>> {
         val patternNormLines = patternNormalized.split('\n')
         val patternLineCount = patternNormLines.size
         val matches = mutableListOf<Pair<Int, Int>>()

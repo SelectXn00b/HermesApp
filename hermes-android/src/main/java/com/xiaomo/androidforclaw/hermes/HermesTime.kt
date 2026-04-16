@@ -211,8 +211,7 @@ data class SessionStats(
     val messageCount: Int,
     val sizeBytes: Long,
     val createdAt: String,
-    val updatedAt: String,
-)
+    val updatedAt: String)
 
 fun getSessionStats(sessionDir: java.io.File): SessionStats? {
     if (!sessionDir.exists()) return null
@@ -229,8 +228,7 @@ fun getSessionStats(sessionDir: java.io.File): SessionStats? {
         messageCount = messageCount,
         sizeBytes = sizeBytes,
         createdAt = createdAt,
-        updatedAt = updatedAt,
-    )
+        updatedAt = updatedAt)
 
 
 }

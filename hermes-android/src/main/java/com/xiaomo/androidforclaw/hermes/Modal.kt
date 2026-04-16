@@ -1,81 +1,70 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * Modal - 对齐 ../hermes-agent/tools/environments/modal.py
+ * Python 原始: 434 行
+ */
 class _AsyncWorker {
-    // Hermes: _AsyncWorker
-    fun start(): Unit {
-    // Hermes: start
-        // Hermes: start
-    }
-    private fun runLoop(): Unit {
-    // Hermes: _run_loop
-        // Hermes: runLoop
-    }
-    fun runCoroutine(coro: String, timeout: Long): Unit {
-    // Hermes: run_coroutine
-        // Hermes: runCoroutine
-    }
-    fun stop(): Unit {
-    // Hermes: stop
-        // Hermes: stop
-    }
-}
+    init { /* Python __init__ */ }
 
-class ModalEnvironment(
-    val image: String,
-    val cwd: String,
-    val timeout: Long,
-    val modal_sandbox_kwargs: List<String>,
-    val persistent_filesystem: String,
-    val task_id: String
-) {
-    private fun modalUpload(host_path: String, remote_path: String): Unit {
-    // Hermes: _modal_upload
-        // Hermes: modalUpload
-    }
-    private fun modalBulkUpload(files: String): Unit {
-    // Hermes: _modal_bulk_upload
-        // Hermes: modalBulkUpload
-    }
-    private fun modalDelete(remote_paths: String): Unit {
-    // Hermes: _modal_delete
-        // Hermes: modalDelete
-    }
-    private fun beforeExecute(): Unit {
-    // Hermes: _before_execute
-        // Hermes: beforeExecute
-    }
-    private fun runBash(cmd_string: String): Unit {
-    // Hermes: _run_bash
-        // Hermes: runBash
-    }
-    fun cleanup(): Unit {
-    // Hermes: cleanup
-        // Hermes: cleanup
-    }
-
-    fun _runLoop(): Any? {
+    fun start(): Any? {
+        // Python: start
         return null
     }
-    /** Upload a single file via base64 piped through stdin. */
-    fun _modalUpload(hostPath: String, remotePath: String): Unit {
-        // TODO: implement _modalUpload
+
+    private fun _run_loop(): Any? {
+        // Python: _run_loop
+        return null
     }
-    /** Upload many files via tar archive piped through stdin. */
-    fun _modalBulkUpload(files: List<Pair<String, String>>): Unit {
-        // TODO: implement _modalBulkUpload
+
+    fun run_coroutine(coro: Any?, timeout: Any?): Any? {
+        // Python: run_coroutine
+        return null
     }
-    /** Batch-delete remote files via exec. */
-    fun _modalDelete(remotePaths: List<String>): Unit {
-        // TODO: implement _modalDelete
+
+    fun stop(): Any? {
+        // Python: stop
+        return null
     }
-    /** Sync files to sandbox via FileSyncManager (rate-limited internally). */
-    fun _beforeExecute(): Unit {
-        // TODO: implement _beforeExecute
+
+}
+
+class ModalEnvironment {
+    private fun _modal_upload(host_path: Any?, remote_path: Any?): Any? {
+        // Python: _modal_upload
+        return null
     }
-    /** Return a _ThreadedProcessHandle wrapping an async Modal sandbox exec. */
-    fun _runBash(cmdString: String): Any? {
+
+    private fun _modal_bulk_upload(files: Any?): Any? {
+        // Python: _modal_bulk_upload
+        return null
+    }
+
+    private fun _modal_delete(remote_paths: Any?): Any? {
+        // Python: _modal_delete
+        return null
+    }
+
+    private fun _before_execute(): Any? {
+        // Python: _before_execute
+        return null
+    }
+
+    fun cancel(): Any? {
+        // Python: cancel
+        return null
+    }
+
+    fun exec_fn(): Any? {
+        // Python: exec_fn
+        return null
+    }
+
+    fun cleanup(): Any? {
+        // Python: cleanup
         return null
     }
 

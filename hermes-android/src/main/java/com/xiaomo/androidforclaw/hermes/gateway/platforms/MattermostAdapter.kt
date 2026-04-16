@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class MattermostAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.MATTERMOST) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.MATTERMOST) {
     companion object { private const val TAG = "MattermostAdapter" }
 
     override suspend fun connect(): Boolean {

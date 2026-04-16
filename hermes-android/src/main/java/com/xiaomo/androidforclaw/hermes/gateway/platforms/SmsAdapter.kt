@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class SmsAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.SMS) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.SMS) {
     companion object { private const val TAG = "SmsAdapter" }
 
     override suspend fun connect(): Boolean {

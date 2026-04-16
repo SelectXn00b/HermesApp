@@ -23,8 +23,7 @@ data class DeliveryResult(
     /** Error message (if success == false). */
     val error: String? = null,
     /** Raw response from the platform (if available). */
-    val rawResponse: Any? = null,
-)
+    val rawResponse: Any? = null)
 
 /**
  * Delivery router.
@@ -69,8 +68,7 @@ class DeliveryRouter {
         platform: String,
         chatId: String,
         text: String,
-        replyTo: String? = null,
-    ): DeliveryResult {
+        replyTo: String? = null): DeliveryResult {
         val adapter = _adapters[platform]
         if (adapter == null) {
             Log.w(TAG, "No adapter for platform: $platform")
@@ -93,8 +91,7 @@ class DeliveryRouter {
         chatId: String,
         imageUrl: String,
         caption: String? = null,
-        replyTo: String? = null,
-    ): DeliveryResult {
+        replyTo: String? = null): DeliveryResult {
         val adapter = _adapters[platform]
         if (adapter == null) {
             return DeliveryResult(success = false, error = "No adapter for platform: $platform")
@@ -117,8 +114,7 @@ class DeliveryRouter {
         filePath: String,
         fileName: String? = null,
         caption: String? = null,
-        replyTo: String? = null,
-    ): DeliveryResult {
+        replyTo: String? = null): DeliveryResult {
         val adapter = _adapters[platform]
         if (adapter == null) {
             return DeliveryResult(success = false, error = "No adapter for platform: $platform")
@@ -149,8 +145,7 @@ class DeliveryRouter {
      */
     suspend fun broadcast(
         text: String,
-        excludePlatform: String? = null,
-    ): Map<String, DeliveryResult> {
+        excludePlatform: String? = null): Map<String, DeliveryResult> {
         val results = mutableMapOf<String, DeliveryResult>()
         for ((name, adapter) in _adapters) {
             if (name == excludePlatform) continue
@@ -175,8 +170,7 @@ data class DeliveryTarget(
     val chatId: String? = null,
     val threadId: String? = null,
     val isOrigin: Boolean = false,
-    val isExplicit: Boolean = false,
-) {
+    val isExplicit: Boolean = false) {
     /** Convert back to string format. */
     fun toString_(): String = when {
         isOrigin -> "origin"

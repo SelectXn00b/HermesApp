@@ -31,8 +31,7 @@ object BinaryExtensions {
         // Other binary
         ".bin", ".dat", ".data", ".sav", ".plist", ".pb", ".onnx",
         ".ttf", ".cert", ".cer", ".der", ".p12", ".pfx", ".jks",
-        ".keystore",
-    )
+        ".keystore")
 
     fun isBinaryExtension(filename: String): Boolean {
         val lower = filename.lowercase()

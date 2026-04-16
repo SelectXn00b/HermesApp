@@ -9,15 +9,13 @@ object SessionSearchTool {
     data class SessionSearchResult(
         val sessions: List<SessionMatch> = emptyList(),
         val totalCount: Int = 0,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     data class SessionMatch(
         val sessionId: String,
         val messageCount: Int = 0,
         val preview: String = "",
-        val timestamp: Long = 0L,
-    )
+        val timestamp: Long = 0L)
 
     /**
      * Callback interface for searching sessions.
@@ -32,8 +30,7 @@ object SessionSearchTool {
     fun search(
         query: String,
         limit: Int = 10,
-        searcher: SessionSearcher? = null,
-    ): SessionSearchResult {
+        searcher: SessionSearcher? = null): SessionSearchResult {
         if (query.isBlank()) {
             return SessionSearchResult(error = "Search query is empty")
         }

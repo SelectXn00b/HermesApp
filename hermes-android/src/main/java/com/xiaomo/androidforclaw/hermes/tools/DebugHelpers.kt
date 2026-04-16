@@ -17,8 +17,7 @@ class DebugSession(
     val toolName: String,
     envVar: String = "",
     private val logDir: File? = null,
-    enabled: Boolean = false,
-) {
+    enabled: Boolean = false) {
     val enabled: Boolean = enabled || (envVar.isNotEmpty() && System.getProperty(envVar, "false") == "true")
     val sessionId: String = if (this.enabled) UUID.randomUUID().toString() else ""
     private val _calls = mutableListOf<Map<String, Any>>()
@@ -30,8 +29,7 @@ class DebugSession(
         if (!enabled) return
         val entry = mutableMapOf<String, Any>(
             "timestamp" to ISO_FORMAT.format(Date()),
-            "tool_name" to callName,
-        )
+            "tool_name" to callName)
         entry.putAll(callData)
         _calls.add(entry)
     }
@@ -68,15 +66,13 @@ class DebugSession(
                 "enabled" to false,
                 "session_id" to null as Any?,
                 "log_path" to null as Any?,
-                "total_calls" to 0,
-            )
+                "total_calls" to 0)
         }
         return mapOf(
             "enabled" to true,
             "session_id" to sessionId,
             "log_path" to (logDir?.let { File(it, "${toolName}_debug_${sessionId}.json").absolutePath } ?: ""),
-            "total_calls" to _calls.size,
-        )
+            "total_calls" to _calls.size)
     }
 
     companion object {

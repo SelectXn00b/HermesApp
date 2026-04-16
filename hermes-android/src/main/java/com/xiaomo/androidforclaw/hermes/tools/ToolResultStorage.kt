@@ -58,8 +58,7 @@ object ToolResultStorage {
         toolName: String,
         toolUseId: String,
         storageDir: File,
-        threshold: Int = DEFAULT_PREVIEW_SIZE * 5,
-    ): String {
+        threshold: Int = DEFAULT_PREVIEW_SIZE * 5): String {
         if (content.length <= threshold) return content
 
         val filePath = File(storageDir, "$toolUseId.txt")

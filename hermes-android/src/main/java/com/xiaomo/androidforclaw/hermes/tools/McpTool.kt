@@ -29,20 +29,17 @@ object McpTool {
         val url: String? = null,
         val headers: Map<String, String> = emptyMap(),
         val timeout: Int = 120,
-        val connectTimeout: Int = 60,
-    )
+        val connectTimeout: Int = 60)
 
     data class McpToolDef(
         val name: String,
         val description: String = "",
-        val inputSchema: Map<String, Any> = emptyMap(),
-    )
+        val inputSchema: Map<String, Any> = emptyMap())
 
     data class McpCallResult(
         val content: String = "",
         val isError: Boolean = false,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private val _servers = ConcurrentHashMap<String, McpServerConfig>()
     private val _tools = ConcurrentHashMap<String, Pair<String, McpToolDef>>() // toolName -> (serverName, def)
@@ -83,8 +80,7 @@ object McpTool {
             val payload = gson.toJson(mapOf(
                 "jsonrpc" to "2.0",
                 "id" to 1,
-                "method" to "tools/list",
-            ))
+                "method" to "tools/list"))
 
             val requestBuilder = Request.Builder()
                 .url("$url/mcp")
@@ -139,8 +135,7 @@ object McpTool {
                 "jsonrpc" to "2.0",
                 "id" to System.currentTimeMillis(),
                 "method" to "tools/call",
-                "params" to mapOf("name" to toolName, "arguments" to arguments),
-            ))
+                "params" to mapOf("name" to toolName, "arguments" to arguments)))
 
             val requestBuilder = Request.Builder()
                 .url("$url/mcp")
@@ -200,93 +195,242 @@ object McpTool {
     }
 
 
-    // === Missing constants (auto-generated stubs) ===
-    val _MCP_AVAILABLE = false
-    val _MCP_HTTP_AVAILABLE = false
-    val _MCP_SAMPLING_TYPES = emptySet<Any>()
-    val _MCP_NOTIFICATION_TYPES = emptySet<Any>()
-    val _MCP_MESSAGE_HANDLER_SUPPORTED = ""
-    val _DEFAULT_TOOL_TIMEOUT = 0
-    val _DEFAULT_CONNECT_TIMEOUT = 0
-    val _MAX_RECONNECT_RETRIES = 0
-    val _MAX_INITIAL_CONNECT_RETRIES = 0
-    val _MAX_BACKOFF_SECONDS = 0
-    val _SAFE_ENV_KEYS = emptySet<Any>()
-    val _CREDENTIAL_PATTERN = Regex("")
-    val _UTILITY_CAPABILITY_METHODS = emptySet<Any>()
+    // === Constants (ported from mcp_tool.py) ===
+    val _MCP_AVAILABLE = false          // MCP SDK not available on Android
+    val _MCP_HTTP_AVAILABLE = false     // HTTP transport not available
+    val _MCP_SAMPLING_TYPES = setOf("text", "tool_use")
+    val _MCP_NOTIFICATION_TYPES = setOf("tools_list_changed", "prompts_list_changed", "resources_list_changed")
+    val _MCP_MESSAGE_HANDLER_SUPPORTED = "false"
+    val _DEFAULT_TOOL_TIMEOUT = 120          // seconds for tool calls
+    val _DEFAULT_CONNECT_TIMEOUT = 60        // seconds for initial connection
+    val _MAX_RECONNECT_RETRIES = 5
+    val _MAX_INITIAL_CONNECT_RETRIES = 3
+    val _MAX_BACKOFF_SECONDS = 60
+    val _SAFE_ENV_KEYS = setOf("PATH", "HOME", "USER", "LANG", "LC_ALL", "TERM", "SHELL", "TMPDIR")
+    val _CREDENTIAL_PATTERN = Regex(
+        """(?:ghp_[A-Za-z0-9_]{1,255}|sk-[A-Za-z0-9_]{1,255}|Bearer\s+\S+|token=[^\s&,;"']{1,255}|key=[^\s&,;"']{1,255}|password=[^\s&,;"']{1,255}|secret=[^\s&,;"']{1,255})""",
+        RegexOption.IGNORE_CASE
+    )
+    val _UTILITY_CAPABILITY_METHODS = setOf("sampling/createMessage", "roots/list")
 
-    // === Missing methods (auto-generated stubs) ===
-    private fun checkMessageHandlerSupport(): Unit {
-    // Hermes: _check_message_handler_support
-}
+    // === Rate limiter state ===
+    private val _rateLimitTimestamps = mutableListOf<Long>()
+    private val _rateLimitMaxRequests = 10
+    private val _rateLimitWindowMs = 60_000L // 1 minute sliding window
 
-    /** Sliding-window rate limiter.  Returns True if request is allowed. */
+    /**
+     * Check if the message_handler kwarg is supported by ClientSession.
+     * On Android, MCP SDK is not available, so always returns false.
+     */
+    fun checkMessageHandlerSupport(): Boolean {
+        return false
+    }
+
+    /** Sliding-window rate limiter. Returns true if request is allowed. */
+    @Synchronized
     fun _checkRateLimit(): Boolean {
-        return false
+        val now = System.currentTimeMillis()
+        _rateLimitTimestamps.removeAll { now - it > _rateLimitWindowMs }
+        if (_rateLimitTimestamps.size >= _rateLimitMaxRequests) {
+            return false
+        }
+        _rateLimitTimestamps.add(now)
+        return true
     }
-    /** Config override > server hint > None (use default). */
+
+    /**
+     * Config override > server hint > null (use default).
+     * On Android, always returns null (no sampling support).
+     */
     fun _resolveModel(preferences: Any?): String? {
+        if (preferences is String && preferences.isNotEmpty()) return preferences
+        if (preferences is Map<*, *>) {
+            val model = preferences["model"] as? String
+            if (!model.isNullOrEmpty()) return model
+        }
         return null
     }
-    /** Extract text from a ToolResultContent block. */
+
+    /**
+     * Extract text from a ToolResultContent block.
+     * Supports maps with "type" and "text" fields (MCP content format).
+     */
     fun _extractToolResultText(block: Any?): String {
-        return ""
+        if (block is String) return block
+        if (block is Map<*, *>) {
+            val type = block["type"]
+            if (type == "text") return (block["text"] as? String) ?: ""
+            if (type == "error") return "Error: ${(block["text"] as? String) ?: "unknown"}"
+        }
+        if (block is List<*>) {
+            return block.joinToString("\n") { _extractToolResultText(it) }
+        }
+        return block?.toString() ?: ""
     }
-    /** Convert MCP SamplingMessages to OpenAI format. */
-    fun _convertMessages(params: Any?): List<Any?> {
-        return emptyList()
+
+    /**
+     * Convert MCP SamplingMessages to OpenAI format.
+     * Each message has "role" and "content" fields.
+     */
+    fun _convertMessages(params: Any?): List<Map<String, Any>> {
+        if (params !is Map<*, *>) return emptyList()
+        val messages = params["messages"] as? List<*> ?: return emptyList()
+        return messages.mapNotNull { msg ->
+            if (msg !is Map<*, *>) return@mapNotNull null
+            val role = msg["role"] as? String ?: "user"
+            val content = msg["content"]
+            val text = when (content) {
+                is String -> content
+                is Map<*, *> -> _extractToolResultText(content)
+                is List<*> -> content.joinToString("\n") { _extractToolResultText(it) }
+                else -> content?.toString() ?: ""
+            }
+            mapOf("role" to role, "content" to text)
+        }
     }
-    /** Return ErrorData (MCP spec) or raise as fallback. */
-    fun _error(message: String, code: Int = -1): Any? {
+
+    /**
+     * Return error data as a map (MCP spec ErrorData format).
+     */
+    fun _error(message: String, code: Int = -1): Map<String, Any> {
+        return mapOf(
+            "code" to code,
+            "message" to stripCredentials(message))
+    }
+
+    /**
+     * Build a result map from an LLM tool_calls response.
+     * Returns a map representing CreateMessageResultWithTools.
+     */
+    fun _buildToolUseResult(choice: Any?, response: Any?): Map<String, Any>? {
+        if (choice !is Map<*, *>) return null
+        val message = choice["message"] as? Map<*, *> ?: return null
+        val toolCalls = message["tool_calls"] as? List<*> ?: return null
+        return mapOf(
+            "role" to "assistant",
+            "content" to emptyList<Map<String, Any>>(),
+            "tool_calls" to toolCalls)
+    }
+
+    /**
+     * Build a result map from a normal text LLM response.
+     * Returns a map representing CreateMessageResult.
+     */
+    fun _buildTextResult(choice: Any?, response: Any?): Map<String, Any>? {
+        if (choice !is Map<*, *>) return null
+        val message = choice["message"] as? Map<*, *> ?: return null
+        val text = message["content"] as? String ?: ""
+        return mapOf(
+            "role" to "assistant",
+            "content" to listOf(mapOf("type" to "text", "text" to text)))
+    }
+
+    /**
+     * Return kwargs for ClientSession with sampling support.
+     * On Android, returns null (no MCP SDK).
+     */
+    fun sessionKwargs(): Map<String, Any>? {
         return null
     }
-    /** Build a CreateMessageResultWithTools from an LLM tool_calls response. */
-    fun _buildToolUseResult(choice: Any?, response: Any?): Any? {
-        return null
-    }
-    /** Build a CreateMessageResult from a normal text response. */
-    fun _buildTextResult(choice: Any?, response: Any?): Any? {
-        return null
-    }
-    /** Return kwargs to pass to ClientSession for sampling support. */
-    fun sessionKwargs(): Any? {
-        return null
-    }
-    /** Check if this server uses HTTP transport. */
+
+    /**
+     * Check if a server config uses HTTP transport.
+     */
     fun _isHttp(): Boolean {
-        return false
+        // Check if any registered server uses HTTP
+        return _servers.values.any { !it.url.isNullOrEmpty() }
     }
-    /** Build a ``message_handler`` callback for ``ClientSession``. */
-    fun _makeMessageHandler(): Any? {
+
+    /**
+     * Build a message_handler callback map for ClientSession.
+     * On Android, returns null (no MCP SDK).
+     */
+    fun _makeMessageHandler(): Map<String, Any>? {
         return null
     }
-    /** Re-fetch tools from the server and update the registry. */
-    suspend fun _refreshTools(): Any? {
-        return null
+
+    /**
+     * Re-fetch tools from the server and update the registry.
+     * On Android, delegates to discoverTools for each server.
+     */
+    suspend fun _refreshTools(): List<McpToolDef> {
+        val allTools = mutableListOf<McpToolDef>()
+        for (serverName in _servers.keys) {
+            allTools.addAll(discoverTools(serverName))
+        }
+        return allTools
     }
-    /** Run the server using stdio transport. */
+
+    /**
+     * Run the server using stdio transport.
+     * Not supported on Android (no subprocess management).
+     */
     suspend fun _runStdio(config: Any?): Any? {
+        Log.w(TAG, "_runStdio: stdio transport not supported on Android")
         return null
     }
-    /** Run the server using HTTP/StreamableHTTP transport. */
+
+    /**
+     * Run the server using HTTP/StreamableHTTP transport.
+     * On Android, discovers tools via HTTP but does not maintain a long-lived connection.
+     */
     suspend fun _runHttp(config: Any?): Any? {
+        if (config is Map<*, *>) {
+            val serverName = config["server_name"] as? String
+            if (serverName != null) {
+                discoverTools(serverName)
+            }
+        }
         return null
     }
-    /** Discover tools from the connected session. */
-    suspend fun _discoverTools(): Any? {
-        return null
+
+    /**
+     * Discover tools from all connected sessions/servers.
+     */
+    suspend fun _discoverTools(): Map<String, McpToolDef> {
+        for (serverName in _servers.keys) {
+            discoverTools(serverName)
+        }
+        return getDiscoveredTools()
     }
-    /** Long-lived coroutine: connect, discover tools, wait, disconnect. */
-    suspend fun run(config: Any?): Any? {
-        return null
+
+    /**
+     * Long-lived coroutine: connect, discover tools, wait, disconnect.
+     * On Android, just runs discover and returns discovered tools.
+     */
+    suspend fun run(config: Any?): Map<String, McpToolDef> {
+        if (config is Map<*, *>) {
+            val serverName = config["server_name"] as? String
+            if (serverName != null) {
+                val serverConfig = config["config"] as? McpServerConfig
+                if (serverConfig != null) {
+                    registerServer(serverName, serverConfig)
+                }
+                discoverTools(serverName)
+            }
+        }
+        return getDiscoveredTools()
     }
-    /** Create the background Task and wait until ready (or failed). */
-    suspend fun start(config: Any?): Any? {
-        return null
+
+    /**
+     * Create the background Task and wait until ready (or failed).
+     * On Android, just returns null (no background event loop).
+     */
+    suspend fun start(config: Any?): Map<String, McpToolDef>? {
+        return run(config) as? Map<String, McpToolDef>
     }
-    /** Signal the Task to exit and wait for clean resource teardown. */
-    suspend fun shutdown(): Any? {
-        return null
+
+    /**
+     * Signal the Task to exit and wait for clean resource teardown.
+     * On Android, unregisters all servers.
+     */
+    suspend fun shutdown(): Boolean {
+        val serverNames = _servers.keys.toList()
+        for (name in serverNames) {
+            unregisterServer(name)
+        }
+        Log.i(TAG, "Shutdown complete. Unregistered ${serverNames.size} servers.")
+        return true
     }
 
 }

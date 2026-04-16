@@ -104,8 +104,35 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
         // 本地进程内 channel（绕过 WebSocket）
         private var localGatewayChannel: com.xiaomo.androidforclaw.gateway.LocalGatewayChannel? = null
+        private var hermesGatewayChannel: com.xiaomo.androidforclaw.hermes.bridge.HermesGatewayChannel? = null
 
         fun isGatewayRunning(): Boolean = gatewayController != null
+
+        /**
+         * Start Hermes gateway (方案A: Hermes directly serves chat UI).
+         * Call this to switch from old GatewayServer to Hermes GatewayRunner.
+         */
+        suspend fun startHermesGateway(context: android.content.Context) {
+            val gateway = com.xiaomo.androidforclaw.hermes.bridge.HermesChatGateway.getInstance(context)
+            gateway.start()
+            val runner = gateway.runner
+            if (runner != null) {
+                val channel = com.xiaomo.androidforclaw.hermes.bridge.HermesGatewayChannel(context, runner)
+                hermesGatewayChannel = channel
+                // Inject channel into existing runtime if already created
+                val runtime = (context.applicationContext as? ai.openclaw.app.NodeApp)?.peekRuntime()
+                Log.d(TAG, "Runtime exists: ${runtime != null}, hermesGatewayChannel set")
+                if (runtime != null) {
+                    runtime.setLocalChatChannel(channel)
+                    runtime.connectLocal()
+                    Log.d(TAG, "Hermes channel injected + connectLocal called")
+                }
+                Log.d(TAG, "Hermes gateway started, channel injected")
+            }
+        }
+
+        /** Get the Hermes channel for testing. */
+        fun getHermesChannel(): com.xiaomo.androidforclaw.hermes.bridge.HermesGatewayChannel? = hermesGatewayChannel
 
         // Feishu Channel
         private var feishuChannel: FeishuChannel? = null
@@ -245,7 +272,11 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         }
     }
 
-    override fun provideLocalChatChannel(): com.xiaomo.base.IGatewayChannel? = localGatewayChannel
+    override fun provideLocalChatChannel(): com.xiaomo.base.IGatewayChannel? {
+        val ch = hermesGatewayChannel ?: localGatewayChannel
+        Log.d(TAG, "provideLocalChatChannel → ${ch?.javaClass?.simpleName ?: "null"}")
+        return ch
+    }
 
     override fun onCreate() {
         super.onCreate()

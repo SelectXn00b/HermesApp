@@ -34,18 +34,16 @@ data class HonchoSession(
     val messages: MutableList<MutableMap<String, Any>> = mutableListOf(),
     val createdAt: Long = System.currentTimeMillis(),
     var updatedAt: Long = System.currentTimeMillis(),
-    val metadata: MutableMap<String, Any> = mutableMapOf(),
-) {
+    val metadata: MutableMap<String, Any> = mutableMapOf()) {
     /**
      * 添加消息到本地缓存
-     * Python: add_message(role, content, **kwargs)
+     * Python: add_message(role, content)
      */
     fun addMessage(role: String, content: String, vararg extras: Pair<String, Any>) {
         val msg = mutableMapOf<String, Any>(
             "role" to role,
             "content" to content,
-            "timestamp" to System.currentTimeMillis(),
-        )
+            "timestamp" to System.currentTimeMillis())
         extras.forEach { (k, v) -> msg[k] = v }
         messages.add(msg)
         updatedAt = System.currentTimeMillis()
@@ -64,8 +62,7 @@ data class HonchoSession(
         return recent.map { msg ->
             mapOf(
                 "role" to (msg["role"] ?: "user"),
-                "content" to (msg["content"] ?: ""),
-            )
+                "content" to (msg["content"] ?: ""))
         }
     }
 
@@ -87,8 +84,7 @@ data class HonchoSession(
  */
 class HonchoSessionManager(
     private val honcho: HonchoClient? = null,
-    private val config: HonchoClientConfig? = null,
-) {
+    private val config: HonchoClientConfig? = null) {
 
     private val _cache = ConcurrentHashMap<String, HonchoSession>()
     private val _peersCache = ConcurrentHashMap<String, HonchoPeer>()
@@ -151,8 +147,7 @@ class HonchoSessionManager(
     private fun getOrCreateHonchoSession(
         sessionId: String,
         userPeer: HonchoPeer,
-        assistantPeer: HonchoPeer,
-    ): Pair<HonchoSessionData, List<HonchoMessage>> {
+        assistantPeer: HonchoPeer): Pair<HonchoSessionData, List<HonchoMessage>> {
         val cached = _sessionsCache[sessionId]
         if (cached != null) {
             logger.debug("Honcho session '$sessionId' retrieved from cache")
@@ -222,8 +217,7 @@ class HonchoSessionManager(
                 "role" to role,
                 "content" to msg.content,
                 "timestamp" to msg.createdAt,
-                "_synced" to true,
-            )
+                "_synced" to true)
         }.toMutableList()
 
         val session = HonchoSession(
@@ -231,8 +225,7 @@ class HonchoSessionManager(
             userPeerId = userPeerId,
             assistantPeerId = assistantPeerId,
             honchoSessionId = honchoSessionId,
-            messages = localMessages,
-        )
+            messages = localMessages)
 
         _cache[key] = session
         return session
@@ -282,8 +275,7 @@ class HonchoSessionManager(
             HonchoMessage(
                 peerId = peer.id,
                 content = msg["content"] as? String ?: "",
-                role = msg["role"] as? String ?: "user",
-            )
+                role = msg["role"] as? String ?: "user")
         }
 
         return try {
@@ -412,8 +404,7 @@ class HonchoSessionManager(
         sessionKey: String,
         query: String,
         reasoningLevel: String? = null,
-        peer: String = "user",
-    ): String {
+        peer: String = "user"): String {
         val session = _cache[sessionKey] ?: return ""
 
         var queryText = query
@@ -569,8 +560,7 @@ class HonchoSessionManager(
             val ctx = fetchPeerContext(session.assistantPeerId)
             mapOf(
                 "representation" to (ctx["representation"] as? String ?: ""),
-                "card" to ((ctx["card"] as? List<*>)?.joinToString("\n") ?: ""),
-            )
+                "card" to ((ctx["card"] as? List<*>)?.joinToString("\n") ?: ""))
         } catch (e: Exception) {
             logger.debug("Failed to fetch AI representation: ${e.message}")
             mapOf("representation" to "", "card" to "")
@@ -586,8 +576,7 @@ class HonchoSessionManager(
         val ctx = client.getPeerContext(peer.id, searchQuery)
         return mapOf(
             "representation" to (ctx.representation.ifEmpty { ctx.peerRepresentation }),
-            "card" to ctx.peerCard,
-        )
+            "card" to ctx.peerCard)
     }
 
     /**
@@ -634,15 +623,13 @@ class HonchoSessionManager(
                     peerId = session.assistantPeerId,
                     targetPeerId = session.userPeerId,
                     content = content.trim(),
-                    sessionId = session.honchoSessionId,
-                )
+                    sessionId = session.honchoSessionId)
             } else {
                 client.createConclusion(
                     peerId = session.userPeerId,
                     targetPeerId = session.userPeerId,
                     content = content.trim(),
-                    sessionId = session.honchoSessionId,
-                )
+                    sessionId = session.honchoSessionId)
             }
 
             if (success) {
@@ -682,8 +669,7 @@ class HonchoSessionManager(
             val message = HonchoMessage(
                 peerId = assistantPeer.id,
                 content = wrapped,
-                role = "assistant",
-            )
+                role = "assistant")
             val success = client.addMessages(session.honchoSessionId, listOf(message))
             if (success) {
                 logger.info("Seeded AI identity from '$source' into $sessionKey")
@@ -717,8 +703,7 @@ class HonchoSessionManager(
                 fileName = "prior_history.txt",
                 content = contentBytes,
                 mimeType = "text/plain",
-                metadata = mapOf("source" to "local_jsonl", "count" to messages.size),
-            )
+                metadata = mapOf("source" to "local_jsonl", "count" to messages.size))
         } catch (e: Exception) {
             logger.error("Failed to upload local history to Honcho for $sessionKey: ${e.message}")
             false
@@ -745,8 +730,7 @@ class HonchoSessionManager(
             "",
             """<transcript session_key="$sessionKey" message_count="${messages.size}"""",
             """           time_range="$timeRange">""",
-            "",
-        )
+            "")
 
         for (msg in messages) {
             val ts = msg["timestamp"]?.toString() ?: "?"
@@ -779,8 +763,7 @@ class HonchoSessionManager(
                 "key" to session.key,
                 "createdAt" to session.createdAt,
                 "updatedAt" to session.updatedAt,
-                "messageCount" to session.messages.size,
-            )
+                "messageCount" to session.messages.size)
         }
     }
 }

@@ -23,8 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class DingtalkAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.DINGTALK) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.DINGTALK) {
     companion object { private const val TAG = "DingtalkAdapter" }
 
     private val _appKey: String = config.extra("app_key") ?: System.getenv("DINGTALK_APP_KEY") ?: ""
@@ -86,8 +85,7 @@ class DingtalkAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 

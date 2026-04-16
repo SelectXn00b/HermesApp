@@ -54,8 +54,7 @@ data class HonchoClientConfig(
     val userObserveMe: Boolean = true,
     val userObserveOthers: Boolean = true,
     val aiObserveMe: Boolean = true,
-    val aiObserveOthers: Boolean = true,
-) {
+    val aiObserveOthers: Boolean = true) {
     companion object {
         /**
          * 从全局配置创建
@@ -66,8 +65,7 @@ data class HonchoClientConfig(
             return HonchoClientConfig(
                 host = host ?: HOST,
                 apiKey = System.getenv("HONCHO_API_KEY") ?: "",
-                baseUrl = DEFAULT_BASE_URL,
-            )
+                baseUrl = DEFAULT_BASE_URL)
         }
     }
 
@@ -107,8 +105,7 @@ data class HonchoClientConfig(
 data class HonchoPeer(
     val id: String,
     val name: String? = null,
-    val metadata: Map<String, Any> = emptyMap(),
-)
+    val metadata: Map<String, Any> = emptyMap())
 
 /**
  * Honcho Session
@@ -118,8 +115,7 @@ data class HonchoSessionData(
     val id: String,
     val peers: List<HonchoPeer> = emptyList(),
     val metadata: Map<String, Any> = emptyMap(),
-    val createdAt: Long = System.currentTimeMillis(),
-)
+    val createdAt: Long = System.currentTimeMillis())
 
 /**
  * Honcho Message
@@ -131,8 +127,7 @@ data class HonchoMessage(
     val content: String = "",
     val role: String = "user",
     val metadata: Map<String, Any> = emptyMap(),
-    val createdAt: Long = System.currentTimeMillis(),
-)
+    val createdAt: Long = System.currentTimeMillis())
 
 /**
  * Honcho Context（session.context() 的返回值）
@@ -142,8 +137,7 @@ data class HonchoContext(
     val representation: String = "",
     val peerRepresentation: String = "",
     val peerCard: List<String> = emptyList(),
-    val summary: String = "",
-)
+    val summary: String = "")
 
 // ── Honcho 客户端 ─────────────────────────────────────────────────────────
 
@@ -152,8 +146,7 @@ data class HonchoContext(
  * Python: class Honcho (from honcho package)
  */
 class HonchoClient(
-    private val config: HonchoClientConfig,
-) {
+    private val config: HonchoClientConfig) {
 
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -312,12 +305,10 @@ class HonchoClient(
     fun chat(
         query: String,
         target: String? = null,
-        reasoningLevel: String = "low",
-    ): String? {
+        reasoningLevel: String = "low"): String? {
         val body = mutableMapOf<String, Any>(
             "query" to query,
-            "reasoning_level" to reasoningLevel,
-        )
+            "reasoning_level" to reasoningLevel)
         if (target != null) {
             body["target"] = target
         }
@@ -340,12 +331,10 @@ class HonchoClient(
         peerId: String,
         targetPeerId: String,
         content: String,
-        sessionId: String,
-    ): Boolean {
+        sessionId: String): Boolean {
         val body = mapOf(
             "content" to content,
-            "session_id" to sessionId,
-        )
+            "session_id" to sessionId)
         val response = post("peers/$peerId/conclusions/$targetPeerId", body)
         return response != null
     }
@@ -359,14 +348,12 @@ class HonchoClient(
         fileName: String,
         content: ByteArray,
         mimeType: String = "text/plain",
-        metadata: Map<String, Any> = emptyMap(),
-    ): Boolean {
+        metadata: Map<String, Any> = emptyMap()): Boolean {
         val body = mapOf(
             "file_name" to fileName,
             "content" to String(content, Charsets.UTF_8),
             "mime_type" to mimeType,
-            "metadata" to metadata,
-        )
+            "metadata" to metadata)
         val response = post("sessions/$sessionId/files", body)
         return response != null
     }

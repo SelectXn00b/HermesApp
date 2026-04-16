@@ -18,8 +18,7 @@ object TerminalTool {
         val stdout: String = "",
         val stderr: String = "",
         val exitCode: Int = 0,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Execute a command and return the result.
@@ -28,8 +27,7 @@ object TerminalTool {
         command: String,
         workingDir: String? = null,
         timeoutSeconds: Long = 30,
-        envVars: Map<String, String> = emptyMap(),
-    ): TerminalResult {
+        envVars: Map<String, String> = emptyMap()): TerminalResult {
         return try {
             val processBuilder = ProcessBuilder()
                 .command("/bin/sh", "-c", command)

@@ -13,21 +13,18 @@ object PatchParser {
 
     data class HunkLine(
         val prefix: Char,  // ' ', '-', or '+'
-        val content: String,
-    )
+        val content: String)
 
     data class Hunk(
         val contextHint: String? = null,
-        val lines: List<HunkLine> = emptyList(),
-    )
+        val lines: List<HunkLine> = emptyList())
 
     data class PatchOperation(
         val operation: OperationType,
         val filePath: String,
         val newPath: String? = null,
         val hunks: List<Hunk> = emptyList(),
-        val content: String? = null,
-    )
+        val content: String? = null)
 
     data class PatchResult(
         val success: Boolean,
@@ -35,8 +32,7 @@ object PatchParser {
         val filesModified: List<String> = emptyList(),
         val filesCreated: List<String> = emptyList(),
         val filesDeleted: List<String> = emptyList(),
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Parse a V4A format patch.
@@ -47,11 +43,11 @@ object PatchParser {
         val operations = mutableListOf<PatchOperation>()
 
         val startIdx = lines.indexOfFirst {
-            it.contains("*** Begin Patch") || it.contains("***Begin Patch")
+            it.contains("*** Begin Patch") || it.contains("* Patch")
         }.let { if (it == -1) -1 else it }
 
         val endIdx = lines.indexOfFirst {
-            it.contains("*** End Patch") || it.contains("***End Patch")
+            it.contains("*** End Patch") || it.contains("* Patch")
         }.let { if (it == -1) lines.size else it }
 
         var i = startIdx + 1
@@ -61,10 +57,10 @@ object PatchParser {
         while (i < endIdx) {
             val line = lines[i]
 
-            val updateMatch = Regex("""\*\*\*\s*Update\s+File:\s*(.+)""").find(line)
-            val addMatch = Regex("""\*\*\*\s*Add\s+File:\s*(.+)""").find(line)
-            val deleteMatch = Regex("""\*\*\*\s*Delete\s+File:\s*(.+)""").find(line)
-            val moveMatch = Regex("""\*\*\*\s*Move\s+File:\s*(.+?)\s*->\s*(.+)""").find(line)
+            val updateMatch = Regex("""\*\*\*\s\s+File:\s*(.+)""").find(line)
+            val addMatch = Regex("""\*\*\*\s\s+File:\s*(.+)""").find(line)
+            val deleteMatch = Regex("""\*\*\*\s\s+File:\s*(.+)""").find(line)
+            val moveMatch = Regex("""\*\*\*\s\s+File:\s*(.+?)\s*->\s*(.+)""").find(line)
 
             when {
                 updateMatch != null -> {
@@ -77,8 +73,7 @@ object PatchParser {
                     }
                     currentOp = PatchOperation(
                         operation = OperationType.UPDATE,
-                        filePath = updateMatch.groupValues[1].trim(),
-                    )
+                        filePath = updateMatch.groupValues[1].trim())
                     currentHunk = null
                 }
                 addMatch != null -> {
@@ -91,8 +86,7 @@ object PatchParser {
                     }
                     currentOp = PatchOperation(
                         operation = OperationType.ADD,
-                        filePath = addMatch.groupValues[1].trim(),
-                    )
+                        filePath = addMatch.groupValues[1].trim())
                     currentHunk = Hunk()
                 }
                 deleteMatch != null -> {
@@ -105,8 +99,7 @@ object PatchParser {
                     }
                     val op = PatchOperation(
                         operation = OperationType.DELETE,
-                        filePath = deleteMatch.groupValues[1].trim(),
-                    )
+                        filePath = deleteMatch.groupValues[1].trim())
                     operations.add(op)
                     currentOp = null
                     currentHunk = null
@@ -122,8 +115,7 @@ object PatchParser {
                     val op = PatchOperation(
                         operation = OperationType.MOVE,
                         filePath = moveMatch.groupValues[1].trim(),
-                        newPath = moveMatch.groupValues[2].trim(),
-                    )
+                        newPath = moveMatch.groupValues[2].trim())
                     operations.add(op)
                     currentOp = null
                     currentHunk = null
@@ -313,8 +305,7 @@ object PatchParser {
                 diff = combinedDiff,
                 filesModified = filesModified,
                 filesCreated = filesCreated,
-                filesDeleted = filesDeleted,
-            )
+                filesDeleted = filesDeleted)
         } else {
             PatchResult(
                 success = false,
@@ -322,8 +313,7 @@ object PatchParser {
                 filesModified = filesModified,
                 filesCreated = filesCreated,
                 filesDeleted = filesDeleted,
-                error = errors.joinToString("\n"),
-            )
+                error = errors.joinToString("\n"))
         }
     }
 

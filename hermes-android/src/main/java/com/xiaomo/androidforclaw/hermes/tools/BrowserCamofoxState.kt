@@ -10,8 +10,7 @@ object BrowserCamofoxState {
         val sessionId: String,
         val currentUrl: String? = null,
         val title: String? = null,
-        val isActive: Boolean = true,
-    )
+        val isActive: Boolean = true)
 
     private val _sessions = mutableMapOf<String, CamofoxSession>()
 
@@ -27,8 +26,7 @@ object BrowserCamofoxState {
         val session = _sessions[sessionId] ?: return
         _sessions[sessionId] = session.copy(
             currentUrl = url ?: session.currentUrl,
-            title = title ?: session.title,
-        )
+            title = title ?: session.title)
     }
 
     fun removeSession(sessionId: String) {

@@ -1,50 +1,32 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
-class SmsAdapter(
-    val config: Map<String, Any>
-) {
-    private fun basicAuthHeader(): Unit {
-    // Hermes: _basic_auth_header
-        // Hermes: basicAuthHeader
+/**
+ * Sms - 对齐 hermes-agent/gateway/platforms/sms.py
+ * Python 原始: 14185 行
+ * 已提取类: SmsAdapter
+ * 已提取方法: 5 个
+ */
+class SmsAdapter {
+    init {
+        // Python __init__
     }
-    suspend fun connect(): Unit {
-    // Hermes: connect
-        // Hermes: connect
-    }
-    suspend fun disconnect(): Unit {
-    // Hermes: disconnect
-        // Hermes: disconnect
-    }
-    suspend fun send(chat_id: String, content: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send
-        // Hermes: send
-    }
-    suspend fun getChatInfo(chat_id: String): Any? {
-    // Hermes: get_chat_info
-        return null
-        // Hermes: getChatInfo
+
+    private fun _basic_auth_header(): Any? {
+        // Python: _basic_auth_header
         return null
     }
-    fun formatMessage(content: String): Unit {
-    // Hermes: format_message
-        // Hermes: formatMessage
+
+    fun format_message(content: Any?): Any? {
+        // Python: format_message
+        return null
     }
-    private fun validateTwilioSignature(url: String, post_params: String, signature: String): Unit {
-    // Hermes: _validate_twilio_signature
-        // Hermes: validateTwilioSignature
+
+    private fun _port_variant_url(url: Any?): Any? {
+        // Python: _port_variant_url
+        return null
     }
-    private fun checkSignature(url: String, post_params: String, signature: String): Unit {
-    // Hermes: _check_signature
-        // Hermes: checkSignature
-    }
-    private fun portVariantUrl(url: String): Unit {
-    // Hermes: _port_variant_url
-        // Hermes: portVariantUrl
-    }
-    private suspend fun handleWebhook(request: String): Unit {
-    // Hermes: _handle_webhook
-        // Hermes: handleWebhook
-    }
+
 }

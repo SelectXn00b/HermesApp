@@ -10,13 +10,11 @@ object Approval {
 
     data class ApprovalRequest(
         val action: String,
-        val details: Map<String, Any> = emptyMap(),
-    )
+        val details: Map<String, Any> = emptyMap())
 
     data class ApprovalResult(
         val approved: Boolean = false,
-        val reason: String? = null,
-    )
+        val reason: String? = null)
 
     /**
      * Callback interface for approval UI.
@@ -32,8 +30,7 @@ object Approval {
     fun requestApproval(
         action: String,
         details: Map<String, Any> = emptyMap(),
-        callback: ApprovalCallback? = null,
-    ): ApprovalResult {
+        callback: ApprovalCallback? = null): ApprovalResult {
         if (callback == null) {
             return ApprovalResult(approved = false, reason = "No approval callback configured")
         }
@@ -51,8 +48,7 @@ object Approval {
         val sensitiveActions = setOf(
             "delete", "write_system", "execute", "install", "uninstall",
             "modify_permissions", "access_credentials", "send_message",
-            "network_request",
-        )
+            "network_request")
         return action.lowercase() in sensitiveActions
     }
 

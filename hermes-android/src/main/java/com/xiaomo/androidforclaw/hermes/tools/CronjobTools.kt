@@ -16,8 +16,7 @@ object CronjobTools {
         val name: String,
         val schedule: String,  // Cron expression
         val handler: String,   // Handler name or action
-        val enabled: Boolean = true,
-    )
+        val enabled: Boolean = true)
 
     private val _cronjobs = mutableMapOf<String, Cronjob>()
 
@@ -53,8 +52,7 @@ object CronjobTools {
             "hour" to parts[1],
             "day_of_month" to parts[2],
             "month" to parts[3],
-            "day_of_week" to parts[4],
-        )
+            "day_of_week" to parts[4])
     }
 
 

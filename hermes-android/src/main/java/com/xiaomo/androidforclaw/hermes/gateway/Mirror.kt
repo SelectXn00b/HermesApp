@@ -25,14 +25,13 @@ import java.util.concurrent.TimeUnit
 data class MirrorRule(
     val targetUrl: String,
     val targetKey: String,
-    val label: String = "",
-)
+    val label: String = "")
 
 /**
  * In-memory mirror bridge.
  *
- * Each rule maps a *source_key* (the session key of the incoming message)
- * to a *target_url* and *target_key* where the message should also be
+ * Each rule maps a * (the session key of the incoming message)
+ * to a * and * where the message should also be
  * delivered.  The actual delivery is fire-and-forget — a failure to mirror
  * never blocks the primary session.
  */
@@ -40,8 +39,7 @@ class MirrorBridge(
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .build(),
-) {
+        .build()) {
     companion object {
         private const val TAG = "MirrorBridge"
     }
@@ -54,19 +52,19 @@ class MirrorBridge(
         _rules[sourceKey] = rule
     }
 
-    /** Remove the mirror rule for *sourceKey*. */
+    /** Remove the mirror rule for *. */
     fun removeRule(sourceKey: String) {
         _rules.remove(sourceKey)
     }
 
-    /** Return the rule for *sourceKey* or null. */
+    /** Return the rule for * or null. */
     fun getRule(sourceKey: String): MirrorRule? = _rules[sourceKey]
 
     /** True when at least one rule is active. */
     val hasRules: Boolean get() = _rules.isNotEmpty()
 
     /**
-     * Mirror the given message if a rule exists for *sourceKey*.
+     * Mirror the given message if a rule exists for *.
      *
      * @param sourceKey  The session key of the original message.
      * @param text       The message text to mirror.

@@ -30,8 +30,7 @@ data class ChannelEntry(
     /** User name (for DMs). */
     val userName: String = "",
     /** Arbitrary metadata. */
-    val metadata: JSONObject = JSONObject(),
-) {
+    val metadata: JSONObject = JSONObject()) {
     /** Composite key used for lookups. */
     val key: String get() = "$platform:$chatId"
 
@@ -53,8 +52,7 @@ data class ChannelEntry(
             chatType = json.optString("chat_type", "dm"),
             userId = json.optString("user_id", ""),
             userName = json.optString("user_name", ""),
-            metadata = json.optJSONObject("metadata") ?: JSONObject(),
-        )
+            metadata = json.optJSONObject("metadata") ?: JSONObject())
     }
 }
 
@@ -80,8 +78,7 @@ class ChannelDirectory {
         name: String = "",
         chatType: String = "dm",
         userId: String = "",
-        userName: String = "",
-    ) = register(ChannelEntry(platform, chatId, name, chatType, userId, userName))
+        userName: String = "") = register(ChannelEntry(platform, chatId, name, chatType, userId, userName))
 
     /** Look up by composite key ("platform:chatId"). */
     fun get(compositeKey: String): ChannelEntry? = _entries[compositeKey]

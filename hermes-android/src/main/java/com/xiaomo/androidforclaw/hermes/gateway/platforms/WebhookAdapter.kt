@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class WebhookAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.WEBHOOK) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEBHOOK) {
     companion object { private const val TAG = "WebhookAdapter" }
 
     override suspend fun connect(): Boolean {

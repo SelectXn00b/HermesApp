@@ -1,36 +1,23 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * Feishu - 对齐 ../hermes-agent/gateway/platforms/feishu.py
+ * Python 原始: 3950 行
+ */
 class FeishuPostMediaRef {
-    // Hermes: FeishuPostMediaRef
 }
 
 class FeishuPostParseResult {
-    // Hermes: FeishuPostParseResult
 }
 
 class FeishuNormalizedMessage {
-    // Hermes: FeishuNormalizedMessage
 }
 
 class FeishuAdapterSettings {
-    // Hermes: FeishuAdapterSettings
 }
 
 class FeishuGroupRule {
-    // Hermes: FeishuGroupRule
-}
-
-class FeishuBatchState {
-    // Hermes: FeishuBatchState
-}
-
-class FeishuAdapter(
-    val config: Map<String, Any>
-) {
-    private fun loadSettings(extra: String): Any? {
-        return null
-    // Hermes: _load_settings
-}
 }

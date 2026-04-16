@@ -24,8 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class HomeassistantAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.HOMEASSISTANT) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.HOMEASSISTANT) {
     companion object {
         private const val TAG = "HomeassistantAdapter"
         val BACKOFF_STEPS = listOf(5, 10, 30, 60, 120, 300)
@@ -95,8 +94,7 @@ class HomeassistantAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 put("title", "Hermes Agent")

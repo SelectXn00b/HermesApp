@@ -4,6 +4,8 @@
  */
 package com.xiaomo.androidforclaw.gateway.security
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 

@@ -40,8 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class DiscordAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.DISCORD) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.DISCORD) {
     companion object {
         private const val TAG = "DiscordAdapter"
         const val MAX_MESSAGE_LENGTH = 2000
@@ -117,8 +116,7 @@ class DiscordAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 put("content", content.take(MAX_MESSAGE_LENGTH))
@@ -158,8 +156,7 @@ class DiscordAdapter(
         chatId: String,
         imageUrl: String,
         caption: String?,
-        replyTo: String?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 if (caption != null) put("content", caption)
@@ -189,8 +186,7 @@ class DiscordAdapter(
         fileUrl: String,
         fileName: String?,
         caption: String?,
-        replyTo: String?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 if (caption != null) put("content", caption)

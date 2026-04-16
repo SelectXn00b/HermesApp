@@ -54,8 +54,7 @@ object ToolBackendHelpers {
         val hasDirect: Boolean,
         val managedReady: Boolean,
         val managedModeBlocked: Boolean,
-        val selectedBackend: String?,
-    )
+        val selectedBackend: String?)
 
     /**
      * Resolve direct vs managed Modal backend selection.
@@ -63,8 +62,7 @@ object ToolBackendHelpers {
     fun resolveModalBackendState(
         modalMode: String?,
         hasDirect: Boolean = hasDirectModalCredentials(),
-        managedReady: Boolean,
-    ): ModalBackendState {
+        managedReady: Boolean): ModalBackendState {
         val requestedMode = coerceModalMode(modalMode)
         val managedModeBlocked = requestedMode == "managed" && !managedNousToolsEnabled()
 
@@ -84,8 +82,7 @@ object ToolBackendHelpers {
             hasDirect = hasDirect,
             managedReady = managedReady,
             managedModeBlocked = managedModeBlocked,
-            selectedBackend = selectedBackend,
-        )
+            selectedBackend = selectedBackend)
     }
 
     /**

@@ -1,4 +1,9 @@
-package com.xiaomo.androidforclaw.hermes.environments
+package com.xiaomo.androidforclaw.hermes
+
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import kotlin.random.Random
 
 /**
  * Tool Call Parser - 模型 tool call 格式解析器
@@ -20,9 +25,9 @@ abstract class ToolCallParser {
      * 从 LLM 响应中解析 tool calls
      *
      * @param response LLM 原始响应文本
-     * @return 解析出的 tool calls
+     * @return ParseResult(content, toolCalls)
      */
-    abstract fun parseToolCalls(response: String): List<ParsedToolCall>
+    abstract fun parse(response: String): ParseResult
 
     /**
      * 将 tool calls 格式化为模型期望的格式
@@ -36,7 +41,22 @@ abstract class ToolCallParser {
      * 判断响应是否包含 tool call
      */
     abstract fun hasToolCall(response: String): Boolean
+
+    /**
+     * 便捷方法：从 LLM 响应中解析 tool calls (旧接口兼容)
+     */
+    fun parseToolCalls(response: String): List<ParsedToolCall> {
+        return parse(response).toolCalls ?: emptyList()
+    }
 }
+
+/**
+ * 解析结果
+ */
+data class ParseResult(
+    val content: String?,
+    val toolCalls: List<ParsedToolCall>?
+)
 
 /**
  * 解析出的 tool call
@@ -90,13 +110,29 @@ class ToolCallParserRegistry {
         return null
     }
 
+    /**
+     * 列出所有已注册的 parser 名称
+     */
+    fun listParsers(): List<String> = parsers.keys.sorted()
+
     companion object {
         /** 内置 parsers */
         val BUILT_IN_PARSERS: List<ToolCallParser> = listOf(
-            // TODO: 添加每个 parser 的实现
-            // DeepSeekV3Parser, DeepSeekV31Parser, GLM45Parser, GLM47Parser,
-            // QwenParser, Qwen3CoderParser, KimiK2Parser, LongcatParser,
-            // LlamaParser, MistralParser, HermesParser
-        )
+            HermesToolCallParser(),
+            LongcatToolCallParser(),
+            MistralToolCallParser(),
+            LlamaToolCallParser(),
+            QwenToolCallParser(),
+            Qwen3CoderToolCallParser(),
+            KimiK2ToolCallParser(),
+            Glm45ToolCallParser(),
+            Glm47ToolCallParser())
+
+        /** 创建并填充内置 parsers 的注册表 */
+        fun createDefault(): ToolCallParserRegistry {
+            val registry = ToolCallParserRegistry()
+            BUILT_IN_PARSERS.forEach { registry.register(it) }
+            return registry
+        }
     }
 }

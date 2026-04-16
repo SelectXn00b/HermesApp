@@ -1,6 +1,9 @@
 package com.xiaomo.androidforclaw.hermes.gateway
 
-// TODO: This is a stub file. Implement all classes and methods.
+/**
+ * ToolContext - 对齐 hermes-agent/environments/tool_context.py
+ * 提供终端、文件、搜索、浏览器等工具操作的上下文
+ */
 
 class ToolContext(
     val task_id: String

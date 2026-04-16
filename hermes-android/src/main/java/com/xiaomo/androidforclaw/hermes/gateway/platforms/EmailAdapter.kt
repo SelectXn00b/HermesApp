@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class EmailAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.EMAIL) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.EMAIL) {
     companion object { private const val TAG = "EmailAdapter" }
 
     override suspend fun connect(): Boolean {

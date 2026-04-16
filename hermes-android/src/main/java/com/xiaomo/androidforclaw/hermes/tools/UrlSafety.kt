@@ -15,8 +15,7 @@ object UrlSafety {
         "metadata.goog",
         "localhost",
         "127.0.0.1",
-        "::1",
-    )
+        "::1")
 
     /**
      * Check if an IP address should be blocked for SSRF protection.
@@ -113,8 +112,7 @@ object UrlSafety {
     private object Constants {
         private val _BLOCKED_HOSTNAMES: Set<String> = setOf(
             "0.0.0.0", "127.0.0.1", "localhost", "169.254.169.254",
-            "metadata.google.internal", "[::]", "[::1]",
-        )
+            "metadata.google.internal", "[::]", "[::1]")
         private val _CGNAT_NETWORK = """^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}$""".toRegex()
     }
 }

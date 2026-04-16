@@ -15,21 +15,18 @@ object TodoTool {
     data class TodoItem(
         @SerializedName("id") val id: String,
         @SerializedName("content") val content: String,
-        @SerializedName("status") val status: String = "pending",
-    )
+        @SerializedName("status") val status: String = "pending")
 
     data class TodoSummary(
         @SerializedName("total") val total: Int,
         @SerializedName("pending") val pending: Int,
         @SerializedName("in_progress") val inProgress: Int,
         @SerializedName("completed") val completed: Int,
-        @SerializedName("cancelled") val cancelled: Int,
-    )
+        @SerializedName("cancelled") val cancelled: Int)
 
     data class TodoResult(
         @SerializedName("todos") val todos: List<TodoItem>,
-        @SerializedName("summary") val summary: TodoSummary,
-    )
+        @SerializedName("summary") val summary: TodoSummary)
 
     /**
      * In-memory todo list. One instance per session.
@@ -50,8 +47,7 @@ object TodoTool {
                         val old = existing[t.id]!!
                         existing[t.id] = old.copy(
                             content = t.content.ifBlank { old.content },
-                            status = if (t.status in VALID_STATUSES) t.status else old.status,
-                        )
+                            status = if (t.status in VALID_STATUSES) t.status else old.status)
                     } else {
                         existing[t.id] = t
                         _items.add(t)
@@ -83,8 +79,7 @@ object TodoTool {
                 "completed" to "[x]",
                 "in_progress" to "[>]",
                 "pending" to "[ ]",
-                "cancelled" to "[~]",
-            )
+                "cancelled" to "[~]")
             val active = _items.filter { it.status in listOf("pending", "in_progress") }
             if (active.isEmpty()) return null
 
@@ -105,16 +100,14 @@ object TodoTool {
                 return TodoItem(
                     id = id.ifBlank { "?" },
                     content = content.ifBlank { "(no description)" },
-                    status = if (status in VALID_STATUSES) status else "pending",
-                )
+                    status = if (status in VALID_STATUSES) status else "pending")
             }
 
             fun validate(todoItem: TodoItem): TodoItem {
                 return TodoItem(
                     id = todoItem.id.ifBlank { "?" },
                     content = todoItem.content.ifBlank { "(no description)" },
-                    status = if (todoItem.status in VALID_STATUSES) todoItem.status else "pending",
-                )
+                    status = if (todoItem.status in VALID_STATUSES) todoItem.status else "pending")
             }
 
             private fun <T> dedupeById(items: List<T>): List<T> where T : Any {
@@ -138,8 +131,7 @@ object TodoTool {
     fun todoTool(
         todos: List<Map<String, Any>>? = null,
         merge: Boolean = false,
-        store: TodoStore? = null,
-    ): String {
+        store: TodoStore? = null): String {
         if (store == null) {
             return gson.toJson(mapOf("error" to "TodoStore not initialized"))
         }
@@ -162,9 +154,7 @@ object TodoTool {
                 pending = pending,
                 inProgress = inProgress,
                 completed = completed,
-                cancelled = cancelled,
-            ),
-        )
+                cancelled = cancelled))
         return gson.toJson(result)
     }
 

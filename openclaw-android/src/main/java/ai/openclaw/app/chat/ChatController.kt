@@ -20,10 +20,12 @@ import kotlinx.serialization.json.buildJsonObject
 
 class ChatController(
   private val scope: CoroutineScope,
-  private val session: IGatewayChannel,
+  private var session: IGatewayChannel,
   private val json: Json,
   private val supportsChatSubscribe: Boolean,
 ) {
+  /** Update the channel at runtime (used by Hermes late injection). */
+  fun setSession(channel: IGatewayChannel) { session = channel }
   private val _sessionKey = MutableStateFlow("main")
   val sessionKey: StateFlow<String> = _sessionKey.asStateFlow()
 

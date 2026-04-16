@@ -1,5 +1,7 @@
 package com.xiaomo.androidforclaw.gateway
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/gateway/session-reset-service.ts

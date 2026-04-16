@@ -26,15 +26,13 @@ data class ToolStats(
     val count: Int = 0,
     val success: Int = 0,
     val failure: Int = 0,
-    val successRate: Double = if (count > 0) success.toDouble() / count * 100 else 0.0,
-)
+    val successRate: Double = if (count > 0) success.toDouble() / count * 100 else 0.0)
 
 data class ReasoningStats(
     val totalAssistantTurns: Int = 0,
     val turnsWithReasoning: Int = 0,
     val turnsWithoutReasoning: Int = 0,
-    val hasAnyReasoning: Boolean = turnsWithReasoning > 0,
-)
+    val hasAnyReasoning: Boolean = turnsWithReasoning > 0)
 
 data class BatchResult(
     val batchNum: Int,
@@ -43,8 +41,7 @@ data class BatchResult(
     val toolStats: Map<String, ToolStats> = emptyMap(),
     val reasoningStats: ReasoningStats = ReasoningStats(),
     val discardedNoReasoning: Int = 0,
-    val completedPrompts: List<Int> = emptyList(),
-)
+    val completedPrompts: List<Int> = emptyList())
 
 data class BatchConfig(
     val distribution: String = "default",
@@ -54,8 +51,7 @@ data class BatchConfig(
     val apiKey: String = "",
     val verbose: Boolean = false,
     val maxTokens: Int = 8192,
-    val temperature: Double = 0.0,
-)
+    val temperature: Double = 0.0)
 
 // ── Batch Runner ──────────────────────────────────────────────────────────
 
@@ -72,8 +68,7 @@ class BatchRunner(
     private val verbose: Boolean = false,
     private val maxTokens: Int = 8192,
     private val temperature: Double = 0.0,
-    private val maxSamples: Int? = null,
-) {
+    private val maxSamples: Int? = null) {
 
     private val outputDir = File(getWorkspaceDir(), runName)
     private val checkpointFile = File(outputDir, "checkpoint.json")
@@ -132,16 +127,14 @@ class BatchRunner(
             apiKey = apiKey,
             verbose = verbose,
             maxTokens = maxTokens,
-            temperature = temperature,
-        )
+            temperature = temperature)
 
         val totalToolStats = ConcurrentHashMap<String, MutableMap<String, Int>>()
         val totalReasoningStats = ConcurrentHashMap<String, AtomicInteger>(
             mapOf(
                 "totalAssistantTurns" to AtomicInteger(0),
                 "turnsWithReasoning" to AtomicInteger(0),
-                "turnsWithoutReasoning" to AtomicInteger(0),
-            )
+                "turnsWithoutReasoning" to AtomicInteger(0))
         )
 
         val semaphore = Semaphore(numWorkers)
@@ -200,8 +193,7 @@ class BatchRunner(
         batchNum: Int,
         batchData: List<Pair<Int, Map<String, Any>>>,
         config: BatchConfig,
-        completedPrompts: Set<String>,
-    ): BatchResult {
+        completedPrompts: Set<String>): BatchResult {
         val completedInBatch = mutableListOf<Int>()
         val batchToolStats = ConcurrentHashMap<String, MutableMap<String, Int>>()
         var totalAssistantTurns = 0
@@ -243,17 +235,14 @@ class BatchRunner(
                 ToolStats(
                     count = v.getOrDefault("count", 0),
                     success = v.getOrDefault("success", 0),
-                    failure = v.getOrDefault("failure", 0),
-                )
+                    failure = v.getOrDefault("failure", 0))
             },
             reasoningStats = ReasoningStats(
                 totalAssistantTurns = totalAssistantTurns,
                 turnsWithReasoning = turnsWithReasoning,
-                turnsWithoutReasoning = totalAssistantTurns - turnsWithReasoning,
-            ),
+                turnsWithoutReasoning = totalAssistantTurns - turnsWithReasoning),
             discardedNoReasoning = discardedNoReasoning,
-            completedPrompts = completedInBatch,
-        )
+            completedPrompts = completedInBatch)
     }
 
     /**
@@ -263,8 +252,7 @@ class BatchRunner(
         promptIndex: Int,
         promptData: Map<String, Any>,
         batchNum: Int,
-        config: BatchConfig,
-    ): List<Map<String, Any>>? {
+        config: BatchConfig): List<Map<String, Any>>? {
         // 简化实现：实际使用时需要集成 RunAgent
         batchRunnerLogger.debug("Processing prompt $promptIndex (batch $batchNum)")
         return null // 实际实现需要调用 agent.runConversation()
@@ -355,8 +343,7 @@ class BatchRunner(
         val checkpoint = mutableMapOf<String, Any>(
             "runName" to runName,
             "completedPrompts" to result.completedPrompts,
-            "lastUpdated" to java.time.Instant.now().toString(),
-        )
+            "lastUpdated" to java.time.Instant.now().toString())
         checkpointFile.writeText(batchRunnerGson.toJson(checkpoint), Charsets.UTF_8)
     }
 
@@ -364,8 +351,7 @@ class BatchRunner(
         batchNum: Int,
         promptIndex: Int,
         messages: List<Map<String, Any>>,
-        config: BatchConfig,
-    ) {
+        config: BatchConfig) {
         val batchFile = File(outputDir, "batch_$batchNum.jsonl")
         val entry = mapOf(
             "promptIndex" to promptIndex,
@@ -373,9 +359,7 @@ class BatchRunner(
             "metadata" to mapOf(
                 "batchNum" to batchNum,
                 "timestamp" to java.time.Instant.now().toString(),
-                "model" to config.model,
-            ),
-        )
+                "model" to config.model))
         batchFile.appendText(batchRunnerGson.toJson(entry) + "\n", Charsets.UTF_8)
     }
 
@@ -404,8 +388,7 @@ class BatchRunner(
         results: List<BatchResult>,
         toolStats: Map<String, MutableMap<String, Int>>,
         reasoningStats: Map<String, AtomicInteger>,
-        duration: Double,
-    ) {
+        duration: Double) {
         val stats = mutableMapOf<String, Any>(
             "runName" to runName,
             "distribution" to distribution,
@@ -419,9 +402,7 @@ class BatchRunner(
             "reasoningStatistics" to mapOf(
                 "totalAssistantTurns" to (reasoningStats["totalAssistantTurns"]?.get() ?: 0),
                 "turnsWithReasoning" to (reasoningStats["turnsWithReasoning"]?.get() ?: 0),
-                "turnsWithoutReasoning" to (reasoningStats["turnsWithoutReasoning"]?.get() ?: 0),
-            ),
-        )
+                "turnsWithoutReasoning" to (reasoningStats["turnsWithoutReasoning"]?.get() ?: 0)))
         statsFile.writeText(prettyGson.toJson(stats), Charsets.UTF_8)
         batchRunnerLogger.info("Statistics saved to ${statsFile.name}")
     }

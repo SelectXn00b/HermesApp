@@ -55,8 +55,7 @@ fun atomicJsonWrite(
     path: File,
     data: Any,
     indent: Int = 2,
-    gson: Gson = prettyGson,
-) {
+    gson: Gson = prettyGson) {
     path.parentFile.mkdirs()
 
     val tmpFile = File.createTempFile(".${path.nameWithoutExtension}_", ".tmp", path.parentFile)
@@ -86,8 +85,7 @@ fun atomicYamlWrite(
     path: File,
     data: Any,
     sortKeys: Boolean = false,
-    extraContent: String? = null,
-) {
+    extraContent: String? = null) {
     path.parentFile.mkdirs()
 
     val options = DumperOptions()

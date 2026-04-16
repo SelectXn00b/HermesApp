@@ -24,8 +24,7 @@ object BudgetConfig {
         val maxCostPerSessionUsd: Double = 10.0,
         val maxCostPerDayUsd: Double = 50.0,
         val warningThresholdPercent: Double = 80.0,
-        val criticalThresholdPercent: Double = 95.0,
-    )
+        val criticalThresholdPercent: Double = 95.0)
 
     /**
      * Current budget usage state.
@@ -34,8 +33,7 @@ object BudgetConfig {
         val tokensUsed: Long = 0L,
         val costUsd: Double = 0.0,
         val dailyCostUsd: Double = 0.0,
-        val sessionTurns: Int = 0,
-    ) {
+        val sessionTurns: Int = 0) {
         val alertLevel: BudgetAlertLevel
             get() = when {
                 costUsd >= Budget().maxCostPerSessionUsd -> BudgetAlertLevel.EXCEEDED
@@ -68,8 +66,7 @@ object BudgetConfig {
             tokensUsed = _state.tokensUsed + tokens,
             costUsd = _state.costUsd + costUsd,
             dailyCostUsd = _state.dailyCostUsd + costUsd,
-            sessionTurns = _state.sessionTurns + 1,
-        )
+            sessionTurns = _state.sessionTurns + 1)
     }
 
     fun resetDaily() {

@@ -4,6 +4,8 @@
  */
 package com.xiaomo.androidforclaw.gateway.websocket
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 import com.xiaomo.androidforclaw.gateway.protocol.Frame
 import com.xiaomo.androidforclaw.gateway.protocol.FrameSerializer
 import fi.iki.elonen.NanoWSD

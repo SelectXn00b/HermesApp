@@ -42,63 +42,50 @@ val HERMES_CORE_TOOLS = listOf(
     // Cross-platform messaging
     "send_message",
     // Home Assistant
-    "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
-)
+    "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service")
 
 // ── Toolset 定义 ──────────────────────────────────────────────────────────
 
 data class ToolsetDefinition(
     val description: String,
     val tools: List<String>,
-    val includes: List<String> = emptyList(),
-)
+    val includes: List<String> = emptyList())
 
 val TOOLSETS: Map<String, ToolsetDefinition> = mapOf(
     "web" to ToolsetDefinition(
         description = "Web research and content extraction tools",
-        tools = listOf("web_search", "web_extract"),
-    ),
+        tools = listOf("web_search", "web_extract")),
     "search" to ToolsetDefinition(
         description = "Web search only (no content extraction/scraping)",
-        tools = listOf("web_search"),
-    ),
+        tools = listOf("web_search")),
     "vision" to ToolsetDefinition(
         description = "Image analysis and vision tools",
-        tools = listOf("vision_analyze"),
-    ),
+        tools = listOf("vision_analyze")),
     "image_gen" to ToolsetDefinition(
         description = "Creative generation tools (images)",
-        tools = listOf("image_generate"),
-    ),
+        tools = listOf("image_generate")),
     "terminal" to ToolsetDefinition(
         description = "Terminal/command execution and process management tools",
-        tools = listOf("terminal", "process"),
-    ),
+        tools = listOf("terminal", "process")),
     "moa" to ToolsetDefinition(
         description = "Advanced reasoning and problem-solving tools",
-        tools = listOf("mixture_of_agents"),
-    ),
+        tools = listOf("mixture_of_agents")),
     "skills" to ToolsetDefinition(
         description = "Access, create, edit, and manage skill documents",
-        tools = listOf("skills_list", "skill_view", "skill_manage"),
-    ),
+        tools = listOf("skills_list", "skill_view", "skill_manage")),
     "browser" to ToolsetDefinition(
         description = "Browser automation for web interaction",
         tools = listOf(
             "browser_navigate", "browser_snapshot", "browser_click",
             "browser_type", "browser_scroll", "browser_back",
             "browser_press", "browser_get_images",
-            "browser_vision", "browser_console", "web_search",
-        ),
-    ),
+            "browser_vision", "browser_console", "web_search")),
     "cronjob" to ToolsetDefinition(
         description = "Cronjob management tool",
-        tools = listOf("cronjob"),
-    ),
+        tools = listOf("cronjob")),
     "messaging" to ToolsetDefinition(
         description = "Cross-platform messaging",
-        tools = listOf("send_message"),
-    ),
+        tools = listOf("send_message")),
     "rl" to ToolsetDefinition(
         description = "RL training tools",
         tools = listOf(
@@ -106,66 +93,50 @@ val TOOLSETS: Map<String, ToolsetDefinition> = mapOf(
             "rl_get_current_config", "rl_edit_config",
             "rl_start_training", "rl_check_status",
             "rl_stop_training", "rl_get_results",
-            "rl_list_runs", "rl_test_inference",
-        ),
-    ),
+            "rl_list_runs", "rl_test_inference")),
     "file" to ToolsetDefinition(
         description = "File manipulation tools",
-        tools = listOf("read_file", "write_file", "patch", "search_files"),
-    ),
+        tools = listOf("read_file", "write_file", "patch", "search_files")),
     "tts" to ToolsetDefinition(
         description = "Text-to-speech",
-        tools = listOf("text_to_speech"),
-    ),
+        tools = listOf("text_to_speech")),
     "todo" to ToolsetDefinition(
         description = "Task planning and tracking",
-        tools = listOf("todo"),
-    ),
+        tools = listOf("todo")),
     "memory" to ToolsetDefinition(
         description = "Persistent memory across sessions",
-        tools = listOf("memory"),
-    ),
+        tools = listOf("memory")),
     "session_search" to ToolsetDefinition(
         description = "Search and recall past conversations",
-        tools = listOf("session_search"),
-    ),
+        tools = listOf("session_search")),
     "clarify" to ToolsetDefinition(
         description = "Ask the user clarifying questions",
-        tools = listOf("clarify"),
-    ),
+        tools = listOf("clarify")),
     "code_execution" to ToolsetDefinition(
         description = "Run Python scripts that call tools programmatically",
-        tools = listOf("execute_code"),
-    ),
+        tools = listOf("execute_code")),
     "delegation" to ToolsetDefinition(
         description = "Spawn subagents with isolated context",
-        tools = listOf("delegate_task"),
-    ),
+        tools = listOf("delegate_task")),
     "homeassistant" to ToolsetDefinition(
         description = "Home Assistant smart home control",
-        tools = listOf("ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service"),
-    ),
+        tools = listOf("ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service")),
     // Scenario-specific toolsets
     "debugging" to ToolsetDefinition(
         description = "Debugging and troubleshooting toolkit",
         tools = listOf("terminal", "process"),
-        includes = listOf("web", "file"),
-    ),
+        includes = listOf("web", "file")),
     "safe" to ToolsetDefinition(
         description = "Safe toolkit without terminal access",
         tools = emptyList(),
-        includes = listOf("web", "vision", "image_gen"),
-    ),
+        includes = listOf("web", "vision", "image_gen")),
     // Full Hermes toolsets
     "hermes-cli" to ToolsetDefinition(
         description = "Full interactive CLI toolset",
-        tools = HERMES_CORE_TOOLS,
-    ),
+        tools = HERMES_CORE_TOOLS),
     "hermes-android" to ToolsetDefinition(
         description = "Android toolset - full access for Android app",
-        tools = HERMES_CORE_TOOLS,
-    ),
-)
+        tools = HERMES_CORE_TOOLS))
 
 // ── 公开 API ──────────────────────────────────────────────────────────────
 
@@ -254,8 +225,7 @@ fun createCustomToolset(
     name: String,
     description: String,
     tools: List<String> = emptyList(),
-    includes: List<String> = emptyList(),
-) {
+    includes: List<String> = emptyList()) {
     customToolsets[name] = ToolsetDefinition(description, tools, includes)
 }
 
@@ -270,8 +240,7 @@ data class ToolsetInfo(
     val includes: List<String>,
     val resolvedTools: List<String>,
     val toolCount: Int,
-    val isComposite: Boolean,
-)
+    val isComposite: Boolean)
 
 fun getToolsetInfo(name: String): ToolsetInfo? {
     val toolset = getToolset(name) ?: return null
@@ -284,8 +253,7 @@ fun getToolsetInfo(name: String): ToolsetInfo? {
         includes = toolset.includes,
         resolvedTools = resolved,
         toolCount = resolved.size,
-        isComposite = toolset.includes.isNotEmpty(),
-    )
+        isComposite = toolset.includes.isNotEmpty())
 
 
 }

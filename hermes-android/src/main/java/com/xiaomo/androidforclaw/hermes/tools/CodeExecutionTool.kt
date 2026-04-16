@@ -21,8 +21,7 @@ object CodeExecutionTool {
         val stdout: String = "",
         val stderr: String = "",
         val exitCode: Int = -1,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Execute a shell command locally.
@@ -32,8 +31,7 @@ object CodeExecutionTool {
         command: String,
         workingDir: String? = null,
         timeoutSeconds: Long = DEFAULT_TIMEOUT_SECONDS,
-        envVars: Map<String, String> = emptyMap(),
-    ): ExecutionResult {
+        envVars: Map<String, String> = emptyMap()): ExecutionResult {
         return try {
             val processBuilder = ProcessBuilder()
                 .command("/bin/sh", "-c", command)
@@ -69,15 +67,13 @@ object CodeExecutionTool {
                     stdout = stdout,
                     stderr = stderr,
                     exitCode = -1,
-                    error = "Command timed out after ${timeoutSeconds}s",
-                )
+                    error = "Command timed out after ${timeoutSeconds}s")
             } else {
                 ExecutionResult(
                     success = process.exitValue() == 0,
                     stdout = stdout,
                     stderr = stderr,
-                    exitCode = process.exitValue(),
-                )
+                    exitCode = process.exitValue())
             }
         } catch (e: Exception) {
             ExecutionResult(error = "Execution failed: ${e.message}")
@@ -90,8 +86,7 @@ object CodeExecutionTool {
     fun executePython(code: String, timeoutSeconds: Long = DEFAULT_TIMEOUT_SECONDS): ExecutionResult {
         return execute(
             command = "python3 -c ${shellEscape(code)}",
-            timeoutSeconds = timeoutSeconds,
-        )
+            timeoutSeconds = timeoutSeconds)
     }
 
     /**
@@ -100,8 +95,7 @@ object CodeExecutionTool {
     fun executeJavaScript(code: String, timeoutSeconds: Long = DEFAULT_TIMEOUT_SECONDS): ExecutionResult {
         return execute(
             command = "node -e ${shellEscape(code)}",
-            timeoutSeconds = timeoutSeconds,
-        )
+            timeoutSeconds = timeoutSeconds)
     }
 
     private fun shellEscape(s: String): String {

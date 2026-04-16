@@ -9,8 +9,7 @@ object SendMessageTool {
     data class SendMessageResult(
         val success: Boolean = false,
         val messageId: String? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Callback interface for sending messages.
@@ -26,8 +25,7 @@ object SendMessageTool {
         channel: String,
         message: String,
         threadId: String? = null,
-        sender: MessageSender? = null,
-    ): SendMessageResult {
+        sender: MessageSender? = null): SendMessageResult {
         if (sender == null) {
             return SendMessageResult(error = "No message sender configured")
         }

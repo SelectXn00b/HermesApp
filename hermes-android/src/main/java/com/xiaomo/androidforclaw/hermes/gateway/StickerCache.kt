@@ -26,10 +26,10 @@ import java.util.concurrent.TimeUnit
 /**
  * Two-level cache for sticker images.
  *
- * Level 1 — *set cache*: keeps the list of sticker file-ids that belong to
+ * Level 1 —  cache*: keeps the list of sticker file-ids that belong to
  * each sticker set so we don't have to re-fetch the set metadata every time.
  *
- * Level 2 — *file cache*: the actual sticker image bytes stored under
+ * Level 2 —  cache*: the actual sticker image bytes stored under
  * ``<cacheRoot>/<set>/<file_id>.webp``.
  *
  * Both levels are best-effort and safe to delete at any time.
@@ -40,8 +40,7 @@ class StickerCache(
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .build(),
-) {
+        .build()) {
     companion object {
         private const val TAG = "StickerCache"
 
@@ -70,14 +69,14 @@ class StickerCache(
     // ------------------------------------------------------------------
 
     /**
-     * Register a sticker set.  *members* is the ordered list of file-ids
+     * Register a sticker set.  * is the ordered list of file-ids
      * that belong to the set.
      */
     fun registerSet(setName: String, members: List<String>) {
         _setIndex[setName] = members.toList()
     }
 
-    /** Return the file-ids that belong to *setName*, or null if unknown. */
+    /** Return the file-ids that belong to *, or null if unknown. */
     fun getSetMembers(setName: String): List<String>? = _setIndex[setName]
 
     // ------------------------------------------------------------------
@@ -85,8 +84,8 @@ class StickerCache(
     // ------------------------------------------------------------------
 
     /**
-     * Return the local path for *fileId* if it's already cached, otherwise
-     * download it from *url* and cache the result.
+     * Return the local path for * if it's already cached, otherwise
+     * download it from * and cache the result.
      *
      * Returns null when the download fails.
      */
@@ -111,7 +110,7 @@ class StickerCache(
     }
 
     /**
-     * Return the local path for *fileId* if it is already cached, without
+     * Return the local path for * if it is already cached, without
      * triggering a download.
      */
     fun getCached(fileId: String): File? {

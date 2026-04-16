@@ -26,9 +26,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "terminal" to 100,
             "file" to 100,
             "moa" to 100,
-            "browser" to 100,
-        ),
-    ),
+            "browser" to 100)),
     "image_gen" to DistributionDefinition(
         description = "Heavy focus on image generation with vision and web support",
         toolsets = mapOf(
@@ -36,9 +34,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "vision" to 90,
             "web" to 55,
             "terminal" to 45,
-            "moa" to 10,
-        ),
-    ),
+            "moa" to 10)),
     "research" to DistributionDefinition(
         description = "Web research with vision analysis and reasoning",
         toolsets = mapOf(
@@ -46,9 +42,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "browser" to 70,
             "vision" to 50,
             "moa" to 40,
-            "terminal" to 10,
-        ),
-    ),
+            "terminal" to 10)),
     "science" to DistributionDefinition(
         description = "Scientific research with web, terminal, file, and browser capabilities",
         toolsets = mapOf(
@@ -58,9 +52,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "vision" to 65,
             "browser" to 50,
             "image_gen" to 15,
-            "moa" to 10,
-        ),
-    ),
+            "moa" to 10)),
     "development" to DistributionDefinition(
         description = "Terminal, file tools, and reasoning with occasional web lookup",
         toolsets = mapOf(
@@ -68,9 +60,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "file" to 80,
             "moa" to 60,
             "web" to 30,
-            "vision" to 10,
-        ),
-    ),
+            "vision" to 10)),
     "safe" to DistributionDefinition(
         description = "All tools except terminal for safety",
         toolsets = mapOf(
@@ -78,9 +68,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "browser" to 70,
             "vision" to 60,
             "image_gen" to 60,
-            "moa" to 50,
-        ),
-    ),
+            "moa" to 50)),
     "balanced" to DistributionDefinition(
         description = "Equal probability of all toolsets",
         toolsets = mapOf(
@@ -90,41 +78,31 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "terminal" to 50,
             "file" to 50,
             "moa" to 50,
-            "browser" to 50,
-        ),
-    ),
+            "browser" to 50)),
     "minimal" to DistributionDefinition(
         description = "Only web tools for basic research",
-        toolsets = mapOf("web" to 100),
-    ),
+        toolsets = mapOf("web" to 100)),
     "terminal_only" to DistributionDefinition(
         description = "Terminal and file tools for code execution tasks",
-        toolsets = mapOf("terminal" to 100, "file" to 100),
-    ),
+        toolsets = mapOf("terminal" to 100, "file" to 100)),
     "terminal_web" to DistributionDefinition(
         description = "Terminal and file tools with web search for documentation lookup",
-        toolsets = mapOf("terminal" to 100, "file" to 100, "web" to 100),
-    ),
+        toolsets = mapOf("terminal" to 100, "file" to 100, "web" to 100)),
     "creative" to DistributionDefinition(
         description = "Image generation and vision analysis focus",
-        toolsets = mapOf("image_gen" to 90, "vision" to 90, "web" to 30),
-    ),
+        toolsets = mapOf("image_gen" to 90, "vision" to 90, "web" to 30)),
     "reasoning" to DistributionDefinition(
         description = "Heavy mixture of agents usage with minimal other tools",
-        toolsets = mapOf("moa" to 90, "web" to 30, "terminal" to 20),
-    ),
+        toolsets = mapOf("moa" to 90, "web" to 30, "terminal" to 20)),
     "browser_use" to DistributionDefinition(
         description = "Full browser-based web interaction with search, vision, and page control",
-        toolsets = mapOf("browser" to 100, "web" to 80, "vision" to 70),
-    ),
+        toolsets = mapOf("browser" to 100, "web" to 80, "vision" to 70)),
     "browser_only" to DistributionDefinition(
         description = "Only browser automation tools for pure web interaction tasks",
-        toolsets = mapOf("browser" to 100),
-    ),
+        toolsets = mapOf("browser" to 100)),
     "browser_tasks" to DistributionDefinition(
         description = "Browser-focused distribution",
-        toolsets = mapOf("browser" to 97, "vision" to 12, "terminal" to 15),
-    ),
+        toolsets = mapOf("browser" to 97, "vision" to 12, "terminal" to 15)),
     "terminal_tasks" to DistributionDefinition(
         description = "Terminal-focused distribution with high terminal/file availability",
         toolsets = mapOf(
@@ -133,9 +111,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "web" to 97,
             "browser" to 75,
             "vision" to 50,
-            "image_gen" to 10,
-        ),
-    ),
+            "image_gen" to 10)),
     "mixed_tasks" to DistributionDefinition(
         description = "Mixed distribution with high browser, terminal, and file availability",
         toolsets = mapOf(
@@ -144,10 +120,7 @@ val DISTRIBUTIONS: Map<String, DistributionDefinition> = mapOf(
             "file" to 92,
             "web" to 35,
             "vision" to 15,
-            "image_gen" to 15,
-        ),
-    ),
-)
+            "image_gen" to 15)))
 
 // ── 公开 API ──────────────────────────────────────────────────────────────
 

@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class SlackAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.SLACK) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.SLACK) {
     companion object { private const val TAG = "SlackAdapter" }
 
     override suspend fun connect(): Boolean {

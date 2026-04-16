@@ -270,6 +270,7 @@ dependencies {
 
     // ========== OpenClaw Android Module ==========
     implementation project(':openclaw-android')
+    implementation project(':hermes-android')
 
     // ========== Jetpack Compose (BOM 统一版本管理) ==========
     implementation platform('androidx.compose:compose-bom:2026.02.00')

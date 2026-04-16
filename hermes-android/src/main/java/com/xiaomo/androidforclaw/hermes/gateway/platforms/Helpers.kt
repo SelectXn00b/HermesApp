@@ -19,8 +19,7 @@ import java.util.regex.Pattern
  */
 class MessageDeduplicator(
     /** Maximum number of entries to keep. */
-    private val maxSize: Int = 1000,
-) {
+    private val maxSize: Int = 1000) {
     /** message_id → timestamp (epoch millis). */
     private val _seen: ConcurrentHashMap<String, Long> = ConcurrentHashMap()
 
@@ -70,8 +69,7 @@ class MessageDeduplicator(
  */
 class ThreadParticipationTracker(
     /** Maximum number of threads to track. */
-    private val maxSize: Int = 500,
-) {
+    private val maxSize: Int = 500) {
     /** thread_id → timestamp of last participation. */
     private val _threads: ConcurrentHashMap<String, Long> = ConcurrentHashMap()
 
@@ -132,7 +130,7 @@ fun stripMarkdown(text: String): String {
     // Remove blockquotes
     result = result.replace(Regex("^>\\s*", RegexOption.MULTILINE), "")
     // Remove horizontal rules
-    result = result.replace(Regex("^[-*_]{3,}\\s*$", RegexOption.MULTILINE), "")
+    result = result.replace(Regex("^[-]{3,}\\s*$", RegexOption.MULTILINE), "")
     // Collapse multiple newlines
     result = result.replace(Regex("\n{3,}"), "\n\n")
     return result.trim()
@@ -222,8 +220,7 @@ val EXT_TO_MIME: Map<String, String> = mapOf(
     ".xml" to "application/xml",
     ".zip" to "application/zip",
     ".gz" to "application/gzip",
-    ".tar" to "application/x-tar",
-)
+    ".tar" to "application/x-tar")
 
 /**
  * Get the MIME type for a file extension.

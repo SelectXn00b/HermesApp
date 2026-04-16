@@ -22,8 +22,7 @@ data class HolographicConfig(
     val maxMemories: Int = 10000,
     val embeddingDim: Int = 384,
     val similarityThreshold: Double = 0.7,
-    val autoIndex: Boolean = true,
-)
+    val autoIndex: Boolean = true)
 
 // ── 记忆条目（扩展 MemoryItem）────────────────────────────────────────────
 data class HolographicMemory(
@@ -38,8 +37,7 @@ data class HolographicMemory(
     val lastAccessed: Long? = null,
     val tags: List<String> = emptyList(),
     val importance: Double = 0.5,
-    val decay: Double = 0.0,
-)
+    val decay: Double = 0.0)
 
 /**
  * Holographic 记忆后端实现
@@ -59,8 +57,7 @@ class HolographicProvider : MemoryProvider {
             maxMemories = (config["maxMemories"] as? Int) ?: 10000,
             embeddingDim = (config["embeddingDim"] as? Int) ?: 384,
             similarityThreshold = (config["similarityThreshold"] as? Double) ?: 0.7,
-            autoIndex = (config["autoIndex"] as? Boolean) ?: true,
-        )
+            autoIndex = (config["autoIndex"] as? Boolean) ?: true)
 
         _storageDir = _config.storageDir ?: File(
             com.xiaomo.androidforclaw.hermes.getHermesHome(),
@@ -82,8 +79,7 @@ class HolographicProvider : MemoryProvider {
             content = content,
             metadata = metadata,
             createdAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis(),
-        )
+            updatedAt = System.currentTimeMillis())
 
         _memories[id] = memory
         saveMemories()
@@ -95,8 +91,7 @@ class HolographicProvider : MemoryProvider {
     override suspend fun retrieve(
         query: String,
         limit: Int,
-        threshold: Double,
-    ): List<MemoryItem> {
+        threshold: Double): List<MemoryItem> {
         checkInitialized()
 
         // 使用 TF-IDF + 余弦相似度进行检索
@@ -108,8 +103,7 @@ class HolographicProvider : MemoryProvider {
                 metadata = memory.metadata,
                 score = memory.score,
                 createdAt = memory.createdAt,
-                updatedAt = memory.updatedAt,
-            )
+                updatedAt = memory.updatedAt)
         }
     }
 
@@ -137,8 +131,7 @@ class HolographicProvider : MemoryProvider {
                     content = memory.content,
                     metadata = memory.metadata,
                     createdAt = memory.createdAt,
-                    updatedAt = memory.updatedAt,
-                )
+                    updatedAt = memory.updatedAt)
             }
     }
 
@@ -199,8 +192,7 @@ class HolographicProvider : MemoryProvider {
     private fun searchMemories(
         query: String,
         limit: Int,
-        threshold: Double,
-    ): List<HolographicMemory> {
+        threshold: Double): List<HolographicMemory> {
         val queryTokens = tokenize(query)
         if (queryTokens.isEmpty()) return emptyList()
 
@@ -242,8 +234,7 @@ class HolographicProvider : MemoryProvider {
      */
     private fun cosineSimilarity(
         vec1: Map<String, Int>,
-        vec2: Map<String, Int>,
-    ): Double {
+        vec2: Map<String, Int>): Double {
         val allKeys = (vec1.keys + vec2.keys).toSet()
         if (allKeys.isEmpty()) return 0.0
 
@@ -274,8 +265,7 @@ class HolographicProvider : MemoryProvider {
         val updated = existing.copy(
             content = content,
             metadata = metadata ?: existing.metadata,
-            updatedAt = System.currentTimeMillis(),
-        )
+            updatedAt = System.currentTimeMillis())
         _memories[memoryId] = updated
         saveMemories()
         return true
@@ -288,8 +278,7 @@ class HolographicProvider : MemoryProvider {
         query: String,
         tags: List<String>,
         limit: Int = 10,
-        threshold: Double = 0.7,
-    ): List<MemoryItem> {
+        threshold: Double = 0.7): List<MemoryItem> {
         checkInitialized()
 
         val filtered = _memories.values.filter { memory ->
@@ -315,8 +304,7 @@ class HolographicProvider : MemoryProvider {
                     metadata = memory.metadata,
                     score = memory.score,
                     createdAt = memory.createdAt,
-                    updatedAt = memory.updatedAt,
-                )
+                    updatedAt = memory.updatedAt)
             }
     }
 
@@ -327,7 +315,6 @@ class HolographicProvider : MemoryProvider {
         return mapOf(
             "totalMemories" to _memories.size,
             "storageDir" to (_storageDir?.absolutePath ?: "not set"),
-            "initialized" to _initialized,
-        )
+            "initialized" to _initialized)
     }
 }

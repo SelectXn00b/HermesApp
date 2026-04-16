@@ -54,8 +54,7 @@ class UsagePricing {
                 "o3-mini" to Pricing(1.1, 4.4),
                 "o3" to Pricing(2.0, 8.0),
                 "o4-mini" to Pricing(1.1, 4.4),
-                "gpt-4" to Pricing(30.0, 60.0),
-            ),
+                "gpt-4" to Pricing(30.0, 60.0)),
             "openrouter" to mapOf(
                 // OpenRouter 加价 5-10%，这里用上游价格近似
                 "anthropic/claude-opus-4-6" to Pricing(15.0, 75.0),
@@ -69,8 +68,7 @@ class UsagePricing {
                 "deepseek/deepseek-chat" to Pricing(0.14, 0.28),
                 "deepseek/deepseek-reasoner" to Pricing(0.55, 2.19),
                 // fallback
-                "" to Pricing(0.0, 0.0),
-            ),
+                "" to Pricing(0.0, 0.0)),
             "google" to mapOf(
                 "gemini-2.5-pro" to Pricing(1.25, 10.0),
                 "gemini-2.5-flash" to Pricing(0.15, 0.6),
@@ -86,12 +84,10 @@ class UsagePricing {
                 "grok-4" to Pricing(3.0, 15.0),
                 "grok-3" to Pricing(3.0, 15.0),
                 "grok-3-mini" to Pricing(0.3, 0.5),
-                "grok" to Pricing(3.0, 15.0),
-            ),
+                "grok" to Pricing(3.0, 15.0)),
             "minimax" to mapOf(
                 "minimax" to Pricing(0.0, 0.0),  // 免费额度
-            ),
-        )
+            ))
 
         // OpenRouter 模型到上游的映射
         private val OPENROUTER_UPSTREAM: Map<String, Pair<String, String>> = mapOf(
@@ -100,8 +96,7 @@ class UsagePricing {
             "anthropic/claude-sonnet-4" to ("anthropic" to "claude-sonnet-4"),
             "openai/gpt-4o" to ("openai" to "gpt-4o"),
             "openai/gpt-4o-mini" to ("openai" to "gpt-4o-mini"),
-            "google/gemini-2.5-pro" to ("google" to "gemini-2.5-pro"),
-        )
+            "google/gemini-2.5-pro" to ("google" to "gemini-2.5-pro"))
     }
 
     /**

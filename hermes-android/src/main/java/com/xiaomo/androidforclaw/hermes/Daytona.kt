@@ -1,68 +1,50 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
-class DaytonaEnvironment(
-    val image: String,
-    val cwd: String,
-    val timeout: Long,
-    val cpu: String,
-    val memory: String,
-    val disk: String,
-    val persistent_filesystem: String,
-    val task_id: String
-) {
-    private fun daytonaUpload(host_path: String, remote_path: String): Unit {
-    // Hermes: _daytona_upload
-        // Hermes: daytonaUpload
-    }
-    private fun daytonaBulkUpload(files: String): Unit {
-    // Hermes: _daytona_bulk_upload
-        // Hermes: daytonaBulkUpload
-    }
-    private fun daytonaDelete(remote_paths: String): Unit {
-    // Hermes: _daytona_delete
-        // Hermes: daytonaDelete
-    }
-    private fun ensureSandboxReady(): Unit {
-    // Hermes: _ensure_sandbox_ready
-        // Hermes: ensureSandboxReady
-    }
-    private fun beforeExecute(): Unit {
-    // Hermes: _before_execute
-        // Hermes: beforeExecute
-    }
-    private fun runBash(cmd_string: String): Unit {
-    // Hermes: _run_bash
-        // Hermes: runBash
-    }
-    fun cleanup(): Unit {
-    // Hermes: cleanup
-        // Hermes: cleanup
+/**
+ * Daytona - 对齐 ../hermes-agent/tools/environments/daytona.py
+ * Python 原始: 229 行
+ */
+class DaytonaEnvironment {
+    private fun _daytona_upload(host_path: Any?, remote_path: Any?): Any? {
+        // Python: _daytona_upload
+        return null
     }
 
-    /** Upload a single file via Daytona SDK. */
-    fun _daytonaUpload(hostPath: String, remotePath: String): Unit {
-        // TODO: implement _daytonaUpload
+    private fun _daytona_bulk_upload(files: Any?): Any? {
+        // Python: _daytona_bulk_upload
+        return null
     }
-    /** Upload many files in a single HTTP call via Daytona SDK. */
-    fun _daytonaBulkUpload(files: List<Pair<String, String>>): Unit {
-        // TODO: implement _daytonaBulkUpload
+
+    private fun _daytona_delete(remote_paths: Any?): Any? {
+        // Python: _daytona_delete
+        return null
     }
-    /** Batch-delete remote files via SDK exec. */
-    fun _daytonaDelete(remotePaths: List<String>): Unit {
-        // TODO: implement _daytonaDelete
+
+    private fun _ensure_sandbox_ready(): Any? {
+        // Python: _ensure_sandbox_ready
+        return null
     }
-    /** Restart sandbox if it was stopped (e.g., by a previous interrupt). */
-    fun _ensureSandboxReady(): Unit {
-        // TODO: implement _ensureSandboxReady
+
+    private fun _before_execute(): Any? {
+        // Python: _before_execute
+        return null
     }
-    /** Ensure sandbox is ready, then sync files via FileSyncManager. */
-    fun _beforeExecute(): Unit {
-        // TODO: implement _beforeExecute
+
+    fun cancel(): Any? {
+        // Python: cancel
+        return null
     }
-    /** Return a _ThreadedProcessHandle wrapping a blocking Daytona SDK call. */
-    fun _runBash(cmdString: String): Any? {
+
+    fun exec_fn(): Any? {
+        // Python: exec_fn
+        return null
+    }
+
+    fun cleanup(): Any? {
+        // Python: cleanup
         return null
     }
 

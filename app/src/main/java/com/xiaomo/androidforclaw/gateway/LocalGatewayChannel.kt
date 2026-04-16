@@ -1,5 +1,9 @@
 package com.xiaomo.androidforclaw.gateway
 
+// ⚠️ DEPRECATED (2026-04-16): This file is deprecated by 方案A.
+// Chat UI now connects directly to hermes GatewayRunner via AppChatAdapter.
+// This file will be removed once migration is complete.
+
 import com.xiaomo.base.IGatewayChannel
 
 /**

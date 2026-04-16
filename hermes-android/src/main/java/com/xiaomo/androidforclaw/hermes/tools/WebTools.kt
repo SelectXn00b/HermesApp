@@ -28,8 +28,7 @@ object WebTools {
         val url: String = "",
         val statusCode: Int = 0,
         val contentType: String? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Fetch a URL and return the response body.
@@ -61,8 +60,7 @@ object WebTools {
                 if (!response.isSuccessful) {
                     return gson.toJson(mapOf(
                         "error" to "HTTP $statusCode",
-                        "status_code" to statusCode,
-                    ))
+                        "status_code" to statusCode))
                 }
 
                 val content = when (extractMode) {
@@ -75,8 +73,7 @@ object WebTools {
                     "content" to content,
                     "url" to url,
                     "status_code" to statusCode,
-                    "content_type" to contentType,
-                ))
+                    "content_type" to contentType))
             }
         } catch (e: Exception) {
             gson.toJson(mapOf("error" to "Fetch failed: ${e.message}"))

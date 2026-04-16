@@ -33,8 +33,7 @@ data class ReadResult(
     val mimeType: String? = null,
     val dimensions: String? = null,
     val error: String? = null,
-    val similarFiles: List<String> = emptyList(),
-) {
+    val similarFiles: List<String> = emptyList()) {
     fun toMap(): Map<String, Any?> {
         return buildMap {
             if (content.isNotEmpty()) put("content", content)
@@ -57,8 +56,7 @@ data class WriteResult(
     val bytesWritten: Int = 0,
     val dirsCreated: Boolean = false,
     val error: String? = null,
-    val warning: String? = null,
-) {
+    val warning: String? = null) {
     fun toMap(): Map<String, Any?> = buildMap {
         if (bytesWritten > 0) put("bytes_written", bytesWritten)
         if (dirsCreated) put("dirs_created", true)
@@ -74,8 +72,7 @@ data class FilePatchResult(
     val filesCreated: List<String> = emptyList(),
     val filesDeleted: List<String> = emptyList(),
     val lint: Map<String, Any>? = null,
-    val error: String? = null,
-) {
+    val error: String? = null) {
     fun toMap(): Map<String, Any?> = buildMap {
         put("success", success)
         if (diff.isNotEmpty()) put("diff", diff)
@@ -91,8 +88,7 @@ data class SearchMatch(
     val path: String,
     val lineNumber: Int,
     val content: String,
-    val mtime: Double = 0.0,
-)
+    val mtime: Double = 0.0)
 
 data class SearchResult(
     val matches: List<SearchMatch> = emptyList(),
@@ -100,8 +96,7 @@ data class SearchResult(
     val counts: Map<String, Int> = emptyMap(),
     val totalCount: Int = 0,
     val truncated: Boolean = false,
-    val error: String? = null,
-) {
+    val error: String? = null) {
     fun toMap(): Map<String, Any?> = buildMap {
         put("total_count", totalCount)
         if (matches.isNotEmpty()) {
@@ -120,8 +115,7 @@ data class LintResult(
     val success: Boolean = true,
     val skipped: Boolean = false,
     val output: String = "",
-    val message: String = "",
-) {
+    val message: String = "") {
     fun toMap(): Map<String, Any> = if (skipped) {
         mapOf("status" to "skipped", "message" to message)
     } else {
@@ -152,8 +146,7 @@ object WritePathDenial {
             "$home/.pypirc",
             "/etc/sudoers",
             "/etc/passwd",
-            "/etc/shadow",
-        )
+            "/etc/shadow")
         paths.mapNotNull {
             try { File(it).canonicalPath } catch (_unused: Exception) { null }
         }.toSet()
@@ -169,8 +162,7 @@ object WritePathDenial {
             "/etc/systemd",
             "$home/.docker",
             "$home/.azure",
-            "$home/.config/gh",
-        )
+            "$home/.config/gh")
         prefixes.mapNotNull {
             try { File(it).canonicalPath + File.separator } catch (_unused: Exception) { null }
         }
@@ -195,14 +187,12 @@ object WritePathDenial {
  * Local filesystem implementation of FileOperations.
  */
 class LocalFileOperations(
-    private val workingDir: String = File(".").absolutePath,
-) : FileOperations() {
+    private val workingDir: String = File(".").absolutePath) : FileOperations() {
 
     private val IMAGE_EXTENSIONS = setOf(".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico")
     private val SUPPORTED_IMAGE_MIMES = mapOf(
         ".png" to "image/png", ".jpg" to "image/jpeg", ".jpeg" to "image/jpeg",
-        ".gif" to "image/gif", ".webp" to "image/webp", ".bmp" to "image/bmp", ".ico" to "image/x-icon",
-    )
+        ".gif" to "image/gif", ".webp" to "image/webp", ".bmp" to "image/bmp", ".ico" to "image/x-icon")
 
     override fun readFile(path: String, offset: Int, limit: Int): ReadResult {
         val file = File(resolvePath(path))
@@ -235,8 +225,7 @@ class LocalFileOperations(
                 totalLines = totalLines,
                 fileSize = file.length().toInt(),
                 truncated = truncated,
-                hint = hint,
-            )
+                hint = hint)
         } catch (e: Exception) {
             ReadResult(error = "Failed to read file: ${e.message}")
         }
@@ -344,8 +333,7 @@ class LocalFileOperations(
 
     override fun search(
         pattern: String, path: String, target: String, fileGlob: String?,
-        limit: Int, offset: Int, outputMode: String, context: Int,
-    ): SearchResult {
+        limit: Int, offset: Int, outputMode: String, context: Int): SearchResult {
         val baseDir = File(resolvePath(path))
         if (!baseDir.exists()) return SearchResult(error = "Path not found: $path")
 
@@ -389,8 +377,7 @@ class LocalFileOperations(
                 files = files,
                 counts = counts,
                 totalCount = totalCount,
-                truncated = totalCount > limit + offset,
-            )
+                truncated = totalCount > limit + offset)
         } catch (e: Exception) {
             SearchResult(error = "Search failed: ${e.message}")
         }
@@ -531,64 +518,168 @@ class LocalFileOperations(
 
 
     /** Execute command via terminal backend. */
-    fun _exec(command: String, cwd: String? = null, timeout: Int? = null, stdinData: String? = null): Any? {
-        throw NotImplementedError("_exec")
+    fun _exec(command: String, cwd: String? = null, timeout: Int? = null, stdinData: String? = null): ExecuteResult {
+        val processBuilder = ProcessBuilder("sh", "-c", command)
+        if (cwd != null) processBuilder.directory(java.io.File(cwd))
+        processBuilder.redirectErrorStream(false)
+        return try {
+            val process = processBuilder.start()
+            if (stdinData != null) {
+                process.outputStream.use { it.write(stdinData.toByteArray(Charsets.UTF_8)) }
+            }
+            val completed = if (timeout != null && timeout > 0) {
+                process.waitFor(timeout.toLong(), java.util.concurrent.TimeUnit.SECONDS)
+            } else {
+                process.waitFor(); true
+            }
+            val stdout = process.inputStream.bufferedReader().readText()
+            val stderr = process.errorStream.bufferedReader().readText()
+            if (!completed) {
+                process.destroyForcibly()
+                ExecuteResult(stdout = stdout, exitCode = -1)
+            } else {
+                ExecuteResult(stdout = stdout + if (stderr.isNotEmpty()) "\n$stderr" else "", exitCode = process.exitValue())
+            }
+        } catch (e: Exception) {
+            ExecuteResult(stdout = "", exitCode = -1)
+        }
     }
+
     /** Check if a command exists in the environment (cached). */
     fun _hasCommand(cmd: String): Boolean {
-        return false
+        return hasCommand(cmd)
     }
+
     /** Check if a file is likely binary. */
     fun _isLikelyBinary(path: String, contentSample: String? = null): Boolean {
+        val ext = java.io.File(path).extension.lowercase()
+        val binaryExts = setOf("exe", "dll", "so", "dylib", "bin", "o", "a", "zip", "tar", "gz", "bz2", "xz", "7z", "rar", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx")
+        if (ext in binaryExts) return true
+        if (contentSample != null) {
+            val sample = contentSample.take(1000)
+            val nonPrintable = sample.count { it.code < 32 && it !in "\n\r\t" }
+            return nonPrintable.toDouble() / sample.length.coerceAtLeast(1) > 0.30
+        }
         return false
     }
+
     /** Check if file is an image we can return as base64. */
     fun _isImage(path: String): Boolean {
-        return false
+        return isImage(path)
     }
+
     /** Add line numbers to content in LINE_NUM|CONTENT format. */
     fun _addLineNumbers(content: String, startLine: Int = 1): String {
-        return ""
+        return addLineNumbers(content, startLine)
     }
+
     /** Expand shell-style paths like ~ and ~user to absolute paths. */
     fun _expandPath(path: String): String {
-        return ""
+        return expandPath(path)
     }
+
     /** Escape a string for safe use in shell commands. */
     fun _escapeShellArg(arg: String): String {
-        return ""
+        return escapeShellArg(arg)
     }
+
     /** Generate unified diff between old and new content. */
     fun _unifiedDiff(oldContent: String, newContent: String, filename: String): String {
-        return ""
+        return unifiedDiff(oldContent, newContent, filename)
     }
+
     /** Suggest similar files when the requested file is not found. */
     fun _suggestSimilarFiles(path: String): ReadResult {
-        throw NotImplementedError("_suggestSimilarFiles")
+        val dirPath = java.io.File(resolvePath(path)).parent ?: "."
+        val filename = java.io.File(path).name
+        val basenameNoExt = filename.substringBeforeLast('.', "")
+        val ext = "." + filename.substringAfterLast('.', "").lowercase()
+        val lowerName = filename.lowercase()
+
+        val dir = java.io.File(dirPath)
+        if (!dir.isDirectory) return ReadResult(error = "Directory not found: $dirPath")
+
+        val scored = mutableListOf<Pair<Int, String>>()
+        val files = dir.listFiles()?.take(50) ?: return ReadResult()
+        for (f in files) {
+            val lf = f.name.lowercase()
+            val score = when {
+                lf == lowerName -> 100
+                f.name.substringBeforeLast('.', "").lowercase() == basenameNoExt.lowercase() -> 90
+                lf.startsWith(lowerName) || lowerName.startsWith(lf) -> 70
+                lowerName in lf -> 60
+                lf in lowerName && lf.length > 2 -> 40
+                ext.isNotEmpty() && ".$lf".substringAfterLast('.', "") == ext.substring(1) -> 30
+                else -> 0
+            }
+            if (score > 0) scored.add(score to f.absolutePath)
+        }
+
+        scored.sortByDescending { it.first }
+        val similar = scored.take(5).map { it.second }
+        return ReadResult(similarFiles = similar)
     }
+
     /** Run syntax check on a file after editing. */
     fun _checkLint(path: String): LintResult {
-        throw NotImplementedError("_checkLint")
+        val ext = java.io.File(path).extension.lowercase()
+        val linters = mapOf(
+            "py" to "python3 -m py_compile {file}",
+            "js" to "node --check {file}",
+            "ts" to "tsc --noEmit {file}",
+            "json" to "python3 -m json.tool {file}",
+            "kt" to "kotlinc {file}",
+            "java" to "javac {file}")
+        val linterCmd = linters[ext]
+            ?: return LintResult(skipped = true, message = "No linter for .$ext files")
+        val baseCmd = linterCmd.split(" ").first()
+        if (!_hasCommand(baseCmd)) {
+            return LintResult(skipped = true, message = "$baseCmd not available")
+        }
+        val cmd = linterCmd.replace("{file}", escapeShellArg(path))
+        val result = _exec(cmd, timeout = 30)
+        return LintResult(
+            success = result.exitCode == 0,
+            output = result.stdout.trim().ifEmpty { "" }
+        )
     }
+
     /** Search for files by name pattern (glob-like). */
     fun _searchFiles(pattern: String, path: String, limit: Int, offset: Int): SearchResult {
-        throw NotImplementedError("_searchFiles")
+        val baseDir = java.io.File(resolvePath(path))
+        if (!baseDir.exists()) return SearchResult(error = "Path not found: $path")
+        val searchPattern = if (!pattern.startsWith("**/") && '/' !in pattern) pattern else pattern.substringAfterLast('/')
+        val regex = globToRegex(searchPattern)
+        val allFiles = (if (baseDir.isFile) listOf(baseDir) else baseDir.walkTopDown().filter { it.isFile }.take(1000).toList())
+            .filter { regex.matches(it.name) }
+        val page = allFiles.drop(offset).take(limit).map { it.path }
+        return SearchResult(files = page, totalCount = allFiles.size, truncated = allFiles.size > offset + limit)
     }
+
     /** Search for files by name using ripgrep's --files mode. */
     fun _searchFilesRg(pattern: String, path: String, limit: Int, offset: Int): SearchResult {
-        throw NotImplementedError("_searchFilesRg")
+        return _searchFiles(pattern, path, limit + offset, 0).let {
+            SearchResult(files = it.files.drop(offset).take(limit), totalCount = it.totalCount, truncated = it.truncated)
+        }
     }
+
     /** Search for content inside files (grep-like). */
     fun _searchContent(pattern: String, path: String, fileGlob: String?, limit: Int, offset: Int, outputMode: String, context: Int): SearchResult {
-        throw NotImplementedError("_searchContent")
+        return search(pattern, path, "content", fileGlob, limit, offset, outputMode, context)
     }
+
     /** Search using ripgrep. */
     fun _searchWithRg(pattern: String, path: String, fileGlob: String?, limit: Int, offset: Int, outputMode: String, context: Int): SearchResult {
-        throw NotImplementedError("_searchWithRg")
+        return search(pattern, path, "content", fileGlob, limit, offset, outputMode, context)
     }
+
     /** Fallback search using grep. */
     fun _searchWithGrep(pattern: String, path: String, fileGlob: String?, limit: Int, offset: Int, outputMode: String, context: Int): SearchResult {
-        throw NotImplementedError("_searchWithGrep")
+        return search(pattern, path, "content", fileGlob, limit, offset, outputMode, context)
     }
+
+    data class ExecuteResult(
+        val stdout: String = "",
+        val exitCode: Int = 0)
 
 }

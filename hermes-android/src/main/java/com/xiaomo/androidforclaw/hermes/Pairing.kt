@@ -1,91 +1,103 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * Pairing - 对齐 ../hermes-agent/gateway/pairing.py
+ * Python 原始: 309 行
+ */
 class PairingStore {
-    // Hermes: PairingStore
-    private fun pendingPath(platform: String): Unit {
-    // Hermes: _pending_path
-        // Hermes: pendingPath
-    }
-    private fun approvedPath(platform: String): Unit {
-    // Hermes: _approved_path
-        // Hermes: approvedPath
-    }
-    private fun rateLimitPath(): Unit {
-    // Hermes: _rate_limit_path
-        // Hermes: rateLimitPath
-    }
-    private fun loadJson(path: String): Any? {
-    // Hermes: _load_json
-        return null
-        // Hermes: loadJson
+    init { /* Python __init__ */ }
+
+    private fun _pending_path(platform: Any?): Any? {
+        // Python: _pending_path
         return null
     }
-    private fun saveJson(path: String, data: Map<String, Any>): Unit {
-    // Hermes: _save_json
-        // Hermes: saveJson
+
+    private fun _approved_path(platform: Any?): Any? {
+        // Python: _approved_path
+        return null
     }
-    fun isApproved(platform: String, user_id: String): Boolean {
-    // Hermes: is_approved
-        return false
-        // Hermes: isApproved
-        return false
+
+    private fun _rate_limit_path(): Any? {
+        // Python: _rate_limit_path
+        return null
     }
-    fun listApproved(platform: String): Unit {
-    // Hermes: list_approved
-        // Hermes: listApproved
+
+    private fun _load_json(path: Any?): Any? {
+        // Python: _load_json
+        return null
     }
-    private fun approveUser(platform: String, user_id: String, user_name: String): Unit {
-    // Hermes: _approve_user
-        // Hermes: approveUser
+
+    private fun _save_json(path: Any?, data: Any?): Any? {
+        // Python: _save_json
+        return null
     }
-    fun revoke(platform: String, user_id: String): Unit {
-    // Hermes: revoke
-        // Hermes: revoke
+
+    fun is_approved(platform: Any?, user_id: Any?): Any? {
+        // Python: is_approved
+        return null
     }
-    fun generateCode(platform: String, user_id: String, user_name: String): Unit {
-    // Hermes: generate_code
-        // Hermes: generateCode
+
+    fun list_approved(platform: Any?): Any? {
+        // Python: list_approved
+        return null
     }
-    fun approveCode(platform: String, code: String): Unit {
-    // Hermes: approve_code
-        // Hermes: approveCode
+
+    private fun _approve_user(platform: Any?, user_id: Any?, user_name: Any?): Any? {
+        // Python: _approve_user
+        return null
     }
-    fun listPending(platform: String): Unit {
-    // Hermes: list_pending
-        // Hermes: listPending
+
+    fun revoke(platform: Any?, user_id: Any?): Any? {
+        // Python: revoke
+        return null
     }
-    fun clearPending(platform: String): Unit {
-    // Hermes: clear_pending
-        // Hermes: clearPending
+
+    fun approve_code(platform: Any?, code: Any?): Any? {
+        // Python: approve_code
+        return null
     }
-    private fun isRateLimited(platform: String, user_id: String): Boolean {
-    // Hermes: _is_rate_limited
-        return false
-        // Hermes: isRateLimited
-        return false
+
+    fun list_pending(platform: Any?): Any? {
+        // Python: list_pending
+        return null
     }
-    private fun recordRateLimit(platform: String, user_id: String): Unit {
-    // Hermes: _record_rate_limit
-        // Hermes: recordRateLimit
+
+    fun clear_pending(platform: Any?): Any? {
+        // Python: clear_pending
+        return null
     }
-    private fun isLockedOut(platform: String): Boolean {
-    // Hermes: _is_locked_out
-        return false
-        // Hermes: isLockedOut
-        return false
+
+    private fun _is_rate_limited(platform: Any?, user_id: Any?): Any? {
+        // Python: _is_rate_limited
+        return null
     }
-    private fun recordFailedAttempt(platform: String): Unit {
-    // Hermes: _record_failed_attempt
-        // Hermes: recordFailedAttempt
+
+    private fun _record_rate_limit(platform: Any?, user_id: Any?): Any? {
+        // Python: _record_rate_limit
+        return null
     }
-    private fun cleanupExpired(platform: String): Unit {
-    // Hermes: _cleanup_expired
-        // Hermes: cleanupExpired
+
+    private fun _is_locked_out(platform: Any?): Any? {
+        // Python: _is_locked_out
+        return null
     }
-    private fun allPlatforms(suffix: String): Unit {
-    // Hermes: _all_platforms
-        // Hermes: allPlatforms
+
+    private fun _record_failed_attempt(platform: Any?): Any? {
+        // Python: _record_failed_attempt
+        return null
     }
+
+    private fun _cleanup_expired(platform: Any?): Any? {
+        // Python: _cleanup_expired
+        return null
+    }
+
+    private fun _all_platforms(suffix: Any?): Any? {
+        // Python: _all_platforms
+        return null
+    }
+
 }

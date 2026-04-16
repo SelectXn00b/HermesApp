@@ -14,7 +14,10 @@ open class NodeApp : Application() {
   fun ensureRuntime(): NodeRuntime {
     runtimeInstance?.let { return it }
     return synchronized(this) {
-      runtimeInstance ?: NodeRuntime(this, prefs, provideLocalChatChannel()).also { runtimeInstance = it }
+      runtimeInstance ?: NodeRuntime(this, prefs).also {
+        provideLocalChatChannel()?.let { ch -> it.setLocalChatChannel(ch) }
+        runtimeInstance = it
+      }
     }
   }
 

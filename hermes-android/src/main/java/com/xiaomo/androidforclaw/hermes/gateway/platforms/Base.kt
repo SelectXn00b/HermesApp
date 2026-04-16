@@ -42,22 +42,19 @@ val MIME_TYPE_EXTENSIONS: Map<String, String> = mapOf(
     "application/zip" to ".zip",
     "text/plain" to ".txt",
     "text/csv" to ".csv",
-    "application/json" to ".json",
-)
+    "application/json" to ".json")
 
 /**
  * Supported image types for platform adapters.
  */
 val SUPPORTED_IMAGE_TYPES: Set<String> = setOf(
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp",
-)
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp")
 
 /**
  * Supported audio types for platform adapters.
  */
 val SUPPORTED_AUDIO_TYPES: Set<String> = setOf(
-    "audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4", "audio/aac",
-)
+    "audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4", "audio/aac")
 
 /**
  * Supported document types for platform adapters.
@@ -74,15 +71,13 @@ val SUPPORTED_DOCUMENT_TYPES: Set<String> = setOf(
     "text/csv",
     "application/json",
     "application/xml",
-    "application/zip",
-)
+    "application/zip")
 
 /**
  * Supported video types for platform adapters.
  */
 val SUPPORTED_VIDEO_TYPES: Set<String> = setOf(
-    "video/mp4", "video/quicktime", "video/x-msvideo", "video/x-matroska", "video/webm",
-)
+    "video/mp4", "video/quicktime", "video/x-msvideo", "video/x-matroska", "video/webm")
 
 /**
  * Message types that can be received from a platform.
@@ -141,8 +136,7 @@ data class MessageSource(
     /** Whether the user is an admin in the chat. */
     val isAdmin: Boolean = false,
     /** Arbitrary metadata. */
-    val metadata: JSONObject = JSONObject(),
-) {
+    val metadata: JSONObject = JSONObject()) {
     /** Build a session key from this source. */
     val sessionKey: String get() = buildSessionKey(platform, chatId, userId)
 
@@ -168,8 +162,7 @@ data class MessageSource(
             userName = json.optString("user_name", ""),
             threadId = json.optString("thread_id", null),
             isAdmin = json.optBoolean("is_admin", false),
-            metadata = json.optJSONObject("metadata") ?: JSONObject(),
-        )
+            metadata = json.optJSONObject("metadata") ?: JSONObject())
     }
 }
 
@@ -186,8 +179,7 @@ data class ProcessingOutcome(
     /** Whether to suppress sending (e.g. for silent commands). */
     val suppressSend: Boolean = false,
     /** Error message (if success == false). */
-    val error: String? = null,
-)
+    val error: String? = null)
 
 /**
  * Result of a send operation.
@@ -200,8 +192,7 @@ data class SendResult(
     /** Error message (if success == false). */
     val error: String? = null,
     /** Raw response from the platform. */
-    val rawResponse: Any? = null,
-)
+    val rawResponse: Any? = null)
 
 /**
  * Incoming message event from a platform.
@@ -250,8 +241,7 @@ data class MessageEvent(
     /** Whether this is a deleted message. */
     val isDeleted: Boolean = false,
     /** Arbitrary metadata. */
-    val metadata: JSONObject = JSONObject(),
-) {
+    val metadata: JSONObject = JSONObject()) {
     /** Build a session key from this event. */
     val sessionKey: String get() = source.sessionKey
 
@@ -320,8 +310,7 @@ data class MessageEvent(
             reactionEmoji = json.optString("reaction_emoji", null),
             reactionAdded = json.optBoolean("reaction_added", true),
             isEdited = json.optBoolean("is_edited", false),
-            isDeleted = json.optBoolean("is_deleted", false),
-        )
+            isDeleted = json.optBoolean("is_deleted", false))
     }
 }
 
@@ -340,8 +329,7 @@ abstract class BasePlatformAdapter(
     /** Platform configuration. */
     val config: PlatformConfig,
     /** Platform name. */
-    val platform: Platform,
-) {
+    val platform: Platform) {
     companion object {
         private const val TAG = "BasePlatformAdapter"
     }
@@ -413,8 +401,7 @@ abstract class BasePlatformAdapter(
         chatId: String,
         content: String,
         replyTo: String? = null,
-        metadata: JSONObject? = null,
-    ): SendResult
+        metadata: JSONObject? = null): SendResult
 
     /**
      * Send an image message.
@@ -429,8 +416,7 @@ abstract class BasePlatformAdapter(
         chatId: String,
         imageUrl: String,
         caption: String? = null,
-        replyTo: String? = null,
-    ): SendResult = SendResult(success = false, error = "Not supported")
+        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Send an audio/voice message.
@@ -445,8 +431,7 @@ abstract class BasePlatformAdapter(
         chatId: String,
         audioUrl: String,
         caption: String? = null,
-        replyTo: String? = null,
-    ): SendResult = SendResult(success = false, error = "Not supported")
+        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Send a document/file message.
@@ -463,8 +448,7 @@ abstract class BasePlatformAdapter(
         fileUrl: String,
         fileName: String? = null,
         caption: String? = null,
-        replyTo: String? = null,
-    ): SendResult = SendResult(success = false, error = "Not supported")
+        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Send a typing indicator.
@@ -483,8 +467,7 @@ abstract class BasePlatformAdapter(
     suspend fun sendReaction(
         chatId: String,
         messageId: String,
-        emoji: String,
-    ): SendResult = SendResult(success = false, error = "Not supported")
+        emoji: String): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Edit a previously sent message.
@@ -496,8 +479,7 @@ abstract class BasePlatformAdapter(
     suspend fun editMessage(
         chatId: String,
         messageId: String,
-        newText: String,
-    ): SendResult = SendResult(success = false, error = "Not supported")
+        newText: String): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Delete a message.
@@ -507,8 +489,7 @@ abstract class BasePlatformAdapter(
      */
     suspend fun deleteMessage(
         chatId: String,
-        messageId: String,
-    ): SendResult = SendResult(success = false, error = "Not supported")
+        messageId: String): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Get info about a chat/channel.
@@ -548,8 +529,7 @@ abstract class BasePlatformAdapter(
         userId: String = "",
         userName: String = "",
         threadId: String? = null,
-        isAdmin: Boolean = false,
-    ): MessageSource = MessageSource(
+        isAdmin: Boolean = false): MessageSource = MessageSource(
         platform = name,
         chatId = chatId,
         chatName = chatName,
@@ -557,8 +537,7 @@ abstract class BasePlatformAdapter(
         userId = userId,
         userName = userName,
         threadId = threadId,
-        isAdmin = isAdmin,
-    )
+        isAdmin = isAdmin)
 
     /**
      * Check if a user is allowed to DM the bot.
@@ -780,8 +759,7 @@ fun cleanupDocumentCache(context: Context, maxAgeHours: Int = 24): Int {
 fun cacheImageFromBytes(
     context: Context,
     data: ByteArray,
-    extension: String = ".jpg",
-): String {
+    extension: String = ".jpg"): String {
     val dir = File(context.cacheDir, "media/images")
     dir.mkdirs()
     val file = File(dir, "${System.currentTimeMillis()}_${data.hashCode()}$extension")
@@ -795,8 +773,7 @@ fun cacheImageFromBytes(
 fun cacheAudioFromBytes(
     context: Context,
     data: ByteArray,
-    extension: String = ".mp3",
-): String {
+    extension: String = ".mp3"): String {
     val dir = File(context.cacheDir, "media/audio")
     dir.mkdirs()
     val file = File(dir, "${System.currentTimeMillis()}_${data.hashCode()}$extension")
@@ -810,8 +787,7 @@ fun cacheAudioFromBytes(
 fun cacheDocumentFromBytes(
     context: Context,
     data: ByteArray,
-    filename: String = "document",
-): String {
+    filename: String = "document"): String {
     val dir = File(context.cacheDir, "media/documents")
     dir.mkdirs()
     val file = File(dir, "${System.currentTimeMillis()}_$filename")
@@ -897,8 +873,7 @@ suspend fun BasePlatformAdapter.sendWithRetry(
     replyTo: String? = null,
     metadata: Map<String, Any?> = emptyMap(),
     maxRetries: Int = 3,
-    baseDelayMs: Long = 1000,
-): SendResult {
+    baseDelayMs: Long = 1000): SendResult {
     var lastError: Exception? = null
     for (attempt in 0 until maxRetries) {
         try {
@@ -947,8 +922,7 @@ fun mergeCaption(existingText: String, newText: String): String {
 fun truncateMessage(
     content: String,
     maxLength: Int = 4096,
-    lenFn: (String) -> Int = { it.length },
-): List<String> {
+    lenFn: (String) -> Int = { it.length }): List<String> {
     if (lenFn(content) <= maxLength) return listOf(content)
     val chunks = mutableListOf<String>()
     var remaining = content
@@ -1069,125 +1043,145 @@ fun formatDuration(seconds: Long): String {
 }
 
 /**
+ * Continuously send typing indicator until cancelled (2s refresh).
+ * Paused chats are skipped via the adapter's [BasePlatformAdapter.pauseTypingForChat].
+ */
+suspend fun BasePlatformAdapter._keepTyping(
+    chatId: String,
+    intervalMs: Long = 2000L,
+    metadata: JSONObject? = null) {
+    try {
+        while (kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]?.isActive == true) {
+            try { sendTyping(chatId, metadata) } catch (_: Exception) {}
+            kotlinx.coroutines.delay(intervalMs)
+        }
+    } catch (_: kotlinx.coroutines.CancellationException) {
+        // Normal — parent cancelled the job
+    } finally {
+        try { stopTyping(chatId) } catch (_: Exception) {}
+    }
+}
+
+/**
+ * Run a lifecycle hook without letting failures break message flow.
+ *
+ * Catches all exceptions so a failed hook never propagates up to
+ * the message-processing pipeline.
+ */
+suspend fun BasePlatformAdapter._runProcessingHook(hookName: String) {
+    try {
+        // Subclasses override lifecycle hooks; base does nothing.
+    } catch (e: Exception) {
+        Log.w("BasePlatformAdapter", "[$name] $hookName hook failed: ${e.message}")
+    }
+}
+
+/**
+ * Background task that actually processes the message — ported from
+ * _process_message_background in gateway/platforms/base.py.
+ *
+ * Sends a continuous typing indicator, calls the message handler, sends
+ * the text response with retry, and sends any local files / media detected
+ * in the response.  Catches all errors and reports them to the user.
+ */
+suspend fun BasePlatformAdapter._processMessageBackground(
+    event: MessageEvent,
+    sessionKey: String) {
+    // Use structured concurrency — typing job is a child of this scope
+    kotlinx.coroutines.coroutineScope {
+        val typingJob = launch { _keepTyping(event.source.chatId) }
+
+        try {
+        // ── Call the message handler ──
+        val handler = messageHandler
+        if (handler == null) {
+            Log.w("BasePlatformAdapter", "[$name] No handler for session=$sessionKey")
+            return@coroutineScope
+        }
+        handler(event)
+
+        // ── Send text response ──
+        val responseText = event.text
+        if (responseText.isNotEmpty()) {
+            sendWithRetry(
+                chatId = event.source.chatId,
+                content = responseText,
+                replyTo = event.message_id.ifEmpty { null })
+        }
+
+        // ── Extract & send images from response ──
+        val imageUrls = extractImages(responseText)
+        for (imgUrl in imageUrls) {
+            try {
+                if (isAnimationUrl(imgUrl)) {
+                    sendAnimation(event.source.chatId, imgUrl)
+                } else {
+                    sendImage(event.source.chatId, imgUrl)
+                }
+            } catch (e: Exception) {
+                Log.w("BasePlatformAdapter", "[$name] Image send failed: ${e.message}")
+            }
+        }
+
+        // ── Extract & send media files ──
+        val (cleanText, mediaPaths, isVoice) = extractMedia(responseText)
+        val audioExts = setOf(".ogg", ".opus", ".mp3", ".wav", ".m4a", ".aac")
+        val videoExts = setOf(".mp4", ".mov", ".avi", ".mkv", ".webm")
+        val imageExts = setOf(".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp")
+
+        for (mediaPath in mediaPaths) {
+            try {
+                val ext = ".${mediaPath.substringAfterLast('.', "").lowercase()}"
+                when {
+                    isVoice || ext in audioExts -> sendVoice(event.source.chatId, mediaPath)
+                    ext in videoExts -> sendVideo(event.source.chatId, mediaPath)
+                    ext in imageExts -> sendImageFile(event.source.chatId, mediaPath)
+                    else -> sendDocument(event.source.chatId, mediaPath)
+                }
+            } catch (e: Exception) {
+                Log.w("BasePlatformAdapter", "[$name] Media send failed: ${e.message}")
+            }
+        }
+
+        // ── Extract & send bare local file paths ──
+        val localFiles = extractLocalFiles(responseText)
+        for (filePath in localFiles) {
+            try {
+                val ext = ".${filePath.substringAfterLast('.', "").lowercase()}"
+                when {
+                    ext in imageExts -> sendImageFile(event.source.chatId, filePath)
+                    ext in videoExts -> sendVideo(event.source.chatId, filePath)
+                    else -> sendDocument(event.source.chatId, filePath)
+                }
+            } catch (e: Exception) {
+                Log.w("BasePlatformAdapter", "[$name] File send failed: ${e.message}")
+            }
+        }
+
+    } catch (e: Exception) {
+        Log.e("BasePlatformAdapter", "[$name] Processing error: ${e.message}", e)
+        try {
+            send(
+                chatId = event.source.chatId,
+                content = "Error: ${e.javaClass.simpleName} — ${e.message ?: "unknown"}\nUse /reset to start fresh.")
+        } catch (_: Exception) { /* best-effort error delivery */ }
+    } finally {
+        typingJob.cancel()
+        try { typingJob.join() } catch (_: Exception) {}
+    }
+    } // coroutineScope
+}
+
+/**
  * Lifecycle hook: called when background processing starts.
  */
 fun onProcessingStart(sessionKey: String) {
-    // Override in subclasses
+    Log.d("BasePlatformAdapter", "Processing started: session=$sessionKey")
 }
 
 /**
  * Lifecycle hook: called when background processing completes.
  */
 fun onProcessingComplete(sessionKey: String, outcome: String) {
-    // Override in subclasses
-
-    fun _markConnected(): Unit {
-        // TODO: implement _markConnected
-    }
-    fun _markDisconnected(): Unit {
-        // TODO: implement _markDisconnected
-    }
-    fun _setFatalError(code: String, message: String): Unit {
-        // TODO: implement _setFatalError
-    }
-    suspend fun _notifyFatalError(): Unit {
-        // TODO: implement _notifyFatalError
-    }
-    /** Acquire a scoped lock for this adapter. Returns True on success. */
-    fun _acquirePlatformLock(scope: String, identity: String, resourceDesc: String): Boolean {
-        return false
-    }
-    /** Release the scoped lock acquired by _acquire_platform_lock. */
-    fun _releasePlatformLock(): Unit {
-        // TODO: implement _releasePlatformLock
-    }
-    /** Human-readable name for this adapter. */
-    fun name(): String {
-        return ""
-    }
-    /** Check if adapter is currently connected. */
-    fun isConnected(): Boolean {
-        return false
-    }
-    /** Set the handler for incoming messages. */
-    fun setMessageHandler(handler: Any?): Unit {
-        // TODO: implement setMessageHandler
-    }
-    /** Set an optional handler for messages arriving during active sessions. */
-    fun setBusySessionHandler(handler: (Any?) -> Any??): Unit {
-        // TODO: implement setBusySessionHandler
-    }
-    /** Set the session store for checking active sessions. */
-    fun setSessionStore(sessionStore: Any): Unit {
-        // TODO: implement setSessionStore
-    }
-    /** Stop a persistent typing indicator (if the platform uses one). */
-    suspend fun stopTyping(chatId: String): Unit {
-        // TODO: implement stopTyping
-    }
-    /** Send an animated GIF natively via the platform API. */
-    suspend fun sendAnimation(chatId: String, animationUrl: String, caption: String? = null, replyTo: String? = null, metadata: Map<String, Any>? = null): SendResult {
-        throw NotImplementedError("sendAnimation")
-    }
-    /** Check if a URL points to an animated GIF (vs a static image). */
-    fun _isAnimationUrl(url: String): Boolean {
-        return false
-    }
-    /** Send an audio file as a native voice message via the platform API. */
-    suspend fun sendVoice(chatId: String, audioPath: String, caption: String? = null, replyTo: String? = null, kwargs: Any): SendResult {
-        throw NotImplementedError("sendVoice")
-    }
-    /** Play auto-TTS audio for voice replies. */
-    suspend fun playTts(chatId: String, audioPath: String, kwargs: Any): SendResult {
-        throw NotImplementedError("playTts")
-    }
-    /** Send a video natively via the platform API. */
-    suspend fun sendVideo(chatId: String, videoPath: String, caption: String? = null, replyTo: String? = null, kwargs: Any): SendResult {
-        throw NotImplementedError("sendVideo")
-    }
-    /** Send a local image file natively via the platform API. */
-    suspend fun sendImageFile(chatId: String, imagePath: String, caption: String? = null, replyTo: String? = null, kwargs: Any): SendResult {
-        throw NotImplementedError("sendImageFile")
-    }
-    /** Continuously send typing indicator until cancelled. */
-    suspend fun _keepTyping(chatId: String, interval: Double, metadata: Any? = null): Unit {
-        // TODO: implement _keepTyping
-    }
-    /** Pause typing indicator for a chat (e.g. during approval waits). */
-    fun pauseTypingForChat(chatId: String): Unit {
-        // TODO: implement pauseTypingForChat
-    }
-    /** Resume typing indicator for a chat after approval resolves. */
-    fun resumeTypingForChat(chatId: String): Unit {
-        // TODO: implement resumeTypingForChat
-    }
-    /** Run a lifecycle hook without letting failures break message flow. */
-    suspend fun _runProcessingHook(hookName: String, args: Any, kwargs: Any): Unit {
-        // TODO: implement _runProcessingHook
-    }
-    /** Return True if the error string looks like a transient network failure. */
-    fun _isRetryableError(error: String?): Boolean {
-        return false
-    }
-    /** Return True if the error string indicates a read/write timeout. */
-    fun _isTimeoutError(error: String?): Boolean {
-        return false
-    }
-    /** Send a message with automatic retry for transient network errors. */
-    suspend fun _sendWithRetry(chatId: String, content: String, replyTo: String? = null, metadata: Any? = null, maxRetries: Int = 2, baseDelay: Double): Any? {
-        return null
-    }
-    /** Merge a new caption into existing text, avoiding duplicates. */
-    fun _mergeCaption(existingText: String?, newText: String): String {
-        return ""
-    }
-    /** Return a random delay in seconds for human-like response pacing. */
-    fun _getHumanDelay(): Double {
-        return 0.0
-    }
-    /** Background task that actually processes the message. */
-    suspend fun _processMessageBackground(event: MessageEvent, sessionKey: String): Unit {
-        // TODO: implement _processMessageBackground
-    }
-
+    Log.d("BasePlatformAdapter", "Processing complete: session=$sessionKey outcome=$outcome")
 }

@@ -23,8 +23,7 @@ object HomeassistantTool {
     data class HaResult(
         val success: Boolean = false,
         val data: Any? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private var baseUrl: String? = null
     private var apiToken: String? = null

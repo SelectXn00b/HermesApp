@@ -49,9 +49,21 @@ class NodeRuntime(
   /**
    * 本地进程内 channel（可选）。提供时 ChatController 直接使用，绕过 WebSocket。
    * 不影响 nodeSession（设备命令仍可通过远程 gateway 调用）。
+   * 支持后期注入（Hermes Gateway 启动后设置）。
    */
-  private val localChatChannel: com.xiaomo.base.IGatewayChannel? = null,
+  private var localChatChannel: com.xiaomo.base.IGatewayChannel? = null,
 ) {
+
+  /** 后期注入 localChatChannel（用于 Hermes 模式延迟启动）。 */
+  fun setLocalChatChannel(channel: com.xiaomo.base.IGatewayChannel) {
+    localChatChannel = channel
+    chat.setSession(channel)
+    channel.setEventListener { event, payloadJson ->
+      handleGatewayEvent(event, payloadJson)
+    }
+    scope.launch { micCapture.onGatewayConnectionChanged(true) }
+  }
+
   data class GatewayConnectAuth(
     val token: String?,
     val bootstrapToken: String?,

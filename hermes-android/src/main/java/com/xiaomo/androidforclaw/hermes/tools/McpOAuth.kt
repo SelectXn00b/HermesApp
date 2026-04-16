@@ -19,8 +19,7 @@ object McpOAuth {
     data class TokenSet(
         val accessToken: String = "",
         val tokenType: String = "Bearer",
-        val expiresAt: String? = null,
-    )
+        val expiresAt: String? = null)
 
     /**
      * Load OAuth token for a given MCP server name.
@@ -56,31 +55,56 @@ object McpOAuth {
 
 
 
-    fun _tokensPath(): String {
-        return ""
+    /** Sanitize server name for use as a filename. */
+    private fun safeFileName(name: String): String {
+        return name.replace(Regex("[^\\w\\-]"), "_").trim('_').take(128).ifEmpty { "default" }
     }
-    fun _clientInfoPath(): String {
-        return ""
+
+    /** Get the base token storage directory. */
+    private fun getTokenDir(): File {
+        val home = System.getProperty("user.home", "/tmp")
+        return File(home, ".hermes/mcp-tokens")
+    }
+
+    fun _tokensPath(serverName: String): String {
+        return File(getTokenDir(), "${safeFileName(serverName)}.json").absolutePath
+    }
+    fun _clientInfoPath(serverName: String): String {
+        return File(getTokenDir(), "${safeFileName(serverName)}.client.json").absolutePath
     }
     suspend fun getTokens(): Any? {
         return null
     }
-    suspend fun setTokens(tokens: Any?): Unit {
-        // TODO: implement setTokens
-    }
-    suspend fun getClientInfo(): Any? {
-        return null
-    }
-    suspend fun setClientInfo(clientInfo: Any?): Unit {
-        // TODO: implement setClientInfo
+    suspend fun setTokens(serverName: String, tokens: Any?){ /* void */ }
+    suspend fun setClientInfo(serverName: String, clientInfo: Any?): Unit {
+        val path = File(_clientInfoPath(serverName))
+        path.parentFile?.mkdirs()
+        val jsonStr = when (clientInfo) {
+            is String -> clientInfo
+            is Map<*, *> -> gson.toJson(clientInfo)
+            else -> gson.toJson(clientInfo)
+        }
+        val tmp = File(path.parent, "${path.name}.tmp")
+        try {
+            tmp.writeText(jsonStr, Charsets.UTF_8)
+            tmp.renameTo(path)
+            Log.d(TAG, "OAuth client info saved for $serverName")
+        } catch (e: Exception) {
+            tmp.delete()
+            Log.e(TAG, "Failed to save client info: ${e.message}")
+        }
     }
     /** Delete all stored OAuth state for this server. */
-    fun remove(): Unit {
-        // TODO: implement remove
+    fun remove(serverName: String): Unit {
+        val tokensPath = File(_tokensPath(serverName))
+        val clientInfoPath = File(_clientInfoPath(serverName))
+        tokensPath.delete()
+        clientInfoPath.delete()
+        Log.d(TAG, "OAuth tokens removed for '$serverName'")
     }
     /** Return True if we have tokens on disk (may be expired). */
-    fun hasCachedTokens(): Boolean {
-        return false
+    fun hasCachedTokens(serverName: String): Boolean {
+        return File(_tokensPath(serverName)).exists()
     }
 
 }

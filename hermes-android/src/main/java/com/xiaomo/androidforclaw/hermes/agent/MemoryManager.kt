@@ -11,6 +11,14 @@ class MemoryManager(
     private val provider: MemoryProvider = InMemoryMemoryProvider()
 ) {
 
+    companion object {
+        private const val TAG = "MemoryManager"
+    }
+
+    private val _providers: MutableList<MemoryProvider> = mutableListOf()
+    private val _toolToProvider: MutableMap<String, MemoryProvider> = mutableMapOf()
+    private var _hasExternal: Boolean = false
+
     /**
      * 存储一条记忆
      *
@@ -101,75 +109,218 @@ class MemoryManager(
 
     /** Register a memory provider. */
     fun addProvider(provider: MemoryProvider): Unit {
-        // TODO: implement addProvider
+        val isBuiltin = (provider as? InMemoryMemoryProvider) != null || provider == this.provider
+
+        if (!isBuiltin) {
+            if (_hasExternal) {
+                val existing = _providers.firstOrNull { it !is InMemoryMemoryProvider && it != this.provider }
+                android.util.Log.w(TAG,
+                    "Rejected memory provider — external provider is already registered. " +
+                    "Only one external memory provider is allowed at a time."
+                )
+                return
+            }
+            _hasExternal = true
+        }
+
+        _providers.add(provider)
+
+        // Index tool names → provider for routing
+        try {
+            for (schema in provider.getToolSchemas()) {
+                val toolName = schema["name"] as? String ?: ""
+                if (toolName.isNotEmpty() && !_toolToProvider.containsKey(toolName)) {
+                    _toolToProvider[toolName] = provider
+                }
+            }
+        } catch (_: Exception) { }
+
+        android.util.Log.d(TAG, "Memory provider registered (${provider.getToolSchemas().size} tools)")
     }
+
     /** All registered providers in order. */
     fun providers(): List<MemoryProvider> {
-        return emptyList()
+        return _providers.toList()
     }
+
     /** Get a provider by name, or None if not registered. */
     fun getProvider(name: String): MemoryProvider? {
-        return null
+        return _providers.firstOrNull { it.toString().contains(name) }
     }
+
     /** Collect system prompt blocks from all providers. */
     fun buildSystemPrompt(): String {
-        return ""
+        val blocks = mutableListOf<String>()
+        for (p in _providers) {
+            try {
+                val block = p.systemPromptBlock()
+                if (block.isNotEmpty()) blocks.add(block)
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "system_prompt_block() failed: ${e.message}")
+            }
+        }
+        return blocks.joinToString("\n\n")
     }
+
     /** Collect prefetch context from all providers. */
     fun prefetchAll(query: String): String {
-        return ""
+        val parts = mutableListOf<String>()
+        for (p in _providers) {
+            try {
+                val result = p.prefetch(query)
+                if (result.isNotEmpty()) parts.add(result)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "prefetch failed (non-fatal): ${e.message}")
+            }
+        }
+        return parts.joinToString("\n\n")
     }
+
     /** Queue background prefetch on all providers for the next turn. */
     fun queuePrefetchAll(query: String): Unit {
-        // TODO: implement queuePrefetchAll
+        for (p in _providers) {
+            try {
+                p.queuePrefetch(query)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "queue_prefetch failed (non-fatal): ${e.message}")
+            }
+        }
     }
+
     /** Sync a completed turn to all providers. */
     fun syncAll(userContent: String, assistantContent: String): Unit {
-        // TODO: implement syncAll
+        for (p in _providers) {
+            try {
+                p.syncTurn(userContent, assistantContent)
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "sync_turn failed: ${e.message}")
+            }
+        }
     }
+
     /** Collect tool schemas from all providers. */
     fun getAllToolSchemas(): List<Map<String, Any>> {
-        return emptyList()
+        val schemas = mutableListOf<Map<String, Any>>()
+        val seen = mutableSetOf<String>()
+        for (p in _providers) {
+            try {
+                for (schema in p.getToolSchemas()) {
+                    val name = schema["name"] as? String ?: ""
+                    if (name.isNotEmpty() && name !in seen) {
+                        schemas.add(schema)
+                        seen.add(name)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "get_tool_schemas() failed: ${e.message}")
+            }
+        }
+        return schemas
     }
+
     /** Return set of all tool names across all providers. */
     fun getAllToolNames(): Any? {
-        return null
+        return _toolToProvider.keys.toSet()
     }
+
     /** Check if any provider handles this tool. */
     fun hasTool(toolName: String): Boolean {
-        return false
+        return _toolToProvider.containsKey(toolName)
     }
+
     /** Route a tool call to the correct provider. */
     fun handleToolCall(toolName: String, args: Map<String, Any>, kwargs: Any): String {
-        return ""
+        val p = _toolToProvider[toolName]
+        if (p == null) {
+            return "Error: No memory provider handles tool '$toolName'"
+        }
+        return try {
+            p.handleToolCall(toolName, args, kwargs)
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "handle_tool_call($toolName) failed: ${e.message}")
+            "Error: Memory tool '$toolName' failed: ${e.message}"
+        }
     }
+
     /** Notify all providers of a new turn. */
     fun onTurnStart(turnNumber: Int, message: String, kwargs: Any): Unit {
-        // TODO: implement onTurnStart
+        for (p in _providers) {
+            try {
+                p.onTurnStart(turnNumber, message, kwargs)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "on_turn_start failed: ${e.message}")
+            }
+        }
     }
+
     /** Notify all providers of session end. */
     fun onSessionEnd(messages: List<Map<String, Any>>): Unit {
-        // TODO: implement onSessionEnd
+        for (p in _providers) {
+            try {
+                p.onSessionEnd(messages)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "on_session_end failed: ${e.message}")
+            }
+        }
     }
+
     /** Notify all providers before context compression. */
     fun onPreCompress(messages: List<Map<String, Any>>): String {
-        return ""
+        val parts = mutableListOf<String>()
+        for (p in _providers) {
+            try {
+                val result = p.onPreCompress(messages)
+                if (result.isNotEmpty()) parts.add(result)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "on_pre_compress failed: ${e.message}")
+            }
+        }
+        return parts.joinToString("\n\n")
     }
+
     /** Notify external providers when the built-in memory tool writes. */
     fun onMemoryWrite(action: String, target: String, content: String): Unit {
-        // TODO: implement onMemoryWrite
+        for (p in _providers) {
+            if (p is InMemoryMemoryProvider) continue
+            try {
+                p.onMemoryWrite(action, target, content)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "on_memory_write failed: ${e.message}")
+            }
+        }
     }
+
     /** Notify all providers that a subagent completed. */
     fun onDelegation(task: String, result: String, kwargs: Any): Unit {
-        // TODO: implement onDelegation
+        for (p in _providers) {
+            try {
+                p.onDelegation(task, result, kwargs)
+            } catch (e: Exception) {
+                android.util.Log.d(TAG, "on_delegation failed: ${e.message}")
+            }
+        }
     }
+
     /** Shut down all providers (reverse order for clean teardown). */
     fun shutdownAll(): Unit {
-        // TODO: implement shutdownAll
+        for (p in _providers.reversed()) {
+            try {
+                p.shutdown()
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "shutdown failed: ${e.message}")
+            }
+        }
     }
+
     /** Initialize all providers. */
     fun initializeAll(sessionId: String, kwargs: Any): Unit {
-        // TODO: implement initializeAll
+        for (p in _providers) {
+            try {
+                p.initialize(sessionId, kwargs)
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "initialize failed: ${e.message}")
+            }
+        }
     }
 
 }

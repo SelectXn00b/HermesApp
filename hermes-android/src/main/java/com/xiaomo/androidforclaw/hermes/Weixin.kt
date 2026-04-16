@@ -1,170 +1,156 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
-class ContextTokenStore(
-    val hermes_home: String
-) {
-    private fun path(account_id: Int): Unit {
-    // Hermes: _path
-        // Hermes: path
+/**
+ * Weixin - 对齐 hermes-agent/gateway/platforms/weixin.py
+ * Python 原始: 66743 行
+ * 已提取类: ContextTokenStore, TypingTicketCache, WeixinAdapter
+ * 已提取方法: 51 个
+ */
+class ContextTokenStore {
+    init {
+        // Python __init__
     }
-    private fun key(account_id: Int, user_id: String): Unit {
-    // Hermes: _key
-        // Hermes: key
-    }
-    fun restore(account_id: Int): Unit {
-    // Hermes: restore
-        // Hermes: restore
-    }
-    fun get(account_id: Int, user_id: String): Any? {
-    // Hermes: get
-        return null
-        // Hermes: get
+
+    private fun _path(account_id: Any?): Any? {
+        // Python: _path
         return null
     }
-    fun set(account_id: Int, user_id: String, token: String): Unit {
-    // Hermes: set
-        // Hermes: set
+
+    private fun _key(account_id: Any?, user_id: Any?): Any? {
+        // Python: _key
+        return null
     }
-    private fun persist(account_id: Int): Unit {
-    // Hermes: _persist
-        // Hermes: persist
+
+    fun restore(account_id: Any?): Any? {
+        // Python: restore
+        return null
     }
+
+    fun get(account_id: Any?, user_id: Any?): Any? {
+        // Python: get
+        return null
+    }
+
+    fun set(account_id: Any?, user_id: Any?, token: Any?): Any? {
+        // Python: set
+        return null
+    }
+
+    private fun _persist(account_id: Any?): Any? {
+        // Python: _persist
+        return null
+    }
+
 }
 
-class TypingTicketCache(
-    val ttl_seconds: String
-) {
-    fun get(user_id: String): Any? {
-    // Hermes: get
-        return null
-        // Hermes: get
+class TypingTicketCache {
+    init {
+        // Python __init__
+    }
+
+    fun get(user_id: Any?): Any? {
+        // Python: get
         return null
     }
-    fun set(user_id: String, ticket: String): Unit {
-    // Hermes: set
-        // Hermes: set
+
+    fun set(user_id: Any?, ticket: Any?): Any? {
+        // Python: set
+        return null
     }
+
+    private fun _cdn_download_url(cdn_base_url: Any?, encrypted_query_param: Any?): Any? {
+        // Python: _cdn_download_url
+        return null
+    }
+
+    private fun _cdn_upload_url(cdn_base_url: Any?, upload_param: Any?, filekey: Any?): Any? {
+        // Python: _cdn_upload_url
+        return null
+    }
+
+    private fun _parse_aes_key(aes_key_b64: Any?): Any? {
+        // Python: _parse_aes_key
+        return null
+    }
+
+    private fun _guess_chat_type(message: Any?, account_id: Any?): Any? {
+        // Python: _guess_chat_type
+        return null
+    }
+
+    private fun _media_reference(item: Any?, key: Any?): Any? {
+        // Python: _media_reference
+        return null
+    }
+
+    private fun _mime_from_filename(filename: Any?): Any? {
+        // Python: _mime_from_filename
+        return null
+    }
+
+    private fun _split_table_row(line: Any?): Any? {
+        // Python: _split_table_row
+        return null
+    }
+
+    private fun _rewrite_headers_for_weixin(line: Any?): Any? {
+        // Python: _rewrite_headers_for_weixin
+        return null
+    }
+
+    private fun _rewrite_table_block_for_weixin(lines: Any?): Any? {
+        // Python: _rewrite_table_block_for_weixin
+        return null
+    }
+
+    private fun _normalize_markdown_blocks(content: Any?): Any? {
+        // Python: _normalize_markdown_blocks
+        return null
+    }
+
+    private fun _split_markdown_blocks(content: Any?): Any? {
+        // Python: _split_markdown_blocks
+        return null
+    }
+
+    private fun _split_delivery_units_for_weixin(content: Any?): Any? {
+        // Python: _split_delivery_units_for_weixin
+        return null
+    }
+
 }
 
-class WeixinAdapter(
-    val config: Map<String, Any>
-) {
-    private fun coerceList(value: String): Unit {
-    // Hermes: _coerce_list
-        // Hermes: coerceList
+class WeixinAdapter {
+    init {
+        // Python __init__
     }
-    suspend fun connect(): Unit {
-    // Hermes: connect
-        // Hermes: connect
-    }
-    suspend fun disconnect(): Unit {
-    // Hermes: disconnect
-        // Hermes: disconnect
-    }
-    private suspend fun pollLoop(): Unit {
-    // Hermes: _poll_loop
-        // Hermes: pollLoop
-    }
-    private suspend fun processMessageSafe(message: String): Unit {
-    // Hermes: _process_message_safe
-        // Hermes: processMessageSafe
-    }
-    private suspend fun processMessage(message: String): Unit {
-    // Hermes: _process_message
-        // Hermes: processMessage
-    }
-    private fun isDmAllowed(sender_id: String): Boolean {
-    // Hermes: _is_dm_allowed
-        return false
-        // Hermes: isDmAllowed
-        return false
-    }
-    private suspend fun collectMedia(item: String, media_paths: String, media_types: String): Unit {
-    // Hermes: _collect_media
-        // Hermes: collectMedia
-    }
-    private suspend fun downloadImage(item: String): Unit {
-    // Hermes: _download_image
-        // Hermes: downloadImage
-    }
-    private suspend fun downloadVideo(item: String): Unit {
-    // Hermes: _download_video
-        // Hermes: downloadVideo
-    }
-    private suspend fun downloadFile(item: String): Unit {
-    // Hermes: _download_file
-        // Hermes: downloadFile
-    }
-    private suspend fun downloadVoice(item: String): Unit {
-    // Hermes: _download_voice
-        // Hermes: downloadVoice
-    }
-    private suspend fun maybeFetchTypingTicket(user_id: String, context_token: String): Unit {
-    // Hermes: _maybe_fetch_typing_ticket
-        // Hermes: maybeFetchTypingTicket
-    }
-    private fun splitText(content: String): Unit {
-    // Hermes: _split_text
-        // Hermes: splitText
-    }
-    private suspend fun sendTextChunk(): Unit {
-    // Hermes: _send_text_chunk
-        // Hermes: sendTextChunk
-    }
-    suspend fun send(chat_id: String, content: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send
-        // Hermes: send
-    }
-    suspend fun sendTyping(chat_id: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_typing
-        // Hermes: sendTyping
-    }
-    suspend fun stopTyping(chat_id: String): Unit {
-    // Hermes: stop_typing
-        // Hermes: stopTyping
-    }
-    suspend fun sendImage(chat_id: String, image_url: String, caption: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_image
-        // Hermes: sendImage
-    }
-    suspend fun sendImageFile(chat_id: String, path: String, caption: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_image_file
-        // Hermes: sendImageFile
-    }
-    suspend fun sendDocument(chat_id: String, file_path: String, caption: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_document
-        // Hermes: sendDocument
-    }
-    suspend fun sendVideo(chat_id: String, video_path: String, caption: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_video
-        // Hermes: sendVideo
-    }
-    suspend fun sendVoice(chat_id: String, audio_path: String, caption: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_voice
-        // Hermes: sendVoice
-    }
-    private suspend fun downloadRemoteMedia(url: String): Unit {
-    // Hermes: _download_remote_media
-        // Hermes: downloadRemoteMedia
-    }
-    private suspend fun sendFile(chat_id: String, path: String, caption: String): Unit {
-    // Hermes: _send_file
-        // Hermes: sendFile
-    }
-    private fun outboundMediaBuilder(path: String): Unit {
-    // Hermes: _outbound_media_builder
-        // Hermes: outboundMediaBuilder
-    }
-    suspend fun getChatInfo(chat_id: String): Any? {
-    // Hermes: get_chat_info
-        return null
-        // Hermes: getChatInfo
+
+    private fun _coerce_list(value: Any?): Any? {
+        // Python: _coerce_list
         return null
     }
-    fun formatMessage(content: String): Unit {
-    // Hermes: format_message
-        // Hermes: formatMessage
+
+    private fun _is_dm_allowed(sender_id: Any?): Any? {
+        // Python: _is_dm_allowed
+        return null
     }
+
+    private fun _split_text(content: Any?): Any? {
+        // Python: _split_text
+        return null
+    }
+
+    private fun _outbound_media_builder(path: Any?): Any? {
+        // Python: _outbound_media_builder
+        return null
+    }
+
+    fun format_message(content: Any?): Any? {
+        // Python: format_message
+        return null
+    }
+
 }

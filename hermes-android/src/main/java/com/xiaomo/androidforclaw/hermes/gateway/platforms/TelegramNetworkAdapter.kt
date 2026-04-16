@@ -57,8 +57,7 @@ class TelegramNetworkClient(
     /** Connection timeout (seconds). */
     private val connectTimeoutSeconds: Long = 15,
     /** Read timeout (seconds). */
-    private val readTimeoutSeconds: Long = 30,
-) {
+    private val readTimeoutSeconds: Long = 30) {
     companion object {
         private const val TAG = "TelegramNetworkClient"
     }
@@ -183,8 +182,7 @@ class TelegramNetworkClient(
      * - HTTP 404 (Not found)
      */
     private suspend fun _executeWithRetry(
-        block: () -> okhttp3.Response,
-    ): JSONObject = withContext(Dispatchers.IO) {
+        block: () -> okhttp3.Response): JSONObject = withContext(Dispatchers.IO) {
         var lastError: Exception? = null
 
         for (attempt in 0 until maxRetries) {

@@ -14,8 +14,7 @@ object Registry {
         val handler: ((Map<String, Any>) -> String)? = null,
         val enabled: Boolean = true,
         val category: String = "general",
-        val parameters: Map<String, Any> = emptyMap(),
-    )
+        val parameters: Map<String, Any> = emptyMap())
 
     private val _tools = ConcurrentHashMap<String, ToolDefinition>()
     private val _aliases = ConcurrentHashMap<String, String>()
@@ -91,9 +90,7 @@ object Registry {
                 "function" to mapOf(
                     "name" to tool.name,
                     "description" to tool.description,
-                    "parameters" to tool.parameters,
-                ),
-            )
+                    "parameters" to tool.parameters))
         }
     }
 
@@ -127,8 +124,7 @@ object Registry {
                 "available" to tools.any { it.enabled },
                 "tools" to tools.map { it.name },
                 "description" to "",
-                "requirements" to emptyList<String>(),
-            )
+                "requirements" to emptyList<String>())
         }
     }
 
@@ -151,8 +147,7 @@ object Registry {
         return _tools.values.map { t ->
             mapOf<String, Any?>(
                 "name" to t.name, "description" to t.description,
-                "category" to t.category, "enabled" to t.enabled,
-            )
+                "category" to t.category, "enabled" to t.enabled)
         }
     }
 
@@ -219,20 +214,19 @@ object Registry {
 
 
     /** Return a coherent snapshot of registry entries and toolset checks. */
-    fun _snapshotState(): Pair<List<Any?>, Map<String, (Any?) -> Any?>> {
-        throw NotImplementedError("_snapshotState")
+    fun _snapshotState(): Pair<List<ToolDefinition>, Map<String, () -> Boolean>> {
+        val entries = _tools.values.toList()
+        val checks = _tools.values.associate { it.category to { it.enabled } }
+        return Pair(entries, checks)
     }
     /** Return a stable snapshot of registered tool entries. */
-    fun _snapshotEntries(): List<Any?> {
-        return emptyList()
-    }
+    fun _snapshotEntries(): List<ToolDefinition> = _snapshotState().first
     /** Return a stable snapshot of toolset availability checks. */
-    fun _snapshotToolsetChecks(): Map<String, (Any?) -> Any?> {
-        return emptyMap()
-    }
+    fun _snapshotToolsetChecks(): Map<String, () -> Boolean> = _snapshotState().second
     /** Run a toolset check, treating missing or failing checks as unavailable/available. */
-    fun _evaluateToolsetCheck(toolset: String, check: Any?): Boolean {
-        return false
+    fun _evaluateToolsetCheck(toolset: String, check: (() -> Boolean)?): Boolean {
+        if (check == null) return true
+        return try { check() } catch (_: Exception) { false }
     }
 
 }

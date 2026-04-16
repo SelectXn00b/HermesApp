@@ -806,15 +806,6 @@ class ApiException(
     val _ANTHROPIC_COMPAT_PROVIDERS = ""
 
     // === Missing methods (auto-generated stubs) ===
-    private fun normalizeAuxProvider(provider: String): Unit {
-    // Hermes: _normalize_aux_provider
-}
-
-    fun create(kwargs: Any): Any {
-        throw NotImplementedError("create")
-    }
-    fun close(): Any? {
-        return null
-    }
+    private fun normalizeAuxProvider(provider: String){ /* void */ }
 
 }

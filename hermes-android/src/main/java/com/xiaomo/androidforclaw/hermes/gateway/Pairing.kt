@@ -59,8 +59,7 @@ data class PairingSession(
     /** Timestamp when the session expires (epoch millis). */
     var expiresAt: Long = 0L,
     /** Arbitrary metadata. */
-    val metadata: ConcurrentHashMap<String, String> = ConcurrentHashMap(),
-) {
+    val metadata: ConcurrentHashMap<String, String> = ConcurrentHashMap()) {
     /** True when the session has expired. */
     val isExpired: Boolean get() = System.currentTimeMillis() > expiresAt
 
@@ -89,8 +88,7 @@ class PairingManager(
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
-        .build(),
-) {
+        .build()) {
     companion object {
         private const val TAG = "PairingManager"
         /** Default pairing session timeout (5 minutes). */
@@ -99,6 +97,7 @@ class PairingManager(
 
     /** Active pairing sessions keyed by session id. */
     private val _sessions: ConcurrentHashMap<String, PairingSession> = ConcurrentHashMap()
+    private val _pairingDir: String = ""
 
     /** Platform name → handler function. */
     private val _handlers: ConcurrentHashMap<String, suspend (PairingSession) -> Unit> = ConcurrentHashMap()
@@ -114,15 +113,13 @@ class PairingManager(
     /** Start a new pairing session. */
     suspend fun startPairing(
         platform: String,
-        timeoutMs: Long = DEFAULT_TIMEOUT_MS,
-    ): PairingSession {
+        timeoutMs: Long = DEFAULT_TIMEOUT_MS): PairingSession {
         val sessionId = "${platform}_${_counter.incrementAndGet()}"
         val session = PairingSession(
             sessionId = sessionId,
             platform = platform,
             state = PairingState.PENDING,
-            expiresAt = System.currentTimeMillis() + timeoutMs,
-        )
+            expiresAt = System.currentTimeMillis() + timeoutMs)
         _sessions[sessionId] = session
 
         val handler = _handlers[platform]
@@ -237,8 +234,7 @@ class PairingManager(
         val info = mapOf<String, Any?>(
             "code" to code, "platform" to platform,
             "user_id" to userId, "user_name" to userName,
-            "created_at" to System.currentTimeMillis(),
-        )
+            "created_at" to System.currentTimeMillis())
         pendingCodes[code] = info
         return code
     }
@@ -345,47 +341,71 @@ class PairingManager(
 
 
     fun _pendingPath(platform: String): String {
-        return ""
+        return "$_pairingDir/${platform}-pending.json"
     }
     fun _approvedPath(platform: String): String {
-        return ""
+        return "$_pairingDir/${platform}-approved.json"
     }
     fun _rateLimitPath(): String {
-        return ""
+        return "$_pairingDir/_rate_limits.json"
     }
     fun _loadJson(path: String): Any? {
-        return null
+        return try {
+            val file = java.io.File(path)
+            if (!file.exists()) return null
+            val text = file.readText(Charsets.UTF_8)
+            org.json.JSONObject(text)
+        } catch (_: Exception) {
+            null
+        }
     }
     fun _saveJson(path: String, data: Any?): Unit {
-        // TODO: implement _saveJson
+        try {
+            val file = java.io.File(path)
+            file.parentFile?.mkdirs()
+            val text = when (data) {
+                is org.json.JSONObject -> data.toString(2)
+                is org.json.JSONArray -> data.toString(2)
+                else -> data?.toString() ?: "null"
+            }
+            file.writeText(text, Charsets.UTF_8)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to save JSON to $path: ${e.message}")
+        }
     }
     /** Add a user to the approved list. Must be called under self._lock. */
     fun _approveUser(platform: String, userId: String, userName: String = ""): Unit {
-        // TODO: implement _approveUser
+        approveUser(platform, userId, userName)
     }
     /** Check if a user has requested a code too recently. */
     fun _isRateLimited(platform: String, userId: String): Boolean {
-        return false
+        return isRateLimited(platform, userId)
     }
     /** Record the time of a pairing request for rate limiting. */
     fun _recordRateLimit(platform: String, userId: String): Unit {
-        // TODO: implement _recordRateLimit
+        recordRateLimit(platform, userId)
     }
     /** Check if a platform is in lockout due to failed approval attempts. */
     fun _isLockedOut(platform: String): Boolean {
-        return false
+        return isLockedOut(platform)
     }
     /** Record a failed approval attempt. Triggers lockout after MAX_FAILED_ATTEMPTS. */
     fun _recordFailedAttempt(platform: String): Unit {
-        // TODO: implement _recordFailedAttempt
+        recordFailedAttempt(platform)
     }
     /** Remove expired pending codes. */
     fun _cleanupExpired(platform: String): Unit {
-        // TODO: implement _cleanupExpired
+        cleanExpiredCodes()
     }
     /** List all platforms that have data files of a given suffix. */
-    fun _allPlatforms(suffix: String): Any? {
-        return null
+    fun _allPlatforms(suffix: String): List<String> {
+        val dir = java.io.File(_pairingDir)
+        if (!dir.exists()) return emptyList()
+        return dir.listFiles()
+            ?.filter { it.name.endsWith("-$suffix.json") }
+            ?.map { it.name.removeSuffix("-$suffix.json") }
+            ?.filter { !it.startsWith("_") }
+            ?: emptyList()
     }
 
 }

@@ -28,8 +28,7 @@ object TtsTool {
         val audioPath: String? = null,
         val audioBase64: String? = null,
         val provider: String = "",
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -46,8 +45,7 @@ object TtsTool {
         voice: String? = null,
         outputDir: String? = null,
         apiKey: String? = null,
-        format: String = "mp3",
-    ): String {
+        format: String = "mp3"): String {
         if (text.isBlank()) return gson.toJson(mapOf("error" to "Text is required"))
         if (text.length > MAX_TEXT_LENGTH) {
             return gson.toJson(mapOf("error" to "Text too long: ${text.length} chars (max $MAX_TEXT_LENGTH)"))
@@ -69,8 +67,7 @@ object TtsTool {
                 "model" to "tts-1",
                 "input" to text,
                 "voice" to voice,
-                "response_format" to "mp3",
-            ))
+                "response_format" to "mp3"))
 
             val request = Request.Builder()
                 .url("https://api.openai.com/v1/audio/speech")
@@ -101,8 +98,7 @@ object TtsTool {
             val voiceId = voice ?: "pNInz6obpgDQGcFmaJgB"
             val payload = gson.toJson(mapOf(
                 "text" to text,
-                "model_id" to "eleven_multilingual_v2",
-            ))
+                "model_id" to "eleven_multilingual_v2"))
 
             val request = Request.Builder()
                 .url("https://api.elevenlabs.io/v1/text-to-speech/$voiceId")

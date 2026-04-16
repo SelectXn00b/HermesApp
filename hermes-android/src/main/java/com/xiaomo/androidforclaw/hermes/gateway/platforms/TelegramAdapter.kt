@@ -44,8 +44,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class TelegramAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.TELEGRAM) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.TELEGRAM) {
     companion object {
         private const val TAG = "TelegramAdapter"
         const val MAX_MESSAGE_LENGTH = 4096
@@ -290,8 +289,7 @@ class TelegramAdapter(
                 else -> "dm"
             },
             userId = userId,
-            userName = if (firstName.isNotEmpty()) "$firstName (@$userName)" else userName,
-        )
+            userName = if (firstName.isNotEmpty()) "$firstName (@$userName)" else userName)
 
         // Build event
         val event = MessageEvent(
@@ -308,8 +306,7 @@ class TelegramAdapter(
             latitude = message.optJSONObject("location")?.optDouble("latitude"),
             longitude = message.optJSONObject("location")?.optDouble("longitude"),
             contactName = message.optJSONObject("contact")?.optString("first_name"),
-            contactPhone = message.optJSONObject("contact")?.optString("phone_number"),
-        )
+            contactPhone = message.optJSONObject("contact")?.optString("phone_number"))
 
         _queueForProcessing(chatId, event)
     }
@@ -408,16 +405,14 @@ class TelegramAdapter(
             chatName = chat.optString("title", ""),
             chatType = if (chat.getString("type") == "private") "dm" else "group",
             userId = userId,
-            userName = userName,
-        )
+            userName = userName)
 
         val event = MessageEvent(
             text = text,
             messageType = MessageType.EDITED,
             source = source,
             message_id = messageId,
-            isEdited = true,
-        )
+            isEdited = true)
 
         _queueForProcessing(chatId, event)
     }
@@ -435,15 +430,13 @@ class TelegramAdapter(
             chatName = chat.optString("title", ""),
             chatType = "channel",
             userId = "channel",
-            userName = "Channel",
-        )
+            userName = "Channel")
 
         val event = MessageEvent(
             text = text,
             messageType = MessageType.TEXT,
             source = source,
-            message_id = message.getLong("message_id").toString(),
-        )
+            message_id = message.getLong("message_id").toString())
 
         _queueForProcessing(chatId, event)
     }
@@ -462,14 +455,12 @@ class TelegramAdapter(
             chatId = chatId,
             chatType = "group",
             userId = userId,
-            userName = from.optString("username", ""),
-        )
+            userName = from.optString("username", ""))
 
         val event = MessageEvent(
             text = "/callback $data",
             messageType = MessageType.COMMAND,
-            source = source,
-        )
+            source = source)
 
         _queueForProcessing(chatId, event)
     }
@@ -513,8 +504,7 @@ class TelegramAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 put("chat_id", chatId)
@@ -555,8 +545,7 @@ class TelegramAdapter(
         chatId: String,
         imageUrl: String,
         caption: String?,
-        replyTo: String?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 put("chat_id", chatId)
@@ -591,8 +580,7 @@ class TelegramAdapter(
         fileUrl: String,
         fileName: String?,
         caption: String?,
-        replyTo: String?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String?): SendResult = withContext(Dispatchers.IO) {
         try {
             val payload = JSONObject().apply {
                 put("chat_id", chatId)
@@ -735,5 +723,4 @@ private data class Quadruple<A, B, C, D>(
     val first: A,
     val second: B,
     val third: C,
-    val fourth: D,
-)
+    val fourth: D)

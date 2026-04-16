@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class MatrixAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.MATRIX) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.MATRIX) {
     companion object { private const val TAG = "MatrixAdapter" }
 
     override suspend fun connect(): Boolean {

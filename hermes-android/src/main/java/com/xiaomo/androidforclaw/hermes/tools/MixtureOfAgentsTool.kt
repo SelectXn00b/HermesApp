@@ -13,8 +13,7 @@ object MixtureOfAgentsTool {
     data class MoaResult(
         val response: String = "",
         val sources: List<String> = emptyList(),
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Callback interface for calling individual models.
@@ -30,8 +29,7 @@ object MixtureOfAgentsTool {
         prompt: String,
         models: List<String> = emptyList(),
         caller: ModelCaller? = null,
-        aggregationPrompt: String? = null,
-    ): String {
+        aggregationPrompt: String? = null): String {
         if (prompt.isBlank()) return gson.toJson(mapOf("error" to "Prompt is required"))
         if (models.isEmpty()) return gson.toJson(mapOf("error" to "No models specified"))
         if (caller == null) return gson.toJson(mapOf("error" to "No model caller configured"))
@@ -53,8 +51,7 @@ object MixtureOfAgentsTool {
 
         return gson.toJson(MoaResult(
             response = aggregated,
-            sources = responses.map { it.first },
-        ))
+            sources = responses.map { it.first }))
     }
 
 

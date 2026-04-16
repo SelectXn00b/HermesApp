@@ -22,8 +22,7 @@ object FileTools {
         path: String,
         offset: Int = 1,
         limit: Int = 500,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.readFile(path, offset, limit)
         return if (result.error != null) {
@@ -34,8 +33,7 @@ object FileTools {
             val resp = mutableMapOf<String, Any>(
                 "content" to result.content,
                 "total_lines" to result.totalLines,
-                "file_size" to result.fileSize,
-            )
+                "file_size" to result.fileSize)
             if (result.truncated) resp["truncated"] = true
             result.hint?.let { resp["hint"] = it }
             gson.toJson(resp)
@@ -47,8 +45,7 @@ object FileTools {
      */
     fun readFileRaw(
         path: String,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.readFileRaw(path)
         return if (result.error != null) {
@@ -57,8 +54,7 @@ object FileTools {
             gson.toJson(mapOf(
                 "content" to result.content,
                 "total_lines" to result.totalLines,
-                "file_size" to result.fileSize,
-            ))
+                "file_size" to result.fileSize))
         }
     }
 
@@ -68,8 +64,7 @@ object FileTools {
     fun writeFile(
         path: String,
         content: String,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.writeFile(path, content)
         return if (result.error != null) {
@@ -89,8 +84,7 @@ object FileTools {
         oldString: String,
         newString: String,
         replaceAll: Boolean = false,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.patchReplace(path, oldString, newString, replaceAll)
         return if (result.success) {
@@ -108,8 +102,7 @@ object FileTools {
      */
     fun patchV4a(
         patchContent: String,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.patchV4a(patchContent)
         return gson.toJson(result.toMap())
@@ -123,8 +116,7 @@ object FileTools {
         path: String = ".",
         fileGlob: String? = null,
         limit: Int = 50,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.search(pattern, path, fileGlob = fileGlob, limit = limit)
         return gson.toJson(result.toMap())
@@ -135,8 +127,7 @@ object FileTools {
      */
     fun deleteFile(
         path: String,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.deleteFile(path)
         return if (result.error != null) {
@@ -152,8 +143,7 @@ object FileTools {
     fun moveFile(
         src: String,
         dst: String,
-        ops: FileOperations? = null,
-    ): String {
+        ops: FileOperations? = null): String {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.moveFile(src, dst)
         return if (result.error != null) {

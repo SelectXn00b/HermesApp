@@ -7,6 +7,7 @@ package com.xiaomo.androidforclaw.hermes.gateway
  * Ported from gateway/hooks.py
  */
 
+import android.util.Log
 import org.json.JSONObject
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -71,8 +72,7 @@ data class HookEntry(
     /** Priority — lower runs first.  Default 100. */
     val priority: Int = 100,
     /** The hook function. */
-    val handler: suspend (HookContext) -> HookResult,
-)
+    val handler: suspend (HookContext) -> HookResult)
 
 /**
  * Context passed to every hook invocation.
@@ -91,8 +91,7 @@ data class HookContext(
     /** The user id. */
     val userId: String = "",
     /** Arbitrary metadata bag. */
-    val metadata: JSONObject = JSONObject(),
-)
+    val metadata: JSONObject = JSONObject())
 
 /**
  * Gateway hook pipeline.
@@ -157,15 +156,13 @@ class HookPipeline {
         text: String = "",
         platform: String = "",
         chatId: String = "",
-        userId: String = "",
-    ): HookResult = run(event, HookContext(
+        userId: String = ""): HookResult = run(event, HookContext(
         event = event,
         sessionKey = sessionKey,
         text = text,
         platform = platform,
         chatId = chatId,
-        userId = userId,
-    ))
+        userId = userId))
 }
 
 /** Well-known built-in hook names. */
@@ -240,8 +237,19 @@ class HookRegistry {
     }
 
     /** Register built-in hooks that are always active. */
-    fun _registerBuiltinHooks(): Unit {
-        // TODO: implement _registerBuiltinHooks
+    fun _registerBuiltinHooks() {
+        // Pre-agent: sanitize input, check rate limits
+        handle("pre_agent") { sessionKey, data ->
+            val text = data["text"] as? String ?: ""
+            if (text.isBlank()) {
+                Log.w(TAG, "Empty message in pre-agent hook")
+            }
+        }
+        // Post-agent: format output, log usage
+        handle("post_agent") { sessionKey, data ->
+            val response = data["text"] as? String ?: ""
+            Log.d(TAG, "Post-agent response length: ${response.length}")
+        }
     }
 
 }

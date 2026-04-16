@@ -16,8 +16,7 @@ import java.util.Locale
  * This is the core component of Hermes' self-evolution.
  */
 class SkillManagerTool(
-    private val skillsBasePath: String = "",
-) {
+    private val skillsBasePath: String = "") {
     private val gson = Gson()
     private val TAG = "SkillManagerTool"
 
@@ -26,8 +25,7 @@ class SkillManagerTool(
         val description: String,
         val instruction: String,
         val files: Map<String, String> = emptyMap(),
-        val createdAt: Long = System.currentTimeMillis(),
-    )
+        val createdAt: Long = System.currentTimeMillis())
 
     /**
      * Create a new skill.
@@ -178,8 +176,7 @@ class SkillManagerTool(
             SkillDefinition(
                 name = parseFrontmatter(content, "name") ?: name,
                 description = parseFrontmatter(content, "description") ?: "",
-                instruction = extractInstruction(content),
-            )
+                instruction = extractInstruction(content))
         } catch (_unused: Exception) { null }
     }
 
@@ -207,8 +204,7 @@ class SkillManagerTool(
         // Check for dangerous commands
         val dangerousPatterns = listOf(
             "rm -rf /", "mkfs", "dd if=", ":(){ :|:& };:",
-            "chmod 777", "curl | sh", "wget | sh",
-        )
+            "chmod 777", "curl | sh", "wget | sh")
         for (pattern in dangerousPatterns) {
             if (skill.instruction.contains(pattern, ignoreCase = true)) {
                 Log.w(TAG, "Skill instruction contains dangerous pattern: $pattern")

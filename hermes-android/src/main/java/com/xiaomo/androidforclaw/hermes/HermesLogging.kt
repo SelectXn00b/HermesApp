@@ -31,8 +31,7 @@ data class LogEntry(
     val level: LogLevel,
     val loggerName: String,
     val message: String,
-    val exception: String? = null,
-)
+    val exception: String? = null)
 
 // ── 日志系统 ──────────────────────────────────────────────────────────────
 object HermesLogging {
@@ -51,8 +50,7 @@ object HermesLogging {
     fun initialize(
         level: LogLevel = LogLevel.INFO,
         logFile: File? = null,
-        bufferEnabled: Boolean = true,
-    ) {
+        bufferEnabled: Boolean = true) {
         _logLevel = level
         _logFile = logFile
         _isInitialized = true
@@ -202,17 +200,72 @@ class Logger(private val name: String) {
 
 
 
+    /**
+     * Filter a log record — return true to suppress the record.
+     * Python: logging.Filter.filter — always returns False (allow all by default).
+     */
     fun filter(record: Any?): Boolean {
+        // Default filter: allow all records through
         return false
     }
+
+    /**
+     * Change file permissions if this is a managed (app-owned) log file.
+     * Python: RotatingFileHandler._chmodIfManaged — no-op on Android.
+     */
     fun _chmodIfManaged(): Any? {
+        // Android doesn't use POSIX file permissions for app-private files
         return null
     }
-    fun _open(): Any? {
-        return null
+
+    /**
+     * Open the log file for writing, creating directories as needed.
+     * Python: logging.FileHandler._open — opens file in append mode.
+     */
+    fun _open(): File? {
+        val file = HermesLogging.getLogFile() ?: return null
+        return try {
+            file.parentFile?.mkdirs()
+            if (!file.exists()) file.createNewFile()
+            file
+        } catch (e: Exception) {
+            Log.e("HermesLogging", "Failed to open log file: ${e.message}")
+            null
+        }
     }
-    fun doRollover(): Any? {
-        return null
+
+    /**
+     * Roll over the current log file when it exceeds max size.
+     * Python: RotatingFileHandler.doRollover — renames current file to .1, .2, etc.
+     */
+    fun doRollover() {
+        val file = HermesLogging.getLogFile() ?: return
+        if (!file.exists() || file.length() < 10 * 1024 * 1024) return // 10MB threshold
+
+        try {
+            val dir = file.parentFile ?: return
+            val baseName = file.name
+
+            // Shift existing backups: .2 → .3, .1 → .2
+            for (i in 4 downTo 1) {
+                val old = File(dir, "$baseName.$i")
+                val new = File(dir, "$baseName.${i + 1}")
+                if (old.exists()) old.renameTo(new)
+            }
+
+            // Current → .1
+            val backup = File(dir, "$baseName.1")
+            file.renameTo(backup)
+
+            // Clean up files beyond rotation count
+            for (i in 5..9) {
+                File(dir, "$baseName.$i").delete()
+            }
+
+            Log.i("HermesLogging", "Log rotated: $baseName → $baseName.1")
+        } catch (e: Exception) {
+            Log.e("HermesLogging", "Log rotation failed: ${e.message}")
+        }
     }
 
 }

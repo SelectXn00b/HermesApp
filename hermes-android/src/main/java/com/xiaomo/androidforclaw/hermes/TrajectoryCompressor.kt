@@ -57,8 +57,7 @@ data class CompressionConfig(
     val maxConcurrentRequests: Int = 50,
     val skipUnderTarget: Boolean = true,
     val saveOverLimit: Boolean = true,
-    val perTrajectoryTimeout: Int = 300,
-) {
+    val perTrajectoryTimeout: Int = 300) {
     companion object
 }
 
@@ -79,8 +78,7 @@ data class TrajectoryMetrics(
     val stillOverLimit: Boolean = false,
     val skippedUnderTarget: Boolean = false,
     val summarizationApiCalls: Int = 0,
-    val summarizationErrors: Int = 0,
-)
+    val summarizationErrors: Int = 0)
 
 data class AggregateMetrics(
     var totalTrajectories: Int = 0,
@@ -101,8 +99,7 @@ data class AggregateMetrics(
     val turnsRemovedList: MutableList<Int> = mutableListOf(),
     var processingStartTime: String = "",
     var processingEndTime: String = "",
-    var processingDurationSeconds: Double = 0.0,
-) {
+    var processingDurationSeconds: Double = 0.0) {
     fun addTrajectoryMetrics(metrics: TrajectoryMetrics) {
         totalTrajectories++
         totalTokensBefore += metrics.originalTokens
@@ -128,8 +125,7 @@ data class AggregateMetrics(
 // ── Compressor ────────────────────────────────────────────────────────────
 
 class TrajectoryCompressor(
-    internal val config: CompressionConfig = CompressionConfig(),
-) {
+    internal val config: CompressionConfig = CompressionConfig()) {
 
     internal val aggregateMetrics = AggregateMetrics()
     private val httpClient = OkHttpClient.Builder()
@@ -168,8 +164,7 @@ class TrajectoryCompressor(
      * 查找受保护的 turn 索引
      */
     private fun findProtectedIndices(
-        trajectory: List<Map<String, String>>,
-    ): Pair<Set<Int>, Pair<Int, Int>> {
+        trajectory: List<Map<String, String>>): Pair<Set<Int>, Pair<Int, Int>> {
         val n = trajectory.size
         val protected = mutableSetOf<Int>()
 
@@ -212,8 +207,7 @@ class TrajectoryCompressor(
     private fun extractTurnContentForSummary(
         trajectory: List<Map<String, String>>,
         start: Int,
-        end: Int,
-    ): String {
+        end: Int): String {
         val parts = mutableListOf<String>()
         for (i in start until end) {
             val turn = trajectory[i]
@@ -342,8 +336,7 @@ class TrajectoryCompressor(
             "model" to config.summarizationModel,
             "messages" to listOf(mapOf("role" to "user", "content" to prompt)),
             "temperature" to config.temperature,
-            "max_tokens" to config.summaryTargetTokens * 2,
-        ))
+            "max_tokens" to config.summaryTargetTokens * 2))
 
         val request = Request.Builder()
             .url("${config.baseUrl}/chat/completions")
@@ -379,11 +372,9 @@ class TrajectoryCompressor(
      * 压缩单个轨迹（同步版）
      */
     fun compressTrajectory(
-        trajectory: List<Map<String, String>>,
-    ): Pair<List<Map<String, String>>, TrajectoryMetrics> {
+        trajectory: List<Map<String, String>>): Pair<List<Map<String, String>>, TrajectoryMetrics> {
         var metrics = TrajectoryMetrics(
-            originalTurns = trajectory.size,
-        )
+            originalTurns = trajectory.size)
 
         val turnTokens = countTurnTokens(trajectory)
         val totalTokens = turnTokens.sum()
@@ -393,8 +384,7 @@ class TrajectoryCompressor(
             return trajectory to metrics.copy(
                 skippedUnderTarget = true,
                 compressedTokens = totalTokens,
-                compressedTurns = trajectory.size,
-            )
+                compressedTurns = trajectory.size)
         }
 
         val (_, compressPair) = findProtectedIndices(trajectory)
@@ -404,8 +394,7 @@ class TrajectoryCompressor(
             return trajectory to metrics.copy(
                 compressedTokens = totalTokens,
                 compressedTurns = trajectory.size,
-                stillOverLimit = totalTokens > config.targetMaxTokens,
-            )
+                stillOverLimit = totalTokens > config.targetMaxTokens)
         }
 
         val tokensToSave = totalTokens - config.targetMaxTokens
@@ -454,8 +443,7 @@ class TrajectoryCompressor(
             stillOverLimit = countTrajectoryTokens(compressed) > config.targetMaxTokens,
             turnsCompressedStartIdx = compressStart,
             turnsCompressedEndIdx = compressUntil,
-            turnsInCompressedRegion = compressUntil - compressStart,
-        )
+            turnsInCompressedRegion = compressUntil - compressStart)
 
         return compressed to finalMetrics
     }
@@ -464,11 +452,9 @@ class TrajectoryCompressor(
      * 压缩单个轨迹（异步版）
      */
     suspend fun compressTrajectoryAsync(
-        trajectory: List<Map<String, String>>,
-    ): Pair<List<Map<String, String>>, TrajectoryMetrics> {
+        trajectory: List<Map<String, String>>): Pair<List<Map<String, String>>, TrajectoryMetrics> {
         var metrics = TrajectoryMetrics(
-            originalTurns = trajectory.size,
-        )
+            originalTurns = trajectory.size)
 
         val turnTokens = countTurnTokens(trajectory)
         val totalTokens = turnTokens.sum()
@@ -478,8 +464,7 @@ class TrajectoryCompressor(
             return trajectory to metrics.copy(
                 skippedUnderTarget = true,
                 compressedTokens = totalTokens,
-                compressedTurns = trajectory.size,
-            )
+                compressedTurns = trajectory.size)
         }
 
         val (_, compressPair) = findProtectedIndices(trajectory)
@@ -489,8 +474,7 @@ class TrajectoryCompressor(
             return trajectory to metrics.copy(
                 compressedTokens = totalTokens,
                 compressedTurns = trajectory.size,
-                stillOverLimit = totalTokens > config.targetMaxTokens,
-            )
+                stillOverLimit = totalTokens > config.targetMaxTokens)
         }
 
         val tokensToSave = totalTokens - config.targetMaxTokens
@@ -539,8 +523,7 @@ class TrajectoryCompressor(
             stillOverLimit = countTrajectoryTokens(compressed) > config.targetMaxTokens,
             turnsCompressedStartIdx = compressStart,
             turnsCompressedEndIdx = compressUntil,
-            turnsInCompressedRegion = compressUntil - compressStart,
-        )
+            turnsInCompressedRegion = compressUntil - compressStart)
 
         return compressed to finalMetrics
     }
@@ -550,8 +533,7 @@ class TrajectoryCompressor(
      */
     suspend fun processJsonlFileAsync(
         inputFile: File,
-        outputFile: File,
-    ) {
+        outputFile: File) {
         val entries = mutableListOf<Map<String, Any>>()
 
         // 读取 JSONL
@@ -611,8 +593,7 @@ class TrajectoryCompressor(
      */
     suspend fun processDirectoryAsync(
         inputDir: File,
-        outputDir: File,
-    ) {
+        outputDir: File) {
         aggregateMetrics.processingStartTime = java.time.Instant.now().toString()
         val startTime = System.currentTimeMillis()
 
@@ -694,16 +675,14 @@ fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
     if (tokenizer != null) {
         config = config.copy(
             tokenizerName = tokenizer["name"] as? String ?: config.tokenizerName,
-            trustRemoteCode = (tokenizer["trust_remote_code"] as? Boolean) ?: config.trustRemoteCode,
-        )
+            trustRemoteCode = (tokenizer["trust_remote_code"] as? Boolean) ?: config.trustRemoteCode)
     }
 
     val compression = data["compression"] as? Map<String, Any>
     if (compression != null) {
         config = config.copy(
             targetMaxTokens = (compression["target_max_tokens"] as? Number)?.toInt() ?: config.targetMaxTokens,
-            summaryTargetTokens = (compression["summary_target_tokens"] as? Number)?.toInt() ?: config.summaryTargetTokens,
-        )
+            summaryTargetTokens = (compression["summary_target_tokens"] as? Number)?.toInt() ?: config.summaryTargetTokens)
     }
 
     val protectedTurns = data["protected_turns"] as? Map<String, Any>
@@ -713,8 +692,7 @@ fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
             protectFirstHuman = (protectedTurns["first_human"] as? Boolean) ?: config.protectFirstHuman,
             protectFirstGpt = (protectedTurns["first_gpt"] as? Boolean) ?: config.protectFirstGpt,
             protectFirstTool = (protectedTurns["first_tool"] as? Boolean) ?: config.protectFirstTool,
-            protectLastNTurns = (protectedTurns["last_n_turns"] as? Number)?.toInt() ?: config.protectLastNTurns,
-        )
+            protectLastNTurns = (protectedTurns["last_n_turns"] as? Number)?.toInt() ?: config.protectLastNTurns)
     }
 
     val summarization = data["summarization"] as? Map<String, Any>
@@ -725,8 +703,7 @@ fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
             apiKeyEnv = summarization["api_key_env"] as? String ?: config.apiKeyEnv,
             temperature = (summarization["temperature"] as? Number)?.toDouble() ?: config.temperature,
             maxRetries = (summarization["max_retries"] as? Number)?.toInt() ?: config.maxRetries,
-            retryDelay = (summarization["retry_delay"] as? Number)?.toInt() ?: config.retryDelay,
-        )
+            retryDelay = (summarization["retry_delay"] as? Number)?.toInt() ?: config.retryDelay)
     }
 
     val output = data["output"] as? Map<String, Any>
@@ -734,8 +711,7 @@ fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
         config = config.copy(
             addSummaryNotice = (output["add_summary_notice"] as? Boolean) ?: config.addSummaryNotice,
             summaryNoticeText = output["summary_notice_text"] as? String ?: config.summaryNoticeText,
-            outputSuffix = output["output_suffix"] as? String ?: config.outputSuffix,
-        )
+            outputSuffix = output["output_suffix"] as? String ?: config.outputSuffix)
     }
 
     val processing = data["processing"] as? Map<String, Any>
@@ -744,8 +720,7 @@ fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
             numWorkers = (processing["num_workers"] as? Number)?.toInt() ?: config.numWorkers,
             maxConcurrentRequests = (processing["max_concurrent_requests"] as? Number)?.toInt() ?: config.maxConcurrentRequests,
             skipUnderTarget = (processing["skip_under_target"] as? Boolean) ?: config.skipUnderTarget,
-            saveOverLimit = (processing["save_over_limit"] as? Boolean) ?: config.saveOverLimit,
-        )
+            saveOverLimit = (processing["save_over_limit"] as? Boolean) ?: config.saveOverLimit)
     }
 
     return config
@@ -766,14 +741,12 @@ fun TrajectoryMetrics.toDict(): Map<String, Any?> {
         "compression_region" to mapOf(
             "start_idx" to turnsCompressedStartIdx,
             "end_idx" to turnsCompressedEndIdx,
-            "turns_count" to turnsInCompressedRegion,
-        ),
+            "turns_count" to turnsInCompressedRegion),
         "was_compressed" to wasCompressed,
         "still_over_limit" to stillOverLimit,
         "skipped_under_target" to skippedUnderTarget,
         "summarization_api_calls" to summarizationApiCalls,
-        "summarization_errors" to summarizationErrors,
-    )
+        "summarization_errors" to summarizationErrors)
 }
 
 /**
@@ -795,37 +768,30 @@ fun AggregateMetrics.toDict(): Map<String, Any?> {
             "trajectories_still_over_limit" to trajectoriesStillOverLimit,
             "trajectories_failed" to trajectoriesFailed,
             "compression_rate" to String.format("%.4f",
-                trajectoriesCompressed.toDouble() / maxOf(totalTrajectories, 1)).toDouble(),
-        ),
+                trajectoriesCompressed.toDouble() / maxOf(totalTrajectories, 1)).toDouble()),
         "tokens" to mapOf(
             "total_before" to totalTokensBefore,
             "total_after" to totalTokensAfter,
             "total_saved" to totalTokensSaved,
             "overall_compression_ratio" to String.format("%.4f",
-                totalTokensAfter.toDouble() / maxOf(totalTokensBefore, 1)).toDouble(),
-        ),
+                totalTokensAfter.toDouble() / maxOf(totalTokensBefore, 1)).toDouble()),
         "turns" to mapOf(
             "total_before" to totalTurnsBefore,
             "total_after" to totalTurnsAfter,
-            "total_removed" to totalTurnsRemoved,
-        ),
+            "total_removed" to totalTurnsRemoved),
         "averages" to mapOf(
             "avg_compression_ratio" to String.format("%.4f", avgCompressionRatio).toDouble(),
             "avg_tokens_saved_per_compressed" to String.format("%.1f", avgTokensSaved).toDouble(),
-            "avg_turns_removed_per_compressed" to String.format("%.2f", avgTurnsRemoved).toDouble(),
-        ),
+            "avg_turns_removed_per_compressed" to String.format("%.2f", avgTurnsRemoved).toDouble()),
         "summarization" to mapOf(
             "total_api_calls" to totalSummarizationCalls,
             "total_errors" to totalSummarizationErrors,
             "success_rate" to String.format("%.4f",
-                1.0 - (totalSummarizationErrors.toDouble() / maxOf(totalSummarizationCalls, 1))).toDouble(),
-        ),
+                1.0 - (totalSummarizationErrors.toDouble() / maxOf(totalSummarizationCalls, 1))).toDouble()),
         "processing" to mapOf(
             "start_time" to processingStartTime,
             "end_time" to processingEndTime,
-            "duration_seconds" to String.format("%.2f", processingDurationSeconds).toDouble(),
-        ),
-    )
+            "duration_seconds" to String.format("%.2f", processingDurationSeconds).toDouble()))
 }
 
 // ── TrajectoryCompressor 扩展方法 ─────────────────────────────────────────
@@ -1035,8 +1001,7 @@ suspend fun trajectoryCompressorMain(
     tokenizer: String? = null,
     samplePercent: Double? = null,
     seed: Int = 42,
-    dryRun: Boolean = false,
-) {
+    dryRun: Boolean = false) {
     tcLogger.info("Trajectory Compressor")
     tcLogger.info("=".repeat(60))
 
@@ -1122,73 +1087,4 @@ suspend fun trajectoryCompressorMain(
         compressor.processDirectoryAsync(inputPath, outputPath)
         tcLogger.info("Compression complete!")
     }
-
-    /** Load configuration from YAML file. */
-    fun fromYaml(yamlPath: String): Any? {
-        return null
-    }
-    fun toDict(): Map<String, Any> {
-        return emptyMap()
-    }
-    /** Initialize HuggingFace tokenizer for token counting. */
-    fun _initTokenizer(): Any? {
-        return null
-    }
-    /** Initialize LLM routing for summarization (sync and async). */
-    fun _initSummarizer(): Any? {
-        return null
-    }
-    /** Return an AsyncOpenAI client bound to the current event loop. */
-    fun _getAsyncClient(): Any? {
-        return null
-    }
-    /** Detect the provider name from the configured base_url. */
-    fun _detectProvider(): String {
-        return ""
-    }
-    /** Find indices of protected turns. */
-    fun _findProtectedIndices(trajectory: List<Map<String, String>>): List<Any?> {
-        return emptyList()
-    }
-    /** Extract content from turns to be summarized. */
-    fun _extractTurnContentForSummary(trajectory: List<Map<String, String>>, start: Int, end: Int): String {
-        return ""
-    }
-    /** Normalize summary-model output to a safe string. */
-    fun _coerceSummaryContent(content: Any): String {
-        return ""
-    }
-    /** Normalize summary text to include the expected prefix exactly once. */
-    fun _ensureSummaryPrefix(summary: String): String {
-        return ""
-    }
-    /** Generate a summary of the compressed turns using OpenRouter. */
-    fun _generateSummary(content: String, metrics: TrajectoryMetrics): String {
-        return ""
-    }
-    /** Generate a summary of the compressed turns using OpenRouter (async version). */
-    suspend fun _generateSummaryAsync(content: String, metrics: TrajectoryMetrics): String {
-        return ""
-    }
-    /** Process a single JSONL entry (async version). */
-    suspend fun processEntryAsync(entry: Map<String, Any>): Pair<Map<String, Any>, TrajectoryMetrics> {
-        throw NotImplementedError("processEntryAsync")
-    }
-    /** Process a single JSONL entry. */
-    fun processEntry(entry: Map<String, Any>): Pair<Map<String, Any>, TrajectoryMetrics> {
-        throw NotImplementedError("processEntry")
-    }
-    /** Process all JSONL files in a directory using async parallel processing. */
-    fun processDirectory(inputDir: String, outputDir: String): Any? {
-        return null
-    }
-    /** Async implementation of directory processing with parallel API calls. */
-    suspend fun _processDirectoryAsync(inputDir: String, outputDir: String): Any? {
-        return null
-    }
-    /** Print comprehensive compression summary statistics. */
-    fun _printSummary(): Any? {
-        return null
-    }
-
 }

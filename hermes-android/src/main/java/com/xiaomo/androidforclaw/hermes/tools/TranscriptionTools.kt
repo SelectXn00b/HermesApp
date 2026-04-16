@@ -24,8 +24,7 @@ object TranscriptionTools {
         val success: Boolean = false,
         val text: String = "",
         val language: String? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -39,8 +38,7 @@ object TranscriptionTools {
         audioPath: String,
         apiKey: String? = null,
         model: String = "whisper-1",
-        language: String? = null,
-    ): String {
+        language: String? = null): String {
         val file = File(audioPath)
         if (!file.exists()) return gson.toJson(mapOf("error" to "Audio file not found: $audioPath"))
         if (apiKey.isNullOrBlank()) return gson.toJson(mapOf("error" to "No API key configured"))
@@ -78,8 +76,7 @@ object TranscriptionTools {
     fun transcribeWith(
         audioPath: String,
         language: String? = null,
-        transcriber: Transcriber,
-    ): String {
+        transcriber: Transcriber): String {
         val file = File(audioPath)
         if (!file.exists()) return gson.toJson(mapOf("error" to "Audio file not found"))
         return try {

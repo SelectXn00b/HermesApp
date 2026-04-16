@@ -30,14 +30,12 @@ private val modelToolsGson = Gson()
  */
 data class ToolDefinition(
     val type: String = "function",
-    val function: ToolFunction,
-)
+    val function: ToolFunction)
 
 data class ToolFunction(
     val name: String,
     val description: String,
-    val parameters: Map<String, Any>,
-)
+    val parameters: Map<String, Any>)
 
 // ── Tool Registry ──────────────────────────────────────────────────────────
 
@@ -57,8 +55,7 @@ object ToolRegistry {
         name: String,
         description: String,
         parameters: Map<String, Any>,
-        handler: suspend (Map<String, Any>) -> String,
-    ) {
+        handler: suspend (Map<String, Any>) -> String) {
         tools[name] = ToolDefinition(
             function = ToolFunction(name, description, parameters)
         )
@@ -160,8 +157,7 @@ object Toolsets {
  */
 fun getToolDefinitions(
     enabledToolsets: List<String>? = null,
-    disabledToolsets: List<String>? = null,
-): List<ToolDefinition> {
+    disabledToolsets: List<String>? = null): List<ToolDefinition> {
     val toolsToInclude = mutableSetOf<String>()
 
     when {
@@ -205,8 +201,7 @@ suspend fun handleFunctionCall(
     functionName: String,
     functionArgs: Map<String, Any>,
     taskId: String? = null,
-    sessionId: String? = null,
-): String {
+    sessionId: String? = null): String {
     return withContext(Dispatchers.IO) {
         try {
             val result = ToolRegistry.dispatch(functionName, functionArgs)
@@ -240,8 +235,7 @@ fun getAvailableToolsets(): Map<String, Map<String, Any>> {
             "name" to name,
             "tools" to tools.toList(),
             "count" to tools.size,
-            "available" to true,
-        )
+            "available" to true)
     }
 }
 
@@ -260,15 +254,12 @@ fun registerDefaultTools() {
             "type" to "object",
             "properties" to mapOf(
                 "query" to mapOf("type" to "string", "description" to "Search query"),
-                "count" to mapOf("type" to "integer", "description" to "Number of results"),
-            ),
-            "required" to listOf("query"),
-        ),
+                "count" to mapOf("type" to "integer", "description" to "Number of results")),
+            "required" to listOf("query")),
         handler = { args ->
             // 简化实现
             modelToolsGson.toJson(mapOf("results" to emptyList<String>()))
-        },
-    )
+        })
 
     // memory
     ToolRegistry.register(
@@ -279,10 +270,8 @@ fun registerDefaultTools() {
             "properties" to mapOf(
                 "action" to mapOf("type" to "string", "description" to "store/retrieve/delete"),
                 "content" to mapOf("type" to "string", "description" to "Memory content"),
-                "query" to mapOf("type" to "string", "description" to "Search query"),
-            ),
-            "required" to listOf("action"),
-        ),
+                "query" to mapOf("type" to "string", "description" to "Search query")),
+            "required" to listOf("action")),
         handler = { args ->
             val action = args["action"] as? String ?: "retrieve"
             when (action) {
@@ -296,8 +285,7 @@ fun registerDefaultTools() {
                 }
                 else -> modelToolsGson.toJson(mapOf("error" to "Unknown action: $action"))
             }
-        },
-    )
+        })
 
     // read_file
     ToolRegistry.register(
@@ -306,10 +294,8 @@ fun registerDefaultTools() {
         parameters = mapOf(
             "type" to "object",
             "properties" to mapOf(
-                "path" to mapOf("type" to "string", "description" to "File path"),
-            ),
-            "required" to listOf("path"),
-        ),
+                "path" to mapOf("type" to "string", "description" to "File path")),
+            "required" to listOf("path")),
         handler = { args ->
             val path = args["path"] as? String ?: ""
             val file = File(path)
@@ -318,8 +304,7 @@ fun registerDefaultTools() {
             } else {
                 modelToolsGson.toJson(mapOf("error" to "File not found: $path"))
             }
-        },
-    )
+        })
 
     // write_file
     ToolRegistry.register(
@@ -329,10 +314,8 @@ fun registerDefaultTools() {
             "type" to "object",
             "properties" to mapOf(
                 "path" to mapOf("type" to "string", "description" to "File path"),
-                "content" to mapOf("type" to "string", "description" to "File content"),
-            ),
-            "required" to listOf("path", "content"),
-        ),
+                "content" to mapOf("type" to "string", "description" to "File content")),
+            "required" to listOf("path", "content")),
         handler = { args ->
             val path = args["path"] as? String ?: ""
             val content = args["content"] as? String ?: ""
@@ -340,8 +323,7 @@ fun registerDefaultTools() {
             file.parentFile?.mkdirs()
             file.writeText(content, Charsets.UTF_8)
             modelToolsGson.toJson(mapOf("result" to "written", "path" to path))
-        },
-    )
+        })
 
     // terminal
     ToolRegistry.register(
@@ -350,16 +332,13 @@ fun registerDefaultTools() {
         parameters = mapOf(
             "type" to "object",
             "properties" to mapOf(
-                "command" to mapOf("type" to "string", "description" to "Command to execute"),
-            ),
-            "required" to listOf("command"),
-        ),
+                "command" to mapOf("type" to "string", "description" to "Command to execute")),
+            "required" to listOf("command")),
         handler = { args ->
             val command = args["command"] as? String ?: ""
             // 简化实现：Android 不直接执行 shell
             modelToolsGson.toJson(mapOf("error" to "Terminal not available on Android"))
-        },
-    )
+        })
 
     modelToolsLogger.info("Default tools registered: ${ToolRegistry.getAllToolNames().joinToString()}")
 

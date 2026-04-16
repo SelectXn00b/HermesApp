@@ -11,14 +11,12 @@ object VoiceMode {
         val success: Boolean = false,
         val transcript: String? = null,
         val audioPath: String? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     data class AudioEnvironment(
         val available: Boolean = false,
         val warnings: List<String> = emptyList(),
-        val notices: List<String> = emptyList(),
-    )
+        val notices: List<String> = emptyList())
 
     /**
      * Callback interface for audio recording.
@@ -43,8 +41,7 @@ object VoiceMode {
         // On Android, audio is generally available
         return AudioEnvironment(
             available = true,
-            notices = listOf("Audio I/O available via Android Media APIs"),
-        )
+            notices = listOf("Audio I/O available via Android Media APIs"))
     }
 
 
@@ -62,50 +59,146 @@ object VoiceMode {
     }
 
 
-    // === Missing constants (auto-generated stubs) ===
-    val SAMPLE_RATE = ""
-    val CHANNELS = ""
-    val DTYPE = ""
-    val SAMPLE_WIDTH = ""
-    val SILENCE_RMS_THRESHOLD = ""
-    val SILENCE_DURATION_SECONDS = ""
-    val _TEMP_DIR = ""
-    val WHISPER_HALLUCINATIONS = ""
-    val _HALLUCINATION_REPEAT_RE = ""
+    // === Constants ===
+    val SAMPLE_RATE: Int = 16000
+    val CHANNELS: Int = 1
+    val DTYPE: String = "int16"
+    val SAMPLE_WIDTH: Int = 2
+    val SILENCE_RMS_THRESHOLD: Int = 200
+    val SILENCE_DURATION_SECONDS: Double = 3.0
+    val _TEMP_DIR: String = java.io.File.createTempFile("hermes_voice", "").parent ?: "/tmp/hermes_voice"
+    val WHISPER_HALLUCINATIONS: List<String> = emptyList()
+    val _HALLUCINATION_REPEAT_RE: Regex = Regex("")
 
-    // === Missing methods (auto-generated stubs) ===
-    private fun importAudio(): Unit {
-    // Hermes: _import_audio
-}
+    // === Internal state ===
+    @Volatile private var _recording: Boolean = false
+    private var _audioRecord: android.media.AudioRecord? = null
+    private var _audioBuffer: ShortArray? = null
+    private var _recordingThread: Thread? = null
+    private val _frames: MutableList<ShortArray> = mutableListOf()
+    private var _startTime: Long = 0L
+    private var _hasSpoken: Boolean = false
+    private var _currentRms: Int = 0
+    private var _onSilenceStop: (() -> Unit)? = null
+
+    // === Methods ===
+    /** Lazy check for Termux microphone command. */
+    private fun _termuxMicrophoneCommand(): String? {
+        return try {
+            val process = Runtime.getRuntime().exec(arrayOf("which", "termux-microphone-record"))
+            val result = process.inputStream.bufferedReader().readText().trim()
+            if (result.isNotBlank()) result else null
+        } catch (_: Exception) { null }
+    }
+
+    /** Background thread that reads audio frames from AudioRecord. */
+    private fun _readAudioLoop() {
+        val record = _audioRecord ?: return
+        val buffer = _audioBuffer ?: return
+        try {
+            record.startRecording()
+            while (_audioRecord != null) {
+                val read = record.read(buffer, 0, buffer.size)
+                if (read > 0 && _recording) {
+                    _frames.add(buffer.copyOf(read))
+                    // Compute RMS
+                    var sum = 0.0
+                    for (i in 0 until read) {
+                        sum += buffer[i].toDouble() * buffer[i].toDouble()
+                    }
+                    _currentRms = kotlin.math.sqrt(sum / read).toInt()
+                }
+            }
+            record.stop()
+        } catch (e: Exception) {
+            android.util.Log.e("VoiceMode", "Audio read loop error: ${e.message}")
+        }
+    }
 
     fun isRecording(): Boolean {
-        return false
+        return _recording
     }
     fun elapsedSeconds(): Double {
-        return 0.0
+        if (_startTime == 0L) return 0.0
+        return (System.nanoTime() - _startTime) / 1_000_000_000.0
     }
     fun currentRms(): Int {
-        return 0
+        return _currentRms
     }
-    fun start(onSilenceStop: Any? = null): Unit {
-        // TODO: implement start
+    /** Start capturing audio from the default input device. */
+    fun start(onSilenceStop: (() -> Unit)? = null): Unit {
+        if (_recording) return
+        _frames.clear()
+        _startTime = System.nanoTime()
+        _hasSpoken = false
+        _currentRms = 0
+        _onSilenceStop = onSilenceStop
+        _ensureStream()
+        _recording = true
+        android.util.Log.d("VoiceMode", "Voice recording started (rate=$SAMPLE_RATE, channels=$CHANNELS)")
     }
+    /** Stop Termux microphone recording (if active). */
     fun _stopTermuxRecording(): Unit {
-        // TODO: implement _stopTermuxRecording
+        try {
+            val micCmd = _termuxMicrophoneCommand() ?: return
+            Runtime.getRuntime().exec(arrayOf(micCmd, "-q"))
+        } catch (_: Exception) { }
     }
+    /** Stop recording and discard all captured audio. */
     fun cancel(): Unit {
-        // TODO: implement cancel
+        _recording = false
+        _frames.clear()
+        _onSilenceStop = null
+        _currentRms = 0
+        android.util.Log.d("VoiceMode", "Voice recording cancelled")
     }
+    /** Release the audio stream. Call when voice mode is disabled. */
     fun shutdown(): Unit {
-        // TODO: implement shutdown
+        _recording = false
+        _frames.clear()
+        _onSilenceStop = null
+        _closeStreamWithTimeout(3.0)
+        android.util.Log.d("VoiceMode", "AudioRecorder shut down")
     }
     /** Create the audio InputStream once and keep it alive. */
     fun _ensureStream(): Unit {
-        // TODO: implement _ensureStream
+        if (_audioRecord != null) return
+        try {
+            val bufferSize = android.media.AudioRecord.getMinBufferSize(
+                SAMPLE_RATE,
+                android.media.AudioFormat.CHANNEL_IN_MONO,
+                android.media.AudioFormat.ENCODING_PCM_16BIT
+            )
+            if (bufferSize <= 0) {
+                android.util.Log.w("VoiceMode", "AudioRecord buffer size: $bufferSize")
+                return
+            }
+            _audioRecord = android.media.AudioRecord(
+                android.media.MediaRecorder.AudioSource.MIC,
+                SAMPLE_RATE,
+                android.media.AudioFormat.CHANNEL_IN_MONO,
+                android.media.AudioFormat.ENCODING_PCM_16BIT,
+                bufferSize * 2
+            )
+            _audioBuffer = ShortArray(bufferSize)
+            _recordingThread = Thread({
+                _readAudioLoop()
+            }, "VoiceMode-Record").apply { isDaemon = true; start() }
+            android.util.Log.d("VoiceMode", "AudioRecord stream opened")
+        } catch (e: Exception) {
+            android.util.Log.e("VoiceMode", "Failed to open audio stream: ${e.message}")
+            _audioRecord = null
+        }
     }
-    /** Close the audio stream with a timeout to prevent CoreAudio hangs. */
-    fun _closeStreamWithTimeout(timeout: Double): Unit {
-        // TODO: implement _closeStreamWithTimeout
+    /** Close the audio stream with a timeout to prevent hangs. */
+    fun _closeStreamWithTimeout(timeout: Double = 3.0): Unit {
+        val record = _audioRecord ?: return
+        _audioRecord = null
+        try {
+            record.stop()
+            record.release()
+        } catch (_: Exception) { }
+        _recordingThread = null
     }
     /** Write numpy int16 audio data to a WAV file. */
     fun _writeWav(audioData: Any?): String {

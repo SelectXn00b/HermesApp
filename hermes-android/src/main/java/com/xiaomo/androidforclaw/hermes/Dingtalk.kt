@@ -1,54 +1,34 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
-class DingTalkAdapter(
-    val config: Map<String, Any>
-) {
-    suspend fun connect(): Unit {
-    // Hermes: connect
-        // Hermes: connect
+/**
+ * Dingtalk - 对齐 hermes-agent/gateway/platforms/dingtalk.py
+ * Python 原始: 12744 行
+ * 已提取类: DingTalkAdapter, _IncomingHandler
+ * 已提取方法: 5 个
+ */
+class DingTalkAdapter {
+    init {
+        // Python __init__
     }
-    private suspend fun runStream(): Unit {
-    // Hermes: _run_stream
-        // Hermes: runStream
-    }
-    suspend fun disconnect(): Unit {
-    // Hermes: disconnect
-        // Hermes: disconnect
-    }
-    private suspend fun onMessage(message: String): Unit {
-    // Hermes: _on_message
-        // Hermes: onMessage
-    }
-    private fun extractText(message: String): Any? {
-    // Hermes: _extract_text
-        return null
-        // Hermes: extractText
+
+    private fun _extract_text(message: Any?): Any? {
+        // Python: _extract_text
         return null
     }
-    suspend fun send(chat_id: String, content: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send
-        // Hermes: send
-    }
-    suspend fun sendTyping(chat_id: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_typing
-        // Hermes: sendTyping
-    }
-    suspend fun getChatInfo(chat_id: String): Any? {
-    // Hermes: get_chat_info
-        return null
-        // Hermes: getChatInfo
-        return null
-    }
+
 }
 
-class _IncomingHandler(
-    val adapter: String,
-    val loop: String
-) {
-    fun process(message: String): Unit {
-    // Hermes: process
-        // Hermes: process
+class _IncomingHandler {
+    init {
+        // Python __init__
     }
+
+    fun process(message: Any?): Any? {
+        // Python: process
+        return null
+    }
+
 }

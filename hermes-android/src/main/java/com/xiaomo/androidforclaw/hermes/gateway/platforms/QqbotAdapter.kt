@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class QqbotAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.QQBOT) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.QQBOT) {
     companion object { private const val TAG = "QqbotAdapter" }
 
     override suspend fun connect(): Boolean {

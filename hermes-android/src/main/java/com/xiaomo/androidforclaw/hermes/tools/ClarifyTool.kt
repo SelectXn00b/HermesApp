@@ -14,12 +14,10 @@ object ClarifyTool {
     data class ClarifyResult(
         @SerializedName("question") val question: String,
         @SerializedName("choices_offered") val choicesOffered: List<String>?,
-        @SerializedName("user_response") val userResponse: String,
-    )
+        @SerializedName("user_response") val userResponse: String)
 
     data class ClarifyError(
-        @SerializedName("error") val error: String,
-    )
+        @SerializedName("error") val error: String)
 
     /**
      * Callback interface for platform-provided UI interaction.
@@ -36,8 +34,7 @@ object ClarifyTool {
     fun clarifyTool(
         question: String,
         choices: List<String>? = null,
-        callback: ClarifyCallback? = null,
-    ): String {
+        callback: ClarifyCallback? = null): String {
         if (question.isBlank()) {
             return gson.toJson(ClarifyError("Question text is required."))
         }
@@ -60,8 +57,7 @@ object ClarifyTool {
             gson.toJson(ClarifyResult(
                 question = trimmedQuestion,
                 choicesOffered = validatedChoices,
-                userResponse = userResponse.trim(),
-            ))
+                userResponse = userResponse.trim()))
         } catch (e: Exception) {
             gson.toJson(ClarifyError("Failed to get user input: ${e.message}"))
         }

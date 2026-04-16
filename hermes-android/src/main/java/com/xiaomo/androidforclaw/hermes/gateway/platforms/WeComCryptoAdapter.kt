@@ -70,8 +70,7 @@ class WXBizMsgCrypt(
     /** Encoding AES key (43 chars, base64-encoded). */
     encodingAesKey: String,
     /** Corp ID or receive ID. */
-    val receiveId: String,
-) {
+    val receiveId: String) {
     companion object {
         private const val TAG = "WXBizMsgCrypt"
 

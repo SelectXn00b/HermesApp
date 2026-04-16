@@ -6,6 +6,10 @@
  */
 package com.xiaomo.androidforclaw.gateway
 
+// ⚠️ DEPRECATED (2026-04-16): This file is deprecated by 方案A.
+// Chat UI now connects directly to hermes GatewayRunner via AppChatAdapter.
+// This file will be removed once migration is complete.
+
 import android.content.Context
 import com.xiaomo.androidforclaw.infra.FixedWindowRateLimiter
 import com.xiaomo.androidforclaw.process.resetAllLanes
@@ -363,16 +367,60 @@ class GatewayController(
                             )
                             Log.d(TAG, "✅ Gateway system prompt built (${systemPrompt.length} chars)")
 
-                            val result = perSessionLoop.run(
-                                systemPrompt = systemPrompt,
-                                userMessage = userMsg,
-                                contextHistory = contextHistory,
-                                reasoningEnabled = reasoningEnabled,
-                                images = imageBlocks.ifEmpty { null }
-                            )
-                            streamJob.cancel()
+                            // Check hermes mode
+                            val hermesEnabled = SPHelper.getInstance(context)
+                                .getData("hermes_enabled", false)
 
-                            val text = result.finalContent
+                            val text: String
+                            if (hermesEnabled) {
+                                // === HERMES MODE: use HermesAgentLoop ===
+                                Log.i(TAG, "🪽 Running in hermes mode")
+                                val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(context)
+                                val ccAdapter = com.xiaomo.androidforclaw.hermes.AppChatCompletionAdapter(llmProvider)
+                                val tdAdapter = com.xiaomo.androidforclaw.hermes.AppToolDispatcherAdapter(
+                                    com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher(toolRegistry, androidToolRegistry)
+                                )
+
+                                // Collect all tool definitions and convert to OpenAI format
+                                val allToolDefs = toolRegistry.getToolDefinitions() +
+                                    androidToolRegistry.getToolDefinitions()
+                                val hermesToolSchemas = com.xiaomo.androidforclaw.hermes.HermesBridge.convertToolDefsToHermes(allToolDefs)
+                                val hermesValidNames = allToolDefs.map { it.function.name }.toSet()
+
+                                val hermesLoop = com.xiaomo.androidforclaw.hermes.HermesAgentLoop(
+                                    server = ccAdapter,
+                                    toolSchemas = hermesToolSchemas,
+                                    validToolNames = hermesValidNames,
+                                    toolDispatcher = tdAdapter,
+                                    maxTurns = 30,
+                                    temperature = 1.0,
+                                )
+
+                                // Build messages in OpenAI format
+                                val messages = com.xiaomo.androidforclaw.hermes.HermesBridge.convertMessagesToHermes(
+                                    contextHistory
+                                )
+                                // Prepend system prompt
+                                messages.add(0, mapOf("role" to "system", "content" to systemPrompt))
+                                // Append user message
+                                messages.add(mapOf("role" to "user", "content" to userMsg))
+
+                                val hermesResult = hermesLoop.run(messages)
+                                text = com.xiaomo.androidforclaw.hermes.HermesBridge.extractFinalContent(hermesResult)
+                                streamJob.cancel()
+                                Log.i(TAG, "🪽 Hermes run done: ${hermesResult.turnsUsed} turns, natural=${hermesResult.finishedNaturally}")
+                            } else {
+                                // === STANDARD MODE: use app AgentLoop ===
+                                val result = perSessionLoop.run(
+                                    systemPrompt = systemPrompt,
+                                    userMessage = userMsg,
+                                    contextHistory = contextHistory,
+                                    reasoningEnabled = reasoningEnabled,
+                                    images = imageBlocks.ifEmpty { null }
+                                )
+                                streamJob.cancel()
+                                text = result.finalContent
+                            }
                             val msgId = "msg_${UUID.randomUUID()}"
                             val nowMs = System.currentTimeMillis()
 

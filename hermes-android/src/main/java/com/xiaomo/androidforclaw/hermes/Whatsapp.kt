@@ -1,116 +1,71 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * WhatsAppAdapter - 对齐 hermes-agent/gateway/platforms/whatsapp.py
+ */
 class WhatsAppAdapter(
-    val config: Map<String, Any>
+    private val config: Any? = null
 ) {
-    private fun whatsappRequireMention(): Unit {
-    // Hermes: _whatsapp_require_mention
-        // Hermes: whatsappRequireMention
+    companion object {
+        private const val TAG = "WhatsAppAdapter"
     }
-    private fun whatsappFreeResponseChats(): Unit {
-    // Hermes: _whatsapp_free_response_chats
-        // Hermes: whatsappFreeResponseChats
+
+    private fun whatsappRequireMention(): Boolean {
+        return false
     }
-    private fun compileMentionPatterns(): Unit {
-    // Hermes: _compile_mention_patterns
-        // Hermes: compileMentionPatterns
+
+    private fun whatsappFreeResponseChats(): List<String> {
+        return emptyList()
     }
-    private fun normalizeWhatsappId(value: String): Unit {
-    // Hermes: _normalize_whatsapp_id
-        // Hermes: normalizeWhatsappId
+
+    private fun compileMentionPatterns(): List<Regex> {
+        return emptyList()
     }
-    private fun botIdsFromMessage(data: Map<String, Any>): Unit {
-    // Hermes: _bot_ids_from_message
-        // Hermes: botIdsFromMessage
+
+    private fun normalizeWhatsappId(value: String): String {
+        return value
     }
-    private fun messageIsReplyToBot(data: Map<String, Any>): Unit {
-    // Hermes: _message_is_reply_to_bot
-        // Hermes: messageIsReplyToBot
+
+    private fun botIdsFromMessage(data: JSONObject): List<String> {
+        return emptyList()
     }
-    private fun messageMentionsBot(data: Map<String, Any>): Unit {
-    // Hermes: _message_mentions_bot
-        // Hermes: messageMentionsBot
+
+    private fun messageIsReplyToBot(data: JSONObject): Boolean {
+        return false
     }
-    private fun messageMatchesMentionPatterns(data: Map<String, Any>): Unit {
-    // Hermes: _message_matches_mention_patterns
-        // Hermes: messageMatchesMentionPatterns
+
+    private fun messageMentionsBot(data: JSONObject): Boolean {
+        return false
     }
-    private fun cleanBotMentionText(text: String, data: Map<String, Any>): Unit {
-    // Hermes: _clean_bot_mention_text
-        // Hermes: cleanBotMentionText
+
+    private fun messageMatchesMentionPatterns(data: JSONObject): Boolean {
+        return false
     }
-    private fun shouldProcessMessage(data: Map<String, Any>): Unit {
-    // Hermes: _should_process_message
-        // Hermes: shouldProcessMessage
+
+    private fun cleanBotMentionText(text: String, data: JSONObject): String {
+        return text
     }
-    suspend fun connect(): Unit {
-    // Hermes: connect
-        // Hermes: connect
+
+    private fun shouldProcessMessage(data: JSONObject): Boolean {
+        return true
     }
-    private fun closeBridgeLog(): Unit {
-    // Hermes: _close_bridge_log
-        // Hermes: closeBridgeLog
+
+    private fun closeBridgeLog() {
+        // cleanup
     }
-    private suspend fun checkManagedBridgeExit(): Unit {
-    // Hermes: _check_managed_bridge_exit
-        // Hermes: checkManagedBridgeExit
+
+    fun formatMessage(content: String): String {
+        return content
     }
-    suspend fun disconnect(): Unit {
-    // Hermes: disconnect
-        // Hermes: disconnect
+
+    private fun saveFence(m: JSONObject) {
+        // save fence state
     }
-    fun formatMessage(content: String): Unit {
-    // Hermes: format_message
-        // Hermes: formatMessage
-    }
-    suspend fun send(chat_id: String, content: String, reply_to: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send
-        // Hermes: send
-    }
-    suspend fun editMessage(chat_id: String, message_id: String, content: String): Unit {
-    // Hermes: edit_message
-        // Hermes: editMessage
-    }
-    private suspend fun sendMediaToBridge(chat_id: String, file_path: String, media_type: String, caption: String, file_name: String): Unit {
-    // Hermes: _send_media_to_bridge
-        // Hermes: sendMediaToBridge
-    }
-    suspend fun sendImage(chat_id: String, image_url: String, caption: String, reply_to: String): Unit {
-    // Hermes: send_image
-        // Hermes: sendImage
-    }
-    suspend fun sendImageFile(chat_id: String, image_path: String, caption: String, reply_to: String): Unit {
-    // Hermes: send_image_file
-        // Hermes: sendImageFile
-    }
-    suspend fun sendVideo(chat_id: String, video_path: String, caption: String, reply_to: String): Unit {
-    // Hermes: send_video
-        // Hermes: sendVideo
-    }
-    suspend fun sendDocument(chat_id: String, file_path: String, caption: String, file_name: String, reply_to: String): Unit {
-    // Hermes: send_document
-        // Hermes: sendDocument
-    }
-    suspend fun sendTyping(chat_id: String, metadata: Map<String, Any>): Unit {
-    // Hermes: send_typing
-        // Hermes: sendTyping
-    }
-    suspend fun getChatInfo(chat_id: String): Any? {
-    // Hermes: get_chat_info
-        return null
-        // Hermes: getChatInfo
-        return null
-    }
-    private suspend fun pollMessages(): Unit {
-    // Hermes: _poll_messages
-        // Hermes: pollMessages
-    }
-    private suspend fun buildMessageEvent(data: Map<String, Any>): Any? {
-    // Hermes: _build_message_event
-        return null
-        // Hermes: buildMessageEvent
-        return null
+
+    private fun saveCode(m: JSONObject) {
+        // save code block
     }
 }

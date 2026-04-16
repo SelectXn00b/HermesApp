@@ -12,8 +12,7 @@ object CredentialFiles {
         val hermesDir: File,
         val authFile: File,
         val configFile: File,
-        val secretsDir: File,
-    )
+        val secretsDir: File)
 
     fun getHermesDir(): File {
         val home = System.getProperty("user.home") ?: "."
@@ -28,8 +27,7 @@ object CredentialFiles {
         hermesDir = getHermesDir(),
         authFile = getAuthFile(),
         configFile = getConfigFile(),
-        secretsDir = getSecretsDir(),
-    )
+        secretsDir = getSecretsDir())
 
     fun ensureDirs() {
         getHermesDir().mkdirs()

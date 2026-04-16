@@ -24,8 +24,7 @@ object VisionTools {
     data class VisionResult(
         val success: Boolean = false,
         val analysis: String = "",
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -42,16 +41,14 @@ object VisionTools {
         prompt: String = "Describe this image in detail.",
         model: String? = null,
         apiKey: String? = null,
-        baseUrl: String? = null,
-    ): String {
+        baseUrl: String? = null): String {
         val file = File(imagePath)
         if (!file.exists()) return gson.toJson(mapOf("error" to "Image file not found: $imagePath"))
 
         val extension = file.extension.lowercase()
         val mimeTypes = mapOf(
             "png" to "image/png", "jpg" to "image/jpeg", "jpeg" to "image/jpeg",
-            "gif" to "image/gif", "webp" to "image/webp", "bmp" to "image/bmp",
-        )
+            "gif" to "image/gif", "webp" to "image/webp", "bmp" to "image/bmp")
         val mimeType = mimeTypes[extension] ?: "image/png"
 
         if (apiKey.isNullOrBlank()) {
@@ -74,14 +71,8 @@ object VisionTools {
                             mapOf(
                                 "type" to "image_url",
                                 "image_url" to mapOf(
-                                    "url" to "data:$mimeType;base64,$base64Image",
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-                "max_tokens" to 1000,
-            ))
+                                    "url" to "data:$mimeType;base64,$base64Image"))))),
+                "max_tokens" to 1000))
 
             val request = Request.Builder()
                 .url("$apiBase/chat/completions")
@@ -125,8 +116,7 @@ object VisionTools {
             }
             mapOf(
                 "base64" to Base64.getEncoder().encodeToString(bytes),
-                "mime_type" to mimeType,
-            )
+                "mime_type" to mimeType)
         } catch (e: Exception) {
             mapOf("error" to "Failed to read image: ${e.message}")
         }

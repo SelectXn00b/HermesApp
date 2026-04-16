@@ -21,8 +21,7 @@ private val _SUFFIXES: Map<String, Double> = mapOf(
     "m" to 60.0,
     "min" to 60.0,
     "minute" to 60.0,
-    "minutes" to 60.0,
-)
+    "minutes" to 60.0)
 
 /**
  * Parse a drain timeout from a config/env value.

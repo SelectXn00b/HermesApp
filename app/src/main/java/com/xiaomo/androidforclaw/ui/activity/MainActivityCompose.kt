@@ -221,7 +221,15 @@ class MainActivityCompose : ComponentActivity() {
 
             // 本地直连：同进程，无需 WebSocket 握手
             LaunchedEffect(Unit) {
-                openClawViewModel.connectLocal()
+                // Start Hermes gateway — it injects channel and calls connectLocal()
+                try {
+                    com.xiaomo.androidforclaw.core.MyApplication.startHermesGateway(this@MainActivityCompose)
+                    Log.d("MainActivityCompose", "Hermes gateway started")
+                } catch (e: Exception) {
+                    Log.e("MainActivityCompose", "Failed to start Hermes gateway", e)
+                    // Fallback: connect via old channel
+                    openClawViewModel.connectLocal()
+                }
                 // 让 CanvasTool 走 Screen tab 内嵌 WebView 而不是独立 Activity
                 com.xiaomo.androidforclaw.canvas.CanvasManager.screenTabController =
                     openClawViewModel.canvas
@@ -233,7 +241,6 @@ class MainActivityCompose : ComponentActivity() {
                         onAccept = {
                             legalPrefs.edit().putBoolean("legal.accepted", true).apply()
                             legalAccepted = true
-                            // Request storage permission after legal consent
                             checkAndRequestStoragePermission()
                             // For Android 10 and below (no MANAGE_EXTERNAL_STORAGE needed),
                             // launch model setup immediately since permission is already granted.

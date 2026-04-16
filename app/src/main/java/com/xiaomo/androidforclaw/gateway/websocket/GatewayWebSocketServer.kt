@@ -1,5 +1,7 @@
 package com.xiaomo.androidforclaw.gateway.websocket
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 import android.content.Context
 import com.xiaomo.androidforclaw.gateway.protocol.*
 import com.xiaomo.androidforclaw.gateway.security.TokenAuth

@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class WeComCallbackAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.WECOM_CALLBACK) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.WECOM_CALLBACK) {
     companion object { private const val TAG = "WeComCallbackAdapter" }
 
     override suspend fun connect(): Boolean {

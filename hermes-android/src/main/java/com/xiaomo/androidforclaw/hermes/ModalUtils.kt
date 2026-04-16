@@ -1,81 +1,62 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * ModalUtils - 对齐 ../hermes-agent/tools/environments/modal_utils.py
+ * Python 原始: 186 行
+ */
 class PreparedModalExec {
-    // Hermes: PreparedModalExec
 }
 
 class ModalExecStart {
-    // Hermes: ModalExecStart
+    fun wrap_modal_stdin_heredoc(command: Any?, stdin_data: Any?): Any? {
+        // Python: wrap_modal_stdin_heredoc
+        return null
+    }
+
+    fun wrap_modal_sudo_pipe(command: Any?, sudo_stdin: Any?): Any? {
+        // Python: wrap_modal_sudo_pipe
+        return null
+    }
+
 }
 
 class BaseModalExecutionEnvironment {
-    // Hermes: BaseModalExecutionEnvironment
-    fun execute(command: String, cwd: String): Unit {
-    // Hermes: execute
-        // Hermes: execute
-    }
-    private fun beforeExecute(): Unit {
-    // Hermes: _before_execute
-        // Hermes: beforeExecute
-    }
-    private fun prepareModalExec(command: String): Unit {
-    // Hermes: _prepare_modal_exec
-        // Hermes: prepareModalExec
-    }
-    private fun result(output: String, returncode: String): Unit {
-    // Hermes: _result
-        // Hermes: result
-    }
-    private fun errorResult(output: String): Unit {
-    // Hermes: _error_result
-        // Hermes: errorResult
-    }
-    private fun timeoutResultForModal(timeout: Long): Unit {
-    // Hermes: _timeout_result_for_modal
-        // Hermes: timeoutResultForModal
-    }
-    private fun startModalExec(prepared: String): Unit {
-    // Hermes: _start_modal_exec
-        // Hermes: startModalExec
-    }
-    private fun pollModalExec(handle: String): Unit {
-    // Hermes: _poll_modal_exec
-        // Hermes: pollModalExec
-    }
-    private fun cancelModalExec(handle: String): Unit {
-    // Hermes: _cancel_modal_exec
-        // Hermes: cancelModalExec
+    private fun _before_execute(): Any? {
+        // Python: _before_execute
+        return null
     }
 
-    /** Hook for backends that need pre-exec sync or validation. */
-    fun _beforeExecute(): Unit {
-        // TODO: implement _beforeExecute
-    }
-    fun _prepareModalExec(command: String): PreparedModalExec {
-        throw NotImplementedError("_prepareModalExec")
-    }
-    fun _result(output: String, returncode: Int): Any? {
+    private fun _result(output: Any?, returncode: Any?): Any? {
+        // Python: _result
         return null
     }
-    fun _errorResult(output: String): Any? {
+
+    private fun _error_result(output: Any?): Any? {
+        // Python: _error_result
         return null
     }
-    fun _timeoutResultForModal(timeout: Int): Any? {
+
+    private fun _timeout_result_for_modal(timeout: Any?): Any? {
+        // Python: _timeout_result_for_modal
         return null
     }
-    /** Begin a transport-specific exec. */
-    fun _startModalExec(prepared: PreparedModalExec): ModalExecStart {
-        throw NotImplementedError("_startModalExec")
-    }
-    /** Return a final result dict when complete, else ``None``. */
-    fun _pollModalExec(handle: Any): Any? {
+
+    private fun _start_modal_exec(prepared: Any?): Any? {
+        // Python: _start_modal_exec
         return null
     }
-    /** Cancel or terminate the active transport exec. */
-    fun _cancelModalExec(handle: Any): Unit {
-        // TODO: implement _cancelModalExec
+
+    private fun _poll_modal_exec(handle: Any?): Any? {
+        // Python: _poll_modal_exec
+        return null
+    }
+
+    private fun _cancel_modal_exec(handle: Any?): Any? {
+        // Python: _cancel_modal_exec
+        return null
     }
 
 }

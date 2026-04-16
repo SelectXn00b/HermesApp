@@ -23,8 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class WeixinAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.WEIXIN) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEIXIN) {
     companion object { private const val TAG = "WeixinAdapter" }
 
     private val _appId: String = config.extra("app_id") ?: System.getenv("WEIXIN_APP_ID") ?: ""
@@ -86,8 +85,7 @@ class WeixinAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 

@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class SignalAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.SIGNAL) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.SIGNAL) {
     companion object { private const val TAG = "SignalAdapter" }
 
     override suspend fun connect(): Boolean {

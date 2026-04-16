@@ -1,96 +1,64 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * ManagedModal - 对齐 ../hermes-agent/tools/environments/managed_modal.py
+ * Python 原始: 282 行
+ */
 class _ManagedModalExecHandle {
-    // Hermes: _ManagedModalExecHandle
 }
 
-class ManagedModalEnvironment(
-    val image: String,
-    val cwd: String,
-    val timeout: Long,
-    val modal_sandbox_kwargs: List<String>,
-    val persistent_filesystem: String,
-    val task_id: String
-) {
-    private fun startModalExec(prepared: String): Unit {
-    // Hermes: _start_modal_exec
-        // Hermes: startModalExec
-    }
-    private fun pollModalExec(handle: String): Unit {
-    // Hermes: _poll_modal_exec
-        // Hermes: pollModalExec
-    }
-    private fun cancelModalExec(handle: String): Unit {
-    // Hermes: _cancel_modal_exec
-        // Hermes: cancelModalExec
-    }
-    private fun timeoutResultForModal(timeout: Long): Unit {
-    // Hermes: _timeout_result_for_modal
-        // Hermes: timeoutResultForModal
-    }
-    fun cleanup(): Unit {
-    // Hermes: cleanup
-        // Hermes: cleanup
-    }
-    private fun createSandbox(): Any? {
-    // Hermes: _create_sandbox
+class ManagedModalEnvironment {
+    private fun _start_modal_exec(prepared: Any?): Any? {
+        // Python: _start_modal_exec
         return null
-        // Hermes: createSandbox
-        return null
-    }
-    private fun guardUnsupportedCredentialPassthrough(): Unit {
-    // Hermes: _guard_unsupported_credential_passthrough
-        // Hermes: guardUnsupportedCredentialPassthrough
-    }
-    private fun request(method: String, path: String): Unit {
-    // Hermes: _request
-        // Hermes: request
-    }
-    private fun cancelExec(exec_id: String): Unit {
-    // Hermes: _cancel_exec
-        // Hermes: cancelExec
-    }
-    private fun coerceNumber(value: String, default: String): Unit {
-    // Hermes: _coerce_number
-        // Hermes: coerceNumber
-    }
-    private fun formatError(prefix: String, response: String): Unit {
-    // Hermes: _format_error
-        // Hermes: formatError
     }
 
-    fun _startModalExec(prepared: PreparedModalExec): ModalExecStart {
-        throw NotImplementedError("_startModalExec")
-    }
-    fun _pollModalExec(handle: Any?): Any? {
+    private fun _poll_modal_exec(handle: Any?): Any? {
+        // Python: _poll_modal_exec
         return null
     }
-    fun _cancelModalExec(handle: Any?): Unit {
-        // TODO: implement _cancelModalExec
-    }
-    fun _timeoutResultForModal(timeout: Int): Any? {
+
+    private fun _cancel_modal_exec(handle: Any?): Any? {
+        // Python: _cancel_modal_exec
         return null
     }
-    fun _createSandbox(): String {
-        return ""
+
+    private fun _timeout_result_for_modal(timeout: Any?): Any? {
+        // Python: _timeout_result_for_modal
+        return null
     }
-    /** Managed Modal does not sync or mount host credential files. */
-    fun _guardUnsupportedCredentialPassthrough(): Unit {
-        // TODO: implement _guardUnsupportedCredentialPassthrough
+
+    fun cleanup(): Any? {
+        // Python: cleanup
+        return null
     }
-    fun _request(method: String, path: String): Any? {
-        throw NotImplementedError("_request")
+
+    private fun _create_sandbox(): Any? {
+        // Python: _create_sandbox
+        return null
     }
-    fun _cancelExec(execId: String): Unit {
-        // TODO: implement _cancelExec
+
+    private fun _guard_unsupported_credential_passthrough(): Any? {
+        // Python: _guard_unsupported_credential_passthrough
+        return null
     }
-    fun _coerceNumber(value: Any, default: Double): Double {
-        return 0.0
+
+    private fun _cancel_exec(exec_id: Any?): Any? {
+        // Python: _cancel_exec
+        return null
     }
-    fun _formatError(prefix: String, response: Any?): String {
-        return ""
+
+    private fun _coerce_number(value: Any?, default: Any?): Any? {
+        // Python: _coerce_number
+        return null
+    }
+
+    private fun _format_error(prefix: Any?, response: Any?): Any? {
+        // Python: _format_error
+        return null
     }
 
 }

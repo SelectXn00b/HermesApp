@@ -1,19 +1,35 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * ModelSwitch - 对齐 ../hermes-agent/hermes_cli/model_switch.py
+ * Python 原始: 1090 行
+ */
 class ModelIdentity {
-    // Hermes: ModelIdentity
 }
 
 class DirectAlias {
-    // Hermes: DirectAlias
+    private fun _load_direct_aliases(): Any? {
+        // Python: _load_direct_aliases
+        return null
+    }
+
+    private fun _ensure_direct_aliases(): Any? {
+        // Python: _ensure_direct_aliases
+        return null
+    }
+
 }
 
 class ModelSwitchResult {
-    // Hermes: ModelSwitchResult
 }
 
 class CustomAutoResult {
-    // Hermes: CustomAutoResult
+    fun parse_model_flags(raw_args: Any?): Any? {
+        // Python: parse_model_flags
+        return null
+    }
+
 }

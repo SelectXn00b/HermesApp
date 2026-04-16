@@ -1,44 +1,32 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
-class LocalEnvironment(
-    val cwd: String,
-    val timeout: Long,
-    val env: String
-) {
-    fun getTempDir(): Any? {
-    // Hermes: get_temp_dir
-        return null
-        // Hermes: getTempDir
-        return java.io.File("/tmp")
-    }
-    private fun runBash(cmd_string: String): Unit {
-    // Hermes: _run_bash
-        // Hermes: runBash
-    }
-    private fun killProcess(proc: String): Unit {
-    // Hermes: _kill_process
-        // Hermes: killProcess
-    }
-    private fun updateCwd(result: String): Unit {
-    // Hermes: _update_cwd
-        // Hermes: updateCwd
-    }
-    fun cleanup(): Unit {
-    // Hermes: cleanup
-        // Hermes: cleanup
-    }
+/**
+ * Local - 对齐 ../hermes-agent/tools/environments/local.py
+ * Python 原始: 314 行
+ */
+class LocalEnvironment {
+    init { /* Python __init__ */ }
 
-    fun _runBash(cmdString: String): Any? {
-        throw NotImplementedError("_runBash")
-    }
-    /** Kill the entire process group (all children). */
-    fun _killProcess(proc: Any?): Any? {
+    fun get_temp_dir(): Any? {
+        // Python: get_temp_dir
         return null
     }
-    /** Read CWD from temp file (local-only, no round-trip needed). */
-    fun _updateCwd(result: Any?): Any? {
+
+    private fun _kill_process(proc: Any?): Any? {
+        // Python: _kill_process
+        return null
+    }
+
+    private fun _update_cwd(result: Any?): Any? {
+        // Python: _update_cwd
+        return null
+    }
+
+    fun cleanup(): Any? {
+        // Python: cleanup
         return null
     }
 

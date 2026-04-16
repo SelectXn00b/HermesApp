@@ -1,20 +1,34 @@
 package com.xiaomo.androidforclaw.hermes.tools
 
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
+import java.security.MessageDigest
+import android.util.Log
+import java.util.concurrent.ConcurrentHashMap
+import java.util.regex.Pattern
+import java.util.zip.ZipInputStream
 
 /**
  * Skills Hub — manages skill discovery and loading.
  * Ported from skills_hub.py
  */
 object SkillsHub {
+    private const val TAG = "SkillsHub"
 
     data class SkillInfo(
         val name: String,
         val description: String = "",
         val path: String = "",
         val category: String = "general",
-        val enabled: Boolean = true,
-    )
+        val enabled: Boolean = true)
 
     private val _skills = mutableMapOf<String, SkillInfo>()
 
@@ -86,300 +100,224 @@ object SkillsHub {
     }
 
 
-    // === Missing constants (auto-generated stubs) ===
-    val HERMES_HOME = ""
-    val SKILLS_DIR = ""
-    val HUB_DIR = ""
-    val LOCK_FILE = ""
-    val QUARANTINE_DIR = ""
-    val AUDIT_LOG = ""
-    val TAPS_FILE = ""
-    val INDEX_CACHE_DIR = ""
-    val INDEX_CACHE_TTL = ""
-    val HERMES_INDEX_URL = ""
-    val HERMES_INDEX_CACHE_FILE = ""
-    val HERMES_INDEX_TTL = ""
+    // === Path constants ===
+    val HERMES_HOME: String get() = _hermesHome().absolutePath
+    val SKILLS_DIR: String get() = File(_hermesHome(), "skills").absolutePath
+    val HUB_DIR: String get() = File(SKILLS_DIR, ".hub").absolutePath
+    val LOCK_FILE: String get() = File(HUB_DIR, "lock.json").absolutePath
+    val QUARANTINE_DIR: String get() = File(HUB_DIR, "quarantine").absolutePath
+    val AUDIT_LOG: String get() = File(HUB_DIR, "audit.log").absolutePath
+    val TAPS_FILE: String get() = File(HUB_DIR, "taps.json").absolutePath
+    val INDEX_CACHE_DIR: String get() = File(HUB_DIR, "index-cache").absolutePath
+    val INDEX_CACHE_TTL: Long = 3600L  // 1 hour in seconds
+    val HERMES_INDEX_URL: String = "https://hermes-agent.nousresearch.com/docs/api/skills-index.json"
+    val HERMES_INDEX_CACHE_FILE: String get() = File(INDEX_CACHE_DIR, "hermes-index.json").absolutePath
+    val HERMES_INDEX_TTL: Long = 6 * 3600L  // 6 hours
 
-    // === Missing methods (auto-generated stubs) ===
-    private fun normalizeBundlePath(path_value: String): Unit {
-    // Hermes: _normalize_bundle_path
-}
+    // Trusted repos set
+    private val TRUSTED_REPOS = setOf(
+        "openai/skills",
+        "anthropics/skills")
+
+    // --- Internal state ---
+    private var _rootDir: File? = null
+    private val _treeCache = ConcurrentHashMap<String, Pair<String, List<JSONObject>>>()
+    private var _rateLimited = false
+
+    // --- GitHub auth state ---
+    private var _cachedToken: String? = null
+    private var _cachedMethod: String? = null
+    private var _appTokenExpiry: Long = 0
+
+    // --- Cache helpers state ---
+    private val _memoryCache = ConcurrentHashMap<String, Pair<Long, Any>>()
+
+    /**
+     * Initialize with a root directory (typically context.filesDir on Android).
+     */
+    fun init(rootDir: File) {
+        _rootDir = rootDir
+    }
+
+    private fun _hermesHome(): File {
+        return _rootDir ?: File(System.getProperty("user.home"), ".hermes")
+    }
+
+    // === Normalize bundle path ===
+    private fun normalizeBundlePath(pathValue: String, fieldName: String = "path", allowNested: Boolean = false): String {
+        if (pathValue.isBlank()) throw IllegalArgumentException("Unsafe $fieldName: empty path")
+        val normalized = pathValue.replace("\\", "/")
+        if (normalized.startsWith("/")) throw IllegalArgumentException("Unsafe $fieldName: $pathValue")
+        val parts = normalized.split("/").filter { it.isNotEmpty() && it != "." }
+        if (parts.isEmpty() || parts.any { it == ".." }) throw IllegalArgumentException("Unsafe $fieldName: $pathValue")
+        if (parts[0].matches(Regex("[A-Za-z]:"))) throw IllegalArgumentException("Unsafe $fieldName: $pathValue")
+        if (!allowNested && parts.size != 1) throw IllegalArgumentException("Unsafe $fieldName: $pathValue")
+        return parts.joinToString("/")
+    }
+
+    private fun validateSkillName(name: String): String = normalizeBundlePath(name, "skill name", false)
+    private fun validateCategoryName(category: String): String = normalizeBundlePath(category, "category", false)
+    private fun validateBundleRelPath(relPath: String): String = normalizeBundlePath(relPath, "bundle file path", true)
+
+    // =========================================================================
+    // GitHub Authentication
+    // =========================================================================
 
     /** Return authorization headers for GitHub API requests. */
     fun getHeaders(): Map<String, String> {
-        return emptyMap()
-    }
-    fun isAuthenticated(): Boolean {
-        return false
-    }
-    /** Return which auth method is active: 'pat', 'gh-cli', 'github-app', or 'anonymous'. */
-    fun authMethod(): String {
-        return ""
-    }
-    fun _resolveToken(): String? {
-        return null
-    }
-    /** Try to get a token from the gh CLI. */
-    fun _tryGhCli(): String? {
-        return null
-    }
-    /** Try GitHub App JWT authentication if credentials are configured. */
-    fun _tryGithubApp(): String? {
-        return null
-    }
-    /** Search for skills matching a query string. */
-    fun search(query: String, limit: Int = 10): List<Any?> {
-        return emptyList()
-    }
-    /** Download a skill bundle by identifier. */
-    fun fetch(identifier: String): Any? {
-        return null
-    }
-    /** Fetch metadata for a skill without downloading all files. */
-    fun inspect(identifier: String): Any? {
-        return null
-    }
-    /** Unique identifier for this source (e.g. 'github', 'clawhub'). */
-    fun sourceId(): String {
-        return ""
-    }
-    /** Determine trust level for a skill from this source. */
-    fun trustLevelFor(identifier: String): String {
-        return ""
-    }
-    /** Whether GitHub API rate limit was hit during operations. */
-    fun isRateLimited(): Boolean {
-        return false
-    }
-    /** List skill directories in a GitHub repo path, using cached index. */
-    fun _listSkillsInRepo(repo: String, path: String): List<Any?> {
-        return emptyList()
-    }
-    /** Get cached or fresh repo tree. */
-    fun _getRepoTree(repo: String): Pair<String, List<Any?>>? {
-        throw NotImplementedError("_getRepoTree")
-    }
-    /** Flag the instance as rate-limited when GitHub returns 403 + exhausted quota. */
-    fun _checkRateLimitResponse(resp: Any?): Unit {
-        // TODO: implement _checkRateLimitResponse
-    }
-    /** Recursively download all text files from a GitHub directory. */
-    fun _downloadDirectory(repo: String, path: String): Map<String, String> {
-        return emptyMap()
-    }
-    /** Download an entire directory using the Git Trees API (single request). */
-    fun _downloadDirectoryViaTree(repo: String, path: String): Map<String, String>? {
-        return emptyMap()
-    }
-    /** Recursively download via Contents API (fallback). */
-    fun _downloadDirectoryRecursive(repo: String, path: String): Map<String, String> {
-        return emptyMap()
-    }
-    /** Use the GitHub Trees API to find a skill directory anywhere in the repo. */
-    fun _findSkillInRepoTree(repo: String, skillName: String): String? {
-        return null
-    }
-    /** Fetch a single file's content from GitHub. */
-    fun _fetchFileContent(repo: String, path: String): String? {
-        return null
-    }
-    /** Read cached index if not expired. */
-    fun _readCache(key: String): Any? {
-        return null
-    }
-    /** Write index data to cache. */
-    fun _writeCache(key: String, data: Any?): Unit {
-        // TODO: implement _writeCache
-    }
-    fun _metaToDict(meta: Any?): Any? {
-        return null
-    }
-    /** Parse YAML frontmatter from SKILL.md content. */
-    fun _parseFrontmatterQuick(content: String): Any? {
-        return null
-    }
-    fun _queryToIndexUrl(query: String): String? {
-        return null
-    }
-    fun _parseIdentifier(identifier: String): Any? {
-        return null
-    }
-    fun _parseIndex(indexUrl: String): Any? {
-        return null
-    }
-    fun _indexEntry(indexUrl: String, skillName: String): Any? {
-        return null
-    }
-    fun _fetchText(url: String): String? {
-        return null
-    }
-    fun _wrapIdentifier(baseUrl: String, skillName: String): String {
-        return ""
-    }
-    fun _featuredSkills(limit: Int): List<Any?> {
-        return emptyList()
-    }
-    fun _metaFromSearchItem(item: Any?): Any? {
-        return null
-    }
-    fun _fetchDetailPage(identifier: String): Any? {
-        return null
-    }
-    fun _parseDetailPage(identifier: String, html: String): Any? {
-        return null
-    }
-    fun _discoverIdentifier(identifier: String, detail: Any?? = null): String? {
-        return null
-    }
-    fun _resolveGithubMeta(identifier: String, detail: Any?? = null): Any? {
-        return null
-    }
-    fun _finalizeInspectMeta(meta: Any?, canonical: String, detail: Any??): Any? {
-        throw NotImplementedError("_finalizeInspectMeta")
-    }
-    fun _matchesSkillTokens(meta: Any?, skillTokens: List<String>): Boolean {
-        return false
-    }
-    fun _tokenVariants(value: String?): Set<String> {
-        return emptySet()
-    }
-    fun _extractRepoSlug(repoValue: String): String? {
-        return null
-    }
-    fun _extractFirstMatch(pattern: Any?, text: String): String? {
-        return null
-    }
-    fun _detailToMetadata(canonical: String, detail: Any??): Map<String, Any> {
-        return emptyMap()
-    }
-    fun _extractWeeklyInstalls(html: String): String? {
-        return null
-    }
-    fun _extractSecurityAudits(html: String, identifier: String): Map<String, String> {
-        return emptyMap()
-    }
-    fun _stripHtml(value: String): String {
-        return ""
-    }
-    fun _normalizeIdentifier(identifier: String): String {
-        return ""
-    }
-    fun _candidateIdentifiers(identifier: String): List<String> {
-        return emptyList()
-    }
-    fun _normalizeTags(tags: Any): List<String> {
-        return emptyList()
-    }
-    fun _coerceSkillPayload(data: Any): Map<String, Any>? {
-        return emptyMap()
-    }
-    fun _queryTerms(query: String): List<String> {
-        return emptyList()
-    }
-    fun _searchScore(query: String, meta: Any?): Int {
-        return 0
-    }
-    fun _dedupeResults(results: List<Any?>): List<Any?> {
-        return emptyList()
-    }
-    fun _exactSlugMeta(query: String): Any? {
-        return null
-    }
-    fun _finalizeSearchResults(query: String, results: List<Any?>, limit: Int): List<Any?> {
-        return emptyList()
-    }
-    fun _searchCatalog(query: String, limit: Int = 10): List<Any?> {
-        return emptyList()
-    }
-    fun _loadCatalogIndex(): List<Any?> {
-        return emptyList()
-    }
-    fun _getJson(url: String, timeout: Int = 20): Any? {
-        return null
-    }
-    fun _resolveLatestVersion(slug: String, skillData: Map<String, Any>): String? {
-        return null
-    }
-    fun _extractFiles(versionData: Map<String, Any>): Map<String, String> {
-        return emptyMap()
-    }
-    /** Download skill as a ZIP bundle from the /download endpoint and extract text files. */
-    fun _downloadZip(slug: String, version: String): Map<String, String> {
-        return emptyMap()
-    }
-    /** Fetch and parse .claude-plugin/marketplace.json from a repo. */
-    fun _fetchMarketplaceIndex(repo: String): List<Any?> {
-        return emptyList()
-    }
-    /** Fetch the LobeHub agent index (cached for 1 hour). */
-    fun _fetchIndex(): Any? {
-        return null
-    }
-    /** Fetch a single agent's JSON file. */
-    fun _fetchAgent(agentId: String): Any? {
-        return null
-    }
-    /** Convert a LobeHub agent JSON into SKILL.md format. */
-    fun _convertToSkillMd(agentData: Any?): String {
-        return ""
-    }
-    /** Find a skill directory by name anywhere in optional-skills/. */
-    fun _findSkillDir(name: String): String? {
-        return null
-    }
-    /** Enumerate all optional skills with metadata. */
-    fun _scanAll(): List<Any?> {
-        return emptyList()
-    }
-    /** Parse YAML frontmatter from SKILL.md content. */
-    fun _parseFrontmatter(content: String): Any? {
-        return null
-    }
-    fun load(): Any? {
-        return null
-    }
-    fun save(data: Any?): Unit {
-        // TODO: implement save
-    }
-    fun recordInstall(name: String, source: String, identifier: String, trustLevel: String, scanVerdict: String, skillHash: String, installPath: String, files: List<String>, metadata: Map<String, Any>? = null): Unit {
-        // TODO: implement recordInstall
-    }
-    fun recordUninstall(name: String): Unit {
-        // TODO: implement recordUninstall
-    }
-    fun getInstalled(name: String): Any? {
-        return null
-    }
-    fun listInstalled(): List<Any?> {
-        return emptyList()
-    }
-    /** Add a tap. Returns False if already exists. */
-    fun add(repo: String, path: String = "skills/"): Boolean {
-        return false
-    }
-    /** Remove a tap by repo name. Returns False if not found. */
-    fun remove(repo: String): Boolean {
-        return false
-    }
-    fun listTaps(): List<Any?> {
-        return emptyList()
-    }
-    fun _ensureLoaded(): Any? {
-        return null
-    }
-    fun _getGithub(): Any? {
-        throw NotImplementedError("_getGithub")
-    }
-    /** Whether the index is loaded and has skills. */
-    fun isAvailable(): Boolean {
-        return false
-    }
-    /** Look up a skill in the index by identifier or name. */
-    fun _findEntry(identifier: String, index: Any?): Any? {
-        return null
-    }
-    fun _toMeta(entry: Any?): Any? {
-        throw NotImplementedError("_toMeta")
+        val token = _resolveToken()
+        val headers = mutableMapOf("Accept" to "application/vnd.github.v3+json")
+        if (token != null) {
+            headers["Authorization"] = "token $token"
+        }
+        return headers
     }
 
+    fun isAuthenticated(): Boolean = _resolveToken() != null
+
+    /** Return which auth method is active: 'pat', 'gh-cli', 'github-app', or 'anonymous'. */
+    fun authMethod(): String {
+        _resolveToken()
+        return _cachedMethod ?: "anonymous"
+    }
+
+    fun _resolveToken(): String? {
+        // Return cached token if still valid
+        if (_cachedToken != null) {
+            if (_cachedMethod != "github-app" || System.currentTimeMillis() / 1000 < _appTokenExpiry) {
+                return _cachedToken
+            }
+        }
+
+        // 1. Environment variable
+        val envToken = System.getenv("GITHUB_TOKEN") ?: System.getenv("GH_TOKEN")
+        if (!envToken.isNullOrBlank()) {
+            _cachedToken = envToken
+            _cachedMethod = "pat"
+            return envToken
+        }
+
+        // 2. gh CLI
+        val ghToken = _tryGhCli()
+        if (ghToken != null) {
+            _cachedToken = ghToken
+            _cachedMethod = "gh-cli"
+            return ghToken
+        }
+
+        // 3. GitHub App
+        val appToken = _tryGithubApp()
+        if (appToken != null) {
+            _cachedToken = appToken
+            _cachedMethod = "github-app"
+            _appTokenExpiry = System.currentTimeMillis() / 1000 + 3500
+            return appToken
+        }
+
+        _cachedMethod = "anonymous"
+        return null
+    }
+
+    /** Try to get a token from the gh CLI. */
+    fun _tryGhCli(): String? {
+        return try {
+            val proc = ProcessBuilder("gh", "auth", "token")
+                .redirectErrorStream(true)
+                .start()
+            val output = proc.inputStream.bufferedReader().readText().trim()
+            val exited = proc.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+            if (exited && proc.exitValue() == 0 && output.isNotEmpty()) output else null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** Try GitHub App JWT authentication if credentials are configured. */
+    fun _tryGithubApp(): String? {
+        val appId = System.getenv("GITHUB_APP_ID") ?: return null
+        val keyPath = System.getenv("GITHUB_APP_PRIVATE_KEY_PATH") ?: return null
+        val installationId = System.getenv("GITHUB_APP_INSTALLATION_ID") ?: return null
+
+        val keyFile = File(keyPath)
+        if (!keyFile.exists()) return null
+
+        // JWT generation requires external library; skip on Android if unavailable
+        return try {
+            // Minimal JWT creation using available crypto
+            val privateKey = keyFile.readText()
+            val now = System.currentTimeMillis() / 1000
+            val payload = JSONObject()
+                .put("iat", now - 60)
+                .put("exp", now + 600)
+                .put("iss", appId)
+
+            // If java-jwt or similar is on classpath, generate JWT
+            // For now, return null as PyJWT equivalent isn't available
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    // =========================================================================
+    // HTTP helpers
+    // =========================================================================
+
+    private fun _httpGet(url: String, headers: Map<String, String> = getHeaders(), timeout: Int = 15000): Pair<Int, String>? {
+        return try {
+            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = timeout
+                readTimeout = timeout
+                instanceFollowRedirects = true
+                headers.forEach { (k, v) -> setRequestProperty(k, v) }
+            }
+            val code = conn.responseCode
+            val body = if (code in 200..299) {
+                conn.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+            }
+            conn.disconnect()
+            Pair(code, body)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun _httpPost(url: String, headers: Map<String, String>, body: String, timeout: Int = 10000): Pair<Int, String>? {
+        return try {
+            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = timeout
+                readTimeout = timeout
+                doOutput = true
+                headers.forEach { (k, v) -> setRequestProperty(k, v) }
+            }
+            conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            val resp = if (code in 200..299) {
+                conn.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+            }
+            conn.disconnect()
+            Pair(code, resp)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun _checkRateLimitResponse(code: Int, headers: Map<String, List<String>>) {
+        if (code == 403) {
+            val remaining = headers["X-RateLimit-Remaining"]?.firstOrNull() ?: ""
+            if (remaining == "0") {
+                _rateLimited = true
+                Log.w(TAG,
+                    "GitHub API rate limit exhausted (unauthenticated: 60 req/hr). " +
+                    "Set GITHUB_TOKEN or install the gh CLI to raise the limit to 5,000/hr."
+                )
+            }
+        }
+    }
 }

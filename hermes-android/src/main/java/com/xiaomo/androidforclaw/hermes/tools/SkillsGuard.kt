@@ -12,8 +12,7 @@ object SkillsGuard {
 
     data class GuardResult(
         val allowed: Boolean = false,
-        val reason: String? = null,
-    )
+        val reason: String? = null)
 
     /**
      * Check if a skill operation is allowed.
@@ -21,8 +20,7 @@ object SkillsGuard {
     fun checkOperation(
         operation: String,
         skillName: String? = null,
-        path: String? = null,
-    ): GuardResult {
+        path: String? = null): GuardResult {
         // Check path security
         if (path != null) {
             val pathError = PathSecurity.validatePath(path)

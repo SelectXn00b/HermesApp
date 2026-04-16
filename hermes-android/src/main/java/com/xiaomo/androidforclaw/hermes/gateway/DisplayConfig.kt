@@ -112,8 +112,7 @@ data class DisplayConfig(
     /** Whether the platform supports chat shared. */
     val supportsChatShared: Boolean = false,
     /** Whether the platform supports story. */
-    val supportsStory: Boolean = false,
-) {
+    val supportsStory: Boolean = false) {
     /** Build a summary string for logging. */
     fun summary(): String = buildString {
         append("DisplayConfig(")
@@ -226,8 +225,7 @@ data class DisplayConfig(
             supportsWriteAccessAllowed = json.optBoolean("supports_write_access_allowed", false),
             supportsUserShared = json.optBoolean("supports_user_shared", false),
             supportsChatShared = json.optBoolean("supports_chat_shared", false),
-            supportsStory = json.optBoolean("supports_story", false),
-        )
+            supportsStory = json.optBoolean("supports_story", false))
     }
 }
 

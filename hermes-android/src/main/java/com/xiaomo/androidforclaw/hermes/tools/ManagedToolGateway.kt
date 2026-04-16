@@ -23,8 +23,7 @@ object ManagedToolGateway {
         val vendor: String,
         val gatewayOrigin: String,
         val nousUserToken: String,
-        val managedMode: Boolean,
-    )
+        val managedMode: Boolean)
 
     private val gson = Gson()
 
@@ -87,8 +86,7 @@ object ManagedToolGateway {
     fun resolveManagedToolGateway(
         vendor: String,
         gatewayBuilder: ((String) -> String)? = null,
-        tokenReader: (() -> String?)? = null,
-    ): ManagedToolGatewayConfig? {
+        tokenReader: (() -> String?)? = null): ManagedToolGatewayConfig? {
         if (!ToolBackendHelpers.managedNousToolsEnabled()) return null
 
         val gatewayOrigin = (gatewayBuilder ?: { buildVendorGatewayUrl(it) })(vendor)
@@ -100,8 +98,7 @@ object ManagedToolGateway {
             vendor = vendor,
             gatewayOrigin = gatewayOrigin,
             nousUserToken = nousUserToken,
-            managedMode = true,
-        )
+            managedMode = true)
     }
 
     /**
@@ -110,8 +107,7 @@ object ManagedToolGateway {
     fun isManagedToolGatewayReady(
         vendor: String,
         gatewayBuilder: ((String) -> String)? = null,
-        tokenReader: (() -> String?)? = null,
-    ): Boolean = resolveManagedToolGateway(vendor, gatewayBuilder, tokenReader) != null
+        tokenReader: (() -> String?)? = null): Boolean = resolveManagedToolGateway(vendor, gatewayBuilder, tokenReader) != null
 
     private fun getDefaultAuthFile(): File? {
         val home = System.getProperty("user.home") ?: return null

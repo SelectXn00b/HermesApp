@@ -13,8 +13,7 @@ object DelegateTool {
     data class DelegateResult(
         val success: Boolean = false,
         val output: String = "",
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     /**
      * Callback interface for spawning sub-agents.
@@ -30,8 +29,7 @@ object DelegateTool {
         task: String,
         context: String? = null,
         model: String? = null,
-        delegator: Delegator? = null,
-    ): String {
+        delegator: Delegator? = null): String {
         if (task.isBlank()) {
             return gson.toJson(mapOf("error" to "Task description is required"))
         }

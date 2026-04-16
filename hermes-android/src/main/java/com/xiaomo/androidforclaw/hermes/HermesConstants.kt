@@ -85,8 +85,7 @@ data class ProviderInfo(
     val baseUrlTemplate: String,
     val authHeader: String,
     val defaultModel: String,
-    val requiresApiKey: Boolean = true,
-)
+    val requiresApiKey: Boolean = true)
 
 val PROVIDERS: Map<String, ProviderInfo> = mapOf(
     PROVIDER_OPENAI to ProviderInfo(
@@ -96,8 +95,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("OPENAI_API_KEY"),
         baseUrlTemplate = "https://api.openai.com/v1",
         authHeader = "Authorization",
-        defaultModel = "gpt-4o",
-    ),
+        defaultModel = "gpt-4o"),
     PROVIDER_ANTHROPIC to ProviderInfo(
         name = PROVIDER_ANTHROPIC,
         displayName = "Anthropic",
@@ -105,8 +103,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("ANTHROPIC_API_KEY"),
         baseUrlTemplate = "https://api.anthropic.com/v1",
         authHeader = "x-api-key",
-        defaultModel = "claude-sonnet-4-20250514",
-    ),
+        defaultModel = "claude-sonnet-4-20250514"),
     PROVIDER_OPENROUTER to ProviderInfo(
         name = PROVIDER_OPENROUTER,
         displayName = "OpenRouter",
@@ -114,8 +111,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("OPENROUTER_API_KEY"),
         baseUrlTemplate = "https://openrouter.ai/api/v1",
         authHeader = "Authorization",
-        defaultModel = DEFAULT_MODEL,
-    ),
+        defaultModel = DEFAULT_MODEL),
     PROVIDER_AIMLAPI to ProviderInfo(
         name = PROVIDER_AIMLAPI,
         displayName = "AIMLAPI",
@@ -123,8 +119,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("AIMLAPI_API_KEY"),
         baseUrlTemplate = "https://api.aimlapi.com/v1",
         authHeader = "Authorization",
-        defaultModel = "gpt-4o",
-    ),
+        defaultModel = "gpt-4o"),
     PROVIDER_DEEPSEEK to ProviderInfo(
         name = PROVIDER_DEEPSEEK,
         displayName = "DeepSeek",
@@ -132,8 +127,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("DEEPSEEK_API_KEY"),
         baseUrlTemplate = "https://api.deepseek.com/v1",
         authHeader = "Authorization",
-        defaultModel = "deepseek-chat",
-    ),
+        defaultModel = "deepseek-chat"),
     PROVIDER_TOGETHERAI to ProviderInfo(
         name = PROVIDER_TOGETHERAI,
         displayName = "Together AI",
@@ -141,8 +135,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("TOGETHER_API_KEY"),
         baseUrlTemplate = "https://api.together.xyz/v1",
         authHeader = "Authorization",
-        defaultModel = "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    ),
+        defaultModel = "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
     PROVIDER_GEMINI to ProviderInfo(
         name = PROVIDER_GEMINI,
         displayName = "Gemini",
@@ -150,8 +143,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         envVars = listOf("GEMINI_API_KEY"),
         baseUrlTemplate = "https://generativelanguage.googleapis.com/v1beta/openai",
         authHeader = "Authorization",
-        defaultModel = "gemini-2.0-flash",
-    ),
+        defaultModel = "gemini-2.0-flash"),
     PROVIDER_OLLAMA to ProviderInfo(
         name = PROVIDER_OLLAMA,
         displayName = "Ollama",
@@ -160,8 +152,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         baseUrlTemplate = "http://localhost:11434/v1",
         authHeader = "Authorization",
         defaultModel = "qwen3",
-        requiresApiKey = false,
-    ),
+        requiresApiKey = false),
     PROVIDER_VLLM to ProviderInfo(
         name = PROVIDER_VLLM,
         displayName = "vLLM",
@@ -170,8 +161,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         baseUrlTemplate = "http://localhost:8000/v1",
         authHeader = "Authorization",
         defaultModel = "qwen3",
-        requiresApiKey = false,
-    ),
+        requiresApiKey = false),
     PROVIDER_LITELLM to ProviderInfo(
         name = PROVIDER_LITELLM,
         displayName = "LiteLLM",
@@ -180,8 +170,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         baseUrlTemplate = "http://localhost:4000/v1",
         authHeader = "Authorization",
         defaultModel = "gpt-4o",
-        requiresApiKey = false,
-    ),
+        requiresApiKey = false),
     PROVIDER_SGLANG to ProviderInfo(
         name = PROVIDER_SGLANG,
         displayName = "SGLang",
@@ -190,9 +179,7 @@ val PROVIDERS: Map<String, ProviderInfo> = mapOf(
         baseUrlTemplate = "http://localhost:30000/v1",
         authHeader = "Authorization",
         defaultModel = "qwen3",
-        requiresApiKey = false,
-    ),
-)
+        requiresApiKey = false))
 
 // ── 全局 Android Context（需要在 Application.onCreate 中初始化）─────────
 private var _appContext: Context? = null
@@ -296,8 +283,7 @@ fun getHermesConfig(): Map<String, Any> {
         "temperature" to DEFAULT_TEMPERATURE,
         "mode" to MODE_CHAT,
         "max_tokens" to DEFAULT_MAX_TOKENS,
-        "top_p" to DEFAULT_TOP_P,
-    )
+        "top_p" to DEFAULT_TOP_P)
 
     val configFile = getConfigPath()
     if (configFile.exists()) {
@@ -343,10 +329,10 @@ class HermesLogger(private val tag: String) {
     fun info(msg: String) { android.util.Log.i(tag, msg) }
     fun warning(msg: String) { android.util.Log.w(tag, msg) }
     fun error(msg: String) { android.util.Log.e(tag, msg) }
-    fun debug(format: String, vararg args: Any?) { android.util.Log.d(tag, format.format(*args)) }
-    fun info(format: String, vararg args: Any?) { android.util.Log.i(tag, format.format(*args)) }
-    fun warning(format: String, vararg args: Any?) { android.util.Log.w(tag, format.format(*args)) }
-    fun error(format: String, vararg args: Any?) { android.util.Log.e(tag, format.format(*args)) }
+    fun debug(format: String, vararg args: Any?) { android.util.Log.d(tag, format.format()) }
+    fun info(format: String, vararg args: Any?) { android.util.Log.i(tag, format.format()) }
+    fun warning(format: String, vararg args: Any?) { android.util.Log.w(tag, format.format()) }
+    fun error(format: String, vararg args: Any?) { android.util.Log.e(tag, format.format()) }
 }
 
 /** Get a logger instance. */

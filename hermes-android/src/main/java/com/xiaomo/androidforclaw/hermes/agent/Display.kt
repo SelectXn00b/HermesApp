@@ -1,5 +1,7 @@
 package com.xiaomo.androidforclaw.hermes.agent
 
+import android.util.Log
+
 /**
  * Display - 终端显示（Android 简化版）
  * 1:1 对齐 hermes/agent/display.py（大幅简化）
@@ -234,8 +236,7 @@ class Display(
                 "image_generate" to "🎨", "text_to_speech" to "🔊",
                 "vision_analyze" to "👁️", "mixture_of_agents" to "🧠",
                 "send_message" to "📨", "cronjob" to "⏰",
-                "execute_code" to "🐍", "delegate_task" to "🔀",
-            )
+                "execute_code" to "🐍", "delegate_task" to "🔀")
             return emojiMap[toolName] ?: default
         }
 
@@ -251,8 +252,7 @@ class Display(
                 "browser_click" to "ref", "browser_type" to "text",
                 "image_generate" to "prompt", "text_to_speech" to "text",
                 "vision_analyze" to "question", "mixture_of_agents" to "user_prompt",
-                "execute_code" to "code", "delegate_task" to "goal",
-            )
+                "execute_code" to "code", "delegate_task" to "goal")
 
             // Special cases
             when (toolName) {
@@ -357,33 +357,61 @@ class Display(
         }
     }
 
+    @Volatile private var _running = false
+    private var _message = ""
+    private val _spinnerFrames = listOf("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
+    private var _frameIdx = 0
+    private var _startTime = 0L
+    private var _thread: Thread? = null
+
     /** Write to the stdout captured at spinner creation time. */
-    fun _write(text: String, end: String = "\n", flush: Boolean = false): Any? {
-        return null
+    fun _write(text: String, end: String = "\n", flush: Boolean = false) {
+        try {
+            Log.d("Display", text)
+        } catch (_: Exception) {
+            // ignore
+        }
     }
     /** Check if output is a real terminal, safe against closed streams. */
-    fun _isTty(): Boolean {
-        return false
-    }
+    fun _isTty(): Boolean = false
     /** Return True when stdout is prompt_toolkit's StdoutProxy. */
-    fun _isPatchStdoutProxy(): Boolean {
-        return false
+    fun _isPatchStdoutProxy(): Boolean = false
+    fun _animate() {
+        while (_running) {
+            val frame = _spinnerFrames[_frameIdx % _spinnerFrames.size]
+            val elapsed = (System.currentTimeMillis() - _startTime) / 1000.0
+            Log.d("Display", "  $frame $_message (${String.format("%.1fs", elapsed)})")
+            _frameIdx++
+            try { Thread.sleep(120) } catch (_: InterruptedException) { break }
+        }
     }
-    fun _animate(): Any? {
-        return null
+    fun start() {
+        if (_running) return
+        _running = true
+        _startTime = System.currentTimeMillis()
+        _thread = Thread({ _animate() }, "DisplaySpinner").apply {
+            isDaemon = true
+            start()
+        }
     }
-    fun start(): Any? {
-        return null
-    }
-    fun updateText(newMessage: String): Any? {
-        return null
+    fun updateText(newMessage: String) {
+        _message = newMessage
     }
     /** Print a line above the spinner without disrupting animation. */
-    fun printAbove(text: String): Any? {
-        return null
+    fun printAbove(text: String) {
+        _write("  $text", end = "\n", flush = true)
     }
-    fun stop(finalMessage: String? = null): Any? {
-        return null
+    fun stop(finalMessage: String? = null) {
+        _running = false
+        _thread?.let {
+            it.interrupt()
+            it.join(500)
+        }
+        _thread = null
+        if (finalMessage != null) {
+            val elapsed = if (_startTime > 0) " (${String.format("%.1fs", (System.currentTimeMillis() - _startTime) / 1000.0)})" else ""
+            Log.d("Display", "  $finalMessage$elapsed")
+        }
     }
 
 }

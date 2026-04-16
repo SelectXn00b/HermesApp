@@ -25,8 +25,7 @@ object ImageGenerationTool {
         val success: Boolean = false,
         val imagePath: String? = null,
         val base64Image: String? = null,
-        val error: String? = null,
-    )
+        val error: String? = null)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -43,8 +42,7 @@ object ImageGenerationTool {
         baseUrl: String? = null,
         model: String? = null,
         size: String = "1024x1024",
-        quality: String = "standard",
-    ): String {
+        quality: String = "standard"): String {
         if (prompt.isBlank()) return gson.toJson(mapOf("error" to "Prompt is required"))
         if (apiKey.isNullOrBlank()) return gson.toJson(mapOf("error" to "No API key configured"))
 
@@ -58,8 +56,7 @@ object ImageGenerationTool {
                 "size" to size,
                 "quality" to quality,
                 "response_format" to "b64_json",
-                "n" to 1,
-            ))
+                "n" to 1))
 
             val request = Request.Builder()
                 .url("$apiBase/images/generations")
@@ -110,8 +107,7 @@ object ImageGenerationTool {
         maskPath: String? = null,
         outputPath: String? = null,
         apiKey: String? = null,
-        baseUrl: String? = null,
-    ): String {
+        baseUrl: String? = null): String {
         // Simplified — actual implementation requires multipart upload
         return gson.toJson(mapOf("error" to "Image editing not yet implemented in Android client"))
     }

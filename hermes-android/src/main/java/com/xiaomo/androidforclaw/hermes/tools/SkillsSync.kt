@@ -18,8 +18,7 @@ object SkillsSync {
         val skipped: Int,
         val userModified: List<String>,
         val cleaned: List<String>,
-        val totalBundled: Int,
-    )
+        val totalBundled: Int)
 
     private fun readManifest(manifestFile: File): Map<String, String> {
         if (!manifestFile.exists()) return emptyMap()
@@ -72,8 +71,7 @@ object SkillsSync {
         bundledDir: File,
         targetDir: File,
         manifestFile: File,
-        quiet: Boolean = true,
-    ): SyncResult {
+        quiet: Boolean = true): SyncResult {
         if (!bundledDir.exists()) {
             return SyncResult(emptyList(), emptyList(), 0, emptyList(), emptyList(), 0)
         }
@@ -166,8 +164,7 @@ object SkillsSync {
             skipped = skipped,
             userModified = userModified,
             cleaned = cleaned,
-            totalBundled = bundledSkills.size,
-        )
+            totalBundled = bundledSkills.size)
     }
 
     private fun discoverBundledSkills(bundledDir: File): List<Pair<String, File>> {

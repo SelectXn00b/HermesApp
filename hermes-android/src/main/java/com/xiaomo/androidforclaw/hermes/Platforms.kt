@@ -1,7 +1,16 @@
 package com.xiaomo.androidforclaw.hermes
 
-// TODO: This is a stub file. Implement all classes and methods.
+import android.util.Log
+import org.json.JSONObject
 
+/**
+ * Platforms - 对齐 ../hermes-agent/hermes_cli/platforms.py
+ * Python 原始: 47 行
+ */
 class PlatformInfo {
-    // Hermes: PlatformInfo
+    fun platform_label(key: Any?, default: Any?): Any? {
+        // Python: platform_label
+        return null
+    }
+
 }

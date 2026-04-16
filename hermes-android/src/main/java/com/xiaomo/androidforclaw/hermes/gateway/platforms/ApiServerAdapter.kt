@@ -16,8 +16,7 @@ import org.json.JSONObject
 
 class ApiServerAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.API_SERVER) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.API_SERVER) {
     companion object { private const val TAG = "ApiServerAdapter" }
 
     override suspend fun connect(): Boolean {

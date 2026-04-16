@@ -92,8 +92,7 @@ enum class FeishuMessageType(val value: String) {
  */
 class FeishuAdapter(
     context: Context,
-    config: PlatformConfig,
-) : BasePlatformAdapter(config, Platform.FEISHU) {
+    config: PlatformConfig) : BasePlatformAdapter(config, Platform.FEISHU) {
     companion object {
         private const val TAG = "FeishuAdapter"
 
@@ -517,11 +516,10 @@ class FeishuAdapter(
         // Build source
         val source = buildSource(
             chatId = chatId,
-            chatName = chatId, // TODO: resolve chat name
+            chatName = resolveChatName(chatId) ?: chatId,
             chatType = if (chatType == "p2p") "dm" else "group",
             userId = openId,
-            userName = openId, // TODO: resolve user name
-        )
+            userName = resolveUserName(openId) ?: openId)
 
         // Build event
         val event = MessageEvent(
@@ -529,8 +527,7 @@ class FeishuAdapter(
             messageType = messageType,
             source = source,
             message_id = messageId,
-            timestamp = Instant.now(),
-        )
+            timestamp = Instant.now())
 
         // Send ACK reaction
         if (_sendAckReaction && chatType != "p2p") {
@@ -547,8 +544,7 @@ class FeishuAdapter(
     private fun _parseMessageContent(
         msgType: String,
         content: String,
-        chatType: String,
-    ): Pair<String, MessageType> {
+        chatType: String): Pair<String, MessageType> {
         val feishuType = FeishuMessageType.fromValue(msgType)
 
         return when (feishuType) {
@@ -671,8 +667,7 @@ class FeishuAdapter(
         val source = buildSource(
             chatId = chatId,
             chatType = "group",
-            userId = operatorId,
-        )
+            userId = operatorId)
 
         val reactionEvent = MessageEvent(
             text = "/reaction $emoji $messageId",
@@ -680,8 +675,7 @@ class FeishuAdapter(
             source = source,
             message_id = messageId,
             reactionEmoji = emoji,
-            reactionAdded = true,
-        )
+            reactionAdded = true)
 
         _queueForProcessing(chatId, reactionEvent)
     }
@@ -706,14 +700,12 @@ class FeishuAdapter(
         val source = buildSource(
             chatId = chatId,
             chatType = "group",
-            userId = openId,
-        )
+            userId = openId)
 
         val commandEvent = MessageEvent(
             text = "/$tag $buttonValue",
             messageType = MessageType.COMMAND,
-            source = source,
-        )
+            source = source)
 
         _queueForProcessing(chatId, commandEvent)
     }
@@ -798,8 +790,7 @@ class FeishuAdapter(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 
@@ -829,8 +820,7 @@ class FeishuAdapter(
     private suspend fun _sendTextMessage(
         chatId: String,
         text: String,
-        replyTo: String? = null,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String? = null): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 
@@ -880,8 +870,7 @@ class FeishuAdapter(
         chatId: String,
         imageUrl: String,
         caption: String?,
-        replyTo: String?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String?): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 
@@ -923,8 +912,7 @@ class FeishuAdapter(
         fileUrl: String,
         fileName: String?,
         caption: String?,
-        replyTo: String?,
-    ): SendResult = withContext(Dispatchers.IO) {
+        replyTo: String?): SendResult = withContext(Dispatchers.IO) {
         try {
             _ensureAccessToken()
 
@@ -1164,4 +1152,44 @@ class FeishuAdapter(
      * Get the bot user name.
      */
     val botUserName: String get() = _botUserName
+
+    /**
+     * Resolve chat name from chat_id via API.
+     * 对齐 feishu.py 的 chat name resolution.
+     */
+    fun resolveChatName(chatId: String): String? {
+        return try {
+            val url = "https://open.feishu.cn/open-apis/im/v1/chats/$chatId"
+            val request = okhttp3.Request.Builder()
+                .url(url)
+                .header("Authorization", "Bearer $_accessToken")
+                .get().build()
+            val response = _httpClient.newCall(request).execute()
+            val body = JSONObject(response.body?.string() ?: "")
+            body.optJSONObject("data")?.optString("name")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to resolve chat name for $chatId: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Resolve user display name from open_id via API.
+     * 对齐 feishu.py 的 user name resolution.
+     */
+    fun resolveUserName(openId: String): String? {
+        return try {
+            val url = "https://open.feishu.cn/open-apis/contact/v3/users/$openId?user_id_type=open_id"
+            val request = okhttp3.Request.Builder()
+                .url(url)
+                .header("Authorization", "Bearer $_accessToken")
+                .get().build()
+            val response = _httpClient.newCall(request).execute()
+            val body = JSONObject(response.body?.string() ?: "")
+            body.optJSONObject("data")?.optJSONObject("user")?.optString("name")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to resolve user name for $openId: ${e.message}")
+            null
+        }
+    }
 }

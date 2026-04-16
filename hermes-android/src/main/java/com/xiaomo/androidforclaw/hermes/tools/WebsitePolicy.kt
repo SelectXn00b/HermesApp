@@ -18,21 +18,18 @@ object WebsitePolicy {
 
     data class PolicyRule(
         val pattern: String,
-        val source: String = "config",
-    )
+        val source: String = "config")
 
     data class WebsiteBlocklist(
         val enabled: Boolean = false,
-        val rules: List<PolicyRule> = emptyList(),
-    )
+        val rules: List<PolicyRule> = emptyList())
 
     data class BlockedResult(
         val url: String,
         val host: String,
         val rule: String,
         val source: String,
-        val message: String,
-    )
+        val message: String)
 
     private val lock = ReentrantReadWriteLock()
     private var cachedPolicy: WebsiteBlocklist? = null
@@ -165,8 +162,7 @@ object WebsitePolicy {
                     host = host,
                     rule = rule.pattern,
                     source = rule.source,
-                    message = "Blocked by website policy: '$host' matched rule '${rule.pattern}' from ${rule.source}",
-                )
+                    message = "Blocked by website policy: '$host' matched rule '${rule.pattern}' from ${rule.source}")
             }
         }
         return null

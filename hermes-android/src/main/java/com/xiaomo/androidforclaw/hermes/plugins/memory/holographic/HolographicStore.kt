@@ -27,8 +27,7 @@ data class StoreConfig(
     val backupDir: String = "backups",
     val maxBackups: Int = 5,
     val autoBackup: Boolean = true,
-    val compactThreshold: Int = 1000,
-)
+    val compactThreshold: Int = 1000)
 
 // ── 存储索引 ──────────────────────────────────────────────────────────────
 data class StoreIndex(
@@ -41,8 +40,7 @@ data class StoreIndex(
 
 // ── 存储引擎 ──────────────────────────────────────────────────────────────
 class HolographicStore(
-    private val config: StoreConfig,
-) {
+    private val config: StoreConfig) {
 
     private val _memories = ConcurrentHashMap<String, HolographicMemory>()
     private var _index: StoreIndex = StoreIndex()
@@ -274,8 +272,7 @@ class HolographicStore(
             "dataFileSize" to if (dataFile.exists()) dataFile.length() else 0,
             "indexVersion" to _index.version,
             "lastModified" to _index.lastModified,
-            "dirty" to _dirty,
-        )
+            "dirty" to _dirty)
     }
 
     // ── 内部方法 ──────────────────────────────────────────────────────────
@@ -353,8 +350,7 @@ class HolographicStore(
             version = _index.version,
             totalCount = _memories.size,
             lastModified = System.currentTimeMillis(),
-            tags = tagIndex,
-        )
+            tags = tagIndex)
 
         val indexFile = File(config.storageDir, config.indexFile)
         try {

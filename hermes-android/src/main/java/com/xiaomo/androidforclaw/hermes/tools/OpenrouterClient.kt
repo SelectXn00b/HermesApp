@@ -33,12 +33,10 @@ object OpenrouterClient {
         messages: List<Map<String, Any>>,
         apiKey: String,
         maxTokens: Int? = null,
-        temperature: Double? = null,
-    ): String {
+        temperature: Double? = null): String {
         val payload = mutableMapOf<String, Any>(
             "model" to model,
-            "messages" to messages,
-        )
+            "messages" to messages)
         maxTokens?.let { payload["max_tokens"] = it }
         temperature?.let { payload["temperature"] = it }
 

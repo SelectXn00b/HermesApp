@@ -6,6 +6,8 @@
  */
 package com.xiaomo.androidforclaw.gateway.protocol
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 /**
  * Protocol version (aligned with OpenClaw)
  */

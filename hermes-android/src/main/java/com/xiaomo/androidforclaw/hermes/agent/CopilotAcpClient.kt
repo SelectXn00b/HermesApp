@@ -31,6 +31,8 @@ class CopilotAcpClient(
 
     private var accessToken: String? = null
     private var tokenExpiryMs: Long = 0L
+    private var _activeProcess: Process? = null
+    var isClosed: Boolean = false
 
     /**
      * 获取访问令牌
@@ -129,8 +131,18 @@ class CopilotAcpClient(
     fun create(kwargs: Any): Any {
         throw NotImplementedError("create")
     }
+    /** Release resources. Mark client as closed and terminate any active process. */
     fun close(): Unit {
-        // TODO: implement close
+        val proc = _activeProcess
+        _activeProcess = null
+        isClosed = true
+        if (proc == null) return
+        try {
+            proc.destroy()
+            if (!proc.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                proc.destroyForcibly()
+            }
+        } catch (_: Exception) { }
     }
     fun _createChatCompletion(_unused: Any): Any {
         throw NotImplementedError("_createChatCompletion")

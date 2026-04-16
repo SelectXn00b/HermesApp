@@ -67,6 +67,7 @@ enum class Platform(val value: String) {
     WEBHOOK("webhook"),
     API_SERVER("api_server"),
     BLUEBUBBLES("bluebubbles"),
+    APP_CHAT("app_chat"),
     ;
 
     companion object {
@@ -82,20 +83,17 @@ enum class Platform(val value: String) {
 data class HomeChannel(
     val platform: Platform,
     val chatId: String,
-    val name: String = "Home",
-) {
+    val name: String = "Home") {
     fun toDict(): Map<String, Any> = mapOf(
         "platform" to platform.value,
         "chat_id" to chatId,
-        "name" to name,
-    )
+        "name" to name)
 
     companion object {
         fun fromDict(data: Map<String, Any?>): HomeChannel = HomeChannel(
             platform = Platform.fromKey(data["platform"] as? String ?: "") ?: Platform.LOCAL,
             chatId = (data["chat_id"] ?: "").toString(),
-            name = (data["name"] as? String) ?: "Home",
-        )
+            name = (data["name"] as? String) ?: "Home")
     }
 }
 
@@ -105,15 +103,13 @@ data class SessionResetPolicy(
     val atHour: Int = 4,               // Hour for daily reset (0-23)
     val idleMinutes: Int = 1440,       // Minutes of inactivity before reset
     val notify: Boolean = true,        // Notify user on auto-reset
-    val notifyExcludePlatforms: List<String> = listOf("api_server", "webhook"),
-) {
+    val notifyExcludePlatforms: List<String> = listOf("api_server", "webhook")) {
     fun toDict(): Map<String, Any> = mapOf(
         "mode" to mode,
         "at_hour" to atHour,
         "idle_minutes" to idleMinutes,
         "notify" to notify,
-        "notify_exclude_platforms" to notifyExcludePlatforms,
-    )
+        "notify_exclude_platforms" to notifyExcludePlatforms)
 
     companion object {
         fun fromDict(data: Map<String, Any?>): SessionResetPolicy = SessionResetPolicy(
@@ -122,8 +118,7 @@ data class SessionResetPolicy(
             idleMinutes = (data["idle_minutes"] as? Int) ?: 1440,
             notify = coerceBool(data["notify"], true),
             notifyExcludePlatforms = (data["notify_exclude_platforms"] as? List<*>)?.mapNotNull { it?.toString() }
-                ?: listOf("api_server", "webhook"),
-        )
+                ?: listOf("api_server", "webhook"))
     }
 }
 
@@ -140,8 +135,7 @@ data class PlatformConfig(
     val groupPolicy: String = "allowlist",
     val groupAllowFrom: List<String> = emptyList(),
     val groupUserAllowFrom: Map<String, List<String>> = emptyMap(),
-    val extra: Map<String, Any> = emptyMap(),
-) {
+    val extra: Map<String, Any> = emptyMap()) {
     fun extra(key: String, default: String = ""): String = extra[key]?.toString() ?: default
     fun extraInt(key: String, default: Int = 0): Int = extra[key]?.toString()?.toIntOrNull() ?: default
     fun extraBool(key: String, default: Boolean = false): Boolean = coerceBool(extra[key], default)
@@ -174,8 +168,7 @@ data class PlatformConfig(
                 dmAllowFrom = (data["dm_allow_from"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
                 groupPolicy = (data["group_policy"] as? String) ?: "allowlist",
                 groupAllowFrom = (data["group_allow_from"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
-                extra = (data["extra"] as? Map<String, Any?>)?.filterValues { it != null }?.mapValues { it.value as Any } ?: emptyMap(),
-            )
+                extra = (data["extra"] as? Map<String, Any?>)?.filterValues { it != null }?.mapValues { it.value as Any } ?: emptyMap())
         }
     }
 }
@@ -186,15 +179,13 @@ data class StreamingConfig(
     val transport: String = "edit",    // "edit" or "off"
     val editInterval: Double = 1.0,    // Seconds between edits
     val bufferThreshold: Int = 40,     // Chars before forcing an edit
-    val cursor: String = " ▉",
-) {
+    val cursor: String = " ▉") {
     fun toDict(): Map<String, Any> = mapOf(
         "enabled" to enabled,
         "transport" to transport,
         "edit_interval" to editInterval,
         "buffer_threshold" to bufferThreshold,
-        "cursor" to cursor,
-    )
+        "cursor" to cursor)
 
     companion object {
         fun fromDict(data: Map<String, Any?>): StreamingConfig = StreamingConfig(
@@ -202,8 +193,7 @@ data class StreamingConfig(
             transport = (data["transport"] as? String) ?: "edit",
             editInterval = (data["edit_interval"] as? Number)?.toDouble() ?: 1.0,
             bufferThreshold = (data["buffer_threshold"] as? Number)?.toInt() ?: 40,
-            cursor = (data["cursor"] as? String) ?: " ▉",
-        )
+            cursor = (data["cursor"] as? String) ?: " ▉")
     }
 }
 
@@ -233,8 +223,7 @@ data class GatewayConfig(
     val sessionResetPolicy: SessionResetPolicy = SessionResetPolicy(),
     val unauthorizedDmBehavior: String = "pair",
     val enablePairing: Boolean = true,
-    val extra: Map<String, Any> = emptyMap(),
-) {
+    val extra: Map<String, Any> = emptyMap()) {
     /** Get platform config by enum. */
     fun platformConfig(platform: Platform): PlatformConfig? = platforms[platform]
 
@@ -320,8 +309,7 @@ data class GatewayConfig(
                 streaming = (data["streaming"] as? Map<String, Any?>)?.let { StreamingConfig.fromDict(it) } ?: StreamingConfig(),
                 sessionResetPolicy = (data["session_reset_policy"] as? Map<String, Any?>)?.let { SessionResetPolicy.fromDict(it) } ?: SessionResetPolicy(),
                 unauthorizedDmBehavior = normalizeUnauthorizedDmBehavior(data["unauthorized_dm_behavior"], "pair"),
-                enablePairing = coerceBool(data["enable_pairing"], true),
-            )
+                enablePairing = coerceBool(data["enable_pairing"], true))
         }
 
         fun loadFromFile(file: File): GatewayConfig? {
@@ -371,8 +359,7 @@ fun loadGatewayConfig(hermesHome: String): GatewayConfig {
         defaultModel = System.getenv("HERMES_MODEL") ?: config.defaultModel,
         provider = System.getenv("HERMES_PROVIDER") ?: config.provider,
         verbose = coerceBool(System.getenv("HERMES_VERBOSE"), config.verbose),
-        logLevel = System.getenv("HERMES_LOG_LEVEL") ?: config.logLevel,
-    )
+        logLevel = System.getenv("HERMES_LOG_LEVEL") ?: config.logLevel)
 
     // Inject API key from env into platform configs that don't have tokens
     val platformsWithTokens = overridden.platforms.mapValues { (platform, pcfg) ->

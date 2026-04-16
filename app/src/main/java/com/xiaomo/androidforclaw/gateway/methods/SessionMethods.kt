@@ -4,6 +4,8 @@
  */
 package com.xiaomo.androidforclaw.gateway.methods
 
+// ⚠️ DEPRECATED (2026-04-16): Part of old gateway, replaced by hermes GatewayRunner + AppChatAdapter.
+
 import com.xiaomo.androidforclaw.agent.session.SessionManager
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.gateway.protocol.*

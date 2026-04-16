@@ -47,8 +47,7 @@ fun writeHonchoConfig(cfg: Map<String, Any>, path: File? = null) {
     writePath.parentFile.mkdirs()
     writePath.writeText(
         prettyGson.toJson(cfg) + "\n",
-        Charsets.UTF_8,
-    )
+        Charsets.UTF_8)
 }
 
 /**
@@ -203,8 +202,7 @@ data class HonchoStatus(
     val observationMode: String,
     val connected: Boolean,
     val userCard: List<String> = emptyList(),
-    val aiRepresentation: String = "",
-)
+    val aiRepresentation: String = "")
 
 fun getHonchoStatus(): HonchoStatus {
     val cfg = readHonchoConfig()
@@ -250,8 +248,7 @@ fun getHonchoStatus(): HonchoStatus {
         observationMode = hcfg.observationMode,
         connected = connected,
         userCard = userCard,
-        aiRepresentation = aiRepresentation,
-    )
+        aiRepresentation = aiRepresentation)
 }
 
 // ── Peer 管理 ──────────────────────────────────────────────────────────────

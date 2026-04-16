@@ -23,8 +23,7 @@ data class RetrievalConfig(
     val bm25B: Double = 0.75,
     val decayRate: Double = 0.01,
     val importanceBoost: Double = 1.5,
-    val recencyBoost: Double = 0.1,
-)
+    val recencyBoost: Double = 0.1)
 
 // ── 检索结果 ──────────────────────────────────────────────────────────────
 data class RetrievalResult(
@@ -33,13 +32,11 @@ data class RetrievalResult(
     val score: Double,
     val rank: Int,
     val metadata: Map<String, Any> = emptyMap(),
-    val explanation: String? = null,
-)
+    val explanation: String? = null)
 
 // ── 检索引擎 ──────────────────────────────────────────────────────────────
 class HolographicRetrievalEngine(
-    private val config: RetrievalConfig = RetrievalConfig(),
-) {
+    private val config: RetrievalConfig = RetrievalConfig()) {
 
     // IDF 缓存
     private val _idfCache = ConcurrentHashMap<String, Double>()
@@ -54,8 +51,7 @@ class HolographicRetrievalEngine(
         query: String,
         memories: List<HolographicMemory>,
         limit: Int = config.maxResults,
-        threshold: Double = config.minScore,
-    ): List<RetrievalResult> {
+        threshold: Double = config.minScore): List<RetrievalResult> {
         if (query.isBlank() || memories.isEmpty()) return emptyList()
 
         // 更新 IDF 缓存
@@ -96,8 +92,7 @@ class HolographicRetrievalEngine(
                     content = memory.content,
                     score = finalScore,
                     rank = 0,
-                    metadata = memory.metadata,
-                )
+                    metadata = memory.metadata)
             } else null
         }
 
@@ -116,8 +111,7 @@ class HolographicRetrievalEngine(
         queries: List<String>,
         memories: List<HolographicMemory>,
         limit: Int = config.maxResults,
-        threshold: Double = config.minScore,
-    ): Map<String, List<RetrievalResult>> {
+        threshold: Double = config.minScore): Map<String, List<RetrievalResult>> {
         return queries.associateWith { query ->
             retrieve(query, memories, limit, threshold)
         }
@@ -130,8 +124,7 @@ class HolographicRetrievalEngine(
         targetMemory: HolographicMemory,
         memories: List<HolographicMemory>,
         limit: Int = 5,
-        threshold: Double = 0.5,
-    ): List<RetrievalResult> {
+        threshold: Double = 0.5): List<RetrievalResult> {
         val targetTokens = tokenize(targetMemory.content)
         if (targetTokens.isEmpty()) return emptyList()
 
@@ -146,8 +139,7 @@ class HolographicRetrievalEngine(
                         content = memory.content,
                         score = similarity,
                         rank = 0,
-                        metadata = memory.metadata,
-                    )
+                        metadata = memory.metadata)
                 } else null
             }
             .sortedByDescending { it.score }
@@ -189,8 +181,7 @@ class HolographicRetrievalEngine(
      */
     private fun tfidfCosineSimilarity(
         queryTokens: Map<String, Int>,
-        docTokens: Map<String, Int>,
-    ): Double {
+        docTokens: Map<String, Int>): Double {
         val allTokens = (queryTokens.keys + docTokens.keys).toSet()
         if (allTokens.isEmpty()) return 0.0
 
@@ -221,8 +212,7 @@ class HolographicRetrievalEngine(
     private fun bm25Score(
         queryTokens: Map<String, Int>,
         docTokens: Map<String, Int>,
-        totalDocs: Int,
-    ): Double {
+        totalDocs: Int): Double {
         val k1 = config.bm25K1
         val b = config.bm25B
         val avgDocLen = docTokens.values.sum().toDouble()
@@ -269,8 +259,7 @@ class HolographicRetrievalEngine(
      */
     private fun cosineSimilarity(
         vec1: Map<String, Int>,
-        vec2: Map<String, Int>,
-    ): Double {
+        vec2: Map<String, Int>): Double {
         val allKeys = (vec1.keys + vec2.keys).toSet()
         if (allKeys.isEmpty()) return 0.0
 
