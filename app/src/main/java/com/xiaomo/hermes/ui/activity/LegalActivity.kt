@@ -115,11 +115,11 @@ private fun LegalScreen(type: String, onBack: () -> Unit) {
 private data class TextSection(val text: String, val isHeading: Boolean = false)
 
 private fun privacyPolicyText(): List<TextSection> = listOf(
-    TextSection("ForClaw 隐私政策", isHeading = true),
+    TextSection("Hermes 隐私政策", isHeading = true),
     TextSection("最后更新日期：2025年3月22日"),
 
     TextSection("一、概述", isHeading = true),
-    TextSection("ForClaw（以下简称\u201C本应用\u201D）是一款 AI Agent 运行时工具，运行在 Android 设备上。我们非常重视您的隐私保护。本隐私政策旨在帮助您了解我们如何收集、使用和保护您的信息。"),
+    TextSection("Hermes（以下简称\u201C本应用\u201D）是一款 AI Agent 运行时工具，运行在 Android 设备上。我们非常重视您的隐私保护。本隐私政策旨在帮助您了解我们如何收集、使用和保护您的信息。"),
 
     TextSection("二、信息收集与使用", isHeading = true),
     TextSection("""本应用在运行过程中可能涉及以下数据：
@@ -176,11 +176,11 @@ private fun privacyPolicyText(): List<TextSection> = listOf(
 )
 
 private fun termsOfServiceText(): List<TextSection> = listOf(
-    TextSection("ForClaw 用户协议", isHeading = true),
+    TextSection("Hermes 用户协议", isHeading = true),
     TextSection("最后更新日期：2025年3月22日"),
 
     TextSection("一、服务说明", isHeading = true),
-    TextSection("ForClaw 是一款运行在 Android 设备上的 AI Agent 运行时工具。本应用为您提供 AI 对话、自动化操作和多渠道消息接入等功能。使用本应用即表示您同意遵守本协议。"),
+    TextSection("Hermes 是一款运行在 Android 设备上的 AI Agent 运行时工具。本应用为您提供 AI 对话、自动化操作和多渠道消息接入等功能。使用本应用即表示您同意遵守本协议。"),
 
     TextSection("二、使用条件", isHeading = true),
     TextSection("""使用本应用，您需要：

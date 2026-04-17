@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun ForClawSettingsTab() {
+fun HermesSettingsTab() {
     val context = LocalContext.current
 
     // ── 状态数据 ──────────────────────────────────────────────

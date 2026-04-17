@@ -98,7 +98,7 @@ object TermuxSshdLauncher {
             Log.w(TAG, "Termux 未安装，无法拉起")
             return false
         }
-        // FLAG_ACTIVITY_NO_HISTORY: Termux 不留在返回栈，用户按返回直接回 ForClaw
+        // FLAG_ACTIVITY_NO_HISTORY: Termux 不留在返回栈，用户按返回直接回 Hermes
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
         try {
             context.startActivity(launchIntent)
@@ -171,18 +171,18 @@ object TermuxSshdLauncher {
     }
 
     /**
-     * sshd 就绪后把前台切回 ForClaw。
+     * sshd 就绪后把前台切回 Hermes。
      */
-    fun bringBackForClaw(context: Context) {
+    fun bringBackHermes(context: Context) {
         try {
             val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 context.startActivity(intent)
-                Log.i(TAG, "✅ 已切回 ForClaw")
+                Log.i(TAG, "✅ 已切回 Hermes")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "切回 ForClaw 失败: ${e.message}")
+            Log.w(TAG, "切回 Hermes 失败: ${e.message}")
         }
     }
 

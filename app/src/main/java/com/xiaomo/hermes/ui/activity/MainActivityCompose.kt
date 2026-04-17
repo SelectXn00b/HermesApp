@@ -20,7 +20,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModelProvider
-import com.xiaomo.hermes.ui.compose.ForClawSettingsTab
+import com.xiaomo.hermes.ui.compose.HermesSettingsTab
 import com.xiaomo.hermes.util.ChatBroadcastReceiver
 import ai.openclaw.app.MainViewModel
 import ai.openclaw.app.ui.RootScreen
@@ -257,7 +257,7 @@ class MainActivityCompose : ComponentActivity() {
 
                 RootScreen(
                     viewModel = openClawViewModel,
-                    settingsTabSlot = { ForClawSettingsTab() },
+                    settingsTabSlot = { HermesSettingsTab() },
                     skillActions = remember { com.xiaomo.hermes.agent.skills.SkillActionsImpl() },
                 )
             }
@@ -462,7 +462,7 @@ class MainActivityCompose : ComponentActivity() {
         android.app.AlertDialog.Builder(this)
             .setTitle("Termux 命令执行权限")
             .setMessage(
-                "ForClaw 需要「Termux 命令执行」权限来实现以下功能：\n\n" +
+                "Hermes 需要「Termux 命令执行」权限来实现以下功能：\n\n" +
                 "• 让 AI 在手机终端中执行命令（如安装软件、运行脚本）\n" +
                 "• 自动启动 Termux SSH 服务，无需手动操作\n" +
                 "• 当 SSH 密钥丢失时自动修复连接\n\n" +
@@ -587,7 +587,7 @@ private fun LegalConsentDialog(
                 )
 
                 Text(
-                    text = "欢迎使用 ForClaw！在开始之前，请阅读并同意我们的服务条款和隐私政策。",
+                    text = "欢迎使用 Hermes！在开始之前，请阅读并同意我们的服务条款和隐私政策。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
