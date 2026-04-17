@@ -1,4 +1,4 @@
-package com.xiaomo.androidforclaw.selfcontrol
+package com.xiaomo.hermes.selfcontrol
 
 /**
  * OpenClaw Source Reference:
@@ -10,9 +10,9 @@ package com.xiaomo.androidforclaw.selfcontrol
 
 import android.content.Context
 import android.util.Log
-import com.xiaomo.androidforclaw.selfcontrol.Skill
-import com.xiaomo.androidforclaw.selfcontrol.SkillResult
-import com.xiaomo.androidforclaw.selfcontrol.ToolDefinition
+import com.xiaomo.hermes.selfcontrol.Skill
+import com.xiaomo.hermes.selfcontrol.SkillResult
+import com.xiaomo.hermes.selfcontrol.ToolDefinition
 
 /**
  * Self-Control Skill Registry

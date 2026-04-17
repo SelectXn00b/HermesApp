@@ -77,7 +77,7 @@ dependencies {
 **`app/src/main/java/.../agent/tools/SkillRegistry.kt`**:
 
 ```kotlin
-import com.xiaomo.androidforclaw.selfcontrol.SelfControlRegistry
+import com.xiaomo.hermes.selfcontrol.SelfControlRegistry
 
 class SkillRegistry(private val context: Context) {
     // 现有的 Skills
@@ -297,7 +297,7 @@ class NavigationSkillTest {
 
 ```bash
 # 通过 adb 测试 Self-Control Skills
-adb shell am start -n com.xiaomo.androidforclaw/.ui.activity.ConfigActivity
+adb shell am start -n com.xiaomo.hermes/.ui.activity.ConfigActivity
 ```
 
 ---

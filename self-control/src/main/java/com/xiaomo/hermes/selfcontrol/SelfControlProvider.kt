@@ -1,4 +1,4 @@
-package com.xiaomo.androidforclaw.selfcontrol
+package com.xiaomo.hermes.selfcontrol
 
 /**
  * OpenClaw Source Reference:
@@ -29,23 +29,23 @@ import kotlinx.coroutines.runBlocking
  * 1. 通过 ADB 调用 (使用 content:// URI)
  * ```bash
  * # 页面导航
- * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+ * adb shell content call --uri content://com.xiaomo.hermes.selfcontrol/execute \
  *   --method navigate_app \
  *   --extra page:s:config
  *
  * # 配置管理
- * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+ * adb shell content call --uri content://com.xiaomo.hermes.selfcontrol/execute \
  *   --method manage_config \
  *   --extra operation:s:get \
  *   --extra key:s:exploration_mode
  *
  * # 服务控制
- * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+ * adb shell content call --uri content://com.xiaomo.hermes.selfcontrol/execute \
  *   --method control_service \
  *   --extra operation:s:hide_float
  *
  * # 日志查询
- * adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+ * adb shell content call --uri content://com.xiaomo.hermes.selfcontrol/execute \
  *   --method query_logs \
  *   --extra level:s:E \
  *   --extra lines:i:50
@@ -64,7 +64,7 @@ import kotlinx.coroutines.runBlocking
 class SelfControlProvider : ContentProvider() {
     companion object {
         private const val TAG = "SelfControlProvider"
-        const val AUTHORITY = "com.xiaomo.androidforclaw.selfcontrol"
+        const val AUTHORITY = "com.xiaomo.hermes.selfcontrol"
 
         private const val EXECUTE = 1
         private const val LIST_SKILLS = 2

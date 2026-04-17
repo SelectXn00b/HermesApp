@@ -1,4 +1,4 @@
-package com.xiaomo.androidforclaw.selfcontrol
+package com.xiaomo.hermes.selfcontrol
 
 /**
  * OpenClaw Source Reference:

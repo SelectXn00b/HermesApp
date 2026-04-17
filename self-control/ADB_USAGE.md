@@ -38,13 +38,13 @@ chmod +x self-control-adb.sh
 
 ```bash
 # ContentProvider 方式
-adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+adb shell content call --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method navigate_app \
   --extra page:s:config
 
 # Broadcast 方式
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill navigate_app \
   --es page config
 ```
@@ -59,7 +59,7 @@ adb shell am broadcast \
 
 ```bash
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method SKILL_NAME \
   --extra key:type:value \
   --extra key2:type:value2
@@ -83,19 +83,19 @@ adb shell content call \
 ```bash
 # 打开配置页面
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method navigate_app \
   --extra page:s:config
 
 # 打开权限页面
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method navigate_app \
   --extra page:s:permissions
 
 # 打开对话历史（带参数）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method navigate_app \
   --extra page:s:chat_history \
   --extra session_id:s:abc123
@@ -106,14 +106,14 @@ adb shell content call \
 ```bash
 # 读取配置
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:get \
   --extra key:s:exploration_mode
 
 # 设置配置（Boolean）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:set \
   --extra key:s:exploration_mode \
@@ -121,7 +121,7 @@ adb shell content call \
 
 # 设置配置（Integer）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:set \
   --extra key:s:screenshot_delay \
@@ -129,14 +129,14 @@ adb shell content call \
 
 # 列出分类配置
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:list \
   --extra category:s:feature
 
 # 删除配置
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method manage_config \
   --extra operation:s:delete \
   --extra key:s:test_config
@@ -147,38 +147,38 @@ adb shell content call \
 ```bash
 # 检查服务状态
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:check_status
 
 # 隐藏悬浮窗
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:hide_float
 
 # 显示悬浮窗（立即）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:show_float
 
 # 显示悬浮窗（延迟 500ms）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:show_float \
   --extra delay_ms:i:500
 
 # 启动悬浮窗服务
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:start_float
 
 # 停止悬浮窗服务
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method control_service \
   --extra operation:s:stop_float
 ```
@@ -188,14 +188,14 @@ adb shell content call \
 ```bash
 # 查询错误日志（最近 50 行）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method query_logs \
   --extra level:s:E \
   --extra lines:i:50
 
 # 查询调试日志（过滤 AgentLoop）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method query_logs \
   --extra level:s:D \
   --extra filter:s:AgentLoop \
@@ -203,14 +203,14 @@ adb shell content call \
 
 # 查询所有日志（Verbose，最近 200 行）
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method query_logs \
   --extra level:s:V \
   --extra lines:i:200
 
 # 查询文件日志
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method query_logs \
   --extra level:s:I \
   --extra source:s:file \
@@ -222,12 +222,12 @@ adb shell content call \
 ```bash
 # 列出所有 Skills
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method list_skills
 
 # 健康检查
 adb shell content call \
-  --uri content://com.xiaomo.androidforclaw.selfcontrol/execute \
+  --uri content://com.xiaomo.hermes.selfcontrol/execute \
   --method health
 ```
 
@@ -239,7 +239,7 @@ adb shell content call \
 
 ```bash
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill SKILL_NAME \
   --es/ei/el/ez/ef/ed key value
 ```
@@ -262,13 +262,13 @@ adb shell am broadcast \
 ```bash
 # 打开配置页面
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill navigate_app \
   --es page config
 
 # 打开权限页面
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill navigate_app \
   --es page permissions
 ```
@@ -278,14 +278,14 @@ adb shell am broadcast \
 ```bash
 # 读取配置
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill manage_config \
   --es operation get \
   --es key exploration_mode
 
 # 设置配置
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill manage_config \
   --es operation set \
   --es key exploration_mode \
@@ -293,7 +293,7 @@ adb shell am broadcast \
 
 # 列出配置
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill manage_config \
   --es operation list \
   --es category feature
@@ -304,13 +304,13 @@ adb shell am broadcast \
 ```bash
 # 隐藏悬浮窗
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill control_service \
   --es operation hide_float
 
 # 显示悬浮窗（延迟）
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill control_service \
   --es operation show_float \
   --ei delay_ms 500
@@ -321,7 +321,7 @@ adb shell am broadcast \
 ```bash
 # 查询错误日志
 adb shell am broadcast \
-  -a com.xiaomo.androidforclaw.SELF_CONTROL \
+  -a com.xiaomo.hermes.SELF_CONTROL \
   --es skill query_logs \
   --es level E \
   --ei lines 50
@@ -512,23 +512,23 @@ jobs:
 ```xml
 <!-- 自定义权限 -->
 <permission
-    android:name="com.xiaomo.androidforclaw.permission.SELF_CONTROL"
+    android:name="com.xiaomo.hermes.permission.SELF_CONTROL"
     android:protectionLevel="signature" />
 
 <!-- ContentProvider 权限 -->
 <provider
     android:name=".selfcontrol.SelfControlProvider"
-    android:authorities="com.xiaomo.androidforclaw.selfcontrol"
+    android:authorities="com.xiaomo.hermes.selfcontrol"
     android:exported="true"
-    android:permission="com.xiaomo.androidforclaw.permission.SELF_CONTROL" />
+    android:permission="com.xiaomo.hermes.permission.SELF_CONTROL" />
 
 <!-- BroadcastReceiver 权限 -->
 <receiver
     android:name=".selfcontrol.SelfControlReceiver"
     android:exported="true"
-    android:permission="com.xiaomo.androidforclaw.permission.SELF_CONTROL">
+    android:permission="com.xiaomo.hermes.permission.SELF_CONTROL">
     <intent-filter>
-        <action android:name="com.xiaomo.androidforclaw.SELF_CONTROL" />
+        <action android:name="com.xiaomo.hermes.SELF_CONTROL" />
     </intent-filter>
 </receiver>
 ```
@@ -582,23 +582,23 @@ override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
 
 ```bash
 # 检查应用是否运行
-adb shell ps | grep com.xiaomo.androidforclaw
+adb shell ps | grep com.xiaomo.hermes
 
 # 检查 ContentProvider 是否注册
-adb shell dumpsys package com.xiaomo.androidforclaw | grep Provider
+adb shell dumpsys package com.xiaomo.hermes | grep Provider
 
 # 检查 BroadcastReceiver 是否注册
-adb shell dumpsys package com.xiaomo.androidforclaw | grep Receiver
+adb shell dumpsys package com.xiaomo.hermes | grep Receiver
 ```
 
 ### 问题 2: 权限被拒绝
 
 ```bash
 # 检查权限
-adb shell dumpsys package com.xiaomo.androidforclaw | grep permission
+adb shell dumpsys package com.xiaomo.hermes | grep permission
 
 # 临时授予权限（如果使用自定义权限）
-adb shell pm grant com.xiaomo.androidforclaw com.xiaomo.androidforclaw.permission.SELF_CONTROL
+adb shell pm grant com.xiaomo.hermes com.xiaomo.hermes.permission.SELF_CONTROL
 ```
 
 ### 问题 3: 结果解析失败

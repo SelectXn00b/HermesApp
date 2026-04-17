@@ -1,4 +1,4 @@
-package com.xiaomo.androidforclaw.selfcontrol
+package com.xiaomo.hermes.selfcontrol
 
 /**
  * OpenClaw Source Reference:
@@ -38,7 +38,7 @@ import java.io.InputStreamReader
  *
  * def adb_self_control(skill, **kwargs):
  *     args = " ".join([f"--extra {k}:s:{v}" for k, v in kwargs.items()])
- *     cmd = f'adb shell content call --uri content://com.xiaomo.androidforclaw.selfcontrol/execute --method {skill} {args}'
+ *     cmd = f'adb shell content call --uri content://com.xiaomo.hermes.selfcontrol/execute --method {skill} {args}'
  *     result = subprocess.check_output(cmd, shell=True)
  *     return result.decode()
  *
@@ -75,7 +75,7 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
             }.joinToString(" ")
 
             return "adb shell content call " +
-                    "--uri content://com.xiaomo.androidforclaw.selfcontrol/execute " +
+                    "--uri content://com.xiaomo.hermes.selfcontrol/execute " +
                     "--method $skill " +
                     extras
         }
@@ -96,7 +96,7 @@ class ADBSelfControlSkill(private val context: Context) : Skill {
             }.joinToString(" ")
 
             return "adb shell am broadcast " +
-                    "-a com.xiaomo.androidforclaw.SELF_CONTROL " +
+                    "-a com.xiaomo.hermes.SELF_CONTROL " +
                     "--es skill $skill " +
                     extras
         }

@@ -1,4 +1,4 @@
-package com.xiaomo.androidforclaw.selfcontrol
+package com.xiaomo.hermes.selfcontrol
 
 /**
  * OpenClaw Source Reference:
@@ -28,20 +28,20 @@ import kotlinx.coroutines.launch
  * ```bash
  * # 页面导航
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es skill navigate_app \
  *   --es page config
  *
  * # 配置管理 - 读取
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es skill manage_config \
  *   --es operation get \
  *   --es key exploration_mode
  *
  * # 配置管理 - 设置
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es skill manage_config \
  *   --es operation set \
  *   --es key exploration_mode \
@@ -49,25 +49,25 @@ import kotlinx.coroutines.launch
  *
  * # 服务控制
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es skill control_service \
  *   --es operation hide_float
  *
  * # 日志查询
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es skill query_logs \
  *   --es level E \
  *   --ei lines 50
  *
  * # 列出所有 Skills
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es action list_skills
  *
  * # 健康检查
  * adb shell am broadcast \
- *   -a com.xiaomo.androidforclaw.SELF_CONTROL \
+ *   -a com.xiaomo.hermes.SELF_CONTROL \
  *   --es action health
  * ```
  *
@@ -86,7 +86,7 @@ import kotlinx.coroutines.launch
 class SelfControlReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "SelfControlReceiver"
-        const val ACTION_SELF_CONTROL = "com.xiaomo.androidforclaw.SELF_CONTROL"
+        const val ACTION_SELF_CONTROL = "com.xiaomo.hermes.SELF_CONTROL"
 
         // 特殊 action
         private const val ACTION_LIST_SKILLS = "list_skills"

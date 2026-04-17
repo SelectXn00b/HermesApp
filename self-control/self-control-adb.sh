@@ -5,7 +5,7 @@
 
 set -e
 
-PACKAGE="com.xiaomo.androidforclaw"
+PACKAGE="com.xiaomo.hermes"
 PROVIDER_AUTHORITY="${PACKAGE}.selfcontrol"
 BROADCAST_ACTION="${PACKAGE}.SELF_CONTROL"
 
