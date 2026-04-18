@@ -9,7 +9,6 @@
  */
 package com.xiaomo.hermes.agent.tools
 
-import com.xiaomo.hermes.agent.loop.AgentLoop
 import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.agent.subagent.SessionAccessResult
 import com.xiaomo.hermes.agent.subagent.SessionVisibilityGuard

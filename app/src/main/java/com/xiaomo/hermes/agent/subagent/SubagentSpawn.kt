@@ -12,8 +12,8 @@ package com.xiaomo.hermes.agent.subagent
 
 import com.xiaomo.hermes.acp.AcpClient
 import com.xiaomo.hermes.agent.context.ContextManager
-import com.xiaomo.hermes.agent.loop.AgentLoop
 import com.xiaomo.hermes.agent.loop.AgentLoopInterface
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter
 import com.xiaomo.hermes.agent.tools.AndroidToolRegistry
 import com.xiaomo.hermes.routing.isSubagentSessionKey
 import com.xiaomo.hermes.routing.getSubagentDepth
@@ -205,9 +205,9 @@ class SubagentSpawner(
             childSessionKey = childSessionKey,
         )
 
-        // 7. Create child AgentLoop
+        // 7. Create child AgentLoop (via AgentLoopAdapter → hermes)
         val childContextManager = ContextManager(llmProvider)
-        val childLoop = AgentLoop(
+        val childLoop = AgentLoopAdapter(
             llmProvider = llmProvider,
             toolRegistry = toolRegistry,
             androidToolRegistry = androidToolRegistry,
