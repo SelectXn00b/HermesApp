@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App基本信息 -->
-    <string name="app_name">Hermes</string>
+    <string name="app_name">墨思</string>
 
     <!-- Shell命令相关 -->
     <string name="command_hint">Shell 命令</string>
@@ -97,7 +97,7 @@
 
     <!-- 权限披露弹窗 (Google Play 合规) -->
     <string name="disclosure_storage_title">文件访问使用说明</string>
-    <string name="disclosure_storage_message">Hermes 需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」将跳转到系统设置页面开启此权限。</string>
+    <string name="disclosure_storage_message">墨思需要使用「所有文件访问」权限来实现以下核心功能：\n\n• 文件管理：AI 根据您的指令读取、创建、编辑设备上的文件\n• 配置存储：保存应用配置、聊天记录和技能插件\n• 截图保存：保存屏幕截图供 AI 分析\n\n本应用仅在您主动发起指令时访问文件，不会在后台扫描或上传您的文件。\n\n点击「同意并继续」将跳转到系统设置页面开启此权限。</string>
     <string name="disclosure_agree">同意并继续</string>
     <string name="disclosure_exit">退出</string>
 
@@ -252,7 +252,7 @@
     <string name="settings_github">GitHub 仓库</string>
     <string name="settings_github_desc">查看源码 / 提交 Issue</string>
     <string name="settings_copyright">© 2024–2025 小龙虾</string>
-    <string name="settings_inspired">基于 Hermes 构建</string>
+    <string name="settings_inspired">基于墨思 (Hermes) 构建</string>
     <string name="settings_copied">已复制</string>
     <string name="settings_cannot_open_link">无法打开链接</string>
 
