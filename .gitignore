@@ -123,3 +123,6 @@ local.properties
 test.keystore
 .cc-connect/
 termux-app-upstream/
+
+# Evaluation outputs
+eval_results/
