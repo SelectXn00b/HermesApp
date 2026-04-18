@@ -15,7 +15,7 @@ import com.xiaomo.hermes.infra.FixedWindowRateLimiter
 import com.xiaomo.hermes.process.resetAllLanes
 import com.xiaomo.hermes.routing.buildAgentMainSessionKey
 import com.xiaomo.hermes.agent.context.ContextBuilder
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.agent.session.SessionManager
 import com.xiaomo.hermes.gateway.methods.AgentMethods
 import com.xiaomo.hermes.gateway.methods.HealthMethods

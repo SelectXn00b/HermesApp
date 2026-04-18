@@ -8,6 +8,7 @@
 package com.xiaomo.hermes.agent.subagent
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.logging.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ private const val TAG = "SubagentAnnounce"
  * 6. Complete parent's yield signal if present
  */
 internal suspend fun SubagentSpawner.announceToParent(
-    parentAgentLoop: AgentLoop,
+    parentAgentLoop: AgentLoopInterface,
     record: SubagentRunRecord,
     outcome: SubagentRunOutcome,
 ) {
@@ -121,7 +122,7 @@ internal suspend fun SubagentSpawner.announceToParent(
  */
 internal suspend fun SubagentSpawner.checkDescendantSettle(
     completedRecord: SubagentRunRecord,
-    parentAgentLoop: AgentLoop,
+    parentAgentLoop: AgentLoopInterface,
 ) {
     // Walk up: find the parent run that spawned the completed child
     val parentRun = registry.getRunByChildSessionKey(completedRecord.requesterSessionKey) ?: return

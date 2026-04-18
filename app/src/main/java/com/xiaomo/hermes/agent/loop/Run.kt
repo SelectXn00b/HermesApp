@@ -83,7 +83,7 @@ class AgentLoop(
     private val maxIterations: Int = Int.MAX_VALUE,  // Kept for call-site compat, ignored
     private val modelRef: String? = null,
     private val configLoader: ConfigLoader? = null  // For context window resolution (Gap 2)
-) {
+) : AgentLoopInterface {
     companion object {
         private const val TAG = "AgentLoop"
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw MAX_OVERFLOW_COMPACTION_ATTEMPTS
@@ -153,14 +153,14 @@ class AgentLoop(
      * Used for per-channel history limit resolution (aligned with OpenClaw getHistoryLimitFromSessionKey).
      * Set by caller (MainEntryNew, SubagentSpawner, Gateway) after construction.
      */
-    var sessionKey: String? = null
+    override var sessionKey: String? = null
 
     /**
      * Extra per-session tools (e.g. subagent tools: sessions_spawn, sessions_list, etc.)
      * Set after construction to resolve circular dependency (tools need AgentLoop ref).
      * Aligned with OpenClaw per-session tool injection.
      */
-    var extraTools: List<Tool> = emptyList()
+    override var extraTools: List<Tool> = emptyList()
         set(value) {
             field = value
             _extraToolsMap = value.associateBy { it.name }
@@ -213,7 +213,7 @@ class AgentLoop(
         replay = 1,
         extraBufferCapacity = 10
     )
-    val progressFlow: SharedFlow<ProgressUpdate> = _progressFlow.asSharedFlow()
+    override val progressFlow: SharedFlow<ProgressUpdate> = _progressFlow.asSharedFlow()
 
     /**
      * Steer message channel: external code (e.g. MessageQueueManager) can send
@@ -224,7 +224,7 @@ class AgentLoop(
      * Uses a Channel (not SharedFlow) so that tryReceive() is available for
      * non-suspending drain inside the loop.
      */
-    val steerChannel = Channel<String>(capacity = 16)
+    override val steerChannel = Channel<String>(capacity = 16)
 
     // Stop flag
     @Volatile
@@ -240,7 +240,7 @@ class AgentLoop(
     private var didRetryTransientHttpError = false
 
     // Hook runner (aligned with OpenClaw EmbeddedAgentHookRunner)
-    val hookRunner = com.xiaomo.hermes.agent.hook.HookRunner()
+    override val hookRunner = com.xiaomo.hermes.agent.hook.HookRunner()
 
     // Memory flush manager (aligned with OpenClaw runMemoryFlushIfNeeded)
     private val memoryFlushManager = com.xiaomo.hermes.agent.memory.MemoryFlushManager()
@@ -251,8 +251,7 @@ class AgentLoop(
      * contains the full conversation. Thread-safe for read-only access.
      */
     @Volatile
-    var conversationMessages: List<Message> = emptyList()
-        private set
+    override var conversationMessages: List<Message> = emptyList()
 
     /**
      * Yield signal for sessions_yield tool.
@@ -261,7 +260,7 @@ class AgentLoop(
      * Aligned with OpenClaw sessions_yield behavior.
      */
     @Volatile
-    var yieldSignal: CompletableDeferred<String?>? = null
+    override var yieldSignal: CompletableDeferred<String?>? = null
 
     /**
      * Write log to file and buffer
@@ -345,12 +344,12 @@ class AgentLoop(
      * @param reasoningEnabled Whether to enable reasoning
      * @return AgentResult containing final content, tools used, and all messages
      */
-    suspend fun run(
+    override suspend fun run(
         systemPrompt: String,
         userMessage: String,
-        contextHistory: List<Message> = emptyList(),
-        reasoningEnabled: Boolean = true,
-        images: List<ImageBlock>? = null
+        contextHistory: List<Message>,
+        reasoningEnabled: Boolean,
+        images: List<ImageBlock>?
     ): AgentResult {
         // 🛡️ 全局错误兜底: 确保任何未捕获的错误都能返回给用户
         return try {
@@ -1476,7 +1475,7 @@ class AgentLoop(
     /**
      * Stop Agent Loop
      */
-    fun stop() {
+    override fun stop() {
         shouldStop = true
         Log.d(TAG, "Stop signal received")
     }
@@ -1487,7 +1486,7 @@ class AgentLoop(
      * Clears: shouldStop, loopDetectionState, timeoutCompactionAttempts, steerChannel.
      * Aligned with OpenClaw steer abort+restart flow.
      */
-    fun reset() {
+    override fun reset() {
         shouldStop = false
         timeoutCompactionAttempts = 0
         didRetryTransientHttpError = false

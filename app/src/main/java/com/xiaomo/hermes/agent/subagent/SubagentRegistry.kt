@@ -12,6 +12,7 @@
 package com.xiaomo.hermes.agent.subagent
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.logging.Log
 import kotlinx.coroutines.Job
 import java.util.concurrent.ConcurrentHashMap
@@ -44,7 +45,7 @@ class SubagentRegistry(
     private val jobs = ConcurrentHashMap<String, Job>()
 
     /** runId -> child AgentLoop (for steer/kill/history) */
-    private val agentLoops = ConcurrentHashMap<String, AgentLoop>()
+    private val agentLoops = ConcurrentHashMap<String, AgentLoopInterface>()
 
     /** Registry event listeners */
     private val listeners = mutableListOf<SubagentRegistryListener>()
@@ -105,7 +106,7 @@ class SubagentRegistry(
 
     // ==================== Registration ====================
 
-    fun registerRun(record: SubagentRunRecord, loop: AgentLoop, job: Job) {
+    fun registerRun(record: SubagentRunRecord, loop: AgentLoopInterface, job: Job) {
         runs[record.runId] = record
         agentLoops[record.runId] = loop
         jobs[record.runId] = job
@@ -141,7 +142,7 @@ class SubagentRegistry(
 
     fun getRunById(runId: String): SubagentRunRecord? = runs[runId]
 
-    fun getAgentLoop(runId: String): AgentLoop? = agentLoops[runId]
+    fun getAgentLoop(runId: String): AgentLoopInterface? = agentLoops[runId]
 
     fun getJob(runId: String): Job? = jobs[runId]
 
@@ -296,7 +297,7 @@ class SubagentRegistry(
      * Old run stays in registry for history; new run takes over runtime references.
      * Aligned with OpenClaw replaceSubagentRunAfterSteer.
      */
-    fun replaceRun(oldRunId: String, newRecord: SubagentRunRecord, loop: AgentLoop, job: Job) {
+    fun replaceRun(oldRunId: String, newRecord: SubagentRunRecord, loop: AgentLoopInterface, job: Job) {
         // Preserve frozen result as fallback (aligned with OpenClaw preserveFrozenResultFallback)
         val oldRecord = runs[oldRunId]
         if (oldRecord?.frozenResultText != null && newRecord.fallbackFrozenResultText == null) {

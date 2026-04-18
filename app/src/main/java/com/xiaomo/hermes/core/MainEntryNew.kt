@@ -16,7 +16,7 @@ import com.xiaomo.hermes.agent.context.ContextBuilder
 import com.xiaomo.hermes.agent.tools.AndroidToolRegistry
 import com.xiaomo.hermes.workspace.StoragePaths
 import com.xiaomo.hermes.agent.tools.ToolRegistry
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.agent.loop.ProgressUpdate
 import com.xiaomo.hermes.agent.session.SessionManager
 import com.xiaomo.hermes.config.ConfigLoader

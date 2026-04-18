@@ -12,7 +12,7 @@ import android.content.Context
 import com.xiaomo.hermes.agent.context.ChannelContext
 import com.xiaomo.hermes.agent.context.ContextBuilder
 import com.xiaomo.hermes.agent.context.ContextManager
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.agent.session.HistorySanitizer
 import com.xiaomo.hermes.agent.tools.AndroidToolRegistry
 import com.xiaomo.hermes.agent.tools.ToolRegistry

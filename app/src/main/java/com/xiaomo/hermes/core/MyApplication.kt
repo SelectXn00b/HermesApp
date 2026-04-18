@@ -75,7 +75,7 @@ import com.xiaomo.hermes.agent.tools.ToolRegistry
 import com.xiaomo.hermes.agent.tools.AndroidToolRegistry
 import com.xiaomo.hermes.agent.context.ChannelContext
 import com.xiaomo.hermes.agent.context.ContextBuilder
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.agent.loop.ProgressUpdate
 import com.xiaomo.hermes.providers.UnifiedLLMProvider
 import com.xiaomo.hermes.core.channel.ChannelAdapter

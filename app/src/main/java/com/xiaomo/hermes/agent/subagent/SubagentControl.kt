@@ -7,6 +7,7 @@
 package com.xiaomo.hermes.agent.subagent
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.logging.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -117,7 +118,7 @@ internal suspend fun SubagentSpawner.steerSubagent(
     runId: String,
     message: String,
     callerSessionKey: String,
-    parentAgentLoop: AgentLoop,
+    parentAgentLoop: AgentLoopInterface,
 ): Pair<Boolean, String?> {
     val record = registry.getRunById(runId) ?: return Pair(false, "Run not found: $runId")
     if (!record.isActive) return Pair(false, "Run already completed: $runId")

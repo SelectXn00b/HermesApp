@@ -3,7 +3,7 @@ package com.xiaomo.hermes.core.channel
 import com.xiaomo.hermes.agent.context.ContextSecurityGuard
 import com.xiaomo.hermes.shared.chunkTextByBreakResolver
 import com.xiaomo.hermes.shared.normalizeString
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.agent.tools.AndroidToolRegistry
 import com.xiaomo.hermes.agent.tools.ToolRegistry
 import com.xiaomo.hermes.autoreply.isHeartbeatUserMessage

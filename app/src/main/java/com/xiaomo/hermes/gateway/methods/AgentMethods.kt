@@ -8,7 +8,7 @@ package com.xiaomo.hermes.gateway.methods
 
 import android.content.Context
 import com.xiaomo.hermes.logging.Log
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.agent.loop.AgentResult
 import com.xiaomo.hermes.agent.session.SessionManager
 import com.xiaomo.hermes.gateway.protocol.*

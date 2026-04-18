@@ -13,6 +13,7 @@ package com.xiaomo.hermes.agent.subagent
 import com.xiaomo.hermes.acp.AcpClient
 import com.xiaomo.hermes.agent.context.ContextManager
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.agent.tools.AndroidToolRegistry
 import com.xiaomo.hermes.routing.isSubagentSessionKey
 import com.xiaomo.hermes.routing.getSubagentDepth
@@ -67,7 +68,7 @@ class SubagentSpawner(
         fun buildSubagentTools(
             spawner: SubagentSpawner,
             parentSessionKey: String,
-            parentAgentLoop: AgentLoop,
+            parentAgentLoop: AgentLoopInterface,
             parentDepth: Int,
             configLoader: ConfigLoader,
         ): List<Tool> {
@@ -98,7 +99,7 @@ class SubagentSpawner(
     suspend fun spawn(
         params: SpawnSubagentParams,
         parentSessionKey: String,
-        parentAgentLoop: AgentLoop,
+        parentAgentLoop: AgentLoopInterface,
         parentDepth: Int,
     ): SpawnSubagentResult {
         val config = try {
@@ -388,7 +389,7 @@ class SubagentSpawner(
         runId: String,
         message: String,
         callerSessionKey: String,
-        parentAgentLoop: AgentLoop,
+        parentAgentLoop: AgentLoopInterface,
     ): Pair<Boolean, String?> {
         return steerSubagent(runId, message, callerSessionKey, parentAgentLoop)
     }
@@ -410,7 +411,7 @@ class SubagentSpawner(
         childSessionKey: String,
         message: String,
         callerSessionKey: String,
-        parentAgentLoop: AgentLoop,
+        parentAgentLoop: AgentLoopInterface,
     ): Pair<Boolean, String?> {
         // Find the latest completed run for this session key
         val runIds = registry.findRunIdsByChildSessionKey(childSessionKey)

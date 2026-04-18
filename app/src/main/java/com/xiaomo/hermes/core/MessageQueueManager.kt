@@ -6,7 +6,7 @@ package com.xiaomo.hermes.core
  */
 
 
-import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.hermes.bridge.AgentLoopAdapter as AgentLoop
 import com.xiaomo.hermes.logging.Log
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap

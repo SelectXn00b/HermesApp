@@ -7,6 +7,7 @@
 package com.xiaomo.hermes.agent.tools
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.agent.subagent.InlineAttachment
 import com.xiaomo.hermes.agent.subagent.SPAWN_ACCEPTED_NOTE
 import com.xiaomo.hermes.agent.subagent.SPAWN_SESSION_ACCEPTED_NOTE
@@ -27,7 +28,7 @@ import com.xiaomo.hermes.providers.ToolDefinition
 class SessionsSpawnTool(
     private val spawner: SubagentSpawner,
     private val parentSessionKey: String,
-    private val parentAgentLoop: AgentLoop,
+    private val parentAgentLoop: AgentLoopInterface,
     private val parentDepth: Int,
 ) : Tool {
     companion object {

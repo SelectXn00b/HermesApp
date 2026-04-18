@@ -9,6 +9,7 @@
 package com.xiaomo.hermes.agent.tools
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.agent.subagent.DEFAULT_RECENT_MINUTES
 import com.xiaomo.hermes.agent.subagent.MAX_STEER_MESSAGE_CHARS
 import com.xiaomo.hermes.agent.subagent.SubagentRegistry
@@ -33,7 +34,7 @@ class SubagentsTool(
     private val spawner: SubagentSpawner,
     private val registry: SubagentRegistry,
     private val callerSessionKey: String,
-    private val parentAgentLoop: AgentLoop,
+    private val parentAgentLoop: AgentLoopInterface,
 ) : Tool {
 
     companion object {

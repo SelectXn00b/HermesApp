@@ -9,6 +9,7 @@
 package com.xiaomo.hermes.agent.tools
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.providers.FunctionDefinition
 import com.xiaomo.hermes.providers.ParametersSchema
 import com.xiaomo.hermes.providers.PropertySchema
@@ -24,7 +25,7 @@ import kotlinx.coroutines.CompletableDeferred
  * announce) or times out (300s).
  */
 class SessionsYieldTool(
-    private val parentAgentLoop: AgentLoop,
+    private val parentAgentLoop: AgentLoopInterface,
 ) : Tool {
 
     override val name = "sessions_yield"

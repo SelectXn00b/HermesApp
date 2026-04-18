@@ -10,6 +10,7 @@
 package com.xiaomo.hermes.agent.tools
 
 import com.xiaomo.hermes.agent.loop.AgentLoop
+import com.xiaomo.hermes.agent.loop.AgentLoopInterface
 import com.xiaomo.hermes.agent.subagent.SessionAccessResult
 import com.xiaomo.hermes.agent.subagent.SessionVisibilityGuard
 import com.xiaomo.hermes.agent.subagent.SpawnMode
@@ -31,7 +32,7 @@ import com.xiaomo.hermes.providers.ToolDefinition
 class SessionsSendTool(
     private val spawner: SubagentSpawner,
     private val parentSessionKey: String,
-    private val parentAgentLoop: AgentLoop,
+    private val parentAgentLoop: AgentLoopInterface,
 ) : Tool {
 
     override val name = "sessions_send"
