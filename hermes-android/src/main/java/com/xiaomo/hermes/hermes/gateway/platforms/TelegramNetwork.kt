@@ -378,3 +378,27 @@ class TelegramRateLimiter {
         _minDelays.clear()
     }
 }
+
+class TelegramFallbackTransport {
+    /**
+     * Handle an async request with fallback IP retry logic.
+     *
+     * On Android, the httpx/asyncio-based fallback transport is not available.
+     * This stub returns null, deferring to the primary OkHttp transport in
+     * TelegramNetworkClient which already has retry/backoff built in.
+     */
+    suspend fun handleAsyncRequest(request: Any?): Any? {
+        // Android: fallback IP transport not supported (requires httpx AsyncBaseTransport).
+        // TelegramNetworkClient handles retries directly via OkHttp.
+        return null
+    }
+
+    /**
+     * Close the transport and release resources.
+     *
+     * No-op on Android since we don't hold httpx transports.
+     */
+    suspend fun aclose() {
+        // No resources to release on Android
+    }
+}

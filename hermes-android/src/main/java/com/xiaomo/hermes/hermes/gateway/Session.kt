@@ -66,7 +66,7 @@ enum class SessionSource {
 /**
  * A single session record.
  */
-data class SessionContext(
+data class SessionRecord(
     val sessionKey: String,
     val platform: String,
     val chatId: String,
@@ -137,7 +137,7 @@ data class SessionContext(
     fun toJson(): JSONObject = JSONObject(toDict())
 
     companion object {
-        fun fromDict(data: Map<String, Any?>): SessionContext = SessionContext(
+        fun fromDict(data: Map<String, Any?>): SessionRecord = SessionRecord(
             sessionKey = data["session_key"] as? String ?: "",
             platform = data["platform"] as? String ?: "",
             chatId = data["chat_id"] as? String ?: "",
@@ -159,7 +159,7 @@ data class SessionContext(
             parentSessionKey = data["parent_session_key"] as? String
         }
 
-        fun fromJson(json: JSONObject): SessionContext {
+        fun fromJson(json: JSONObject): SessionRecord {
             val map = mutableMapOf<String, Any?>()
             json.keys().forEach { key -> map[key] = json.opt(key) }
             return fromDict(map)
@@ -174,14 +174,14 @@ fun buildSessionKey(platform: String, chatId: String, userId: String): String =
     "$platform:$chatId:$userId"
 
 /** Build a session context from platform adapter metadata. */
-fun buildSessionContext(
+fun buildSessionRecord(
     sessionKey: String,
     platform: String,
     chatId: String,
     userId: String,
     chatName: String = "",
     userName: String = "",
-    chatType: String = "dm"): SessionContext = SessionContext(
+    chatType: String = "dm"): SessionRecord = SessionRecord(
     sessionKey = sessionKey,
     platform = platform,
     chatId = chatId,
@@ -192,7 +192,7 @@ fun buildSessionContext(
     source = SessionSource.NEW)
 
 /** Build a system-prompt fragment for a session. */
-fun buildSessionContextPrompt(session: SessionContext, redactPii: Boolean = false): String = buildString {
+fun buildSessionRecordPrompt(session: SessionRecord, redactPii: Boolean = false): String = buildString {
     appendLine("# Session Context")
     appendLine("- Platform: ${session.platform}")
     appendLine("- Chat: ${session.chatName.ifEmpty { session.chatId }}")
@@ -213,7 +213,7 @@ fun buildSessionContextPrompt(session: SessionContext, redactPii: Boolean = fals
  */
 class SessionStore(
     private val persistDir: File? = null) {
-    private val sessions: ConcurrentHashMap<String, SessionContext> = ConcurrentHashMap()
+    private val sessions: ConcurrentHashMap<String, SessionRecord> = ConcurrentHashMap()
 
     /** Get or create a session. */
     fun getOrCreate(
@@ -223,12 +223,12 @@ class SessionStore(
         userId: String,
         chatName: String = "",
         userName: String = "",
-        chatType: String = "dm"): SessionContext = sessions.getOrPut(sessionKey) {
-        buildSessionContext(sessionKey, platform, chatId, userId, chatName, userName, chatType)
+        chatType: String = "dm"): SessionRecord = sessions.getOrPut(sessionKey) {
+        buildSessionRecord(sessionKey, platform, chatId, userId, chatName, userName, chatType)
     }
 
     /** Get or create session from a source map (Python-compatible). */
-    fun getOrCreateSession(source: Map<String, Any?>, forceNew: Boolean = false): SessionContext {
+    fun getOrCreateSession(source: Map<String, Any?>, forceNew: Boolean = false): SessionRecord {
         val platform = source["platform"] as? String ?: "unknown"
         val chatId = source["chat_id"] as? String ?: ""
         val userId = source["user_id"] as? String ?: ""
@@ -244,10 +244,10 @@ class SessionStore(
         return getOrCreate(sessionKey, platform, chatId, userId, chatName, userName, chatType)
     }
 
-    fun get(sessionKey: String): SessionContext? = sessions[sessionKey]
+    fun get(sessionKey: String): SessionRecord? = sessions[sessionKey]
     fun remove(sessionKey: String) { sessions.remove(sessionKey) }
     val keys: Set<String> get() = sessions.keys.toSet()
-    val all: Collection<SessionContext> get() = sessions.values
+    val all: Collection<SessionRecord> get() = sessions.values
     val size: Int get() = sessions.size
     val processingCount: Int get() = sessions.values.count { it.isProcessing }
     val hasAnySessions: Boolean get() = sessions.isNotEmpty()
@@ -255,14 +255,14 @@ class SessionStore(
     fun clear() { sessions.clear() }
 
     /** Check if a session is expired (idle timeout). */
-    fun isSessionExpired(entry: SessionContext, idleMinutes: Int = 1440): Boolean {
+    fun isSessionExpired(entry: SessionRecord, idleMinutes: Int = 1440): Boolean {
         val last = Instant.parse(entry.lastMessageAt)
         val elapsed = java.time.Duration.between(last, Instant.now())
         return elapsed.toMinutes() > idleMinutes
     }
 
     /** Check if session should be reset (daily boundary or idle). */
-    fun shouldReset(entry: SessionContext, resetHour: Int = 4): String? {
+    fun shouldReset(entry: SessionRecord, resetHour: Int = 4): String? {
         // Daily reset check
         val now = java.time.ZonedDateTime.now()
         val lastMsg = java.time.ZonedDateTime.parse(entry.lastMessageAt)
@@ -303,9 +303,9 @@ class SessionStore(
     }
 
     /** Reset a session (clear conversation state). */
-    fun resetSession(sessionKey: String): SessionContext? {
+    fun resetSession(sessionKey: String): SessionRecord? {
         val old = sessions[sessionKey] ?: return null
-        val newEntry = SessionContext(
+        val newEntry = SessionRecord(
             sessionKey = old.sessionKey,
             platform = old.platform,
             chatId = old.chatId,
@@ -319,7 +319,7 @@ class SessionStore(
     }
 
     /** List sessions, optionally filtered by activity. */
-    fun listSessions(activeMinutes: Int? = null): List<SessionContext> {
+    fun listSessions(activeMinutes: Int? = null): List<SessionRecord> {
         val all = sessions.values.toList()
         if (activeMinutes == null) return all
         val cutoff = Instant.now().minus(java.time.Duration.ofMinutes(activeMinutes.toLong()))
@@ -386,7 +386,7 @@ class SessionStore(
         try {
             val json = JSONArray(file.readText(Charsets.UTF_8))
             for (i in 0 until json.length()) {
-                val session = SessionContext.fromJson(json.getJSONObject(i))
+                val session = SessionRecord.fromJson(json.getJSONObject(i))
                 sessions[session.sessionKey] = session
             }
             Log.i(TAG, "Loaded ${sessions.size} sessions from ${file.absolutePath}")
@@ -396,11 +396,11 @@ class SessionStore(
     }
 
     /** Switch a session key to point at a different session (for /resume). */
-    fun switchSession(sessionKey: String, targetSessionKey: String): SessionContext? {
+    fun switchSession(sessionKey: String, targetSessionKey: String): SessionRecord? {
         val old = sessions[sessionKey] ?: return null
         if (sessionKey == targetSessionKey) return old
 
-        val newEntry = SessionContext(
+        val newEntry = SessionRecord(
             sessionKey = targetSessionKey,
             platform = old.platform,
             chatId = old.chatId,
@@ -421,13 +421,13 @@ class SessionStore(
     fun getSessionKeys(): List<String> = sessions.keys.toList()
 
     /** Remove a session by key. */
-    fun removeSession(sessionKey: String): SessionContext? = sessions.remove(sessionKey)
+    fun removeSession(sessionKey: String): SessionRecord? = sessions.remove(sessionKey)
 
     /** Remove all sessions. */
     fun clearAllSessions() { sessions.clear() }
 
     /** Get sessions filtered by platform. */
-    fun getSessionsByPlatform(platform: String): List<SessionContext> {
+    fun getSessionsByPlatform(platform: String): List<SessionRecord> {
         return sessions.values.filter { it.platform == platform }
     }
 
@@ -438,7 +438,7 @@ class SessionStore(
 
     /** Update the last active timestamp for a session. */
     fun touchSession(sessionKey: String) {
-        // SessionContext has no lastActive field; createdAt is immutable
+        // SessionRecord has no lastActive field; createdAt is immutable
     }
 
     /** Get the total message count across all sessions. */
@@ -446,6 +446,26 @@ class SessionStore(
         return sessions.size
     }
 
+
+
+    /** Remove session entries older than [maxAgeDays] days.
+     *  Returns the number of entries pruned. */
+    fun pruneOldEntries(maxAgeDays: Int): Int {
+        if (maxAgeDays <= 0) return 0
+        val cutoff = Instant.now().minus(java.time.Duration.ofDays(maxAgeDays.toLong()))
+        val toRemove = sessions.entries.filter { (_, entry) ->
+            try {
+                Instant.parse(entry.lastMessageAt).isBefore(cutoff)
+            } catch (_: Exception) { false }
+        }.map { it.key }
+        for (key in toRemove) {
+            sessions.remove(key)
+        }
+        if (toRemove.isNotEmpty()) {
+            Log.d(TAG, "Pruned ${toRemove.size} session entries older than $maxAgeDays days")
+        }
+        return toRemove.size
+    }
 }
 
 // ── SessionManager (ACP) ───────────────────────────────────────────
@@ -1024,3 +1044,11 @@ class SessionManager(
     }
 
 }
+
+/** Lightweight session entry for store index persistence. */
+class SessionEntry(
+    val sessionKey: String = "",
+    val sessionId: String = "",
+    var suspended: Boolean = false,
+    var memoryFlushed: Boolean = false
+)

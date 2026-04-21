@@ -119,3 +119,36 @@ object ImageGenerationTool {
     }
 
 }
+
+/**
+ * Small per-instance wrapper around fal_client.SyncClient for managed queue hosts.
+ * Ported from _ManagedFalSyncClient in image_generation_tool.py.
+ *
+ * On Android, the FAL client SDK is not available, so this is a structural
+ * placeholder that preserves the interface for alignment purposes.
+ */
+class _ManagedFalSyncClient(
+    val key: String,
+    val queueRunOrigin: String
+) {
+    private val _queueUrlFormat: String = queueRunOrigin.trimEnd('/') + "/"
+
+    /**
+     * Submit a request to the FAL queue.
+     * On Android, this is a no-op placeholder.
+     */
+    fun submit(
+        application: String,
+        arguments: Map<String, Any>,
+        path: String = "",
+        hint: String? = null,
+        webhookUrl: String? = null,
+        priority: Any? = null,
+        headers: Map<String, String>? = null,
+        startTimeout: Number? = null
+    ): Any? {
+        // FAL client SDK is not available on Android.
+        // This is a structural placeholder for 1:1 alignment.
+        return null
+    }
+}

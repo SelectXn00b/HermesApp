@@ -1,7 +1,7 @@
 /** 1:1 对齐 hermes/gateway/platforms/feishu_comment_rules.py */
 package com.xiaomo.hermes.hermes.gateway.platforms
 
-import com.xiaomo.hermes.hermes.hermesConstants.getHermesHome
+import com.xiaomo.hermes.hermes.getHermesHome
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
@@ -333,3 +333,9 @@ fun isUserAllowed(rule: ResolvedCommentRule, userOpenId: String): Boolean {
     }
     return false
 }
+
+/**
+ * Legacy alias for MtimeCache (Python: class _MtimeCache).
+ * The implementation is provided by MtimeCache above.
+ */
+typealias _MtimeCache = MtimeCache

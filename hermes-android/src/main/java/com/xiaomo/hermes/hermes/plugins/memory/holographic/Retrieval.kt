@@ -421,7 +421,7 @@ class FactRetriever(
         fun _tokenize(text: String): Set<String> {
             if (text.isEmpty()) return emptySet()
             return text.lowercase().split(Regex("\\s+"))
-                .map { it.trim(".,;:!?\"'()[]{}#@<>".toCharArray()) }
+                .map { it.trim(*".,;:!?\"'()[]{}#@<>".toCharArray()) }
                 .filter { it.isNotEmpty() }
                 .toSet()
         }

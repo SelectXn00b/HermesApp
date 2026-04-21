@@ -62,3 +62,13 @@ object SkillsTool {
 
 
 }
+
+/**
+ * Skill readiness status enum.
+ * Ported from SkillReadinessStatus in skills_tool.py.
+ */
+enum class SkillReadinessStatus(val value: String) {
+    AVAILABLE("available"),
+    SETUP_NEEDED("setup_needed"),
+    UNSUPPORTED("unsupported")
+}

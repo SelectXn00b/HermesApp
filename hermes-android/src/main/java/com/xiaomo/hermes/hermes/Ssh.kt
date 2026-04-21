@@ -1,56 +1,138 @@
 package com.xiaomo.hermes.hermes
 
 import android.util.Log
-import org.json.JSONObject
 
 /**
- * Ssh - 对齐 ../hermes-agent/tools/environments/ssh.py
- * Python 原始: 258 行
+ * Ssh - Ported from ../hermes-agent/tools/environments/ssh.py
+ *
+ * SSH remote execution environment with ControlMaster connection persistence.
+ * On Android, subprocess-based SSH is not available. This is a structural stub
+ * that documents the interface. Real SSH execution would use JSch or similar.
  */
-class SSHEnvironment {
-    private fun _build_ssh_command(extra_args: Any?): Any? {
-        // Python: _build_ssh_command
+class SSHEnvironment(
+    private val host: String,
+    private val user: String,
+    private val cwd: String = "~",
+    private val timeout: Int = 60,
+    private val port: Int = 22,
+    private val keyPath: String = ""
+) {
+    companion object {
+        private const val TAG = "SSHEnvironment"
+    }
+
+    private var controlSocket: String = ""
+    private var remoteHome: String = ""
+
+    init {
+        Log.d(TAG, "SSHEnvironment initialized for $user@$host:$port")
+    }
+
+    /**
+     * Build the SSH command with ControlMaster options.
+     * On Android, SSH subprocess spawning is not directly available.
+     */
+    fun _buildSshCommand(extraArgs: List<String>? = null): List<String> {
+        val cmd = mutableListOf("ssh")
+        cmd.addAll(listOf("-o", "ControlPath=$controlSocket"))
+        cmd.addAll(listOf("-o", "ControlMaster=auto"))
+        cmd.addAll(listOf("-o", "ControlPersist=300"))
+        cmd.addAll(listOf("-o", "BatchMode=yes"))
+        cmd.addAll(listOf("-o", "StrictHostKeyChecking=accept-new"))
+        cmd.addAll(listOf("-o", "ConnectTimeout=10"))
+        if (port != 22) {
+            cmd.addAll(listOf("-p", port.toString()))
+        }
+        if (keyPath.isNotEmpty()) {
+            cmd.addAll(listOf("-i", keyPath))
+        }
+        if (extraArgs != null) {
+            cmd.addAll(extraArgs)
+        }
+        cmd.add("$user@$host")
+        return cmd
+    }
+
+    /**
+     * Establish SSH connection using ControlMaster.
+     * On Android, this is a stub - real implementation would use JSch.
+     */
+    fun _establishConnection() {
+        // Android stub: SSH connections would use JSch or similar library
+        Log.d(TAG, "establishConnection: would connect to $user@$host:$port")
+    }
+
+    /**
+     * Detect the remote user's home directory.
+     */
+    fun _detectRemoteHome(): String {
+        // Default detection logic
+        return if (user == "root") "/root" else "/home/$user"
+    }
+
+    /**
+     * Create base ~/.hermes directory tree on remote in one SSH call.
+     */
+    fun _ensureRemoteDirs() {
+        val base = "$remoteHome/.hermes"
+        Log.d(TAG, "ensureRemoteDirs: would create $base/{skills,credentials,cache}")
+    }
+
+    /**
+     * Upload a single file via scp over ControlMaster.
+     * On Android, file upload would use SFTP via JSch.
+     */
+    fun _scpUpload(hostPath: String, remotePath: String) {
+        Log.d(TAG, "scpUpload: $hostPath -> $remotePath (stub)")
+    }
+
+    /**
+     * Upload many files in a single tar-over-SSH stream.
+     * Pipes tar on the local side through SSH to tar on the remote,
+     * transferring all files in one TCP stream.
+     */
+    fun _sshBulkUpload(files: List<Pair<String, String>>) {
+        if (files.isEmpty()) return
+        Log.d(TAG, "sshBulkUpload: ${files.size} files (stub)")
+    }
+
+    /**
+     * Download remote .hermes/ as a tar archive.
+     */
+    fun _sshBulkDownload(dest: String) {
+        Log.d(TAG, "sshBulkDownload: -> $dest (stub)")
+    }
+
+    /**
+     * Batch-delete remote files in one SSH call.
+     */
+    fun _sshDelete(remotePaths: List<String>) {
+        if (remotePaths.isEmpty()) return
+        Log.d(TAG, "sshDelete: ${remotePaths.size} files (stub)")
+    }
+
+    /**
+     * Sync files to remote via FileSyncManager before command execution.
+     */
+    fun _beforeExecute() {
+        // Would trigger FileSyncManager.sync()
+        Log.d(TAG, "beforeExecute: file sync (stub)")
+    }
+
+    /**
+     * Spawn an SSH process that runs bash on the remote host.
+     * On Android, subprocess spawning is limited. This is a stub.
+     */
+    fun _runBash(cmdString: String): Any? {
+        // Android stub: would use JSch to execute remote commands
+        Log.d(TAG, "runBash: command execution (stub)")
         return null
     }
 
-    private fun _establish_connection(): Any? {
-        // Python: _establish_connection
-        return null
+    /**
+     * Clean up SSH connection and sync files back.
+     */
+    fun cleanup() {
+        Log.d(TAG, "cleanup: closing SSH connection to $user@$host")
     }
-
-    private fun _detect_remote_home(): Any? {
-        // Python: _detect_remote_home
-        return null
-    }
-
-    private fun _ensure_remote_dirs(): Any? {
-        // Python: _ensure_remote_dirs
-        return null
-    }
-
-    private fun _scp_upload(host_path: Any?, remote_path: Any?): Any? {
-        // Python: _scp_upload
-        return null
-    }
-
-    private fun _ssh_bulk_upload(files: Any?): Any? {
-        // Python: _ssh_bulk_upload
-        return null
-    }
-
-    private fun _ssh_delete(remote_paths: Any?): Any? {
-        // Python: _ssh_delete
-        return null
-    }
-
-    private fun _before_execute(): Any? {
-        // Python: _before_execute
-        return null
-    }
-
-    fun cleanup(): Any? {
-        // Python: cleanup
-        return null
-    }
-
 }

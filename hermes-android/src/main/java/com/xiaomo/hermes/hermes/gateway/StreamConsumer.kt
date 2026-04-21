@@ -946,3 +946,6 @@ class StreamConsumer(
         }
     }
 }
+
+/** Alias for backward compatibility — GatewayStreamConsumer is now StreamConsumer. */
+typealias GatewayStreamConsumer = StreamConsumer

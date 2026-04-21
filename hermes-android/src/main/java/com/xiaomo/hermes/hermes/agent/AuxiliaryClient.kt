@@ -809,3 +809,101 @@ class ApiException(
     private fun normalizeAuxProvider(provider: String){ /* void */ }
 
 }
+
+class _CodexCompletionsAdapter(
+    private val _client: Any?,
+    private val _model: String
+) {
+    fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
+        // Android: Codex Responses API not available; stub only
+        return null
+    }
+}
+
+class _CodexChatShim(adapter: _CodexCompletionsAdapter) {
+    val completions = adapter
+}
+
+class CodexAuxiliaryClient(
+    private val _realClient: Any?,
+    model: String
+) {
+    private val adapter = _CodexCompletionsAdapter(_realClient, model)
+    val chat = _CodexChatShim(adapter)
+    var apiKey: String = ""
+    var baseUrl: String = ""
+
+    fun close() {
+        // Android: no underlying client to close
+    }
+}
+
+class _AsyncCodexCompletionsAdapter(
+    private val _sync: _CodexCompletionsAdapter
+) {
+    suspend fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
+        return _sync.create(kwargs)
+    }
+}
+
+class _AsyncCodexChatShim(adapter: _AsyncCodexCompletionsAdapter) {
+    val completions = adapter
+}
+
+class AsyncCodexAuxiliaryClient(syncWrapper: CodexAuxiliaryClient) {
+    private val asyncAdapter = _AsyncCodexCompletionsAdapter(syncWrapper.chat.completions)
+    val chat = _AsyncCodexChatShim(asyncAdapter)
+    val apiKey: String = syncWrapper.apiKey
+    val baseUrl: String = syncWrapper.baseUrl
+}
+
+class _AnthropicCompletionsAdapter(
+    private val _client: Any?,
+    private val _model: String,
+    private val _isOauth: Boolean = false
+) {
+    fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
+        // Android: Anthropic Messages API not available directly; stub only
+        return null
+    }
+}
+
+class _AnthropicChatShim(adapter: _AnthropicCompletionsAdapter) {
+    val completions = adapter
+}
+
+class AnthropicAuxiliaryClient(
+    private val _realClient: Any?,
+    model: String,
+    apiKey: String = "",
+    baseUrl: String = "",
+    isOauth: Boolean = false
+) {
+    private val adapter = _AnthropicCompletionsAdapter(_realClient, model, isOauth)
+    val chat = _AnthropicChatShim(adapter)
+    val apiKey: String = apiKey
+    val baseUrl: String = baseUrl
+
+    fun close() {
+        // Android: no underlying client to close
+    }
+}
+
+class _AsyncAnthropicCompletionsAdapter(
+    private val _sync: _AnthropicCompletionsAdapter
+) {
+    suspend fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
+        return _sync.create(kwargs)
+    }
+}
+
+class _AsyncAnthropicChatShim(adapter: _AsyncAnthropicCompletionsAdapter) {
+    val completions = adapter
+}
+
+class AsyncAnthropicAuxiliaryClient(syncWrapper: AnthropicAuxiliaryClient) {
+    private val asyncAdapter = _AsyncAnthropicCompletionsAdapter(syncWrapper.chat.completions)
+    val chat = _AsyncAnthropicChatShim(asyncAdapter)
+    val apiKey: String = syncWrapper.apiKey
+    val baseUrl: String = syncWrapper.baseUrl
+}

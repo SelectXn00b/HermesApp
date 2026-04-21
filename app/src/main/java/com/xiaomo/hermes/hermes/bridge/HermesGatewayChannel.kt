@@ -13,7 +13,7 @@ package com.xiaomo.hermes.hermes.bridge
 import android.content.Context
 import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.GatewayRunner
-import com.xiaomo.hermes.hermes.gateway.platforms.AppChatAdapter
+import com.xiaomo.hermes.hermes.gateway.platforms.AppChat
 import com.xiaomo.hermes.hermes.gateway.platforms.ChatResponse
 import com.xiaomo.base.IGatewayChannel
 import kotlinx.coroutines.CoroutineScope

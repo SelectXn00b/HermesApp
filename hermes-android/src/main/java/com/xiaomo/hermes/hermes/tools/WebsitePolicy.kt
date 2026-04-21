@@ -186,3 +186,9 @@ object WebsitePolicy {
 
 
 }
+
+/**
+ * Raised when a website policy file is malformed.
+ * Ported from WebsitePolicyError in website_policy.py.
+ */
+class WebsitePolicyError(message: String) : Exception(message)

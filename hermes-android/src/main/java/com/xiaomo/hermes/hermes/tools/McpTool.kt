@@ -434,3 +434,50 @@ object McpTool {
     }
 
 }
+
+/**
+ * Handles sampling/createMessage requests for a single MCP server.
+ * Ported from SamplingHandler in mcp_tool.py.
+ *
+ * On Android, MCP sampling is not supported, so this is a structural
+ * placeholder preserving the interface for alignment.
+ */
+class SamplingHandler(
+    val serverName: String,
+    config: Map<String, Any> = emptyMap()
+) {
+    val maxRpm: Int = (config["max_rpm"] as? Number)?.toInt() ?: 10
+    val timeout: Float = (config["timeout"] as? Number)?.toFloat() ?: 30f
+    val maxTokensCap: Int = (config["max_tokens_cap"] as? Number)?.toInt() ?: 4096
+    val maxToolRounds: Int = (config["max_tool_rounds"] as? Number)?.toInt() ?: 5
+    val modelOverride: String? = config["model"] as? String
+    val allowedModels: List<String> = (config["allowed_models"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
+    companion object {
+        val STOP_REASON_MAP = mapOf("stop" to "endTurn", "length" to "maxTokens", "tool_calls" to "toolUse")
+    }
+}
+
+/**
+ * Manages a single MCP server connection in a dedicated asyncio Task.
+ * Ported from MCPServerTask in mcp_tool.py.
+ *
+ * On Android, this is a structural placeholder. The actual MCP connection
+ * lifecycle is managed differently without asyncio Tasks.
+ */
+class MCPServerTask(val name: String) {
+    var session: Any? = null
+    var toolTimeout: Float = 120f
+    private val _tools: MutableList<Any> = mutableListOf()
+    private var _error: String? = null
+
+    /**
+     * Block until either shutdown or reconnect event fires.
+     * On Android, returns "shutdown" immediately (no event loop).
+     */
+    suspend fun _waitForLifecycleEvent(): String {
+        // On Android, there is no long-lived event loop.
+        // Returns "shutdown" to indicate the task should exit.
+        return "shutdown"
+    }
+}

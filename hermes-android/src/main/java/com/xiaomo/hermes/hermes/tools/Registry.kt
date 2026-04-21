@@ -230,3 +230,79 @@ object Registry {
     }
 
 }
+
+/**
+ * Metadata for a single registered tool.
+ * Ported from ToolEntry in registry.py.
+ */
+data class ToolEntry(
+    val name: String = "",
+    val toolset: String = "",
+    val schema: Map<String, Any> = emptyMap(),
+    val handler: ((Map<String, Any>) -> String)? = null,
+    val checkFn: (() -> Boolean)? = null,
+    val requiresEnv: Boolean = false,
+    val isAsync: Boolean = false,
+    val description: String = "",
+    val emoji: String = "",
+    val maxResultSizeChars: Int? = null
+)
+
+/**
+ * Singleton registry that collects tool schemas + handlers from tool files.
+ * Ported from ToolRegistry in registry.py.
+ */
+class ToolRegistry {
+    private val _tools = ConcurrentHashMap<String, ToolEntry>()
+    private val _toolsetChecks = ConcurrentHashMap<String, () -> Boolean>()
+    private val _toolsetAliases = ConcurrentHashMap<String, String>()
+    private val _lock = Any()
+
+    fun registerToolsetAlias(alias: String, toolset: String) {
+        synchronized(_lock) {
+            val existing = _toolsetAliases[alias]
+            if (existing != null && existing != toolset) {
+                android.util.Log.w("ToolRegistry", "Toolset alias collision: '$alias' ($existing) overwritten by $toolset")
+            }
+            _toolsetAliases[alias] = toolset
+        }
+    }
+
+    fun getRegisteredToolsetAliases(): Map<String, String> {
+        synchronized(_lock) {
+            return _toolsetAliases.toMap()
+        }
+    }
+
+    fun getToolsetAliasTarget(alias: String): String? {
+        synchronized(_lock) {
+            return _toolsetAliases[alias]
+        }
+    }
+
+    fun getEntry(name: String): ToolEntry? {
+        synchronized(_lock) {
+            return _tools[name]
+        }
+    }
+
+    fun register(entry: ToolEntry) {
+        synchronized(_lock) {
+            _tools[entry.name] = entry
+        }
+    }
+
+    fun deregister(name: String) {
+        synchronized(_lock) {
+            _tools.remove(name)
+        }
+    }
+
+    fun getRegisteredToolsetNames(): List<String> {
+        return _tools.values.map { it.toolset }.distinct().sorted()
+    }
+
+    fun getToolNamesForToolset(toolset: String): List<String> {
+        return _tools.values.filter { it.toolset == toolset }.map { it.name }.sorted()
+    }
+}

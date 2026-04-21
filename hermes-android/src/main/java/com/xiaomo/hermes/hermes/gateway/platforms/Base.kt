@@ -349,6 +349,15 @@ abstract class BasePlatformAdapter(
     /** Message handler callback — set by the gateway runner. */
     var messageHandler: (suspend (MessageEvent) -> Unit)? = null
 
+    /** Busy session handler — called when a message arrives for a session already processing. */
+    private var _busySessionHandler: (suspend (MessageEvent, String) -> Boolean)? = null
+
+    /** Session store reference for active session checks. */
+    private var _sessionStore: Any? = null
+
+    /** Set of chat IDs where typing indicator is paused. */
+    private val _typingPaused: MutableSet<String> = java.util.Collections.synchronizedSet(mutableSetOf())
+
     /** Coroutine scope for this adapter. */
     protected val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -660,6 +669,39 @@ abstract class BasePlatformAdapter(
         if (!text.startsWith("/")) return text
         val spaceIdx = text.indexOf(' ')
         return if (spaceIdx >= 0) text.substring(spaceIdx + 1) else ""
+    }
+
+
+    fun name(): String {
+        return platform.value.replaceFirstChar { it.uppercase() }
+    }
+
+    fun isConnected(): Boolean {
+        return isConnected.get()
+    }
+
+    fun setBusySessionHandler(handler: (suspend (MessageEvent, String) -> Boolean)?) {
+        // Store busy session handler for checking if a session is already processing.
+        // On Android, this is a simplified callback interface.
+        _busySessionHandler = handler
+    }
+
+    fun setSessionStore(sessionStore: Any?) {
+        // Store a reference to the session store for active session checks.
+        _sessionStore = sessionStore
+    }
+
+    suspend fun playTts(chatId: String, audioPath: String): SendResult {
+        // Default: fall back to sending as voice message.
+        return sendVoice(chatId, audioPath)
+    }
+
+    fun pauseTypingForChat(chatId: String) {
+        _typingPaused.add(chatId)
+    }
+
+    fun resumeTypingForChat(chatId: String) {
+        _typingPaused.remove(chatId)
     }
 }
 

@@ -163,3 +163,15 @@ class SubdirectoryHints {
     }
 
 }
+
+class SubdirectoryHintTracker(workingDir: String? = null) {
+    private val workingDir: File = File(workingDir ?: System.getProperty("user.dir") ?: ".").let {
+        if (it.isAbsolute) it else it.absoluteFile
+    }
+    private val _loadedDirs: MutableSet<String> = mutableSetOf(this.workingDir.absolutePath)
+    private val hints = SubdirectoryHints()
+
+    fun checkToolCall(toolName: String, toolArgs: Map<String, Any>): String? {
+        return hints.checkToolCall(toolName, toolArgs)
+    }
+}

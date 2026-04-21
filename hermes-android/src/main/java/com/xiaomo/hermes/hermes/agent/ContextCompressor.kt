@@ -706,4 +706,41 @@ class ContextCompressor(
         return maxOf(aligned, headEnd + 1)
     }
 
+
+
+    fun updateModel(model: String, contextLength: Int, baseUrl: String, apiKey: String, provider: String, apiMode: String) {
+        this.model = model
+        this.baseUrl = baseUrl
+        this.apiKey = apiKey
+        this.provider = provider
+        this.apiMode = apiMode
+        this.contextLength = contextLength
+        this.thresholdTokens = maxOf(
+            (contextLength * thresholdPercent).toInt(),
+            MINIMUM_CONTEXT_LENGTH
+        )
+    }
+
+    fun updateFromResponse(usage: Map<String, Any?>): Any? {
+        lastPromptTokens = (usage["prompt_tokens"] as? Number)?.toInt() ?: 0
+        lastCompletionTokens = (usage["completion_tokens"] as? Number)?.toInt() ?: 0
+        return null
+    }
+
+    fun _findLastUserMessageIdx(messages: List<Map<String, Any?>>, headEnd: Int): Int {
+        for (i in messages.size - 1 downTo headEnd) {
+            if (messages[i]["role"] == "user") return i
+        }
+        return -1
+    }
+
+    fun _ensureLastUserMessageInTail(messages: List<Map<String, Any?>>, cutIdx: Int, headEnd: Int): Int {
+        val lastUserIdx = _findLastUserMessageIdx(messages, headEnd)
+        if (lastUserIdx < 0) return cutIdx
+        if (lastUserIdx >= cutIdx) return cutIdx
+        if (!quietMode) {
+            android.util.Log.d(TAG, "Anchoring tail cut to last user message at index $lastUserIdx (was $cutIdx)")
+        }
+        return maxOf(lastUserIdx, headEnd + 1)
+    }
 }

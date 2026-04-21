@@ -670,6 +670,18 @@ class GeminiCloudCodeClient(
             connection.disconnect()
         }
     }
+
+
+    fun _streamCompletion(
+        model: String = "",
+        wrapped: Map<String, Any> = emptyMap(),
+        headers: Map<String, String> = emptyMap()
+    ): Iterator<_GeminiStreamChunk> {
+        // Android: streaming via SSE requires OkHttp EventSource;
+        // actual implementation in createChatCompletion handles non-streaming.
+        // Return empty iterator as placeholder.
+        return emptyList<_GeminiStreamChunk>().iterator()
+    }
 }
 
 /**
@@ -739,4 +751,24 @@ private fun jsonArrayToList(ja: JSONArray): List<Any> {
         )
     }
     return list
+}
+
+/** Mimics an OpenAI ChatCompletionChunk with .choices[0].delta. */
+class _GeminiStreamChunk(
+    val id: String = "",
+    val objectType: String = "chat.completion.chunk",
+    val created: Long = 0L,
+    val model: String = "",
+    val choices: List<GeminiStreamChoice> = emptyList(),
+    val usage: GeminiUsage? = null
+)
+
+class _GeminiChatCompletions(private val _client: GeminiCloudCodeClient) {
+    fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
+        return _client.createChatCompletion()
+    }
+}
+
+class _GeminiChatNamespace(client: GeminiCloudCodeClient) {
+    val completions = _GeminiChatCompletions(client)
 }

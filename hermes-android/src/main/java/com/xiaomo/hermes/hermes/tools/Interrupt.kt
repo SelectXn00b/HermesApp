@@ -64,3 +64,14 @@ object Interrupt {
     /** Wait for interrupt with timeout (returns current state immediately). */
     fun wait(timeoutMs: Long = 0): Boolean = isInterrupted()
 }
+
+/**
+ * Drop-in proxy that maps threading.Event methods to per-thread state.
+ * Ported from _ThreadAwareEventProxy in interrupt.py.
+ */
+class _ThreadAwareEventProxy {
+    fun isSet(): Boolean = Interrupt.isInterrupted()
+    fun set() = Interrupt.interrupt()
+    fun clear() = Interrupt.clearInterrupt()
+    fun wait(timeoutMs: Long? = null): Boolean = isSet()
+}

@@ -1366,6 +1366,29 @@ class SessionDB(private val dbPath: File = File(getHermesHome(), "state.db")) {
         }
         return map
     }
+
+
+    /**
+     * Check if a string contains CJK (Chinese/Japanese/Korean) characters.
+     * Used for FTS5 query handling -- CJK text needs different tokenization.
+     * Python: _contains_cjk(text) -- checks Unicode ranges for CJK ideographs.
+     */
+    fun _containsCjk(text: String): Boolean {
+        for (ch in text) {
+            val code = ch.code
+            // CJK Unified Ideographs
+            if (code in 0x4E00..0x9FFF) return true
+            // CJK Unified Ideographs Extension A
+            if (code in 0x3400..0x4DBF) return true
+            // CJK Compatibility Ideographs
+            if (code in 0xF900..0xFAFF) return true
+            // Hiragana and Katakana
+            if (code in 0x3040..0x30FF) return true
+            // Hangul Syllables
+            if (code in 0xAC00..0xD7AF) return true
+        }
+        return false
+    }
 }
 
 // ── Global SessionDB instance ──────────────────────────────────────────────

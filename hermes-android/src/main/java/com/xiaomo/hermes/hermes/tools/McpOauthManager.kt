@@ -203,3 +203,19 @@ fun resetManagerForTests() {
         _MANAGER = null
     }
 }
+
+/**
+ * Per-server OAuth state tracked by the manager (Python dataclass alignment).
+ * Ported from _ProviderEntry in mcp_oauth_manager.py.
+ *
+ * Note: The actual functionality is already in [ProviderEntry] data class above.
+ * This class exists for 1:1 structural alignment with the Python source.
+ */
+class _ProviderEntry(
+    val serverUrl: String = "",
+    val oauthConfig: Map<String, Any?>? = null,
+    var provider: Any? = null,
+    var lastMtimeNs: Long = 0L,
+    val lock: kotlinx.coroutines.sync.Mutex = kotlinx.coroutines.sync.Mutex(),
+    val pending401: MutableMap<String, kotlinx.coroutines.CompletableDeferred<Boolean>> = mutableMapOf()
+)

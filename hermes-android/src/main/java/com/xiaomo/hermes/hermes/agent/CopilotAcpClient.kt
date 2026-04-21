@@ -155,3 +155,53 @@ class CopilotAcpClient(
     }
 
 }
+
+class _ACPChatCompletions(private val _client: CopilotACPClient) {
+    fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
+        return _client._createChatCompletion(kwargs)
+    }
+}
+
+class _ACPChatNamespace(client: CopilotACPClient) {
+    val completions = _ACPChatCompletions(client)
+}
+
+class CopilotACPClient(
+    val apiKey: String = "copilot-acp",
+    val baseUrl: String = "",
+    private val _defaultHeaders: Map<String, String> = emptyMap(),
+    private val _acpCommand: String = "",
+    private val _acpArgs: List<String> = emptyList(),
+    private val _acpCwd: String = ""
+) {
+    val chat = _ACPChatNamespace(this)
+    var isClosed: Boolean = false
+        private set
+    private var _activeProcess: Process? = null
+
+    fun close() {
+        val proc = _activeProcess
+        _activeProcess = null
+        isClosed = true
+        if (proc == null) return
+        try {
+            proc.destroy()
+            if (!proc.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                proc.destroyForcibly()
+            }
+        } catch (_: Exception) { }
+    }
+
+    fun _createChatCompletion(kwargs: Any): Any? {
+        // Android: ACP subprocess not available; stub only
+        return null
+    }
+
+    fun _runPrompt(promptText: String): Pair<String, String> {
+        throw NotImplementedError("_runPrompt: ACP not available on Android")
+    }
+
+    fun _handleServerMessage(msg: Map<String, Any>): Boolean {
+        return false
+    }
+}

@@ -59,6 +59,11 @@ data class CompressionConfig(
     val saveOverLimit: Boolean = true,
     val perTrajectoryTimeout: Int = 300) {
     companion object
+
+
+    fun fromYaml(yamlPath: String): CompressionConfig {
+        return CompressionConfig.fromYaml(yamlPath)
+    }
 }
 
 // ── 指标 ──────────────────────────────────────────────────────────────────
@@ -628,6 +633,13 @@ class TrajectoryCompressor(
      * 获取聚合指标
      */
     fun getAggregateMetrics(): AggregateMetrics = aggregateMetrics
+
+
+    fun processDirectory(inputDir: String, outputDir: String) {
+        kotlinx.coroutines.runBlocking {
+            processDirectoryAsync(java.io.File(inputDir), java.io.File(outputDir))
+        }
+    }
 }
 
 // ── 文件锁工具 ────────────────────────────────────────────────────────────

@@ -1024,3 +1024,19 @@ class Insights(
     }
 
 }
+
+class InsightsEngine(private val db: Any? = null) {
+    private val insights = Insights()
+
+    fun generate(days: Int = 30, source: String? = null): Map<String, Any?> {
+        return insights.generate(days, source)
+    }
+
+    fun formatTerminal(report: Map<String, Any?>): String {
+        return insights.formatTerminal(report)
+    }
+
+    fun formatGateway(report: Map<String, Any?>): String {
+        return insights.formatGateway(report)
+    }
+}

@@ -415,3 +415,38 @@ class Display(
     }
 
 }
+
+data class LocalEditSnapshot(
+    val paths: MutableList<String> = mutableListOf(),
+    val before: MutableMap<String, String?> = mutableMapOf()
+)
+
+class KawaiiSpinner {
+    companion object {
+        val KAWAII_WAITING = listOf(
+            "(｡◕‿◕｡)", "(◕‿◕✿)", "٩(◕‿◕｡)۶", "(✿◠‿◠)", "( ˘▽˘)っ",
+            "♪(´ε` )", "(◕ᴗ◕✿)", "ヾ(＾∇＾)", "(≧◡≦)", "(★ω★)")
+
+        val KAWAII_THINKING = listOf(
+            "(｡•́︿•̀｡)", "(◔_◔)", "(¬‿¬)", "( •_•)>⌐■-■", "(⌐■_■)",
+            "(´･_･`)", "◉_◉", "(°ロ°)", "( ˘⌣˘)♡", "ヽ(>∀<☆)☆",
+            "٩(๑❛ᴗ❛๑)۶", "(⊙_⊙)", "(¬_¬)", "( ͡° ͜ʖ ͡°)", "ಠ_ಠ")
+
+        val THINKING_VERBS = listOf(
+            "pondering", "contemplating", "musing", "cogitating", "ruminating",
+            "deliberating", "mulling", "reflecting", "processing", "reasoning",
+            "analyzing", "computing", "synthesizing", "formulating", "brainstorming")
+    }
+
+    fun getWaitingFaces(): List<Any?> {
+        return KAWAII_WAITING
+    }
+
+    fun getThinkingFaces(): List<Any?> {
+        return KAWAII_THINKING
+    }
+
+    fun getThinkingVerbs(): List<Any?> {
+        return THINKING_VERBS
+    }
+}

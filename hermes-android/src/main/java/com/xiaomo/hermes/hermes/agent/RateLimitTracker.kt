@@ -158,3 +158,29 @@ class RateLimitTracker {
     }
 
 }
+
+data class RateLimitBucket(
+    val limit: Int = 0,
+    val remaining: Int = 0,
+    val resetSeconds: Double = 0.0,
+    val capturedAt: Double = 0.0
+) {
+    val used: Int get() = maxOf(0, limit - remaining)
+    val usagePct: Double get() = if (limit <= 0) 0.0 else used.toDouble() / limit * 100.0
+    val remainingSecondsNow: Double get() {
+        val elapsed = System.currentTimeMillis() / 1000.0 - capturedAt
+        return maxOf(0.0, resetSeconds - elapsed)
+    }
+}
+
+data class RateLimitState(
+    val requestsMin: RateLimitBucket = RateLimitBucket(),
+    val requestsHour: RateLimitBucket = RateLimitBucket(),
+    val tokensMin: RateLimitBucket = RateLimitBucket(),
+    val tokensHour: RateLimitBucket = RateLimitBucket(),
+    val capturedAt: Double = 0.0,
+    val provider: String = ""
+) {
+    val hasData: Boolean get() = capturedAt > 0
+    val ageSeconds: Double get() = if (!hasData) Double.MAX_VALUE else System.currentTimeMillis() / 1000.0 - capturedAt
+}

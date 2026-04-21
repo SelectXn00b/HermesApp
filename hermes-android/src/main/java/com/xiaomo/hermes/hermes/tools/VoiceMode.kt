@@ -206,3 +206,112 @@ object VoiceMode {
     }
 
 }
+
+/**
+ * Recorder backend that uses Termux:API microphone capture commands.
+ * Ported from TermuxAudioRecorder in voice_mode.py.
+ */
+class TermuxAudioRecorder {
+    val supportssilenceAutostop = false
+
+    private val _lock = Any()
+    @Volatile private var _recording = false
+    private var _startTime = 0.0
+    private var _recordingPath: String? = null
+    private var _currentRms = 0
+
+    val isRecording: Boolean get() = _recording
+
+    val elapsedSeconds: Double get() {
+        if (!_recording) return 0.0
+        return (System.nanoTime() / 1_000_000_000.0) - _startTime
+    }
+
+    val currentRms: Int get() = _currentRms
+
+    fun start(onSilenceStop: (() -> Unit)? = null) {
+        // onSilenceStop ignored: Termux:API does not expose live silence callbacks.
+        synchronized(_lock) {
+            if (_recording) return
+            val tempDir = java.io.File(VoiceMode._TEMP_DIR)
+            tempDir.mkdirs()
+            val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
+                .format(java.util.Date())
+            _recordingPath = "${tempDir.absolutePath}/recording_$timestamp.aac"
+        }
+
+        // Start Termux microphone recording via subprocess
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf(
+                "termux-microphone-record",
+                "-f", _recordingPath!!,
+                "-l", "0",
+                "-e", "aac",
+                "-r", VoiceMode.SAMPLE_RATE.toString(),
+                "-c", VoiceMode.CHANNELS.toString()
+            ))
+            process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS)
+        } catch (e: Exception) {
+            throw RuntimeException("Termux microphone start failed: ${e.message}")
+        }
+
+        synchronized(_lock) {
+            _startTime = System.nanoTime() / 1_000_000_000.0
+            _recording = true
+            _currentRms = 0
+        }
+    }
+
+    private fun _stopTermuxRecording() {
+        try {
+            Runtime.getRuntime().exec(arrayOf("termux-microphone-record", "-q"))
+                .waitFor(15, java.util.concurrent.TimeUnit.SECONDS)
+        } catch (_: Exception) {}
+    }
+
+    fun stop(): String? {
+        val path: String?
+        val startedAt: Double
+        synchronized(_lock) {
+            if (!_recording) return null
+            _recording = false
+            path = _recordingPath
+            _recordingPath = null
+            startedAt = _startTime
+            _currentRms = 0
+        }
+
+        _stopTermuxRecording()
+        if (path == null) return null
+        val file = java.io.File(path)
+        if (!file.exists()) return null
+        val now = System.nanoTime() / 1_000_000_000.0
+        if (now - startedAt < 0.3) {
+            file.delete()
+            return null
+        }
+        if (file.length() <= 0) {
+            file.delete()
+            return null
+        }
+        return path
+    }
+
+    fun cancel() {
+        val path: String?
+        synchronized(_lock) {
+            path = _recordingPath
+            _recording = false
+            _recordingPath = null
+            _currentRms = 0
+        }
+        try { _stopTermuxRecording() } catch (_: Exception) {}
+        if (path != null) {
+            try { java.io.File(path).delete() } catch (_: Exception) {}
+        }
+    }
+
+    fun shutdown() {
+        cancel()
+    }
+}

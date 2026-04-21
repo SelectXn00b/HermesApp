@@ -409,3 +409,6 @@ class PairingManager(
     }
 
 }
+
+/** Alias for backward compatibility — PairingStore is now PairingManager. */
+typealias PairingStore = PairingManager

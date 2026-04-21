@@ -90,3 +90,35 @@ class ErrorClassifier {
 }
 
 }
+
+enum class FailoverReason {
+    AUTH,
+    AUTH_PERMANENT,
+    BILLING,
+    RATE_LIMIT,
+    OVERLOADED,
+    SERVER_ERROR,
+    TIMEOUT,
+    CONTEXT_OVERFLOW,
+    PAYLOAD_TOO_LARGE,
+    MODEL_NOT_FOUND,
+    FORMAT_ERROR,
+    THINKING_SIGNATURE,
+    LONG_CONTEXT_TIER,
+    UNKNOWN
+}
+
+data class ClassifiedError(
+    val reason: FailoverReason,
+    val statusCode: Int? = null,
+    val provider: String? = null,
+    val model: String? = null,
+    val message: String = "",
+    val errorContext: Map<String, Any> = emptyMap(),
+    val retryable: Boolean = true,
+    val shouldCompress: Boolean = false,
+    val shouldRotateCredential: Boolean = false,
+    val shouldFallback: Boolean = false
+) {
+    val isAuth: Boolean get() = reason == FailoverReason.AUTH || reason == FailoverReason.AUTH_PERMANENT
+}

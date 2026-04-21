@@ -269,3 +269,60 @@ class Logger(private val name: String) {
     }
 
 }
+
+/**
+ * ComponentFilter - Filters log records by component name.
+ * Python: logging.Filter subclass that matches logger name prefixes.
+ * On Android, component filtering is done via Log tag matching.
+ */
+class _ComponentFilter(private val component: String = "") {
+    /**
+     * Filter a log record. Returns true if the record should be suppressed.
+     * Matches records whose logger name starts with the component prefix.
+     */
+    fun filter(loggerName: String): Boolean {
+        if (component.isEmpty()) return false
+        return !loggerName.startsWith(component)
+    }
+}
+
+/**
+ * ManagedRotatingFileHandler - Rotating file handler with managed permissions.
+ * Python: RotatingFileHandler subclass that sets file permissions after rotation.
+ * On Android, uses the Logger.doRollover() mechanism with app-private files.
+ */
+class _ManagedRotatingFileHandler(
+    private val filePath: String,
+    private val maxBytes: Long = 10 * 1024 * 1024, // 10MB
+    private val backupCount: Int = 5
+) {
+    /**
+     * Emit a log record to the file, rotating if necessary.
+     */
+    fun emit(record: LogEntry) {
+        val file = java.io.File(filePath)
+        if (file.exists() && file.length() >= maxBytes) {
+            doRollover()
+        }
+        try {
+            file.parentFile?.mkdirs()
+            file.appendText("[${record.timestamp}] [${record.level.tag}] [${record.loggerName}] ${record.message}\n")
+        } catch (_: Exception) {
+        }
+    }
+
+    /**
+     * Perform log file rotation.
+     */
+    private fun doRollover() {
+        val file = java.io.File(filePath)
+        if (!file.exists()) return
+        for (i in backupCount downTo 1) {
+            val src = if (i == 1) file else java.io.File("$filePath.${i - 1}")
+            val dst = java.io.File("$filePath.$i")
+            if (src.exists()) src.renameTo(dst)
+        }
+        // Delete oldest if over backup count
+        java.io.File("$filePath.${backupCount + 1}").delete()
+    }
+}

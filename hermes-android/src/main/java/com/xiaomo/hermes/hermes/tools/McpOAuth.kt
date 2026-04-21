@@ -108,3 +108,75 @@ object McpOAuth {
     }
 
 }
+
+/**
+ * Raised when OAuth requires browser interaction in a non-interactive env.
+ * Ported from OAuthNonInteractiveError in mcp_oauth.py.
+ */
+class OAuthNonInteractiveError(message: String = "OAuth requires browser interaction in a non-interactive environment") : RuntimeException(message)
+
+/**
+ * Persist OAuth tokens and client registration to JSON files.
+ * Ported from HermesTokenStorage in mcp_oauth.py.
+ *
+ * File layout:
+ *   HERMES_HOME/mcp-tokens/<server_name>.json         -- tokens
+ *   HERMES_HOME/mcp-tokens/<server_name>.client.json  -- client info
+ */
+class HermesTokenStorage(private val serverName: String) {
+    private val _gson = Gson()
+
+    private fun _tokensPath(): String = McpOAuth._tokensPath(serverName)
+    private fun _clientInfoPath(): String = McpOAuth._clientInfoPath(serverName)
+
+    suspend fun getTokens(): Any? {
+        val path = java.io.File(_tokensPath())
+        if (!path.exists()) return null
+        return try {
+            _gson.fromJson(path.readText(Charsets.UTF_8), Map::class.java)
+        } catch (e: Exception) {
+            Log.w("HermesTokenStorage", "Corrupt tokens at ${_tokensPath()} -- ignoring: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun setTokens(tokens: Any?) {
+        val path = java.io.File(_tokensPath())
+        path.parentFile?.mkdirs()
+        val jsonStr = when (tokens) {
+            is String -> tokens
+            is Map<*, *> -> _gson.toJson(tokens)
+            else -> _gson.toJson(tokens)
+        }
+        val tmp = java.io.File(path.parent, "${path.name}.tmp")
+        try {
+            tmp.writeText(jsonStr, Charsets.UTF_8)
+            tmp.renameTo(path)
+        } catch (e: Exception) {
+            tmp.delete()
+        }
+    }
+
+    suspend fun getClientInfo(): Any? {
+        val path = java.io.File(_clientInfoPath())
+        if (!path.exists()) return null
+        return try {
+            _gson.fromJson(path.readText(Charsets.UTF_8), Map::class.java)
+        } catch (e: Exception) {
+            Log.w("HermesTokenStorage", "Corrupt client info at ${_clientInfoPath()} -- ignoring: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun setClientInfo(clientInfo: Any?) {
+        McpOAuth.setClientInfo(serverName, clientInfo)
+    }
+
+    fun remove() {
+        McpOAuth.remove(serverName)
+    }
+
+    fun hasCachedTokens(): Boolean {
+        return McpOAuth.hasCachedTokens(serverName)
+    }
+}

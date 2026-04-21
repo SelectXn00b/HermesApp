@@ -67,4 +67,39 @@ class Qwen3CoderToolCallParser : ToolCallParser() {
         return sb.toString()
     }
     override fun hasToolCall(response: String): Boolean = response.contains("<tool_call>")
+
+
+    /**
+     * Parse a single <function=name>...</function> block into a tool call.
+     * Extracts function name from before '>' and parameters from <parameter=key>value</parameter> tags.
+     * Returns null if the function string cannot be parsed.
+     */
+    fun _parseFunctionCall(functionStr: String): ParsedToolCall? {
+        return try {
+            val gtIdx = functionStr.indexOf('>')
+            if (gtIdx < 0) return null
+            val funcName = functionStr.substring(0, gtIdx).trim()
+            val paramsStr = functionStr.substring(gtIdx + 1)
+
+            val arguments = mutableMapOf<String, Any>()
+            val paramMatcher = PARAM_PATTERN.matcher(paramsStr)
+            while (paramMatcher.find()) {
+                val paramName = paramMatcher.group(1) ?: continue
+                var paramValue = paramMatcher.group(2) ?: ""
+                // Clean up whitespace
+                if (paramValue.startsWith("\n")) paramValue = paramValue.substring(1)
+                if (paramValue.endsWith("\n")) paramValue = paramValue.dropLast(1)
+                arguments[paramName] = tryConvertValue(paramValue)
+            }
+
+            ParsedToolCall(
+                id = "call_${UUID.randomUUID().toString().replace("-", "").take(24)}",
+                name = funcName,
+                arguments = arguments,
+                rawArguments = JSONObject(arguments as Map<*, *>).toString()
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
 }

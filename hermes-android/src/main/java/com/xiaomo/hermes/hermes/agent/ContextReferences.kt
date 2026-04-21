@@ -173,3 +173,16 @@ class ContextReferences(
 
 
 }
+
+data class ContextReference(
+    val type: String = "",
+    val path: String = "",
+    val content: String = "",
+    val lineRange: Pair<Int, Int>? = null
+)
+
+data class ContextReferenceResult(
+    val references: List<ContextReference> = emptyList(),
+    val resolvedText: String = "",
+    val errorCount: Int = 0
+)

@@ -683,3 +683,78 @@ class LocalFileOperations(
         val exitCode: Int = 0)
 
 }
+
+/**
+ * Result from patching a file.
+ * Ported from PatchResult in file_operations.py.
+ */
+data class PatchResult(
+    val success: Boolean = false,
+    val diff: String = "",
+    val filesModified: List<String> = emptyList(),
+    val filesCreated: List<String> = emptyList(),
+    val filesDeleted: List<String> = emptyList(),
+    val lint: Map<String, Any>? = null,
+    val error: String? = null
+) {
+    fun toDict(): Map<String, Any?> = buildMap {
+        put("success", success)
+        if (diff.isNotEmpty()) put("diff", diff)
+        if (filesModified.isNotEmpty()) put("files_modified", filesModified)
+        if (filesCreated.isNotEmpty()) put("files_created", filesCreated)
+        if (filesDeleted.isNotEmpty()) put("files_deleted", filesDeleted)
+        lint?.let { put("lint", it) }
+        error?.let { put("error", it) }
+    }
+}
+
+/**
+ * File operations implemented via shell commands.
+ * Works with ANY terminal backend that has execute(command, cwd) method.
+ * Ported from ShellFileOperations in file_operations.py.
+ *
+ * On Android, this delegates to the local file system since subprocess-based
+ * terminal environments are handled differently.
+ */
+class ShellFileOperations(
+    private val terminalEnv: Any? = null,
+    private val cwd: String? = null
+) : FileOperations() {
+
+    private val localOps = LocalFileOperations(cwd ?: java.io.File(".").absolutePath)
+
+    override fun readFile(path: String, offset: Int, limit: Int): ReadResult {
+        return localOps.readFile(path, offset, limit)
+    }
+
+    override fun readFileRaw(path: String): ReadResult {
+        return localOps.readFileRaw(path)
+    }
+
+    override fun writeFile(path: String, content: String): WriteResult {
+        return localOps.writeFile(path, content)
+    }
+
+    override fun patchReplace(path: String, oldString: String, newString: String, replaceAll: Boolean): FilePatchResult {
+        return localOps.patchReplace(path, oldString, newString, replaceAll)
+    }
+
+    override fun patchV4a(patchContent: String): FilePatchResult {
+        return localOps.patchV4a(patchContent)
+    }
+
+    override fun deleteFile(path: String): WriteResult {
+        return localOps.deleteFile(path)
+    }
+
+    override fun moveFile(src: String, dst: String): WriteResult {
+        return localOps.moveFile(src, dst)
+    }
+
+    override fun search(
+        pattern: String, path: String, target: String, fileGlob: String?,
+        limit: Int, offset: Int, outputMode: String, context: Int
+    ): SearchResult {
+        return localOps.search(pattern, path, target, fileGlob, limit, offset, outputMode, context)
+    }
+}

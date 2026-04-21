@@ -198,6 +198,33 @@ data class GoogleCredentials(
         if (accessToken.isEmpty() || expiresMs == 0L) return true
         return (System.currentTimeMillis() / 1000.0 + maxOf(0, skewSeconds)) * 1000 >= expiresMs
     }
+
+
+    fun toDict(): Map<String, Any?> {
+        return mapOf(
+            "refresh" to RefreshParts(
+                refreshToken = refreshToken,
+                projectId = projectId,
+                managedProjectId = managedProjectId,
+            ).format(),
+            "access" to accessToken,
+            "expires" to expiresMs,
+            "email" to email,
+        )
+    }
+
+    fun fromDict(data: Map<String, Any?>): Any? {
+        val refreshPacked = (data["refresh"] as? String) ?: ""
+        val parts = RefreshParts.parse(refreshPacked)
+        return GoogleCredentials(
+            accessToken = (data["access"] as? String) ?: "",
+            refreshToken = parts.refreshToken,
+            expiresMs = (data["expires"] as? Number)?.toLong() ?: 0L,
+            email = (data["email"] as? String) ?: "",
+            projectId = parts.projectId,
+            managedProjectId = parts.managedProjectId,
+        )
+    }
 }
 
 // =============================================================================
@@ -560,4 +587,22 @@ fun resolveProjectIdFromEnv(): String {
         if (!value.isNullOrEmpty()) return value
     }
     return ""
+}
+
+class _OAuthCallbackHandler {
+    var expectedState: String = ""
+    var capturedCode: String? = null
+    var capturedError: String? = null
+
+    fun logMessage(format: String) {
+        Log.d(TAG_OAUTH, "OAuth callback: $format")
+    }
+
+    fun doGet() {
+        // Android: OAuth callback handled by app module via deep links
+    }
+
+    fun _respondHtml(status: Int, body: String) {
+        // Android: no HTTP server; handled by app module
+    }
 }

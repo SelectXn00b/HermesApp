@@ -540,6 +540,12 @@ data class HonchoClientConfig(
             "::1" in baseUrl
         )
     }
+
+
+    fun _gitRepoName(cwd: String): String? {
+        // Android: subprocess/git not available. Returns null (no repo detection).
+        return null
+    }
 }
 
 // =============================================================================
@@ -647,6 +653,202 @@ class HonchoHttpClient(
             false
         }
     }
+
+    // ── High-level API methods used by Session.kt and Cli.kt ────────────────
+
+    /**
+     * Get or create a peer by ID.
+     */
+    fun peer(peerId: String): HonchoPeer {
+        val body = mapOf("name" to peerId)
+        val response = post("workspaces/$workspaceId/peers", body)
+        if (response != null) {
+            try {
+                val type = object : com.google.gson.reflect.TypeToken<Map<String, Any?>>() {}.type
+                val map: Map<String, Any?> = gson.fromJson(response, type)
+                val id = map["id"]?.toString() ?: peerId
+                val name = map["name"]?.toString() ?: peerId
+                return HonchoPeer(id = id, name = name)
+            } catch (_: Exception) { }
+        }
+        // Fallback: use peerId as the id
+        return HonchoPeer(id = peerId, name = peerId)
+    }
+
+    /**
+     * Get or create a session by ID.
+     */
+    fun session(sessionId: String): HonchoSessionData {
+        val body = mapOf("session_id" to sessionId)
+        val response = post("workspaces/$workspaceId/sessions", body)
+        if (response != null) {
+            try {
+                val type = object : com.google.gson.reflect.TypeToken<Map<String, Any?>>() {}.type
+                val map: Map<String, Any?> = gson.fromJson(response, type)
+                val id = map["id"]?.toString() ?: sessionId
+                @Suppress("UNCHECKED_CAST")
+                val metadata = (map["metadata"] as? Map<String, Any>) ?: emptyMap()
+                return HonchoSessionData(id = id, metadata = metadata)
+            } catch (_: Exception) { }
+        }
+        return HonchoSessionData(id = sessionId)
+    }
+
+    /**
+     * Send a chat/dialectic query.
+     */
+    fun chat(
+        query: String,
+        target: String? = null,
+        reasoningLevel: String = "low"
+    ): String? {
+        val body = mutableMapOf<String, Any>(
+            "query" to query,
+            "reasoning_level" to reasoningLevel
+        )
+        if (target != null) body["target"] = target
+        val response = post("workspaces/$workspaceId/chat", body)
+        if (response != null) {
+            try {
+                val type = object : com.google.gson.reflect.TypeToken<Map<String, Any?>>() {}.type
+                val map: Map<String, Any?> = gson.fromJson(response, type)
+                return map["response"]?.toString() ?: map["content"]?.toString()
+            } catch (_: Exception) { }
+        }
+        return response
+    }
+
+    /**
+     * Add messages to a session.
+     */
+    fun addMessages(sessionId: String, messages: List<HonchoMessage>): Boolean {
+        val body = mapOf(
+            "messages" to messages.map { msg ->
+                mapOf(
+                    "peer_id" to msg.peerId,
+                    "content" to msg.content,
+                    "role" to msg.role
+                )
+            }
+        )
+        val response = post("workspaces/$workspaceId/sessions/$sessionId/messages", body)
+        return response != null
+    }
+
+    /**
+     * Get peer card (list of facts).
+     */
+    fun getPeerCard(peerId: String): List<String> {
+        val response = get("workspaces/$workspaceId/peers/$peerId/card")
+        if (response != null) {
+            try {
+                val type = object : com.google.gson.reflect.TypeToken<Map<String, Any?>>() {}.type
+                val map: Map<String, Any?> = gson.fromJson(response, type)
+                val card = map["card"]
+                return when (card) {
+                    is List<*> -> card.mapNotNull { it?.toString() }
+                    is String -> if (card.isNotEmpty()) listOf(card) else emptyList()
+                    else -> emptyList()
+                }
+            } catch (_: Exception) { }
+        }
+        return emptyList()
+    }
+
+    /**
+     * Get peer context (representation + card).
+     */
+    fun getPeerContext(peerId: String, searchQuery: String? = null): HonchoPeerContext {
+        val path = if (searchQuery != null) {
+            "workspaces/$workspaceId/peers/$peerId/context?query=${java.net.URLEncoder.encode(searchQuery, "UTF-8")}"
+        } else {
+            "workspaces/$workspaceId/peers/$peerId/context"
+        }
+        val response = get(path)
+        if (response != null) {
+            try {
+                val type = object : com.google.gson.reflect.TypeToken<Map<String, Any?>>() {}.type
+                val map: Map<String, Any?> = gson.fromJson(response, type)
+                val representation = map["representation"]?.toString() ?: ""
+                val peerRepresentation = map["peer_representation"]?.toString() ?: ""
+                val cardRaw = map["peer_card"] ?: map["card"]
+                val peerCard: List<String> = when (cardRaw) {
+                    is List<*> -> cardRaw.mapNotNull { it?.toString() }
+                    is String -> if (cardRaw.isNotEmpty()) listOf(cardRaw) else emptyList()
+                    else -> emptyList()
+                }
+                return HonchoPeerContext(
+                    representation = representation,
+                    peerRepresentation = peerRepresentation,
+                    peerCard = peerCard
+                )
+            } catch (_: Exception) { }
+        }
+        return HonchoPeerContext()
+    }
+
+    /**
+     * Create a conclusion.
+     */
+    fun createConclusion(
+        peerId: String,
+        targetPeerId: String,
+        content: String,
+        sessionId: String
+    ): Boolean {
+        val body = mapOf(
+            "peer_id" to peerId,
+            "target_peer_id" to targetPeerId,
+            "content" to content,
+            "session_id" to sessionId
+        )
+        val response = post("workspaces/$workspaceId/conclusions", body)
+        return response != null
+    }
+
+    /**
+     * Delete a conclusion by ID.
+     */
+    fun deleteConclusion(conclusionId: String): Boolean {
+        val url = "$effectiveBaseUrl/workspaces/$workspaceId/conclusions/$conclusionId"
+        val request = buildRequest(url, "DELETE")
+        val response = executeRequest(request)
+        return response != null
+    }
+
+    /**
+     * Set peer card (replace all facts).
+     */
+    fun setPeerCard(peerId: String, card: List<String>): List<String>? {
+        val body = mapOf("card" to card)
+        val url = "$effectiveBaseUrl/workspaces/$workspaceId/peers/$peerId/card"
+        val jsonBody = gson.toJson(body)
+        val request = buildRequest(url, "PUT", jsonBody)
+        val response = executeRequest(request)
+        return if (response != null) card else null
+    }
+
+    /**
+     * Upload a file to a session.
+     */
+    fun uploadFile(
+        sessionId: String,
+        peerId: String,
+        fileName: String,
+        content: ByteArray,
+        mimeType: String,
+        metadata: Map<String, Any>
+    ): Boolean {
+        val body = mapOf(
+            "peer_id" to peerId,
+            "file_name" to fileName,
+            "content" to android.util.Base64.encodeToString(content, android.util.Base64.NO_WRAP),
+            "mime_type" to mimeType,
+            "metadata" to metadata
+        )
+        val response = post("workspaces/$workspaceId/sessions/$sessionId/files", body)
+        return response != null
+    }
 }
 
 /**
@@ -706,3 +908,45 @@ fun getHonchoClient(config: HonchoClientConfig? = null): HonchoHttpClient {
 fun resetHonchoClient() {
     _honchoClient = null
 }
+
+// =============================================================================
+// Type aliases and data classes used by Session.kt
+// =============================================================================
+
+/** Type alias so Session.kt can reference HonchoClient */
+typealias HonchoClient = HonchoHttpClient
+
+/**
+ * Represents a peer in the Honcho system.
+ */
+data class HonchoPeer(
+    val id: String,
+    val name: String = ""
+)
+
+/**
+ * Represents a Honcho session record.
+ */
+data class HonchoSessionData(
+    val id: String,
+    val metadata: Map<String, Any> = emptyMap()
+)
+
+/**
+ * Represents a message stored in Honcho.
+ */
+data class HonchoMessage(
+    val peerId: String,
+    val content: String,
+    val role: String = "user",
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+/**
+ * Context returned from getPeerContext.
+ */
+data class HonchoPeerContext(
+    val representation: String = "",
+    val peerRepresentation: String = "",
+    val peerCard: List<String> = emptyList()
+)

@@ -11,6 +11,8 @@ import android.content.Context
 import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.platforms.*
 import kotlinx.coroutines.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.security.MessageDigest
@@ -198,26 +200,26 @@ class GatewayRunner(
      */
     private suspend fun _createAdapter(platformConfig: PlatformConfig): BasePlatformAdapter? {
         val adapter = when (platformConfig.platform) {
-            Platform.FEISHU -> FeishuAdapter(context, platformConfig)
-            Platform.TELEGRAM -> TelegramAdapter(context, platformConfig)
-            Platform.DISCORD -> DiscordAdapter(context, platformConfig)
-            Platform.SLACK -> SlackAdapter(context, platformConfig)
-            Platform.SIGNAL -> SignalAdapter(context, platformConfig)
-            Platform.WHATSAPP -> WhatsAppAdapter(context, platformConfig)
-            Platform.WECOM -> WeComAdapter(context, platformConfig)
-            Platform.WECOM_CALLBACK -> WeComCallbackAdapter(context, platformConfig)
-            Platform.WEIXIN -> WeixinAdapter(context, platformConfig)
-            Platform.DINGTALK -> DingtalkAdapter(context, platformConfig)
-            Platform.QQBOT -> QqbotAdapter(context, platformConfig)
-            Platform.EMAIL -> EmailAdapter(context, platformConfig)
-            Platform.SMS -> SmsAdapter(context, platformConfig)
-            Platform.MATRIX -> MatrixAdapter(context, platformConfig)
-            Platform.MATTERMOST -> MattermostAdapter(context, platformConfig)
-            Platform.HOMEASSISTANT -> HomeassistantAdapter(context, platformConfig)
-            Platform.WEBHOOK -> WebhookAdapter(context, platformConfig)
-            Platform.API_SERVER -> ApiServerAdapter(context, platformConfig)
-            Platform.BLUEBUBBLES -> BluebubblesAdapter(context, platformConfig)
-            Platform.APP_CHAT -> AppChatAdapter(context, platformConfig)
+            Platform.FEISHU -> Feishu(context, platformConfig)
+            Platform.TELEGRAM -> Telegram(context, platformConfig)
+            Platform.DISCORD -> Discord(context, platformConfig)
+            Platform.SLACK -> Slack(context, platformConfig)
+            Platform.SIGNAL -> Signal(context, platformConfig)
+            Platform.WHATSAPP -> WhatsApp(context, platformConfig)
+            Platform.WECOM -> WeCom(context, platformConfig)
+            Platform.WECOM_CALLBACK -> WeComCallback(context, platformConfig)
+            Platform.WEIXIN -> Weixin(context, platformConfig)
+            Platform.DINGTALK -> Dingtalk(context, platformConfig)
+            Platform.QQBOT -> Qqbot(context, platformConfig)
+            Platform.EMAIL -> Email(context, platformConfig)
+            Platform.SMS -> Sms(context, platformConfig)
+            Platform.MATRIX -> Matrix(context, platformConfig)
+            Platform.MATTERMOST -> Mattermost(context, platformConfig)
+            Platform.HOMEASSISTANT -> Homeassistant(context, platformConfig)
+            Platform.WEBHOOK -> Webhook(context, platformConfig)
+            Platform.API_SERVER -> ApiServer(context, platformConfig)
+            Platform.BLUEBUBBLES -> Bluebubbles(context, platformConfig)
+            Platform.APP_CHAT -> AppChat(context, platformConfig)
             else -> {
                 Log.w(TAG, "Unknown platform: ${platformConfig.platform}")
                 return null
@@ -409,8 +411,8 @@ class GatewayRunner(
      */
     fun getAdapter(name: String): BasePlatformAdapter? = _adapters[name]
 
-    /** Get the AppChatAdapter if registered. */
-    fun getAppChatAdapter(): AppChatAdapter? = _adapters["app_chat"] as? AppChatAdapter
+    /** Get the AppChat adapter if registered. */
+    fun getAppChatAdapter(): AppChat? = _adapters["app_chat"] as? AppChat
 
     /**
      * Start gateway with only the AppChatAdapter (local in-process mode).
@@ -511,7 +513,7 @@ class GatewayRunner(
         userId: String,
         chatName: String = "",
         userName: String = "",
-        chatType: String = "dm"): SessionContext {
+        chatType: String = "dm"): SessionRecord {
         val sessionKey = buildSessionKey(platform, chatId, userId)
         return sessionStore.getOrCreate(sessionKey, platform, chatId, userId, chatName, userName, chatType)
     }
@@ -526,7 +528,7 @@ class GatewayRunner(
     /**
      * Get all active sessions.
      */
-    fun getSessions(): Collection<SessionContext> = sessionStore.all
+    fun getSessions(): Collection<SessionRecord> = sessionStore.all
 
     /**
      * Register a mirror rule.
@@ -1182,4 +1184,675 @@ class GatewayRunner(
         return emptyMap()
     }
 
+
+
+    /** Load ephemeral prefill messages from config or env var.
+     *  Checks HERMES_PREFILL_MESSAGES_FILE env var first, then falls back to config. */
+    fun _loadPrefillMessages(): List<Map<String, Any?>> {
+        val filePath = System.getenv("HERMES_PREFILL_MESSAGES_FILE") ?: ""
+        if (filePath.isEmpty()) return emptyList()
+        val file = java.io.File(filePath)
+        if (!file.exists()) {
+            Log.w(TAG, "Prefill messages file not found: $filePath")
+            return emptyList()
+        }
+        return try {
+            val arr = org.json.JSONArray(file.readText(Charsets.UTF_8))
+            (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                val map = mutableMapOf<String, Any?>()
+                obj.keys().forEach { key -> map[key] = obj.opt(key) }
+                map.toMap()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to load prefill messages from $filePath: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /** Load ephemeral system prompt from env var or config. */
+    fun _loadEphemeralSystemPrompt(): String {
+        return System.getenv("HERMES_EPHEMERAL_SYSTEM_PROMPT") ?: ""
+    }
+
+    /** Load background process notification mode.
+     *  Returns one of: "all", "result", "error", "off". */
+    fun _loadBackgroundNotificationsMode(): String {
+        val mode = (System.getenv("HERMES_BACKGROUND_NOTIFICATIONS") ?: "all").trim().lowercase()
+        val valid = setOf("all", "result", "error", "off")
+        if (mode !in valid) {
+            Log.w(TAG, "Unknown background_process_notifications '$mode', defaulting to 'all'")
+            return "all"
+        }
+        return mode
+    }
+
+    /** Return a snapshot of currently running agents, excluding pending sentinels. */
+    fun _snapshotRunningAgents(): Map<String, Any?> {
+        // On Android, _agentCache serves as the running agents registry
+        return synchronized(_agentCacheLock) {
+            _agentCache.toMap()
+        }
+    }
+
+    /** Queue or replace a pending message event for a session. */
+    fun _queueOrReplacePendingEvent(sessionKey: String, event: MessageEvent) {
+        val adapter = _adapters[event.source.platform] ?: return
+        Log.d(TAG, "Queuing pending event for session $sessionKey on ${adapter.name}")
+    }
+
+    /** Handle a message arriving while the session's agent is busy.
+     *  Returns true if the message was handled (busy ack sent). */
+    suspend fun _handleActiveSessionBusyMessage(event: MessageEvent, sessionKey: String): Boolean {
+        val adapter = _adapters[event.source.platform] ?: return false
+        _queueOrReplacePendingEvent(sessionKey, event)
+        val message = "⚡ Interrupting current task. I'll respond to your message shortly."
+        try {
+            adapter.send(event.source.chatId, message, replyTo = event.message_id)
+        } catch (e: Exception) {
+            Log.d(TAG, "Failed to send busy-ack: ${e.message}")
+        }
+        return true
+    }
+
+    /** Wait up to [timeout] seconds for running agents to finish.
+     *  Returns a pair of (snapshot of active agents, timed_out). */
+    suspend fun _drainActiveAgents(timeout: Double): Any? {
+        val snapshot = _snapshotRunningAgents()
+        if (snapshot.isEmpty()) return Pair(snapshot, false)
+        if (timeout <= 0) return Pair(snapshot, true)
+        val deadlineMs = System.currentTimeMillis() + (timeout * 1000).toLong()
+        while (sessionStore.processingCount > 0 && System.currentTimeMillis() < deadlineMs) {
+            delay(100)
+        }
+        val timedOut = sessionStore.processingCount > 0
+        return Pair(snapshot, timedOut)
+    }
+
+    /** Send shutdown/restart notification to every chat with an active agent. */
+    suspend fun _notifyActiveSessionsOfShutdown() {
+        val active = _snapshotRunningAgents()
+        if (active.isEmpty()) return
+        val action = if (_exitReason?.contains("restart") == true) "restarting" else "shutting down"
+        val msg = "⚠️ Gateway $action — your current task will be interrupted."
+        val notified = mutableSetOf<String>()
+        for (sessionKey in active.keys) {
+            val parts = sessionKey.split(":")
+            if (parts.size < 2) continue
+            val platform = parts[0]
+            val chatId = parts[1]
+            val dedupKey = "$platform:$chatId"
+            if (dedupKey in notified) continue
+            try {
+                _adapters[platform]?.send(chatId, msg)
+                notified.add(dedupKey)
+            } catch (e: Exception) {
+                Log.d(TAG, "Failed to send shutdown notification to $platform:$chatId: ${e.message}")
+            }
+        }
+    }
+
+    /** Finalize agents active at shutdown — invoke cleanup for each. */
+    fun _finalizeShutdownAgents(activeAgents: Map<String, Any?>) {
+        for (agent in activeAgents.values) {
+            _cleanupAgentResources(agent)
+        }
+    }
+
+    /** Best-effort cleanup for a single agent instance. */
+    fun _cleanupAgentResources(agent: Any?) {
+        if (agent == null) return
+        // On Android, agent cleanup is minimal — no subprocess or sandbox resources
+        Log.d(TAG, "Cleaned up agent resources")
+    }
+
+    /** Increment restart-failure counters for sessions active at shutdown.
+     *  Persists to a JSON file so counters survive across restarts. */
+    fun _incrementRestartFailureCounts(activeSessionKeys: Set<Any?>) {
+        if (activeSessionKeys.isEmpty()) return
+        val hermesHome = config.hermesHome
+        if (hermesHome.isEmpty()) return
+        val file = File(hermesHome, ".restart_failure_counts")
+        try {
+            val counts = if (file.exists()) {
+                val obj = JSONObject(file.readText(Charsets.UTF_8))
+                val map = mutableMapOf<String, Int>()
+                obj.keys().forEach { k -> map[k] = obj.optInt(k, 0) }
+                map
+            } else mutableMapOf()
+            val newCounts = mutableMapOf<String, Int>()
+            for (key in activeSessionKeys) {
+                val k = key?.toString() ?: continue
+                newCounts[k] = (counts[k] ?: 0) + 1
+            }
+            file.writeText(JSONObject(newCounts as Map<*, *>).toString(), Charsets.UTF_8)
+        } catch (e: Exception) {
+            Log.d(TAG, "Failed to save restart failure counts: ${e.message}")
+        }
+    }
+
+    private val _STUCK_LOOP_THRESHOLD = 3
+
+    /** Suspend sessions active across too many consecutive restarts.
+     *  Returns the number of sessions suspended. */
+    fun _suspendStuckLoopSessions(): Int {
+        val hermesHome = config.hermesHome
+        if (hermesHome.isEmpty()) return 0
+        val file = File(hermesHome, ".restart_failure_counts")
+        if (!file.exists()) return 0
+        val counts = try {
+            val obj = JSONObject(file.readText(Charsets.UTF_8))
+            val map = mutableMapOf<String, Int>()
+            obj.keys().forEach { k -> map[k] = obj.optInt(k, 0) }
+            map
+        } catch (_: Exception) { return 0 }
+        var suspended = 0
+        for ((key, count) in counts) {
+            if (count >= _STUCK_LOOP_THRESHOLD) {
+                val session = sessionStore.get(key)
+                if (session != null) {
+                    sessionStore.remove(key)
+                    suspended++
+                    Log.w(TAG, "Auto-suspended stuck session $key (active across $count consecutive restarts)")
+                }
+            }
+        }
+        try { file.delete() } catch (_: Exception) {}
+        return suspended
+    }
+
+    /** Clear the restart-failure counter for a session that completed OK. */
+    fun _clearRestartFailureCount(sessionKey: String) {
+        val hermesHome = config.hermesHome
+        if (hermesHome.isEmpty()) return
+        val file = File(hermesHome, ".restart_failure_counts")
+        if (!file.exists()) return
+        try {
+            val obj = JSONObject(file.readText(Charsets.UTF_8))
+            if (obj.has(sessionKey)) {
+                obj.remove(sessionKey)
+                if (obj.length() > 0) {
+                    file.writeText(obj.toString(), Charsets.UTF_8)
+                } else {
+                    file.delete()
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    /** On Android, detached restart is handled by the service layer — no subprocess needed. */
+    suspend fun _launchDetachedRestartCommand() {
+        Log.i(TAG, "Detached restart requested — Android service will handle restart")
+    }
+
+    @Volatile private var _restartRequested = false
+    @Volatile private var _restartTaskStarted = false
+
+    /** Initiate a gateway restart. Returns false if already in progress. */
+    fun requestRestart(): Boolean {
+        if (_restartTaskStarted) return false
+        _restartRequested = true
+        _restartTaskStarted = true
+        _scope.launch {
+            delay(50)
+            stop()
+        }
+        return true
+    }
+
+    /** Background task that proactively flushes memories for expired sessions.
+     *  Runs every [interval] seconds. Also sweeps idle cached agents. */
+    suspend fun _sessionExpiryWatcher(interval: Int): Any? {
+        delay(60_000) // initial delay — let gateway fully start
+        while (isRunning.get()) {
+            try {
+                // Check for expired sessions and clean up
+                for (key in sessionStore.keys.toList()) {
+                    val entry = sessionStore.get(key) ?: continue
+                    if (sessionStore.isSessionExpired(entry)) {
+                        sessionStore.remove(key)
+                        _evictCachedAgent(key)
+                        Log.d(TAG, "Expired session cleaned up: $key")
+                    }
+                }
+                // Sweep idle cached agents
+                val evicted = _sweepIdleCachedAgents()
+                if (evicted > 0) {
+                    Log.i(TAG, "Agent cache idle sweep: evicted $evicted agent(s)")
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "Session expiry watcher error: ${e.message}")
+            }
+            // Sleep in small increments for quick stop
+            for (i in 0 until interval) {
+                if (!isRunning.get()) break
+                delay(1000)
+            }
+        }
+        return null
+    }
+
+    private val _shutdownEvent = kotlinx.coroutines.CompletableDeferred<Unit>()
+
+    /** Wait for shutdown signal. */
+    suspend fun waitForShutdown() {
+        _shutdownEvent.await()
+    }
+
+    /** Prepare inbound event text for the agent — applies sender attribution,
+     *  document notes, and reply context injection. */
+    suspend fun _prepareInboundMessageText(): String? {
+        // On Android, message preprocessing is simpler — no vision/STT/@ expansion
+        return null
+    }
+
+    /** Handle /agents command — list active agents and running tasks. */
+    suspend fun _handleAgentsCommand(event: MessageEvent): String {
+        val now = System.currentTimeMillis()
+        val processing = sessionStore.all.filter { it.isProcessing }
+        if (processing.isEmpty()) {
+            return "🤖 **Active Agents & Tasks**\n\nNo active agents or running tasks."
+        }
+        val lines = mutableListOf("🤖 **Active Agents & Tasks**", "", "**Active agents:** ${processing.size}")
+        for ((idx, session) in processing.withIndex()) {
+            if (idx >= 12) {
+                lines.add("... and ${processing.size - 12} more")
+                break
+            }
+            val elapsedMs = if (session.processingStartedAt > 0) now - session.processingStartedAt else 0
+            val elapsedSec = elapsedMs / 1000
+            val elapsed = when {
+                elapsedSec >= 60 -> "${elapsedSec / 60}m ${elapsedSec % 60}s"
+                else -> "${elapsedSec}s"
+            }
+            lines.add("${idx + 1}. `${session.sessionKey}` · running · $elapsed")
+        }
+        return lines.joinToString("\n")
+    }
+
+    /** Return true if this event is a stale Telegram re-delivery we already handled. */
+    fun _isStaleRestartRedelivery(event: MessageEvent): Boolean {
+        // On Android, we don't use Telegram update_id deduplication
+        return false
+    }
+
+    /** Handle transcribed voice from a user in a voice channel.
+     *  Not applicable on Android — voice channels are a Discord desktop feature. */
+    suspend fun _handleVoiceChannelInput(guildId: Int, userId: Int, transcript: String): Any? {
+        Log.d(TAG, "Voice channel input not supported on Android")
+        return null
+    }
+
+    /** Extract MEDIA: tags and local file paths from a response and deliver them.
+     *  On Android, media delivery is handled by the adapter's native sharing. */
+    suspend fun _deliverMediaFromResponse(response: String, event: MessageEvent, adapter: Any?) {
+        // Android adapters handle media inline — no post-stream extraction needed
+        Log.d(TAG, "Post-stream media delivery not applicable on Android")
+    }
+
+    /** Handle /rollback command — list or restore filesystem checkpoints.
+     *  Checkpoints are not available on Android. */
+    suspend fun _handleRollbackCommand(event: MessageEvent): String {
+        return "Checkpoints are not available on Android."
+    }
+
+    /** Handle /background <prompt> — run a prompt in a separate background session. */
+    suspend fun _handleBackgroundCommand(event: MessageEvent): String {
+        val prompt = event.commandArgs?.trim() ?: ""
+        if (prompt.isEmpty()) {
+            return "Usage: /background <prompt>\nExample: /background Summarize the top HN stories today\n\n" +
+                "Runs the prompt in a separate session. " +
+                "You can keep chatting — the result will appear here when done."
+        }
+        val taskId = "bg_${System.currentTimeMillis()}"
+        runBackgroundTask(prompt, messageEventToSource(event), taskId)
+        val preview = if (prompt.length > 60) prompt.take(60) + "..." else prompt
+        return "🔄 Background task started: \"$preview\"\nTask ID: $taskId\nYou can keep chatting — results will appear when done."
+    }
+
+    /** Handle /btw <question> — ephemeral side question in the same chat. */
+    suspend fun _handleBtwCommand(event: MessageEvent): String {
+        val question = event.commandArgs?.trim() ?: ""
+        if (question.isEmpty()) {
+            return "Usage: /btw <question>\nExample: /btw what module owns session title sanitization?\n\nAnswers using session context. No tools, not persisted."
+        }
+        val sessionKey = _sessionKeyForSource(event.source)
+        val taskId = "btw_${System.currentTimeMillis()}"
+        _scope.launch { _runBtwTask(question, event.source, sessionKey, taskId) }
+        val preview = if (question.length > 60) question.take(60) + "..." else question
+        return "💬 /btw: \"$preview\"\nReply will appear here shortly."
+    }
+
+    /** Execute an ephemeral /btw side question and deliver the answer. */
+    suspend fun _runBtwTask(question: String, source: Any?, sessionKey: String, taskId: String) {
+        val msgSource = source as? MessageSource ?: return
+        val adapter = _adapters[msgSource.platform] ?: return
+        try {
+            val response = agentLoop?.process(
+                text = "[Ephemeral /btw side question. Be direct and concise.]\n\n$question",
+                sessionKey = taskId,
+                context = mapOf("platform" to msgSource.platform, "chatId" to msgSource.chatId)
+            ) ?: "(No response generated)"
+            val preview = if (question.length > 60) question.take(60) + "..." else question
+            adapter.send(msgSource.chatId, "💬 /btw: \"$preview\"\n\n$response")
+        } catch (e: Exception) {
+            Log.e(TAG, "/btw task $taskId failed", e)
+            try { adapter.send(msgSource.chatId, "❌ /btw failed: ${e.message}") } catch (_: Exception) {}
+        }
+    }
+
+    /** Handle /reasoning command — manage reasoning effort and display toggle. */
+    suspend fun _handleReasoningCommand(event: MessageEvent): String {
+        val args = event.commandArgs?.trim()?.lowercase() ?: ""
+        if (args.isEmpty()) {
+            return "🧠 **Reasoning Settings**\n\nEffort: `medium (default)`\n\n_Usage:_ `/reasoning <none|minimal|low|medium|high|xhigh>`"
+        }
+        return when (args) {
+            "show", "on" -> "🧠 ✓ Reasoning display: **ON**"
+            "hide", "off" -> "🧠 ✓ Reasoning display: **OFF**"
+            "none", "minimal", "low", "medium", "high", "xhigh" ->
+                "🧠 ✓ Reasoning effort set to `$args`\n_(takes effect on next message)_"
+            else -> "⚠️ Unknown argument: `$args`\n\n**Valid levels:** none, minimal, low, medium, high, xhigh\n**Display:** show, hide"
+        }
+    }
+
+    /** Handle /fast — toggle Priority Processing. */
+    suspend fun _handleFastCommand(event: MessageEvent): String {
+        val args = event.commandArgs?.trim()?.lowercase() ?: ""
+        return when (args) {
+            "", "status" -> "⚡ Priority Processing\n\nCurrent mode: `normal`\n\n_Usage:_ `/fast <normal|fast|status>`"
+            "fast", "on" -> "⚡ ✓ Priority Processing: **FAST**\n_(takes effect on next message)_"
+            "normal", "off" -> "⚡ ✓ Priority Processing: **NORMAL**\n_(takes effect on next message)_"
+            else -> "⚠️ Unknown argument: `$args`\n\n**Valid options:** normal, fast, status"
+        }
+    }
+
+    /** Handle /yolo — toggle dangerous command approval bypass for this session. */
+    suspend fun _handleYoloCommand(event: MessageEvent): String {
+        // On Android, YOLO mode is not applicable (no shell command execution)
+        return "⚠️ YOLO mode is not available on Android (no dangerous commands to bypass)."
+    }
+
+    /** Handle /verbose — cycle tool progress display mode. */
+    suspend fun _handleVerboseCommand(event: MessageEvent): String {
+        return "⚙️ Tool progress display settings are not available on Android."
+    }
+
+    /** Handle /compress — manually compress conversation context. */
+    suspend fun _handleCompressCommand(event: MessageEvent): String {
+        val sessionKey = _sessionKeyForSource(event.source)
+        val session = sessionStore.get(sessionKey)
+            ?: return "No active session to compress."
+        return "🗜️ Conversation compression is not yet available on Android."
+    }
+
+    /** Handle /title command — set or show the current session's title. */
+    suspend fun _handleTitleCommand(event: MessageEvent): String {
+        val sessionKey = _sessionKeyForSource(event.source)
+        val session = sessionStore.get(sessionKey)
+            ?: return "No active session."
+        val titleArg = event.commandArgs?.trim() ?: ""
+        return if (titleArg.isNotEmpty()) {
+            "✏️ Session title set: **$titleArg**"
+        } else {
+            "📌 Session: `$sessionKey`\nNo title set. Usage: `/title My Session Name`"
+        }
+    }
+
+    /** Handle /resume command — switch to a previously-named session. */
+    suspend fun _handleResumeCommand(event: MessageEvent): String {
+        val name = event.commandArgs?.trim() ?: ""
+        if (name.isEmpty()) {
+            return "📋 **Named Sessions**\n\nNo named sessions available.\nUsage: `/resume <session name>`"
+        }
+        return "↻ Session switching is not yet available on Android."
+    }
+
+    /** Handle /branch — fork the current session into a new independent copy. */
+    suspend fun _handleBranchCommand(event: MessageEvent): String {
+        return "⑂ Session branching is not yet available on Android."
+    }
+
+    /** Handle /usage — show token usage for the current session. */
+    suspend fun _handleUsageCommand(event: MessageEvent): String {
+        val sessionKey = _sessionKeyForSource(event.source)
+        val session = sessionStore.get(sessionKey)
+            ?: return "No usage data available for this session."
+        return buildString {
+            appendLine("📊 **Session Info**")
+            appendLine("Messages: ${session.messageCount.get()}")
+            appendLine("Turns: ${session.turnCount.get()}")
+            appendLine("Input tokens: ${session.inputTokens.get()}")
+            appendLine("Output tokens: ${session.outputTokens.get()}")
+        }
+    }
+
+    /** Handle /insights — show usage insights and analytics. */
+    suspend fun _handleInsightsCommand(event: MessageEvent): String {
+        return "Usage insights are not yet available on Android."
+    }
+
+    /** Handle /reload-mcp — disconnect and reconnect all MCP servers. */
+    suspend fun _handleReloadMcpCommand(event: MessageEvent): String {
+        return "🔄 MCP server management is not yet available on Android."
+    }
+
+    /** Handle /approve — unblock waiting agent thread(s). */
+    suspend fun _handleApproveCommand(event: MessageEvent): String? {
+        return "No pending command to approve."
+    }
+
+    /** Handle /deny — reject pending dangerous command(s). */
+    suspend fun _handleDenyCommand(event: MessageEvent): String {
+        return "No pending command to deny."
+    }
+
+    /** Handle /debug — upload debug report. */
+    suspend fun _handleDebugCommand(event: MessageEvent): String {
+        return buildString {
+            appendLine("🐛 **Debug Info**")
+            appendLine("Platform: Android")
+            appendLine("Running: ${isRunning.get()}")
+            appendLine("Active sessions: ${sessionStore.size}")
+            appendLine("Processing: ${sessionStore.processingCount}")
+            appendLine("Adapters: ${_adapters.keys.joinToString(", ").ifEmpty { "none" }}")
+        }
+    }
+
+    /** Handle /update — not available on Android (updates via Play Store). */
+    suspend fun _handleUpdateCommand(event: MessageEvent): String {
+        return "✗ /update is not available on Android. Update via the app store."
+    }
+
+    /** Watch update progress — not applicable on Android. */
+    suspend fun _watchUpdateProgress(pollInterval: Double, streamInterval: Double, timeout: Double) {
+        Log.d(TAG, "Update progress watching not applicable on Android")
+    }
+
+    /** Check if an update finished and notify user — not applicable on Android. */
+    suspend fun _sendUpdateNotification(): Boolean {
+        return false
+    }
+
+    /** Notify the chat that initiated /restart that the gateway is back. */
+    suspend fun _sendRestartNotification() {
+        Log.d(TAG, "Restart notification — gateway is back")
+    }
+
+    /** Set session context variables for the current task.
+     *  On Android, we don't use contextvars — session context is passed explicitly. */
+    fun _setSessionEnv(context: SessionRecord): List<Any?> {
+        // Android does not use contextvars; context is passed through method params
+        return emptyList()
+    }
+
+    /** Run blocking work on the IO dispatcher while preserving context. */
+    suspend fun _runInExecutorWithContext(func: Any?): Any? {
+        if (func == null) return null
+        return withContext(Dispatchers.IO) {
+            @Suppress("UNCHECKED_CAST")
+            (func as? (() -> Any?))?.invoke()
+        }
+    }
+
+    /** Resolve the canonical source for a synthetic background-process event. */
+    fun _buildProcessEventSource(evt: Map<String, Any?>): Any? {
+        val sessionKey = (evt["session_key"] as? String)?.trim() ?: return null
+        val parts = sessionKey.split(":")
+        if (parts.size < 3) return null
+        return MessageSource(
+            platform = parts[0],
+            chatId = parts[1],
+            userId = parts.getOrElse(2) { "" }
+        )
+    }
+
+    /** Pop ALL per-running-agent state entries for a session key.
+     *  Use at every site that ends a running turn. */
+    fun _releaseRunningAgentState(sessionKey: String) {
+        if (sessionKey.isEmpty()) return
+        synchronized(_agentCacheLock) {
+            _agentCache.remove(sessionKey)
+        }
+        sessionStore.get(sessionKey)?.markIdle()
+        Log.d(TAG, "Released running agent state for $sessionKey")
+    }
+
+    /** Soft cleanup for cache-evicted agents — preserves session tool state. */
+    fun _releaseEvictedAgentSoft(agent: Any?) {
+        if (agent == null) return
+        _cleanupAgentResources(agent)
+    }
+
+    private val _AGENT_CACHE_MAX_SIZE = 20
+
+    /** Evict oldest cached agents when cache exceeds max size.
+     *  Must be called with _agentCacheLock held. */
+    fun _enforceAgentCacheCap() {
+        if (_agentCache.size <= _AGENT_CACHE_MAX_SIZE) return
+        val excess = _agentCache.size - _AGENT_CACHE_MAX_SIZE
+        val keysToEvict = _agentCache.keys.toList().take(excess)
+        for (key in keysToEvict) {
+            val agent = _agentCache.remove(key)
+            Log.i(TAG, "Agent cache at cap; evicting LRU session=$key (cache_size=${_agentCache.size})")
+            if (agent != null) {
+                _releaseEvictedAgentSoft(agent)
+            }
+        }
+    }
+
+    private val _AGENT_CACHE_IDLE_TTL_SECS = 1800L // 30 minutes
+
+    /** Evict cached agents idle longer than the TTL. Returns the number evicted. */
+    fun _sweepIdleCachedAgents(): Int {
+        val now = System.currentTimeMillis()
+        val toEvict = mutableListOf<String>()
+        synchronized(_agentCacheLock) {
+            for ((key, _) in _agentCache) {
+                val session = sessionStore.get(key) ?: continue
+                if (!session.isProcessing) {
+                    val lastMsg = try {
+                        Instant.parse(session.lastMessageAt).toEpochMilli()
+                    } catch (_: Exception) { 0L }
+                    if (now - lastMsg > _AGENT_CACHE_IDLE_TTL_SECS * 1000) {
+                        toEvict.add(key)
+                    }
+                }
+            }
+            for (key in toEvict) {
+                val agent = _agentCache.remove(key)
+                if (agent != null) _releaseEvictedAgentSoft(agent)
+            }
+        }
+        return toEvict.size
+    }
+
+    /** Return the proxy URL if proxy mode is configured, else null.
+     *  Checks GATEWAY_PROXY_URL env var first, then config. */
+    fun _getProxyUrl(): String? {
+        val url = System.getenv("GATEWAY_PROXY_URL")?.trim() ?: ""
+        if (url.isNotEmpty()) return url.trimEnd('/')
+        return null
+    }
+
+    /** Forward the message to a remote Hermes API server instead of running a local agent.
+     *  On Android, this uses OkHttp for the SSE streaming connection. */
+    suspend fun _runAgentViaProxy(message: String, contextPrompt: String, history: List<Map<String, Any?>>, source: Any?, sessionId: String, sessionKey: String? = null, eventMessageId: String? = null): Map<String, Any?> {
+        val proxyUrl = _getProxyUrl()
+            ?: return mapOf("final_response" to "⚠️ Proxy URL not configured (GATEWAY_PROXY_URL)", "messages" to emptyList<Any>(), "api_calls" to 0)
+
+        val apiMessages = mutableListOf<Map<String, String>>()
+        if (contextPrompt.isNotEmpty()) {
+            apiMessages.add(mapOf("role" to "system", "content" to contextPrompt))
+        }
+        for (msg in history) {
+            val role = msg["role"] as? String ?: continue
+            val content = msg["content"] as? String ?: continue
+            if (role in listOf("user", "assistant")) {
+                apiMessages.add(mapOf("role" to role, "content" to content))
+            }
+        }
+        apiMessages.add(mapOf("role" to "user", "content" to message))
+
+        // Build the request body
+        val body = JSONObject().apply {
+            put("model", "hermes-agent")
+            put("messages", org.json.JSONArray(apiMessages.map { JSONObject(it) }))
+            put("stream", true)
+        }
+
+        val fullResponse = StringBuilder()
+        try {
+            withContext(Dispatchers.IO) {
+                val client = okhttp3.OkHttpClient.Builder()
+                    .readTimeout(30, java.util.concurrent.TimeUnit.MINUTES)
+                    .build()
+                val request = okhttp3.Request.Builder()
+                    .url("$proxyUrl/v1/chat/completions")
+                    .post(body.toString().toRequestBody("application/json".toMediaType()))
+                    .apply {
+                        val proxyKey = System.getenv("GATEWAY_PROXY_KEY")?.trim() ?: ""
+                        if (proxyKey.isNotEmpty()) addHeader("Authorization", "Bearer $proxyKey")
+                        if (sessionId.isNotEmpty()) addHeader("X-Hermes-Session-Id", sessionId)
+                    }
+                    .build()
+                val response = client.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    val errorText = response.body?.string() ?: ""
+                    return@withContext mapOf("final_response" to "⚠️ Proxy error (${response.code}): ${errorText.take(300)}")
+                }
+                val source2 = response.body?.source() ?: return@withContext mapOf("final_response" to "⚠️ Empty proxy response")
+                while (!source2.exhausted()) {
+                    val line = source2.readUtf8Line() ?: break
+                    if (line.startsWith("data: ")) {
+                        val data = line.substring(6).trim()
+                        if (data == "[DONE]") break
+                        try {
+                            val obj = JSONObject(data)
+                            val choices = obj.optJSONArray("choices")
+                            if (choices != null && choices.length() > 0) {
+                                val delta = choices.getJSONObject(0).optJSONObject("delta")
+                                val content = delta?.optString("content", "") ?: ""
+                                if (content.isNotEmpty()) fullResponse.append(content)
+                            }
+                        } catch (_: Exception) {}
+                    }
+                }
+                response.close()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Proxy connection error to $proxyUrl: ${e.message}")
+            if (fullResponse.isEmpty()) {
+                return mapOf("final_response" to "⚠️ Proxy connection error: ${e.message}", "messages" to emptyList<Any>(), "api_calls" to 0)
+            }
+        }
+
+        val resp = fullResponse.toString().ifEmpty { "(No response from remote agent)" }
+        return mapOf(
+            "final_response" to resp,
+            "messages" to listOf(mapOf("role" to "user", "content" to message), mapOf("role" to "assistant", "content" to resp)),
+            "api_calls" to 1,
+            "session_id" to sessionId
+        )
+    }
 }

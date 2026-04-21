@@ -3,7 +3,7 @@ package com.xiaomo.hermes.hermes.plugins.memory.holographic
 
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteStatement
-import com.xiaomo.hermes.hermes.hermesConstants.getHermesHome
+import com.xiaomo.hermes.hermes.getHermesHome
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
@@ -590,5 +590,16 @@ class MemoryStore(
 
     override fun close() {
         _conn.close()
+    }
+
+
+    fun _rowToDict(row: Any?): Map<String, Any?> {
+        if (row == null) return emptyMap()
+        // On Android, rows come as Cursor-based maps already converted via _cursorToDict.
+        // This is a compatibility shim for any raw row object passed in.
+        return when (row) {
+            is Map<*, *> -> row.entries.associate { (k, v) -> k.toString() to v }
+            else -> emptyMap()
+        }
     }
 }

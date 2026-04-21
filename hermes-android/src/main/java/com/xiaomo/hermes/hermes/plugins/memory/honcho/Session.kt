@@ -91,7 +91,7 @@ class HonchoSessionManager(
     private val _sessionsCache = ConcurrentHashMap<String, HonchoSessionData>()
 
     // 写频率状态
-    private val _writeFrequency: String = config?.writeFrequency ?: "async"
+    private val _writeFrequency: String = config?.writeFrequency?.toString() ?: "async"
     private var _turnCounter: Int = 0
 
     // 预取缓存
@@ -764,6 +764,209 @@ class HonchoSessionManager(
                 "createdAt" to session.createdAt,
                 "updatedAt" to session.updatedAt,
                 "messageCount" to session.messages.size)
+        }
+    }
+
+
+    fun honcho(): HonchoHttpClient {
+        return getHonchoClient(config)
+    }
+
+    fun _asyncWriterLoop() {
+        // Background daemon: drains the async write queue.
+        // On Android, this is handled by the coroutine-based startAsyncWriter().
+        // This method exists for API compatibility with Python's threading approach.
+        while (true) {
+            val item = _asyncQueue.poll() ?: break
+            try {
+                val success = flushSession(item)
+                if (!success) {
+                    // Retry once
+                    flushSession(item)
+                }
+            } catch (e: Exception) {
+                logger.warning("Honcho async write failed: ${e.message}")
+            }
+        }
+    }
+
+    fun _defaultReasoningLevel(): String {
+        return _dialecticReasoningLevel
+    }
+
+    fun migrateMemoryFiles(sessionKey: String, memoryDir: String): Boolean {
+        val memoryPath = java.io.File(memoryDir)
+        if (!memoryPath.exists()) return false
+
+        val session = _cache[sessionKey]
+        if (session == null) {
+            logger.warning("No local session cached for '$sessionKey', skipping memory migration")
+            return false
+        }
+
+        val honchoSession = _sessionsCache[session.honchoSessionId]
+        if (honchoSession == null) {
+            logger.warning("No Honcho session cached for '$sessionKey', skipping memory migration")
+            return false
+        }
+
+        val userPeer = getOrCreatePeer(session.userPeerId)
+        val assistantPeer = getOrCreatePeer(session.assistantPeerId)
+
+        var uploaded = false
+        data class FileSpec(val filename: String, val uploadName: String, val description: String, val peerId: String, val targetKind: String)
+        val files = listOf(
+            FileSpec("MEMORY.md", "consolidated_memory.md", "Long-term agent notes and preferences", session.userPeerId, "user"),
+            FileSpec("USER.md", "user_profile.md", "User profile and preferences", session.userPeerId, "user"),
+            FileSpec("SOUL.md", "agent_soul.md", "Agent persona and identity configuration", session.assistantPeerId, "ai")
+        )
+
+        for (spec in files) {
+            val filepath = java.io.File(memoryPath, spec.filename)
+            if (!filepath.exists()) continue
+            val content = filepath.readText(Charsets.UTF_8).trim()
+            if (content.isEmpty()) continue
+
+            val wrapped = """
+                <prior_memory_file>
+                <context>
+                This file was consolidated from local conversations BEFORE Honcho was activated.
+                ${spec.description}. Treat as foundational context for this user.
+                </context>
+
+                $content
+                </prior_memory_file>
+            """.trimIndent()
+
+            try {
+                client.uploadFile(
+                    sessionId = session.honchoSessionId,
+                    peerId = spec.peerId,
+                    fileName = spec.uploadName,
+                    content = wrapped.toByteArray(Charsets.UTF_8),
+                    mimeType = "text/plain",
+                    metadata = mapOf(
+                        "source" to "local_memory",
+                        "original_file" to spec.filename,
+                        "target_peer" to spec.targetKind
+                    )
+                )
+                logger.info("Uploaded ${spec.filename} to Honcho for $sessionKey (${spec.targetKind} peer)")
+                uploaded = true
+            } catch (e: Exception) {
+                logger.error("Failed to upload ${spec.filename} to Honcho: ${e.message}")
+            }
+        }
+
+        return uploaded
+    }
+
+    fun _normalizeCard(card: Any?): List<String> {
+        if (card == null) return emptyList()
+        return when (card) {
+            is List<*> -> card.mapNotNull { item -> item?.toString()?.takeIf { it.isNotEmpty() } }
+            else -> {
+                val s = card.toString()
+                if (s.isNotEmpty()) listOf(s) else emptyList()
+            }
+        }
+    }
+
+    fun _fetchPeerCard(peerId: String): List<String> {
+        val peer = getOrCreatePeer(peerId)
+        return try {
+            _normalizeCard(client.getPeerCard(peer.id))
+        } catch (e: Exception) {
+            logger.debug("Failed to fetch peer card for $peerId: ${e.message}")
+            emptyList()
+        }
+    }
+
+    fun getSessionContext(sessionKey: String, peer: String = "user"): Map<String, Any?> {
+        val session = _cache[sessionKey] ?: return emptyMap()
+
+        val honchoSession = _sessionsCache[session.honchoSessionId]
+        if (honchoSession == null) {
+            // Fall back to peer-level context
+            val peerId = _resolvePeerId(session, peer)
+            return try {
+                val ctx = fetchPeerContext(peerId)
+                mapOf(
+                    "representation" to (ctx["representation"] ?: ""),
+                    "card" to (ctx["card"] ?: emptyList<String>())
+                )
+            } catch (e: Exception) {
+                emptyMap()
+            }
+        }
+
+        return try {
+            val peerId = _resolvePeerId(session, peer)
+            val ctx = fetchPeerContext(peerId)
+            mapOf(
+                "representation" to (ctx["representation"] ?: ""),
+                "card" to (ctx["card"] ?: emptyList<String>())
+            )
+        } catch (e: Exception) {
+            logger.debug("Failed to get session context: ${e.message}")
+            emptyMap()
+        }
+    }
+
+    fun _resolvePeerId(session: HonchoSession, peer: Any?): String {
+        val candidate = (peer?.toString() ?: "user").trim()
+        if (candidate.isEmpty()) return session.userPeerId
+
+        val normalized = sanitizeId(candidate)
+        if (normalized == sanitizeId("user")) return session.userPeerId
+        if (normalized == sanitizeId("ai")) return session.assistantPeerId
+
+        return normalized
+    }
+
+    fun _resolveObserverTarget(session: HonchoSession, peer: Any?): Pair<String, String?> {
+        val targetPeerId = _resolvePeerId(session, peer)
+
+        if (targetPeerId == session.assistantPeerId) {
+            return session.assistantPeerId to session.assistantPeerId
+        }
+
+        return if (_aiObserveOthers) {
+            session.assistantPeerId to targetPeerId
+        } else {
+            targetPeerId to null
+        }
+    }
+
+    fun deleteConclusion(sessionKey: String, conclusionId: String, peer: String = "user"): Boolean {
+        val session = _cache[sessionKey] ?: return false
+        return try {
+            val targetPeerId = _resolvePeerId(session, peer)
+            // Delegate to client to delete conclusion by ID
+            client.deleteConclusion(conclusionId)
+            logger.info("Deleted conclusion $conclusionId for $sessionKey")
+            true
+        } catch (e: Exception) {
+            logger.error("Failed to delete conclusion $conclusionId: ${e.message}")
+            false
+        }
+    }
+
+    fun setPeerCard(sessionKey: String, card: List<String>, peer: String = "user"): List<String>? {
+        val session = _cache[sessionKey] ?: return null
+        return try {
+            val peerId = _resolvePeerId(session, peer)
+            if (peerId.isEmpty()) {
+                logger.warning("Could not resolve peer '$peer' for set_peer_card in session '$sessionKey'")
+                return null
+            }
+            val peerObj = getOrCreatePeer(peerId)
+            val result = client.setPeerCard(peerObj.id, card)
+            logger.info("Updated peer card for $peerId (${card.size} facts)")
+            result
+        } catch (e: Exception) {
+            logger.error("Failed to set peer card: ${e.message}")
+            null
         }
     }
 }

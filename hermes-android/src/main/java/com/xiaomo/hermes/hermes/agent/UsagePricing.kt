@@ -206,3 +206,45 @@ class UsagePricing {
     }
 
 }
+
+data class CanonicalUsage(
+    val inputTokens: Int = 0,
+    val outputTokens: Int = 0,
+    val cacheReadTokens: Int = 0,
+    val cacheWriteTokens: Int = 0,
+    val reasoningTokens: Int = 0,
+    val requestCount: Int = 1,
+    val rawUsage: Map<String, Any>? = null
+) {
+    val promptTokens: Int get() = inputTokens + cacheReadTokens + cacheWriteTokens
+    val totalTokens: Int get() = promptTokens + outputTokens
+}
+
+data class BillingRoute(
+    val provider: String,
+    val model: String,
+    val baseUrl: String = "",
+    val billingMode: String = "unknown"
+)
+
+data class PricingEntry(
+    val inputCostPerMillion: Double? = null,
+    val outputCostPerMillion: Double? = null,
+    val cacheReadCostPerMillion: Double? = null,
+    val cacheWriteCostPerMillion: Double? = null,
+    val requestCost: Double? = null,
+    val source: String = "none",
+    val sourceUrl: String? = null,
+    val pricingVersion: String? = null,
+    val fetchedAt: Long? = null
+)
+
+data class CostResult(
+    val amountUsd: Double?,
+    val status: String,
+    val source: String,
+    val label: String,
+    val fetchedAt: Long? = null,
+    val pricingVersion: String? = null,
+    val notes: List<String> = emptyList()
+)

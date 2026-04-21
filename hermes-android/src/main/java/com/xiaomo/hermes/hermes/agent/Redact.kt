@@ -110,3 +110,12 @@ class Redact {
     }
 
 }
+
+class RedactingFormatter {
+    private val redact = Redact()
+
+    fun format(record: Any?): String {
+        val original = record?.toString() ?: ""
+        return redact.redact(original)
+    }
+}

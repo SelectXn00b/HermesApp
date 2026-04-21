@@ -17,6 +17,9 @@ import java.io.File
 
 private val logger = getLogger("honcho.cli")
 
+/** Host constant – references the HONCHO_HOST defined in Client.kt */
+private val HOST = HONCHO_HOST
+
 // ── 配置读写 ──────────────────────────────────────────────────────────────
 
 /**
@@ -170,12 +173,12 @@ fun cmdSync(): Int {
 fun ensurePeerExists(hostKey: String? = null): Boolean {
     return try {
         val hcfg = HonchoClientConfig.fromGlobalConfig(host = hostKey)
-        if (!hcfg.enabled || (hcfg.apiKey.isEmpty() && hcfg.baseUrl.isEmpty())) {
+        if (!hcfg.enabled || (hcfg.apiKey.isNullOrEmpty() && hcfg.baseUrl.isNullOrEmpty())) {
             return false
         }
         val client = getHonchoClient(hcfg)
         client.peer(hcfg.aiPeer)
-        if (hcfg.peerName.isNotEmpty()) {
+        if (!hcfg.peerName.isNullOrEmpty()) {
             client.peer(hcfg.peerName)
         }
         true
@@ -208,7 +211,7 @@ fun getHonchoStatus(): HonchoStatus {
     val cfg = readHonchoConfig()
     val hcfg = HonchoClientConfig.fromGlobalConfig(host = hostKey())
 
-    val apiKey = hcfg.apiKey
+    val apiKey = hcfg.apiKey.orEmpty()
     val masked = if (apiKey.length > 8) {
         "...${apiKey.takeLast(8)}"
     } else if (apiKey.isNotEmpty()) "set" else "not set"
@@ -217,14 +220,14 @@ fun getHonchoStatus(): HonchoStatus {
     var userCard = emptyList<String>()
     var aiRepresentation = ""
 
-    if (hcfg.enabled && (hcfg.apiKey.isNotEmpty() || hcfg.baseUrl.isNotEmpty())) {
+    if (hcfg.enabled && (!hcfg.apiKey.isNullOrEmpty() || !hcfg.baseUrl.isNullOrEmpty())) {
         try {
             val client = getHonchoClient(hcfg)
             connected = client.testConnection()
 
             if (connected) {
                 val mgr = HonchoSessionManager(honcho = client, config = hcfg)
-                val sessionKey = hcfg.resolveSessionName()
+                val sessionKey = hcfg.resolveSessionName() ?: ""
                 mgr.getOrCreate(sessionKey)
 
                 userCard = mgr.getPeerCard(sessionKey)
@@ -241,10 +244,10 @@ fun getHonchoStatus(): HonchoStatus {
         apiKeyMasked = masked,
         workspace = hcfg.workspaceId,
         aiPeer = hcfg.aiPeer,
-        userPeer = hcfg.peerName,
-        sessionKey = hcfg.resolveSessionName(),
+        userPeer = hcfg.peerName.orEmpty(),
+        sessionKey = hcfg.resolveSessionName().orEmpty(),
         recallMode = hcfg.recallMode,
-        writeFrequency = hcfg.writeFrequency,
+        writeFrequency = hcfg.writeFrequency.toString(),
         observationMode = hcfg.observationMode,
         connected = connected,
         userCard = userCard,
@@ -379,7 +382,7 @@ fun seedIdentity(content: String, source: String = "manual"): Boolean {
         val hcfg = HonchoClientConfig.fromGlobalConfig(host = hostKey())
         val client = getHonchoClient(hcfg)
         val mgr = HonchoSessionManager(honcho = client, config = hcfg)
-        val sessionKey = hcfg.resolveSessionName()
+        val sessionKey = hcfg.resolveSessionName() ?: ""
         mgr.getOrCreate(sessionKey)
         mgr.seedAiIdentity(sessionKey, content, source = source)
     } catch (e: Exception) {
@@ -396,7 +399,7 @@ fun getAiIdentity(): Map<String, String> {
         val hcfg = HonchoClientConfig.fromGlobalConfig(host = hostKey())
         val client = getHonchoClient(hcfg)
         val mgr = HonchoSessionManager(honcho = client, config = hcfg)
-        val sessionKey = hcfg.resolveSessionName()
+        val sessionKey = hcfg.resolveSessionName() ?: ""
         mgr.getOrCreate(sessionKey)
         mgr.getAiRepresentation(sessionKey)
     } catch (e: Exception) {
@@ -413,7 +416,7 @@ fun getUserIdentity(): List<String> {
         val hcfg = HonchoClientConfig.fromGlobalConfig(host = hostKey())
         val client = getHonchoClient(hcfg)
         val mgr = HonchoSessionManager(honcho = client, config = hcfg)
-        val sessionKey = hcfg.resolveSessionName()
+        val sessionKey = hcfg.resolveSessionName() ?: ""
         mgr.getOrCreate(sessionKey)
         mgr.getPeerCard(sessionKey)
     } catch (e: Exception) {

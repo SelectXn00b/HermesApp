@@ -18,7 +18,7 @@ import com.xiaomo.hermes.hermes.gateway.GatewayConfig
 import com.xiaomo.hermes.hermes.gateway.GatewayRunner
 import com.xiaomo.hermes.hermes.gateway.Platform
 import com.xiaomo.hermes.hermes.gateway.PlatformConfig
-import com.xiaomo.hermes.hermes.gateway.platforms.AppChatAdapter
+import com.xiaomo.hermes.hermes.gateway.platforms.AppChat
 import com.xiaomo.hermes.hermes.gateway.platforms.ChatResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +45,7 @@ class HermesChatGateway private constructor(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var gatewayRunner: GatewayRunner? = null
-    private var appChatAdapter: AppChatAdapter? = null
+    private var appChatAdapter: AppChat? = null
 
     /** Expose the GatewayRunner for wiring into HermesGatewayChannel. */
     val runner: GatewayRunner? get() = gatewayRunner

@@ -413,3 +413,42 @@ object MemoryTool {
         return null
     }
 }
+
+/**
+ * Bounded curated memory with file persistence. One instance per AIAgent.
+ * Ported from MemoryStore in memory_tool.py.
+ *
+ * Maintains two parallel states:
+ *   - _systemPromptSnapshot: frozen at load time, used for system prompt injection.
+ *     Never mutated mid-session. Keeps prefix cache stable.
+ *   - memoryEntries / userEntries: live state, mutated by tool calls, persisted to disk.
+ *     Tool responses always reflect this live state.
+ */
+class MemoryStore(
+    val memoryCharLimit: Int = 2200,
+    val userCharLimit: Int = 1375
+) {
+    var memoryEntries: MutableList<String> = mutableListOf()
+    var userEntries: MutableList<String> = mutableListOf()
+    private var _systemPromptSnapshot: Map<String, String> = mapOf("memory" to "", "user" to "")
+
+    fun loadFromDisk() {
+        MemoryTool.loadFromDisk()
+    }
+
+    fun formatForSystemPrompt(target: String): String? {
+        return MemoryTool.formatForSystemPrompt(target)
+    }
+
+    fun add(target: String, content: String): Map<String, Any> {
+        return MemoryTool.add(target, content)
+    }
+
+    fun replace(target: String, oldText: String, newContent: String): Map<String, Any> {
+        return MemoryTool.replace(target, oldText, newContent)
+    }
+
+    fun remove(target: String, oldText: String): Map<String, Any> {
+        return MemoryTool.remove(target, oldText)
+    }
+}
