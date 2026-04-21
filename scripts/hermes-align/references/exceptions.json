@@ -1,0 +1,48 @@
+{
+  "skip_dirs": [
+    "hermes_cli",
+    "tui_gateway",
+    "environments/benchmarks",
+    "environments/terminal_test_env",
+    "environments/hermes_swe_env",
+    "scripts",
+    "skills",
+    "optional-skills",
+    "website",
+    "plugins/example-dashboard",
+    "acp_registry",
+    "nix",
+    "docker",
+    "docs",
+    "assets",
+    "datagen-config-examples",
+    ".plans",
+    ".github",
+    "web",
+    "tests"
+  ],
+  "skip_files": [
+    "setup.py",
+    "conftest.py",
+    "cli.py",
+    "rl_cli.py",
+    "run_agent.py",
+    "mini_swe_runner.py",
+    "mcp_serve.py"
+  ],
+  "dir_remap": {
+    "environments/tool_call_parsers": "",
+    "gateway/platforms/qqbot": "gateway/platforms"
+  },
+  "notes": {
+    "hermes_cli": "CLI/TUI 入口，Android 不需要",
+    "tui_gateway": "终端 UI 网关，Android 不需要",
+    "environments/benchmarks": "评测框架，Android 不需要",
+    "cli.py": "CLI 入口，Android 有自己的 Activity 入口",
+    "rl_cli.py": "RL 训练 CLI，Android 不需要",
+    "run_agent.py": "CLI 启动脚本，Android 不需要",
+    "mini_swe_runner.py": "SWE benchmark runner，Android 不需要",
+    "mcp_serve.py": "MCP 服务器 CLI，Android 不需要",
+    "dir_remap": "上游目录 → Android 目录的映射。空串表示放在根目录"
+  }
+}
