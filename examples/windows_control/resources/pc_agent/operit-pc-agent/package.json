@@ -1,0 +1,17 @@
+{
+  "name": "operit-pc-agent",
+  "version": "0.2.2",
+  "private": true,
+  "description": "Windows side local agent for Operit remote control.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@xterm/headless": "^5.5.0",
+    "node-pty": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 为应用缓存目录提供访问权限，用于APK安装 -->
+    <cache-path name="apks" path="." />
+    <files-path name="files" path="." />
+    <external-cache-path name="external_cache" path="." />
+    <external-files-path name="external_files" path="." />
+    <!-- 添加对外部存储下载目录的支持 -->
+    <external-path name="external" path="." />
+    <external-path name="downloads" path="Download" />
+</paths> 

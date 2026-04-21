@@ -1,0 +1,89 @@
+# GitHub Issues (AAswordman/Operit)
+
+State: `open`
+Count: `42`
+
+- #321 [添加配置同步功能](https://github.com/AAswordman/Operit/issues/321) (open)
+  - comments: 1 | updated: 2026-01-11T07:26:48Z
+- #312 [English selected but large parts of UI still in Chinese (agents/artifacts/settings)](https://github.com/AAswordman/Operit/issues/312) (open)
+  - comments: 3 | updated: 2026-01-10T11:28:06Z
+- #320 [1、你一个对话问问题，新打开一个对话再问一个，两个对话都会卡住。 2、waifu模式就不会发完整表格了，会把表格拆分成一行一行 3、小窗模式跟系统小窗跟最大模式有时候会冲突，在小窗模式显示回复，放大以后就不显示了，过一会突然卡出来。 4、各个地方的颜色选择变化时来点可视化就舒服了 5、调用shizuku时就巨慢，一点小小的任务要好久](https://github.com/AAswordman/Operit/issues/320) (open)
+  - comments: 0 | updated: 2026-01-09T08:31:56Z
+- #319 [折叠对话](https://github.com/AAswordman/Operit/issues/319) (open)
+  - comments: 0 | updated: 2026-01-07T18:13:40Z
+- #318 [一些功能性建议](https://github.com/AAswordman/Operit/issues/318) (open)
+  - comments: 0 | updated: 2026-01-07T17:57:06Z
+- #317 [[bug]在Android8中，应用无法读取，修改Android设备本机中的文件](https://github.com/AAswordman/Operit/issues/317) (open)
+  - comments: 0 | updated: 2026-01-06T14:21:18Z
+- #316 [关于APP被关联启动](https://github.com/AAswordman/Operit/issues/316) (open)
+  - comments: 0 | updated: 2026-01-05T10:32:40Z
+- #311 [一些建议](https://github.com/AAswordman/Operit/issues/311) (open)
+  - comments: 0 | updated: 2026-01-03T03:47:49Z
+- #277 [使用oneapi集成智谱code模型调用失败](https://github.com/AAswordman/Operit/issues/277) (open)
+  - comments: 5 | updated: 2026-01-01T07:46:15Z
+- #307 [语音助手功能可用性低](https://github.com/AAswordman/Operit/issues/307) (open)
+  - comments: 2 | updated: 2025-12-31T14:58:03Z
+- #306 [[BUG]由于无障碍辅助app未申请任何权限，导致ColorOS无法解除权限限制](https://github.com/AAswordman/Operit/issues/306) (open)
+  - comments: 1 | updated: 2025-12-31T14:13:34Z
+- #300 [部分国行应用获取页面信息不正确](https://github.com/AAswordman/Operit/issues/300) (open)
+  - comments: 2 | updated: 2025-12-31T01:56:23Z
+- #295 [记忆与记忆之间的链接只有创建和删除，没有修改](https://github.com/AAswordman/Operit/issues/295) (open)
+  - comments: 1 | updated: 2025-12-21T02:08:50Z
+- #273 [建议上架到fdroid](https://github.com/AAswordman/Operit/issues/273) (open)
+  - comments: 3 | updated: 2025-12-19T13:05:17Z
+- #291 [导入聊天记录报错](https://github.com/AAswordman/Operit/issues/291) (open)
+  - comments: 0 | updated: 2025-12-18T08:22:29Z
+- #287 [【Request】对话绑定模型配置](https://github.com/AAswordman/Operit/issues/287) (open)
+  - comments: 1 | updated: 2025-12-17T17:39:36Z
+- #283 [Bug: 无障碍服务已开启但AI助手接口服务显示未连接](https://github.com/AAswordman/Operit/issues/283) (open)
+  - comments: 1 | updated: 2025-12-17T17:37:25Z
+- #267 [功能建议：操作屏幕录制、绘图功能、TIM适配等四大功能增强](https://github.com/AAswordman/Operit/issues/267) (open)
+  - comments: 1 | updated: 2025-12-11T03:10:36Z
+- #265 [功能建议——安静模式](https://github.com/AAswordman/Operit/issues/265) (open)
+  - comments: 1 | updated: 2025-12-11T02:17:10Z
+- #268 [全屏编辑提示词等内容时底部不会被输入法抬起](https://github.com/AAswordman/Operit/issues/268) (open)
+  - comments: 0 | updated: 2025-12-10T01:08:33Z
+- #266 [角色切换后主界面历史对话不显示，仅在悬浮窗显示](https://github.com/AAswordman/Operit/issues/266) (open)
+  - comments: 3 | updated: 2025-12-08T11:40:49Z
+- #264 [功能建议--变量](https://github.com/AAswordman/Operit/issues/264) (open)
+  - comments: 1 | updated: 2025-12-07T11:38:13Z
+- #250 [一些建议和发现的问题](https://github.com/AAswordman/Operit/issues/250) (open)
+  - comments: 6 | updated: 2025-12-07T09:21:04Z
+- #263 [搜索引擎使用结果提取的问题](https://github.com/AAswordman/Operit/issues/263) (open)
+  - comments: 0 | updated: 2025-12-07T09:13:08Z
+- #258 [为什么请求不到llama.cpp啊](https://github.com/AAswordman/Operit/issues/258) (open)
+  - comments: 1 | updated: 2025-11-22T07:56:22Z
+- #237 [建议](https://github.com/AAswordman/Operit/issues/237) (open)
+  - labels: enhancement | comments: 3 | updated: 2025-11-12T06:07:20Z
+- #248 [小功能拓展建议](https://github.com/AAswordman/Operit/issues/248) (open)
+  - comments: 0 | updated: 2025-11-08T05:35:45Z
+- #216 [Local llm implementation cpu/gpu/npu](https://github.com/AAswordman/Operit/issues/216) (open)
+  - comments: 1 | updated: 2025-10-20T04:43:49Z
+- #214 [关于悬浮窗的建议](https://github.com/AAswordman/Operit/issues/214) (open)
+  - comments: 0 | updated: 2025-10-15T00:55:58Z
+- #10 [十条建议](https://github.com/AAswordman/Operit/issues/10) (open)
+  - labels: enhancement, good first issue | comments: 29 | updated: 2025-10-12T17:22:26Z
+- #165 [code_runner中的代码显示bug](https://github.com/AAswordman/Operit/issues/165) (open)
+  - comments: 1 | updated: 2025-08-29T17:23:20Z
+- #138 [建议](https://github.com/AAswordman/Operit/issues/138) (open)
+  - comments: 5 | updated: 2025-08-06T14:56:10Z
+- #125 [ui信息始终是Operit AI应用的](https://github.com/AAswordman/Operit/issues/125) (open)
+  - comments: 8 | updated: 2025-08-03T17:03:38Z
+- #115 [小建议](https://github.com/AAswordman/Operit/issues/115) (open)
+  - comments: 4 | updated: 2025-07-05T02:40:07Z
+- #35 [请增加识图找图功能，解决UI Automator识别不了画布上的自定义组件的缺陷。](https://github.com/AAswordman/Operit/issues/35) (open)
+  - comments: 1 | updated: 2025-07-04T16:25:28Z
+- #108 [建议和bug](https://github.com/AAswordman/Operit/issues/108) (open)
+  - comments: 8 | updated: 2025-07-02T04:58:07Z
+- #107 [几条建议](https://github.com/AAswordman/Operit/issues/107) (open)
+  - labels: enhancement | comments: 1 | updated: 2025-06-30T18:05:48Z
+- #101 [[bug] UI调试工具无法获取当前屏幕内容](https://github.com/AAswordman/Operit/issues/101) (open)
+  - comments: 1 | updated: 2025-06-28T10:09:36Z
+- #90 [能否在工具箱中添加一个查看触摸坐标的功能](https://github.com/AAswordman/Operit/issues/90) (open)
+  - comments: 1 | updated: 2025-06-22T05:22:40Z
+- #78 [一些建议](https://github.com/AAswordman/Operit/issues/78) (open)
+  - comments: 8 | updated: 2025-06-20T15:03:01Z
+- #67 [Miui 14.0.4 在debugger和root模式下均无法获取页面元素](https://github.com/AAswordman/Operit/issues/67) (open)
+  - labels: bug | comments: 12 | updated: 2025-06-20T11:06:01Z
+- #27 [屏幕识别在某个软件里识别不出来东西](https://github.com/AAswordman/Operit/issues/27) (open)
+  - comments: 1 | updated: 2025-06-07T05:38:57Z

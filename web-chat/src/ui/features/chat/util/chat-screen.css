@@ -1,0 +1,6 @@
+@import "./styles/chat-foundation.css";
+@import "./styles/chat-history.css";
+@import "./styles/chat-messages.css";
+@import "./styles/chat-structured.css";
+@import "./styles/chat-composer.css";
+@import "./styles/chat-dialogs.css";

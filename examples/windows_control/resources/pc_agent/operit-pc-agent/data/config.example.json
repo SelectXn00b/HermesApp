@@ -1,0 +1,12 @@
+{
+  "bindAddress": "127.0.0.1",
+  "port": 58321,
+  "apiToken": "auto-generated-on-first-launch",
+  "maxCommandMs": 30000,
+  "allowedPresets": [
+    "health_probe",
+    "hostname",
+    "whoami",
+    "list_processes"
+  ]
+}

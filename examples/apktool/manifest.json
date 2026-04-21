@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "toolpkg_id": "com.operit.apk_reverse_toolkit",
+  "version": "1.0.2",
+  "main": "dist/main.js",
+  "display_name": {
+    "zh": "APK 逆向工具包",
+    "en": "APK Reverse Toolkit"
+  },
+  "description": {
+    "zh": "基于内置 dex-jar 运行时的 APK 逆向工具包，提供 inspect/decode/jadx/build/sign/search 等直调能力。",
+    "en": "APK reverse toolkit backed by bundled dex-jar runtimes, providing direct inspect/decode/jadx/build/sign/search capabilities."
+  },
+  "enabled_by_default": true,
+  "subpackages": [
+    {
+      "id": "apk_reverse",
+      "entry": "dist/packages/apk_reverse.js"
+    }
+  ],
+  "resources": [
+    {
+      "key": "apktool_runtime_android_jar",
+      "path": "resources/apktool/apktool-runtime-android.jar",
+      "mime": "application/java-archive"
+    },
+    {
+      "key": "apktool_android_framework_jar",
+      "path": "resources/apktool/android-framework.jar",
+      "mime": "application/java-archive"
+    },
+    {
+      "key": "jadx_runtime_android_jar",
+      "path": "resources/apktool/jadx-runtime-android.jar",
+      "mime": "application/java-archive"
+    },
+    {
+      "key": "apk_reverse_helper_runtime_android_jar",
+      "path": "resources/apktool/apk-reverse-helper-runtime-android.jar",
+      "mime": "application/java-archive"
+    }
+  ]
+}

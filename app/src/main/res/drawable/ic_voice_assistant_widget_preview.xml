@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="110dp"
+    android:height="110dp"
+    android:viewportWidth="110"
+    android:viewportHeight="110">
+    
+    <!-- 背景 -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M0,0h110v110h-110z"/>
+    
+    <!-- 麦克风图标 -->
+    <group
+        android:translateX="55"
+        android:translateY="45">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M0,-8c3.31,0 6,2.69 6,6v6c0,3.31 -2.69,6 -6,6s-6,-2.69 -6,-6v-6C-6,-5.31 -3.31,-8 0,-8z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M10,4c0,5.52 -4.48,10 -10,10S-10,9.52 -10,4h-2c0,6.18 4.56,11.27 10.5,11.93V22h2v-6.07C6.44,15.27 11,10.18 11,4H10z"/>
+    </group>
+    
+    <!-- 文字 "Operit" -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,75h50v3h-50z"/>
+    
+    <!-- 文字 "语音助手" -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M35,82h40v2h-40z"/>
+</vector>
+

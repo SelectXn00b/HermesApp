@@ -1,0 +1,101 @@
+{
+  "isolated_memory": {
+    "id": 115,
+    "title": "技术操作：激活web包以执行发专栏任务",
+    "importance": 0.72
+  },
+  "config": {
+    "semantic_threshold": 0.6,
+    "score_mode": "BALANCED",
+    "keyword_weight": 10.0,
+    "semantic_weight": 0.0,
+    "edge_weight": 0.4,
+    "rrf_k": 60.0,
+    "min_score_threshold": 0.025,
+    "semantic_sqrt_norm": true
+  },
+  "cases": {
+    "noisy_query": {
+      "query_len": 103,
+      "keyword_count": 10,
+      "lexical_fragment_count": 27,
+      "lexical_fragments_preview": [
+        "问题：我要的是那个工具包里面的\n解决方案：明白，你要测 super_admin 工具包里的等待能力。\n我先帮你做一个简单的 wait for 测试。随后你确认要的是 super_admin 工具包里的能力。",
+        "问题：我要的是那个工具包里面的",
+        "解决方案：明白，你要测",
+        "super_admin",
+        "测试。随后你确认要的是",
+        "工具包里的等待能力。",
+        "我先帮你做一个简单的",
+        "工具包里的能力。",
+        "super",
+        "admin",
+        "解决方案",
+        "wait",
+        "工具包",
+        "for",
+        "问题",
+        "我要"
+      ],
+      "raw_candidate_count": 3,
+      "filtered_candidate_count": 3,
+      "isolated_hit": false,
+      "isolated_result": null
+    },
+    "compact_query": {
+      "query_len": 65,
+      "keyword_count": 7,
+      "lexical_fragment_count": 20,
+      "lexical_fragments_preview": [
+        "我要的是那个工具包里面的\n我先帮你做一个简单的 wait for 测试。随后你确认要的是 super_admin 工具包里的能力。",
+        "我要的是那个工具包里面的",
+        "测试。随后你确认要的是",
+        "super_admin",
+        "我先帮你做一个简单的",
+        "工具包里的能力。",
+        "super",
+        "admin",
+        "wait",
+        "工具包",
+        "for",
+        "我要",
+        "那个",
+        "里面",
+        "一个",
+        "简单"
+      ],
+      "raw_candidate_count": 3,
+      "filtered_candidate_count": 3,
+      "isolated_hit": false,
+      "isolated_result": null
+    },
+    "direct_query": {
+      "query_len": 14,
+      "keyword_count": 3,
+      "lexical_fragment_count": 7,
+      "lexical_fragments_preview": [
+        "激活web包 发专栏 工具包",
+        "激活web包",
+        "web",
+        "工具包",
+        "发专栏",
+        "激活",
+        "专栏"
+      ],
+      "raw_candidate_count": 1,
+      "filtered_candidate_count": 1,
+      "isolated_hit": true,
+      "isolated_result": {
+        "rank": 1,
+        "memory_id": 115,
+        "title": "技术操作：激活web包以执行发专栏任务",
+        "importance": 0.72,
+        "score_total": 0.16861826697892274,
+        "score_keyword": 0.16861826697892274,
+        "score_reverse": 0.0,
+        "score_semantic": 0.0,
+        "score_graph": 0.0
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "toolpkg_id": "com.operit.remote_operit_bundle",
+  "version": "0.1.0",
+  "main": "dist/main.js",
+  "display_name": {
+    "zh": "远程 Operit 工具包",
+    "en": "Remote Operit Bundle"
+  },
+  "description": {
+    "zh": "让当前 Operit 通过局域网 HTTP API 调用另一台设备上的 Operit。",
+    "en": "Let the current Operit call another Operit device over the LAN HTTP API."
+  },
+  "enabled_by_default": true,
+  "subpackages": [
+    {
+      "id": "remote_operit",
+      "entry": "dist/packages/remote_operit.js"
+    }
+  ]
+}

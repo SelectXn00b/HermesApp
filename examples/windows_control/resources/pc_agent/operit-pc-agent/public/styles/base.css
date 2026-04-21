@@ -1,0 +1,76 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Segoe UI Variable", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  color: var(--text-main);
+  background:
+    radial-gradient(1200px 700px at 100% 0%, rgba(84, 135, 255, 0.16), rgba(84, 135, 255, 0)),
+    radial-gradient(900px 540px at 0% 100%, rgba(22, 166, 255, 0.12), rgba(22, 166, 255, 0)),
+    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 20px auto 28px;
+}
+
+.app-header {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.app-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-title {
+  margin: 0;
+  font-size: clamp(1.32rem, 2.2vw, 1.8rem);
+  color: var(--text-strong);
+}
+
+.app-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.app-column {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+@media (max-width: 1080px) {
+  .shell {
+    width: min(1240px, calc(100% - 20px));
+    margin-top: 14px;
+  }
+
+  .app-grid {
+    grid-template-columns: 1fr;
+  }
+}

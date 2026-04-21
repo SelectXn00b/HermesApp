@@ -1,0 +1,120 @@
+{
+  "isolated_memory": {
+    "id": 115,
+    "title": "技术操作：激活web包以执行发专栏任务",
+    "importance": 0.72
+  },
+  "config": {
+    "semantic_threshold": 0.6,
+    "score_mode": "BALANCED",
+    "keyword_weight": 10.0,
+    "semantic_weight": 0.0,
+    "edge_weight": 0.4,
+    "rrf_k": 60.0,
+    "min_score_threshold": 0.025,
+    "semantic_sqrt_norm": true
+  },
+  "cases": {
+    "noisy_query": {
+      "query_len": 110,
+      "keyword_count": 12,
+      "lexical_fragment_count": 32,
+      "lexical_fragments_preview": [
+        "问题：请你激活web包帮我发专栏\n历史记录:\n#1 user: 等下还要干别的，比较复杂\n#2 ai: 好的，我等你说明下一步任务\n#3 user: 我还没登录呢\n我先为你激活web包，然后继续帮你执行发专栏的网页操作。",
+        "我先为你激活web包，然后继续帮你执行发专栏的网页操作。",
+        "问题：请你激活web包帮我发专栏",
+        "好的，我等你说明下一步任务",
+        "等下还要干别的，比较复杂",
+        "我还没登录呢",
+        "历史记录:",
+        "user:",
+        "历史记录",
+        "user",
+        "比较复杂",
+        "web",
+        "ai:",
+        "问题",
+        "激活",
+        "包帮"
+      ],
+      "raw_candidate_count": 6,
+      "filtered_candidate_count": 5,
+      "isolated_hit": true,
+      "isolated_result": {
+        "rank": 2,
+        "memory_id": 115,
+        "title": "技术操作：激活web包以执行发专栏任务",
+        "importance": 0.72,
+        "score_total": 0.13131147540983606,
+        "score_keyword": 0.13131147540983606,
+        "score_reverse": 0.0,
+        "score_semantic": 0.0,
+        "score_graph": 0.0
+      }
+    },
+    "compact_query": {
+      "query_len": 101,
+      "keyword_count": 11,
+      "lexical_fragment_count": 31,
+      "lexical_fragments_preview": [
+        "请你激活web包帮我发专栏 #1 user: 等下还要干别的，比较复杂 #2 ai: 好的，我等你说明下一步任务 #3 user: 我还没登录呢\n我先为你激活web包，然后继续帮你执行发专栏的网页操作。",
+        "我先为你激活web包，然后继续帮你执行发专栏的网页操作。",
+        "请你激活web包帮我发专栏",
+        "好的，我等你说明下一步任务",
+        "等下还要干别的，比较复杂",
+        "我还没登录呢",
+        "user:",
+        "user",
+        "比较复杂",
+        "web",
+        "ai:",
+        "激活",
+        "包帮",
+        "我发",
+        "专栏",
+        "还要"
+      ],
+      "raw_candidate_count": 6,
+      "filtered_candidate_count": 5,
+      "isolated_hit": true,
+      "isolated_result": {
+        "rank": 1,
+        "memory_id": 115,
+        "title": "技术操作：激活web包以执行发专栏任务",
+        "importance": 0.72,
+        "score_total": 0.1317398202009519,
+        "score_keyword": 0.1317398202009519,
+        "score_reverse": 0.0,
+        "score_semantic": 0.0,
+        "score_graph": 0.0
+      }
+    },
+    "direct_query": {
+      "query_len": 13,
+      "keyword_count": 1,
+      "lexical_fragment_count": 6,
+      "lexical_fragments_preview": [
+        "请你激活web包帮我发专栏",
+        "web",
+        "激活",
+        "包帮",
+        "我发",
+        "专栏"
+      ],
+      "raw_candidate_count": 1,
+      "filtered_candidate_count": 1,
+      "isolated_hit": true,
+      "isolated_result": {
+        "rank": 1,
+        "memory_id": 115,
+        "title": "技术操作：激活web包以执行发专栏任务",
+        "importance": 0.72,
+        "score_total": 0.15344262295081967,
+        "score_keyword": 0.15344262295081967,
+        "score_reverse": 0.0,
+        "score_semantic": 0.0,
+        "score_graph": 0.0
+      }
+    }
+  }
+}

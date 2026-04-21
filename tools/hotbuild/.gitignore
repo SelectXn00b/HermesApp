@@ -1,0 +1,12 @@
+from.apk
+to.apk
+
+apkrawpatch_*.zip
+apkpatch_*.zip
+opatch_*.opatch.gz
+patch_*.opatch.gz
+patch_*.json
+
+rebuilt.apk
+_opatch_work.apk*
+*.apk.tmp

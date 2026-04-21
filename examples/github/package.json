@@ -1,0 +1,14 @@
+{
+    "name": "@operit/examples-github",
+    "private": true,
+    "version": "0.0.0",
+    "type": "commonjs",
+    "scripts": {
+        "build": "node ./build.js"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.0",
+        "typescript": "5.9.3",
+        "@types/node": "^22.4.1"
+    }
+}
