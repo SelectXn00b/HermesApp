@@ -1,90 +1,50 @@
+/**
+ * Configurable budget constants for tool result persistence.
+ *
+ * Overridable at the RL environment level via HermesAgentEnvConfig fields.
+ * Per-tool resolution: pinned > config overrides > registry > default.
+ *
+ * Ported from tools/budget_config.py
+ */
 package com.xiaomo.hermes.hermes.tools
 
+// Tools whose thresholds must never be overridden.
+// read_file=inf prevents infinite persist->read->persist loops.
+val PINNED_THRESHOLDS: Map<String, Double> = mapOf(
+    "read_file" to Double.POSITIVE_INFINITY,
+)
+
+// Defaults matching the current hardcoded values in tool_result_storage.py.
+// Kept here as the single source of truth; ToolResultStorage imports these.
+const val DEFAULT_RESULT_SIZE_CHARS: Int = 100_000
+const val DEFAULT_TURN_BUDGET_CHARS: Int = 200_000
+const val DEFAULT_PREVIEW_SIZE_CHARS: Int = 1_500
+
 /**
- * Budget and cost configuration for API usage tracking.
- * Ported from budget_config.py
+ * Immutable budget constants for the 3-layer tool result persistence system.
+ *
+ * Layer 2 (per-result): resolveThreshold(toolName) -> threshold in chars.
+ * Layer 3 (per-turn):   turnBudget -> aggregate char budget across all tool
+ *                       results in a single assistant turn.
+ * Preview:              previewSize -> inline snippet size after persistence.
  */
-object BudgetConfig {
-
+data class BudgetConfig(
+    val defaultResultSize: Int = DEFAULT_RESULT_SIZE_CHARS,
+    val turnBudget: Int = DEFAULT_TURN_BUDGET_CHARS,
+    val previewSize: Int = DEFAULT_PREVIEW_SIZE_CHARS,
+    val toolOverrides: Map<String, Int> = emptyMap(),
+) {
     /**
-     * Budget alert levels.
+     * Resolve the persistence threshold for a tool.
+     *
+     * Priority: pinned -> toolOverrides -> registry per-tool -> default.
      */
-    enum class BudgetAlertLevel {
-        NORMAL,
-        WARNING,
-        CRITICAL,
-        EXCEEDED
+    fun resolveThreshold(toolName: String): Double {
+        PINNED_THRESHOLDS[toolName]?.let { return it }
+        toolOverrides[toolName]?.let { return it.toDouble() }
+        return registry.getMaxResultSize(toolName, default = defaultResultSize).toDouble()
     }
-
-    /**
-     * Budget configuration for a session or user.
-     */
-    data class Budget(
-        val maxTokensPerSession: Long = 1_000_000L,
-        val maxCostPerSessionUsd: Double = 10.0,
-        val maxCostPerDayUsd: Double = 50.0,
-        val warningThresholdPercent: Double = 80.0,
-        val criticalThresholdPercent: Double = 95.0)
-
-    /**
-     * Current budget usage state.
-     */
-    data class BudgetState(
-        val tokensUsed: Long = 0L,
-        val costUsd: Double = 0.0,
-        val dailyCostUsd: Double = 0.0,
-        val sessionTurns: Int = 0) {
-        val alertLevel: BudgetAlertLevel
-            get() = when {
-                costUsd >= Budget().maxCostPerSessionUsd -> BudgetAlertLevel.EXCEEDED
-                costUsd >= Budget().maxCostPerSessionUsd * Budget().criticalThresholdPercent / 100.0 -> BudgetAlertLevel.CRITICAL
-                costUsd >= Budget().maxCostPerSessionUsd * Budget().warningThresholdPercent / 100.0 -> BudgetAlertLevel.WARNING
-                else -> BudgetAlertLevel.NORMAL
-            }
-
-        val remainingBudgetUsd: Double
-            get() = maxOf(0.0, Budget().maxCostPerSessionUsd - costUsd)
-
-        val usagePercent: Double
-            get() = if (Budget().maxCostPerSessionUsd > 0) {
-                (costUsd / Budget().maxCostPerSessionUsd) * 100.0
-            } else 0.0
-    }
-
-    private var _budget = Budget()
-    private var _state = BudgetState()
-
-    fun getBudget(): Budget = _budget
-    fun getState(): BudgetState = _state
-
-    fun updateBudget(budget: Budget) {
-        _budget = budget
-    }
-
-    fun recordUsage(tokens: Long, costUsd: Double) {
-        _state = _state.copy(
-            tokensUsed = _state.tokensUsed + tokens,
-            costUsd = _state.costUsd + costUsd,
-            dailyCostUsd = _state.dailyCostUsd + costUsd,
-            sessionTurns = _state.sessionTurns + 1)
-    }
-
-    fun resetDaily() {
-        _state = _state.copy(dailyCostUsd = 0.0)
-    }
-
-    fun resetSession() {
-        _state = BudgetState()
-    }
-
-    /**
-     * Check if the budget allows another turn.
-     */
-    fun canContinue(): Boolean {
-        return _state.alertLevel != BudgetAlertLevel.EXCEEDED
-    
-    /** Resolve the threshold value for a given tier. */
-    fun resolveThreshold(tier: String): Double = 1.0
 }
 
-}
+// Default config -- matches current hardcoded behavior exactly.
+val DEFAULT_BUDGET: BudgetConfig = BudgetConfig()
