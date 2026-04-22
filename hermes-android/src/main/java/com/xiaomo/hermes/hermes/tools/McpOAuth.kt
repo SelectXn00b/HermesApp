@@ -116,3 +116,106 @@ class HermesTokenStorage(serverName: String) {
 fun removeOauthTokens(serverName: String) {
     HermesTokenStorage(serverName).remove()
 }
+
+// ── Module-level symbols (1:1 with tools/mcp_oauth.py) ────────────────
+
+/** True when the Python MCP OAuth SDK was importable. Always false on Android. */
+const val _OAUTH_AVAILABLE: Boolean = false
+
+/** Locate an unused TCP port for the OAuth redirect server. */
+fun _findFreePort(): Int {
+    return try {
+        val s = java.net.ServerSocket(0)
+        val port = s.localPort
+        s.close()
+        port
+    } catch (_: Exception) {
+        0
+    }
+}
+
+/** True when stdin is a TTY — Android always returns false. */
+fun _isInteractive(): Boolean = false
+
+/** True when a browser can be opened for the OAuth flow. */
+fun _canOpenBrowser(): Boolean = false
+
+/** Read a JSON file into a Map, returning null if missing/invalid. */
+fun _readJson(path: File?): Map<String, Any?>? {
+    if (path == null || !path.isFile) return null
+    return try {
+        @Suppress("UNCHECKED_CAST")
+        _gson.fromJson(path.readText(Charsets.UTF_8), Map::class.java) as? Map<String, Any?>
+    } catch (_: Throwable) {
+        null
+    }
+}
+
+/** Write a JSON-serializable map to disk. */
+fun _writeJson(path: File?, data: Map<String, Any?>?) {
+    if (path == null) return
+    try {
+        path.parentFile?.mkdirs()
+        path.writeText(_gson.toJson(data ?: emptyMap<String, Any?>()), Charsets.UTF_8)
+    } catch (_: Throwable) {
+        /* best-effort persistence */
+    }
+}
+
+/** Build the HTTP handler that receives the OAuth callback. Android: null. */
+fun _makeCallbackHandler(): Pair<Any?, MutableMap<String, Any?>> = null to mutableMapOf()
+
+/** Coroutine-friendly redirect handler; no-op on Android. */
+suspend fun _redirectHandler(authUrl: String) { /* Android stub */ }
+
+/** Wait for the OAuth callback to arrive. Android: returns null immediately. */
+suspend fun _waitForCallback(
+    state: MutableMap<String, Any?>,
+    timeoutSec: Int = 300
+): Map<String, Any?>? = null
+
+/** Resolve the redirect callback port from config (default: find free port). */
+fun _configureCallbackPort(cfg: Map<String, Any?>?): Int {
+    val configured = (cfg?.get("callback_port") as? Number)?.toInt()
+    return configured ?: _findFreePort()
+}
+
+/** Build the MCP OAuth client metadata payload. */
+fun _buildClientMetadata(cfg: Map<String, Any?>?): Map<String, Any?> {
+    val c = cfg ?: emptyMap()
+    return mapOf(
+        "client_name" to (c["client_name"] ?: "Hermes"),
+        "redirect_uris" to listOf(c["redirect_uri"] ?: "http://localhost/callback"),
+        "grant_types" to listOf("authorization_code", "refresh_token"),
+        "response_types" to listOf("code"),
+        "token_endpoint_auth_method" to "none",
+    )
+}
+
+/** Pre-register the client with the MCP authorization server. Android: null. */
+fun _maybePreregisterClient(
+    serverName: String,
+    authorizationServer: String,
+    metadata: Map<String, Any?>
+): Map<String, Any?>? = null
+
+/** Derive the base URL for an MCP server from its advertised URL. */
+fun _parseBaseUrl(serverUrl: String): String {
+    if (serverUrl.isBlank()) return ""
+    return try {
+        val u = java.net.URI(serverUrl)
+        val scheme = u.scheme ?: "https"
+        val host = u.host ?: return serverUrl
+        val port = if (u.port > 0) ":${u.port}" else ""
+        "$scheme://$host$port"
+    } catch (_: Throwable) {
+        serverUrl
+    }
+}
+
+/** Build an OAuth authenticator for an MCP server. Android: returns null. */
+fun buildOauthAuth(
+    serverName: String,
+    cfg: Map<String, Any?>?,
+    interactive: Boolean = true
+): Any? = null
