@@ -10,6 +10,11 @@ package com.xiaomo.hermes.hermes.gateway
 import org.json.JSONObject
 import java.util.concurrent.CopyOnWriteArrayList
 
+/** Directory from which hook Python plugins are discovered.
+ *  Android stub: there's no dynamic hook loader, but the constant is kept
+ *  for 1:1 surface parity with gateway/hooks.py. */
+val HOOKS_DIR: java.io.File = java.io.File("")
+
 /**
  * Enumeration of hook event types.
  *
@@ -148,3 +153,31 @@ class HookPipeline {
         userId = userId))
 }
 
+
+/**
+ * Registry for gateway hooks — mirrors Python's `HookRegistry`.
+ *
+ * Android: real plugin-discovery/loading is not supported (no dynamic
+ * Python-style imports), so [discoverAndLoad] and [_registerBuiltinHooks]
+ * are structural stubs. [emit] delegates to the underlying [HookPipeline].
+ */
+class HookRegistry(private val pipeline: HookPipeline = HookPipeline()) {
+    private val _loadedNames: MutableList<String> = mutableListOf()
+
+    /** All hook names successfully loaded so far. */
+    fun loadedHooks(): List<String> = _loadedNames.toList()
+
+    /** Register Hermes built-in hooks (no-op on Android). */
+    private fun _registerBuiltinHooks(): Unit = Unit
+
+    /** Discover external hooks in [HOOKS_DIR] and load them (no-op on Android). */
+    @Suppress("UNUSED_PARAMETER")
+    fun discoverAndLoad(extraDirs: List<java.io.File>? = null): Int {
+        _registerBuiltinHooks()
+        return 0
+    }
+
+    /** Emit an event through the underlying pipeline. */
+    suspend fun emit(event: HookEvent, context: HookContext): HookResult =
+        pipeline.run(event, context)
+}
