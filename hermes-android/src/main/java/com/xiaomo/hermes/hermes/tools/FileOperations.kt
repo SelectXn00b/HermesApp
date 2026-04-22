@@ -309,12 +309,14 @@ class ShellFileOperations(
 
         return try {
             val content = file.readText(Charsets.UTF_8)
-            val result = FuzzyMatch.fuzzyFindAndReplace(content, oldString, newString, replaceAll)
-            if (result.error != null) {
-                PatchResult(error = result.error)
+            val result = fuzzyFindAndReplace(content, oldString, newString, replaceAll)
+            val err = result["error"] as String?
+            if (err != null) {
+                PatchResult(error = err)
             } else {
-                file.writeText(result.content, Charsets.UTF_8)
-                val diff = _unifiedDiff(content, result.content, path)
+                val newContent = result["content"] as String
+                file.writeText(newContent, Charsets.UTF_8)
+                val diff = _unifiedDiff(content, newContent, path)
                 PatchResult(success = true, diff = diff, filesModified = listOf(path))
             }
         } catch (e: Exception) {
