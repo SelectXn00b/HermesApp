@@ -41,8 +41,6 @@ private fun normalizeUnauthorizedDmBehavior(value: Any?, default: String = "pair
     return default
 }
 
-private val IS_WINDOWS = System.getProperty("os.name")?.lowercase()?.contains("win") == true
-
 // ── Enums ───────────────────────────────────────────────────────────
 
 /** Supported platform identifiers. */
@@ -69,12 +67,6 @@ enum class Platform(val value: String) {
     BLUEBUBBLES("bluebubbles"),
     APP_CHAT("app_chat"),
     ;
-
-    companion object {
-        fun fromKey(key: String): Platform? = entries.firstOrNull {
-            it.value == key || it.name.equals(key, ignoreCase = true)
-        }
-    }
 }
 
 // ── Data classes ────────────────────────────────────────────────────
@@ -90,10 +82,16 @@ data class HomeChannel(
         "name" to name)
 
     companion object {
-        fun fromDict(data: Map<String, Any?>): HomeChannel = HomeChannel(
-            platform = Platform.fromKey(data["platform"] as? String ?: "") ?: Platform.LOCAL,
-            chatId = (data["chat_id"] ?: "").toString(),
-            name = (data["name"] as? String) ?: "Home")
+        fun fromDict(data: Map<String, Any?>): HomeChannel {
+            val key = data["platform"] as? String ?: ""
+            val platform = Platform.entries.firstOrNull {
+                it.value == key || it.name.equals(key, ignoreCase = true)
+            } ?: Platform.LOCAL
+            return HomeChannel(
+                platform = platform,
+                chatId = (data["chat_id"] ?: "").toString(),
+                name = (data["name"] as? String) ?: "Home")
+        }
     }
 }
 
@@ -272,7 +270,9 @@ data class GatewayConfig(
             val platformsData = data["platforms"] as? Map<String, Any?> ?: emptyMap()
             val platforms = mutableMapOf<Platform, PlatformConfig>()
             platformsData.forEach { (key, value) ->
-                val platform = Platform.fromKey(key)
+                val platform = Platform.entries.firstOrNull {
+                    it.value == key || it.name.equals(key, ignoreCase = true)
+                }
                 if (platform != null && value is Map<*, *>) {
                     @Suppress("UNCHECKED_CAST")
                     platforms[platform] = PlatformConfig.fromDict(platform, value as Map<String, Any?>)
@@ -302,19 +302,6 @@ data class GatewayConfig(
                 unauthorizedDmBehavior = normalizeUnauthorizedDmBehavior(data["unauthorized_dm_behavior"], "pair"),
                 enablePairing = coerceBool(data["enable_pairing"], true))
         }
-
-        fun loadFromFile(file: File): GatewayConfig? {
-            if (!file.exists()) return null
-            return try {
-                val text = file.readText(Charsets.UTF_8)
-                val json = JSONObject(text)
-                val map = jsonToMap(json)
-                fromDict(map)
-            } catch (e: Exception) {
-                Log.e(_TAG, "Failed to load config from ${file.path}: ${e.message}")
-                null
-            }
-        }
     }
 }
 
@@ -323,7 +310,17 @@ data class GatewayConfig(
 /** Load gateway configuration from the default location. */
 fun loadGatewayConfig(hermesHome: String): GatewayConfig {
     val configFile = File(hermesHome, "config.json")
-    val config = GatewayConfig.loadFromFile(configFile) ?: GatewayConfig(hermesHome = hermesHome)
+    val config = if (configFile.exists()) {
+        try {
+            val json = JSONObject(configFile.readText(Charsets.UTF_8))
+            GatewayConfig.fromDict(jsonToMap(json))
+        } catch (e: Exception) {
+            Log.e(_TAG, "Failed to load config from ${configFile.path}: ${e.message}")
+            GatewayConfig(hermesHome = hermesHome)
+        }
+    } else {
+        GatewayConfig(hermesHome = hermesHome)
+    }
 
     // Apply environment variable overrides
     val overridden = config.copy(
