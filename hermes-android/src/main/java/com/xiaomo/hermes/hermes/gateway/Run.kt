@@ -21,13 +21,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Agent loop interface — processes messages through the AI agent.
- */
-interface AgentLoop {
-    suspend fun process(text: String, sessionKey: String, context: Map<String, String>): String?
-}
-
-/**
  * Gateway runner — the main entry point for the gateway.
  *
  * Manages the lifecycle of all platform adapters, the session store,
@@ -55,9 +48,6 @@ class GatewayRunner(
 
     /** Hook pipeline. */
     val hookPipeline = HookPipeline()
-
-    /** Agent loop - 处理消息的核心循环（可选，由外部注入） */
-    var agentLoop: AgentLoop? = null
 
     /** Gateway status. */
     val status = GatewayStatus()
@@ -283,24 +273,11 @@ class GatewayRunner(
             }
 
             // Invoke agent loop - 对齐 hermes-agent/gateway/run.py
-            val responseText = try {
-                val loop = agentLoop
-                if (loop != null) {
-                    loop.process(
-                        text = event.text,
-                        sessionKey = session.sessionKey,
-                        context = mapOf(
-                            "platform" to adapter.name,
-                            "chatId" to event.source.chatId,
-                            "userId" to event.source.userId)
-                    ) ?: "Agent loop returned null"
-                } else {
-                    "Agent loop not configured"
-                }
-            } catch (e: Exception) {
-                Log.e(_TAG, "Agent loop error", e)
-                "Error: ${e.message}"
-            }
+            //
+            // Android 不运行 gateway runner 这条路径（AppChat adapter 直接
+            // 挂在 ChatViewModel 上），这里保留占位以便未来把 HermesAgentLoop
+            // 接上。目前永远返回未配置提示。
+            val responseText = "Agent loop not configured"
 
             // Run post-agent hooks
             val postAgentResult = hookPipeline.run(
@@ -1270,11 +1247,9 @@ class GatewayRunner(
         val msgSource = source as? MessageSource ?: return
         val adapter = _adapters[msgSource.platform] ?: return
         try {
-            val response = agentLoop?.process(
-                text = "[Ephemeral /btw side question. Be direct and concise.]\n\n$question",
-                sessionKey = taskId,
-                context = mapOf("platform" to msgSource.platform, "chatId" to msgSource.chatId)
-            ) ?: "(No response generated)"
+            // Agent loop not wired into GatewayRunner on Android (ChatViewModel
+            // owns HermesAgentLoop directly); deliver a stub so /btw doesn't crash.
+            val response = "(No response generated)"
             val preview = if (question.length > 60) question.take(60) + "..." else question
             adapter.send(msgSource.chatId, "💬 /btw: \"$preview\"\n\n$response")
         } catch (e: Exception) {
