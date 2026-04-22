@@ -84,51 +84,6 @@ class DeliveryRouter {
     }
 
     /**
-     * Deliver an image message.
-     */
-    suspend fun deliverImage(
-        platform: String,
-        chatId: String,
-        imageUrl: String,
-        caption: String? = null,
-        replyTo: String? = null): DeliveryResult {
-        val adapter = _adapters[platform]
-        if (adapter == null) {
-            return DeliveryResult(success = false, error = "No adapter for platform: $platform")
-        }
-        return try {
-            val result = adapter.sendImage(chatId, imageUrl, caption, replyTo)
-            DeliveryResult(success = result.success, messageId = result.messageId, error = result.error, rawResponse = result.rawResponse)
-        } catch (e: Exception) {
-            Log.e(_TAG, "Image delivery failed for $platform:$chatId: ${e.message}")
-            DeliveryResult(success = false, error = e.message)
-        }
-    }
-
-    /**
-     * Deliver a document/file message.
-     */
-    suspend fun deliverDocument(
-        platform: String,
-        chatId: String,
-        filePath: String,
-        fileName: String? = null,
-        caption: String? = null,
-        replyTo: String? = null): DeliveryResult {
-        val adapter = _adapters[platform]
-        if (adapter == null) {
-            return DeliveryResult(success = false, error = "No adapter for platform: $platform")
-        }
-        return try {
-            val result = adapter.sendDocument(chatId, filePath, fileName, caption, replyTo)
-            DeliveryResult(success = result.success, messageId = result.messageId, error = result.error, rawResponse = result.rawResponse)
-        } catch (e: Exception) {
-            Log.e(_TAG, "Document delivery failed for $platform:$chatId: ${e.message}")
-            DeliveryResult(success = false, error = e.message)
-        }
-    }
-
-    /**
      * Send a typing indicator.
      */
     suspend fun sendTyping(platform: String, chatId: String) {
@@ -138,26 +93,6 @@ class DeliveryRouter {
         } catch (e: Exception) {
             Log.w(_TAG, "Typing indicator failed for $platform:$chatId: ${e.message}")
         }
-    }
-
-    /**
-     * Broadcast a message to all connected platforms.
-     */
-    suspend fun broadcast(
-        text: String,
-        excludePlatform: String? = null): Map<String, DeliveryResult> {
-        val results = mutableMapOf<String, DeliveryResult>()
-        for ((name, adapter) in _adapters) {
-            if (name == excludePlatform) continue
-            try {
-                val homeChatId = adapter.homeChatId ?: continue
-                val result = adapter.send(homeChatId, text, null, null)
-                results[name] = DeliveryResult(success = result.success, messageId = result.messageId, error = result.error)
-            } catch (e: Exception) {
-                results[name] = DeliveryResult(success = false, error = e.message)
-            }
-        }
-        return results
     }
 }
 
