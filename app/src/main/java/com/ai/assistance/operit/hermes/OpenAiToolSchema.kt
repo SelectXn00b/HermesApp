@@ -1,7 +1,10 @@
 package com.ai.assistance.operit.hermes
 
+import android.util.Log
 import com.ai.assistance.operit.data.model.ToolParameterSchema
 import com.ai.assistance.operit.data.model.ToolPrompt
+
+private const val TAG = "HermesBridge/Schema"
 
 /**
  * Export AIToolHandler-registered [ToolPrompt]s as OpenAI-spec tool schemas.
@@ -10,14 +13,20 @@ import com.ai.assistance.operit.data.model.ToolPrompt
  * as the `tools` parameter, and [EnhancedAIService] derives `validToolNames`
  * from the resulting schemas so there is a single source of truth.
  */
-fun toolPromptsToOpenAiSchemas(tools: List<ToolPrompt>): List<Map<String, Any?>> =
-    tools.map { it.toOpenAiSchema() }
+fun toolPromptsToOpenAiSchemas(tools: List<ToolPrompt>): List<Map<String, Any?>> {
+    val schemas = tools.map { it.toOpenAiSchema() }
+    Log.d(TAG, "toolPromptsToOpenAiSchemas: in=${tools.size} out=${schemas.size}")
+    return schemas
+}
 
 /** Extract tool names from schemas produced by [toolPromptsToOpenAiSchemas]. */
-fun extractToolNames(schemas: List<Map<String, Any?>>): Set<String> =
-    schemas.mapNotNullTo(LinkedHashSet()) { schema ->
+fun extractToolNames(schemas: List<Map<String, Any?>>): Set<String> {
+    val names = schemas.mapNotNullTo(LinkedHashSet()) { schema ->
         (schema["function"] as? Map<*, *>)?.get("name") as? String
     }
+    Log.d(TAG, "extractToolNames: schemas=${schemas.size} names=${names.size}")
+    return names
+}
 
 private fun ToolPrompt.toOpenAiSchema(): Map<String, Any?> {
     val structured = parametersStructured ?: emptyList()
