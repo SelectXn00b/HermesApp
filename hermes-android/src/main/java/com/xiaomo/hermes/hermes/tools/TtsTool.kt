@@ -10,7 +10,7 @@
  */
 package com.xiaomo.hermes.hermes.tools
 
-const val DEFAULT_PROVIDER: String = "edge"
+private const val DEFAULT_PROVIDER: String = "edge"
 const val DEFAULT_EDGE_VOICE: String = "en-US-AriaNeural"
 const val DEFAULT_ELEVENLABS_VOICE_ID: String = "pNInz6obpgDQGcFmaJgB"
 const val DEFAULT_ELEVENLABS_MODEL_ID: String = "eleven_multilingual_v2"
