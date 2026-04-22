@@ -132,4 +132,4 @@ fun _resolveDelegationCredentials(
     parentAgent: Any?,
 ): Map<String, Any?> = emptyMap()
 
-fun _loadConfig(): Map<String, Any?> = emptyMap()
+private fun _loadConfig(): Map<String, Any?> = emptyMap()
