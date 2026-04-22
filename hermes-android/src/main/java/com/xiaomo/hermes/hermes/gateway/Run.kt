@@ -550,7 +550,7 @@ class GatewayRunner(
 
     /** Format session info for display. */
     fun formatSessionInfo(): String = buildString {
-        val keys = sessionStore.getSessionKeys()
+        val keys = sessionStore.keys
         appendLine("Active sessions: ${keys.size}")
         for (key in keys) {
             val session = sessionStore.get(key) ?: continue

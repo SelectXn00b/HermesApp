@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-private const val TAG = "SessionStore"
+private const val _TAG = "SessionStore"
 
 private fun now(): String = Instant.now().toString()
 
@@ -35,8 +35,6 @@ private fun hashSenderId(value: String): String = hashId(value)
 
 /** Hash a chat id for PII-safe logging. */
 private fun hashChatId(value: String): String = hashId(value)
-
-private val PII_SAFE_PLATFORMS = setOf("api_server", "webhook")
 
 // ── Data classes ────────────────────────────────────────────────────
 
@@ -132,8 +130,6 @@ data class SessionRecord(
         put("source", source.name)
     }
 
-    fun toJson(): JSONObject = JSONObject(toDict())
-
     companion object {
         fun fromDict(data: Map<String, Any?>): SessionRecord = SessionRecord(
             sessionKey = data["session_key"] as? String ?: "",
@@ -156,12 +152,6 @@ data class SessionRecord(
             processingStartedAt = (data["processing_started_at"] as? Number)?.toLong() ?: 0
             parentSessionKey = data["parent_session_key"] as? String
         }
-
-        fun fromJson(json: JSONObject): SessionRecord {
-            val map = mutableMapOf<String, Any?>()
-            json.keys().forEach { key -> map[key] = json.opt(key) }
-            return fromDict(map)
-        }
     }
 }
 
@@ -170,24 +160,6 @@ data class SessionRecord(
 /** Build a session key from platform + chat id + user id. */
 fun buildSessionKey(platform: String, chatId: String, userId: String): String =
     "$platform:$chatId:$userId"
-
-/** Build a session context from platform adapter metadata. */
-fun buildSessionRecord(
-    sessionKey: String,
-    platform: String,
-    chatId: String,
-    userId: String,
-    chatName: String = "",
-    userName: String = "",
-    chatType: String = "dm"): SessionRecord = SessionRecord(
-    sessionKey = sessionKey,
-    platform = platform,
-    chatId = chatId,
-    userId = userId,
-    chatName = chatName,
-    userName = userName,
-    chatType = chatType,
-    source = SessionSource.NEW)
 
 /** Build a system-prompt fragment for a session. */
 // ── SessionStore ────────────────────────────────────────────────────
@@ -209,7 +181,15 @@ class SessionStore(
         chatName: String = "",
         userName: String = "",
         chatType: String = "dm"): SessionRecord = sessions.getOrPut(sessionKey) {
-        buildSessionRecord(sessionKey, platform, chatId, userId, chatName, userName, chatType)
+        SessionRecord(
+            sessionKey = sessionKey,
+            platform = platform,
+            chatId = chatId,
+            userId = userId,
+            chatName = chatName,
+            userName = userName,
+            chatType = chatType,
+            source = SessionSource.NEW)
     }
 
     /** Get or create session from a source map (Python-compatible). */
@@ -347,7 +327,7 @@ class SessionStore(
                     map.toMap()
                 }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to load transcript for $sessionId: ${e.message}")
+            Log.w(_TAG, "Failed to load transcript for $sessionId: ${e.message}")
             emptyList()
         }
     }
@@ -357,10 +337,10 @@ class SessionStore(
         val dir = persistDir ?: return
         dir.mkdirs()
         val sessionsJson = JSONArray()
-        sessions.values.forEach { sessionsJson.put(it.toJson()) }
+        sessions.values.forEach { sessionsJson.put(JSONObject(it.toDict())) }
         val file = File(dir, "sessions.json")
         file.writeText(sessionsJson.toString(2), Charsets.UTF_8)
-        Log.d(TAG, "Persisted ${sessions.size} sessions to ${file.absolutePath}")
+        Log.d(_TAG, "Persisted ${sessions.size} sessions to ${file.absolutePath}")
     }
 
     /** Load sessions from disk. */
@@ -371,12 +351,15 @@ class SessionStore(
         try {
             val json = JSONArray(file.readText(Charsets.UTF_8))
             for (i in 0 until json.length()) {
-                val session = SessionRecord.fromJson(json.getJSONObject(i))
+                val obj = json.getJSONObject(i)
+                val map = mutableMapOf<String, Any?>()
+                obj.keys().forEach { key -> map[key] = obj.opt(key) }
+                val session = SessionRecord.fromDict(map)
                 sessions[session.sessionKey] = session
             }
-            Log.i(TAG, "Loaded ${sessions.size} sessions from ${file.absolutePath}")
+            Log.i(_TAG, "Loaded ${sessions.size} sessions from ${file.absolutePath}")
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to load sessions: ${e.message}")
+            Log.w(_TAG, "Failed to load sessions: ${e.message}")
         }
     }
 
@@ -397,9 +380,6 @@ class SessionStore(
         sessions[targetSessionKey] = newEntry
         return newEntry
     }
-    /** Get all session keys. */
-    fun getSessionKeys(): List<String> = sessions.keys.toList()
-
     /** Remove a session by key. */
     fun removeSession(sessionKey: String): SessionRecord? = sessions.remove(sessionKey)
 
@@ -417,7 +397,7 @@ class SessionStore(
             sessions.remove(key)
         }
         if (toRemove.isNotEmpty()) {
-            Log.d(TAG, "Pruned ${toRemove.size} session entries older than $maxAgeDays days")
+            Log.d(_TAG, "Pruned ${toRemove.size} session entries older than $maxAgeDays days")
         }
         return toRemove.size
     }
@@ -445,7 +425,7 @@ class SessionManager(
 
     // ── In-memory message histories ──
     private val _histories = ConcurrentHashMap<String, MutableList<Map<String, Any?>>>()
-    private val MAX_HISTORY = 200
+    private val _MAX_HISTORY = 200
 
     // ── Honcho peer cache ──
     private val _peers = ConcurrentHashMap<String, Any>()
@@ -550,7 +530,7 @@ class SessionManager(
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to load sessions index: ${e.message}")
+            Log.w(_TAG, "Failed to load sessions index: ${e.message}")
         }
         _storeLoaded = true
     }
@@ -568,7 +548,7 @@ class SessionManager(
             tmpFile.writeText(obj.toString(2), Charsets.UTF_8)
             tmpFile.renameTo(file)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to save sessions index: ${e.message}")
+            Log.e(_TAG, "Failed to save sessions index: ${e.message}")
         }
     }
 
@@ -627,7 +607,7 @@ class SessionManager(
         val history = _histories.getOrPut(sessionKey) { mutableListOf() }
         synchronized(history) {
             history.add(msg)
-            while (history.size > MAX_HISTORY) history.removeAt(0)
+            while (history.size > _MAX_HISTORY) history.removeAt(0)
         }
     }
 
@@ -700,7 +680,7 @@ class SessionManager(
                     synchronized(history) {
                         @Suppress("UNCHECKED_CAST")
                         history.addAll(messages as Collection<Map<String, Any?>>)
-                        while (history.size > MAX_HISTORY) history.removeAt(0)
+                        while (history.size > _MAX_HISTORY) history.removeAt(0)
                     }
                 } else {
                     Thread.sleep(100)
@@ -708,7 +688,7 @@ class SessionManager(
             } catch (_: InterruptedException) {
                 break
             } catch (e: Exception) {
-                Log.w(TAG, "Async writer error: ${e.message}")
+                Log.w(_TAG, "Async writer error: ${e.message}")
             }
         }
     }
@@ -767,17 +747,6 @@ class SessionManager(
     // Dialectic methods
     // =====================================================================
 
-    /** Pick a reasoning level for a dialectic query. */
-    fun _dynamicReasoningLevel(query: String): String {
-        val codeKeywords = listOf("code", "implement", "function", "class", "debug", "error", "fix")
-        val lower = query.lowercase()
-        return when {
-            query.length > 500 && codeKeywords.any { it in lower } -> "high"
-            query.length > 200 -> "medium"
-            else -> "low"
-        }
-    }
-
     /** Query Honcho's dialectic endpoint about a peer. */
     fun dialecticQuery(sessionKey: String, query: String, reasoningLevel: Any? = null, peer: String = "user"): String {
         // Python: self.honcho().dialectic_query(session_key, query, reasoning_level, peer)
@@ -791,7 +760,7 @@ class SessionManager(
                 val result = getPrefetchContext(sessionKey, userMessage)
                 setContextResult(sessionKey, result)
             } catch (e: Exception) {
-                Log.w(TAG, "prefetchContext error: ${e.message}")
+                Log.w(_TAG, "prefetchContext error: ${e.message}")
             }
         }.start()
     }
@@ -831,7 +800,7 @@ class SessionManager(
             file.writeBytes(transcript)
             return true
         } catch (e: Exception) {
-            Log.e(TAG, "migrateLocalHistory error: ${e.message}")
+            Log.e(_TAG, "migrateLocalHistory error: ${e.message}")
             return false
         }
     }
@@ -868,7 +837,7 @@ class SessionManager(
                     file.copyTo(target, overwrite = true)
                     migrated = true
                 } catch (e: Exception) {
-                    Log.w(TAG, "migrateMemoryFiles($name) error: ${e.message}")
+                    Log.w(_TAG, "migrateMemoryFiles($name) error: ${e.message}")
                 }
             }
         }
@@ -951,7 +920,7 @@ class SessionManager(
             file.writeText(content, Charsets.UTF_8)
             return true
         } catch (e: Exception) {
-            Log.e(TAG, "createConclusion error: ${e.message}")
+            Log.e(_TAG, "createConclusion error: ${e.message}")
             return false
         }
     }
