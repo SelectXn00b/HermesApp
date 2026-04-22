@@ -1,118 +1,41 @@
-package com.xiaomo.hermes.hermes.tools
-
-import android.util.Log
-import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.util.concurrent.TimeUnit
-
 /**
  * Home Assistant integration tool.
- * Ported from homeassistant_tool.py
+ *
+ * Android does not ship with a running Home Assistant relay; the tool
+ * surface is kept as stubs so tool-registration code stays aligned with
+ * Python.
+ *
+ * Ported from tools/homeassistant_tool.py
  */
-object HomeassistantTool {
+package com.xiaomo.hermes.hermes.tools
 
-    private const val TAG = "HomeAssistant"
-    private const val TIMEOUT_SECONDS = 10L
-    private val gson = Gson()
-    private val JSON = "application/json".toMediaType()
+val HA_LIST_ENTITIES_SCHEMA: Map<String, Any> = emptyMap()
+val HA_GET_STATE_SCHEMA: Map<String, Any> = emptyMap()
+val HA_LIST_SERVICES_SCHEMA: Map<String, Any> = emptyMap()
+val HA_CALL_SERVICE_SCHEMA: Map<String, Any> = emptyMap()
 
-    data class HaResult(
-        val success: Boolean = false,
-        val data: Any? = null,
-        val error: String? = null)
+private fun _getConfig(): Pair<String?, String?> = null to null
 
-    private var baseUrl: String? = null
-    private var apiToken: String? = null
-    private var client: OkHttpClient? = null
+private fun _getHeaders(token: String = ""): Map<String, String> = emptyMap()
 
-    /**
-     * Configure the Home Assistant connection.
-     */
-    fun configure(url: String, token: String) {
-        baseUrl = url.trimEnd('/')
-        apiToken = token
-        client = OkHttpClient.Builder()
-            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .build()
-    }
+private fun _filterAndSummarize(entities: List<Any?>, vararg args: Any?): List<Any?> = emptyList()
 
-    /**
-     * Get all entity states.
-     */
-    fun getStates(): HaResult = apiGet("/api/states")
+private fun _buildServicePayload(vararg args: Any?): Map<String, Any?> = emptyMap()
 
-    /**
-     * Get state of a specific entity.
-     */
-    fun getState(entityId: String): HaResult = apiGet("/api/states/$entityId")
+private fun _parseServiceResponse(vararg args: Any?): Map<String, Any?> = emptyMap()
 
-    /**
-     * Call a service (e.g., turn on a light).
-     */
-    fun callService(domain: String, service: String, entityId: String? = null, data: Map<String, Any>? = null): HaResult {
-        val url = "$baseUrl/api/services/$domain/$service"
-        val payload = mutableMapOf<String, Any>()
-        if (entityId != null) payload["entity_id"] = entityId
-        if (data != null) payload.putAll(data)
+private fun _runAsync(coro: Any?): Any? = null
 
-        return apiPost(url, payload)
-    }
+fun _handleListEntities(args: Map<String, Any?>, vararg kw: Any?): String =
+    toolError("Home Assistant tool is not available on Android")
 
-    private fun apiGet(path: String): HaResult {
-        val url = baseUrl ?: return HaResult(error = "Home Assistant not configured")
-        val token = apiToken ?: return HaResult(error = "No API token")
-        val c = client ?: return HaResult(error = "HTTP client not initialized")
+fun _handleGetState(args: Map<String, Any?>, vararg kw: Any?): String =
+    toolError("Home Assistant tool is not available on Android")
 
-        return try {
-            val request = Request.Builder()
-                .url("$url$path")
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .build()
+fun _handleCallService(args: Map<String, Any?>, vararg kw: Any?): String =
+    toolError("Home Assistant tool is not available on Android")
 
-            c.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
-                    return HaResult(error = "HTTP ${response.code}: ${body.take(200)}")
-                }
-                val parsed = gson.fromJson(body, Any::class.java)
-                HaResult(success = true, data = parsed)
-            }
-        } catch (e: Exception) {
-            HaResult(error = "Request failed: ${e.message}")
-        }
-    }
+fun _handleListServices(args: Map<String, Any?>, vararg kw: Any?): String =
+    toolError("Home Assistant tool is not available on Android")
 
-    private fun apiPost(url: String, payload: Any): HaResult {
-        val token = apiToken ?: return HaResult(error = "No API token")
-        val c = client ?: return HaResult(error = "HTTP client not initialized")
-
-        return try {
-            val body = gson.toJson(payload).toRequestBody(JSON)
-            val request = Request.Builder()
-                .url(url)
-                .post(body)
-                .header("Authorization", "Bearer $token")
-                .header("Content-Type", "application/json")
-                .build()
-
-            c.newCall(request).execute().use { response ->
-                val respBody = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
-                    return HaResult(error = "HTTP ${response.code}: ${respBody.take(200)}")
-                }
-                val parsed = gson.fromJson(respBody, Any::class.java)
-                HaResult(success = true, data = parsed)
-            }
-        } catch (e: Exception) {
-            HaResult(error = "Request failed: ${e.message}")
-        }
-    }
-
-
-}
+fun _checkHaAvailable(): Boolean = false
