@@ -78,7 +78,7 @@ object BrowserTool {
      * Navigate to a URL.
      */
     fun navigate(url: String, taskId: String = "default"): NavigationResult {
-        if (!UrlSafety.isSafeUrl(url)) {
+        if (!isSafeUrl(url)) {
             return NavigationResult(error = "URL blocked by SSRF protection: $url")
         }
 

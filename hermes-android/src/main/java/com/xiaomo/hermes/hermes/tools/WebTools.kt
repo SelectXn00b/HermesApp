@@ -35,7 +35,7 @@ object WebTools {
      */
     fun fetch(url: String, extractMode: String = "markdown", maxChars: Int = 50000): String {
         // SSRF protection
-        if (!UrlSafety.isSafeUrl(url)) {
+        if (!isSafeUrl(url)) {
             return gson.toJson(mapOf("error" to "URL blocked by SSRF protection: $url"))
         }
 

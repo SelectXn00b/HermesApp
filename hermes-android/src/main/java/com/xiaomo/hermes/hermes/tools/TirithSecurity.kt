@@ -52,7 +52,7 @@ object TirithSecurity {
 
         // URL safety check
         if (target != null && action == "fetch") {
-            val safe = UrlSafety.isSafeUrl(target)
+            val safe = isSafeUrl(target)
             checks.add(SecurityCheck(
                 name = "url_safety",
                 passed = safe,
