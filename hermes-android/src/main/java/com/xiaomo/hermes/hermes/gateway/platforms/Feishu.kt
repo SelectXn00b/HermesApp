@@ -29,53 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Feishu event types that the adapter handles.
- */
-enum class FeishuEventType(val value: String) {
-    /** New message event. */
-    MESSAGE("im.message.receive_v1"),
-    /** Message read event. */
-    MESSAGE_READ("im.message.message_read_v1"),
-    /** Reaction event. */
-    REACTION("im.message.reaction.created_v1"),
-    /** Card action event. */
-    CARD_ACTION("card.action.trigger"),
-    /** Chat joined event. */
-    CHAT_JOINED("im.chat.member.bot.added_v1"),
-    /** Chat left event. */
-    CHAT_LEFT("im.chat.member.bot.deleted_v1"),
-    ;
-
-    companion object {
-        fun fromValue(value: String): FeishuEventType? =
-            entries.firstOrNull { it.value == value }
-    }
-}
-
-/**
- * Feishu message types.
- */
-enum class FeishuMessageType(val value: String) {
-    TEXT("text"),
-    POST("post"),
-    IMAGE("image"),
-    FILE("file"),
-    AUDIO("audio"),
-    MEDIA("media"),
-    STICKER("sticker"),
-    SHARE_CHAT("share_chat"),
-    SHARE_USER("share_user"),
-    INTERACTIVE("interactive"),
-    SYSTEM("system"),
-    ;
-
-    companion object {
-        fun fromValue(value: String): FeishuMessageType? =
-            entries.firstOrNull { it.value == value }
-    }
-}
-
-/**
  * Feishu adapter — bridges between the gateway and the Feishu/Lark API.
  *
  * Features:
@@ -445,14 +398,14 @@ class FeishuAdapter(
             val header = json.optJSONObject("header") ?: return
             val eventType = header.optString("event_type", "")
 
-            when (FeishuEventType.fromValue(eventType)) {
-                FeishuEventType.MESSAGE -> _handleMessageEventData(json)
-                FeishuEventType.REACTION -> _handleReactionEvent(json)
-                FeishuEventType.CARD_ACTION -> _handleCardActionEvent(json)
-                FeishuEventType.MESSAGE_READ -> { /* ignore read receipts */ }
-                FeishuEventType.CHAT_JOINED -> { Log.i(_TAG, "Bot added to chat") }
-                FeishuEventType.CHAT_LEFT -> { Log.i(_TAG, "Bot removed from chat") }
-                null -> Log.d(_TAG, "Unknown event type: $eventType")
+            when (eventType) {
+                "im.message.receive_v1" -> _handleMessageEventData(json)
+                "im.message.reaction.created_v1" -> _handleReactionEvent(json)
+                "card.action.trigger" -> _handleCardActionEvent(json)
+                "im.message.message_read_v1" -> { /* ignore read receipts */ }
+                "im.chat.member.bot.added_v1" -> { Log.i(_TAG, "Bot added to chat") }
+                "im.chat.member.bot.deleted_v1" -> { Log.i(_TAG, "Bot removed from chat") }
+                else -> Log.d(_TAG, "Unknown event type: $eventType")
             }
         } catch (e: Exception) {
             Log.w(_TAG, "Error handling WebSocket message: ${e.message}")
@@ -545,46 +498,44 @@ class FeishuAdapter(
         msgType: String,
         content: String,
         chatType: String): Pair<String, MessageType> {
-        val feishuType = FeishuMessageType.fromValue(msgType)
-
-        return when (feishuType) {
-            FeishuMessageType.TEXT -> {
+        return when (msgType) {
+            "text" -> {
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val text = json.optString("text", content)
                 Pair(text, MessageType.TEXT)
             }
-            FeishuMessageType.POST -> {
+            "post" -> {
                 // Rich text — extract plain text
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val text = _extractPostText(json)
                 Pair(text, MessageType.TEXT)
             }
-            FeishuMessageType.IMAGE -> {
+            "image" -> {
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val imageKey = json.optString("image_key", "")
                 Pair("[Image: $imageKey]", MessageType.PHOTO)
             }
-            FeishuMessageType.FILE -> {
+            "file" -> {
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val fileName = json.optString("file_name", "file")
                 Pair("[File: $fileName]", MessageType.DOCUMENT)
             }
-            FeishuMessageType.AUDIO -> {
+            "audio" -> {
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val fileKey = json.optString("file_key", "")
                 Pair("[Audio: $fileKey]", MessageType.AUDIO)
             }
-            FeishuMessageType.MEDIA -> {
+            "media" -> {
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val fileKey = json.optString("file_key", "")
                 Pair("[Video: $fileKey]", MessageType.VIDEO)
             }
-            FeishuMessageType.STICKER -> {
+            "sticker" -> {
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val fileKey = json.optString("file_key", "")
                 Pair("[Sticker: $fileKey]", MessageType.STICKER)
             }
-            FeishuMessageType.INTERACTIVE -> {
+            "interactive" -> {
                 // Card message — extract text from card body
                 val json = try { JSONObject(content) } catch (_unused: Exception) { JSONObject() }
                 val text = _extractCardText(json)
