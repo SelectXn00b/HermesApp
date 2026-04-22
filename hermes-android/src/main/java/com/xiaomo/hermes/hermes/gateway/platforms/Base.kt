@@ -103,31 +103,6 @@ data class MessageSource(
     val metadata: JSONObject = JSONObject()) {
     /** Build a session key from this source. */
     val sessionKey: String get() = buildSessionKey(platform, chatId, userId)
-
-    fun toJson(): JSONObject = JSONObject().apply {
-        put("platform", platform)
-        put("chat_id", chatId)
-        put("chat_name", chatName)
-        put("chat_type", chatType)
-        put("user_id", userId)
-        put("user_name", userName)
-        threadId?.let { put("thread_id", it) }
-        put("is_admin", isAdmin)
-        put("metadata", metadata)
-    }
-
-    companion object {
-        fun fromJson(json: JSONObject): MessageSource = MessageSource(
-            platform = json.getString("platform"),
-            chatId = json.getString("chat_id"),
-            chatName = json.optString("chat_name", ""),
-            chatType = json.optString("chat_type", "dm"),
-            userId = json.optString("user_id", ""),
-            userName = json.optString("user_name", ""),
-            threadId = json.optString("thread_id", null),
-            isAdmin = json.optBoolean("is_admin", false),
-            metadata = json.optJSONObject("metadata") ?: JSONObject())
-    }
 }
 
 /**
@@ -222,60 +197,6 @@ data class MessageEvent(
     /** Extract the command arguments. */
     val commandArgs: String?
         get() = if (isCommand) text.substringAfter(" ", "").ifEmpty { null } else null
-
-    fun toJson(): JSONObject = JSONObject().apply {
-        put("text", text)
-        put("message_type", messageType.name)
-        put("source", source.toJson())
-        put("message_id", message_id)
-        replyToMessageId?.let { put("reply_to_message_id", it) }
-        put("timestamp", timestamp.toString())
-        put("media_urls", mediaUrls)
-        put("media_types", mediaTypes)
-        stickerSet?.let { put("sticker_set", it) }
-        stickerFileId?.let { put("sticker_file_id", it) }
-        latitude?.let { put("latitude", it) }
-        longitude?.let { put("longitude", it) }
-        contactName?.let { put("contact_name", it) }
-        contactPhone?.let { put("contact_phone", it) }
-        pollQuestion?.let { put("poll_question", it) }
-        put("poll_options", pollOptions)
-        reactionEmoji?.let { put("reaction_emoji", it) }
-        put("reaction_added", reactionAdded)
-        put("is_edited", isEdited)
-        put("is_deleted", isDeleted)
-        put("metadata", metadata)
-    }
-
-    companion object {
-        fun fromJson(json: JSONObject): MessageEvent = MessageEvent(
-            text = json.getString("text"),
-            messageType = try { MessageType.valueOf(json.getString("message_type")) } catch (_unused: Exception) { MessageType.TEXT },
-            source = MessageSource.fromJson(json.getJSONObject("source")),
-            message_id = json.optString("message_id", ""),
-            replyToMessageId = json.optString("reply_to_message_id", null),
-            timestamp = try { Instant.parse(json.getString("timestamp")) } catch (_unused: Exception) { Instant.now() },
-            mediaUrls = json.optJSONArray("media_urls")?.let { arr ->
-                (0 until arr.length()).map { arr.getString(it) }
-            } ?: emptyList(),
-            mediaTypes = json.optJSONArray("media_types")?.let { arr ->
-                (0 until arr.length()).map { arr.getString(it) }
-            } ?: emptyList(),
-            stickerSet = json.optString("sticker_set", null),
-            stickerFileId = json.optString("sticker_file_id", null),
-            latitude = json.optDouble("latitude").takeIf { !it.isNaN() },
-            longitude = json.optDouble("longitude").takeIf { !it.isNaN() },
-            contactName = json.optString("contact_name", null),
-            contactPhone = json.optString("contact_phone", null),
-            pollQuestion = json.optString("poll_question", null),
-            pollOptions = json.optJSONArray("poll_options")?.let { arr ->
-                (0 until arr.length()).map { arr.getString(it) }
-            } ?: emptyList(),
-            reactionEmoji = json.optString("reaction_emoji", null),
-            reactionAdded = json.optBoolean("reaction_added", true),
-            isEdited = json.optBoolean("is_edited", false),
-            isDeleted = json.optBoolean("is_deleted", false))
-    }
 }
 
 /**
