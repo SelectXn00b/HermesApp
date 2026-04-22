@@ -4,49 +4,24 @@ import com.google.gson.Gson
 
 /**
  * Delegate Tool — spawn a sub-agent to handle a task.
- * Ported from delegate_tool.py
+ *
+ * Android stub: the Python version spawns child AIAgent instances with
+ * their own terminal sessions (delegate_tool.py). Sub-agent spawning is
+ * not available on Android, so this is a no-op.
+ *
+ * Ported from tools/delegate_tool.py
  */
-object DelegateTool {
 
-    private val gson = Gson()
+private val _gson = Gson()
 
-    data class DelegateResult(
-        val success: Boolean = false,
-        val output: String = "",
-        val error: String? = null)
+fun checkDelegateRequirements(): Boolean = false
 
-    /**
-     * Callback interface for spawning sub-agents.
-     */
-    fun interface Delegator {
-        fun delegate(task: String, context: String?, model: String?): DelegateResult
+fun delegateTask(
+    task: String,
+    context: String? = null,
+    model: String? = null): String {
+    if (task.isBlank()) {
+        return _gson.toJson(mapOf("error" to "Task description is required"))
     }
-
-    /**
-     * Delegate a task to a sub-agent.
-     */
-    fun delegate(
-        task: String,
-        context: String? = null,
-        model: String? = null,
-        delegator: Delegator? = null): String {
-        if (task.isBlank()) {
-            return gson.toJson(mapOf("error" to "Task description is required"))
-        }
-        if (delegator == null) {
-            return gson.toJson(mapOf("error" to "Delegate tool is not available in this execution context"))
-        }
-        return try {
-            val result = delegator.delegate(task, context, model)
-            if (result.success) {
-                gson.toJson(mapOf("output" to result.output))
-            } else {
-                gson.toJson(mapOf("error" to (result.error ?: "Delegation failed")))
-            }
-        } catch (e: Exception) {
-            gson.toJson(mapOf("error" to "Delegation failed: ${e.message}"))
-        }
-    }
-
-
+    return _gson.toJson(mapOf("error" to "Delegate tool is not available on Android"))
 }
