@@ -33,9 +33,9 @@
 
 | 状态 | 项目 | 证据 |
 |---|---|---|
-| ⬜ | 设备已连上 adb | `adb devices -l` 返回非空 |
+| ✅ | 设备已连上 adb | `adb devices -l` → `8370d265	device` |
 | ⬜ | MiMo v2 Pro 公网 config 已注入 datastore | `run-as tee files/datastore/model_configs.preferences_pb` |
-| ⬜ | 启动 app 不 crash | logcat 无 FATAL |
+| ✅ | 启动 app 不 crash | 安装 4/22 17:35 APK (sha=sessione) 后 `adb shell am start` 成功，pid=22832，activity in stack (`dumpsys activity activities` 显示 Task #5464)，logcat 无 FATAL/AndroidRuntime |
 | ⬜ | 发一条无工具消息：assistant 文本正常流出 | logcat 截图 / 人肉确认 |
 | ⬜ | 发一条触发 `<tool>` 的消息：tool dispatch + result 正确渲染 | |
 | ⬜ | 多轮工具调用：第 2 轮 tool result 正确反馈给模型 | |
