@@ -502,3 +502,34 @@ class AgenticOPDEnv(
         Log.d(_TAG, "wandbLog: ${metrics.size} metrics")
     }
 }
+
+// ── Module-level aligned with Python environments/agentic_opd_env.py ────
+
+/** Process reward model system prompt for hindsight hint extraction. */
+const val _HINT_JUDGE_SYSTEM: String =
+    "You are a process reward model used for hindsight hint extraction.\n" +
+        "You are given:\n" +
+        "1) The assistant response at turn t.\n" +
+        "2) The next state at turn t+1, along with its **role**.\n\n" +
+        "## Understanding the next state's role\n" +
+        "- role='user': A reply from the user (follow-up, correction, new request, etc.).\n" +
+        "- role='tool': The return value of a tool the assistant invoked. " +
+        "This content was NOT available before the assistant's action — " +
+        "it exists BECAUSE the assistant called the tool. " +
+        "A successful, non-error tool output generally means the assistant's " +
+        "action was appropriate; do NOT treat it as information the assistant " +
+        "should have already known.\n\n" +
+        "Your goal is to decide whether the next state reveals useful hindsight information\n" +
+        "that could have helped improve the assistant response at turn t.\n\n" +
+        "Output format rules (strict):\n" +
+        "- You MUST include exactly one final decision token: \\boxed{1} or \\boxed{-1}.\n" +
+        "- If and only if decision is \\boxed{1}, provide a concise, information-dense hint in 1-3 sentences,\n" +
+        "  wrapped between [HINT_START] and [HINT_END].\n" +
+        "- If decision is \\boxed{-1}, do not provide a hint block.\n" +
+        "- Hint must be concrete and actionable for improving the previous response."
+
+/** Matches `\boxed{<int>}` decision tokens in PRM responses. */
+val _BOXED_RE: Regex = Regex("""\\boxed\{(-?\d+)\}""")
+
+/** Matches `[HINT_START]...[HINT_END]` blocks (dotall). */
+val _HINT_RE: Regex = Regex("\\[HINT_START\\](.*?)\\[HINT_END\\]", RegexOption.DOT_MATCHES_ALL)

@@ -413,3 +413,17 @@ class HermesLogger(private val tag: String) {
 
 /** Get a logger instance. */
 fun getLogger(tag: String): HermesLogger = HermesLogger(tag)
+
+// ── Module-level aligned with Python hermes_constants.py ──────────────────
+
+/** Valid values for OpenAI/Responses reasoning_effort. */
+val VALID_REASONING_EFFORTS: List<String> = listOf("minimal", "low", "medium", "high", "xhigh")
+
+/** OpenRouter API base URL. */
+const val OPENROUTER_BASE_URL: String = "https://openrouter.ai/api/v1"
+
+/** OpenRouter public models catalog endpoint. */
+const val OPENROUTER_MODELS_URL: String = "$OPENROUTER_BASE_URL/models"
+
+/** Vercel AI Gateway base URL. */
+const val AI_GATEWAY_BASE_URL: String = "https://ai-gateway.vercel.sh/v1"

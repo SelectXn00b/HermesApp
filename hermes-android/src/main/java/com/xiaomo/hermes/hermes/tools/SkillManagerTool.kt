@@ -11,7 +11,21 @@ package com.xiaomo.hermes.hermes.tools
 
 import java.io.File
 
-private val SKILL_MANAGER_SKILLS_DIR: File = File("")  // get_hermes_home() / "skills" — resolved elsewhere on Android
+// File-scoped constants aligned with Python tools/skill_manager_tool.py.
+// Wrapped in a private object to avoid top-level collisions with SkillsTool.kt
+// which declares the same public names for skills_tool.py alignment.
+private object _SkillManagerConstants {
+    /** HERMES_HOME root directory (Android stub — real path resolved via get_hermes_home()). */
+    val HERMES_HOME: File = File("")
+
+    /** Skill storage directory under HERMES_HOME. */
+    val SKILLS_DIR: File = File(HERMES_HOME, "skills")
+
+    const val MAX_NAME_LENGTH: Int = 64
+    const val MAX_DESCRIPTION_LENGTH: Int = 1024
+}
+
+private val SKILL_MANAGER_SKILLS_DIR: File = _SkillManagerConstants.SKILLS_DIR
 
 const val MAX_SKILL_CONTENT_CHARS: Int = 100_000
 const val MAX_SKILL_FILE_BYTES: Int = 1_048_576
