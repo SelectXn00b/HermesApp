@@ -488,6 +488,58 @@ abstract class BasePlatformAdapter(
     fun resumeTypingForChat(chatId: String) {
         _typingPaused.remove(chatId)
     }
+
+    /** Active session interrupt events — keyed by session_key. */
+    protected val _activeSessions: java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicBoolean> =
+        java.util.concurrent.ConcurrentHashMap()
+
+    /** Deferred callbacks to fire after delivery — keyed by session_key. */
+    protected val _postDeliveryCallbacks: java.util.concurrent.ConcurrentHashMap<String, Any> =
+        java.util.concurrent.ConcurrentHashMap()
+
+    /** Register an incoming-message handler (1:1 with Python set_message_handler). */
+    @JvmName("setMessageHandlerImpl")
+    fun setMessageHandler(handler: (suspend (MessageEvent) -> Unit)?) {
+        this.messageHandler = handler
+    }
+
+    /** Signal the active session loop to stop and clear typing immediately. */
+    suspend fun interruptSessionActivity(sessionKey: String, chatId: String) {
+        if (sessionKey.isNotEmpty()) {
+            _activeSessions[sessionKey]?.set(true)
+        }
+        try { stopTyping(chatId) } catch (_: Exception) {}
+    }
+
+    /**
+     * Register a deferred callback to fire after the main response.
+     *
+     * `generation` lets callers tie the callback to a specific gateway run
+     * generation so stale runs cannot clear callbacks owned by a fresher run.
+     */
+    fun registerPostDeliveryCallback(
+        sessionKey: String,
+        callback: (suspend () -> Unit)?,
+        generation: Long? = null) {
+        if (sessionKey.isEmpty() || callback == null) return
+        _postDeliveryCallbacks[sessionKey] = if (generation == null) callback else (generation to callback)
+    }
+
+    /** Pop a deferred callback, optionally requiring generation ownership. */
+    @Suppress("UNCHECKED_CAST")
+    fun popPostDeliveryCallback(sessionKey: String, generation: Long? = null): (suspend () -> Unit)? {
+        if (sessionKey.isEmpty()) return null
+        val entry = _postDeliveryCallbacks[sessionKey] ?: return null
+        if (entry is Pair<*, *>) {
+            val (entryGen, cb) = entry as Pair<Long, suspend () -> Unit>
+            if (generation != null && entryGen != generation) return null
+            _postDeliveryCallbacks.remove(sessionKey)
+            return cb
+        }
+        if (generation != null) return null
+        _postDeliveryCallbacks.remove(sessionKey)
+        return entry as? (suspend () -> Unit)
+    }
 }
 
 // ── Module-level utility functions (ported from gateway/platforms/base.py) ──
@@ -1011,4 +1063,207 @@ fun onProcessingStart(sessionKey: String) {
  */
 fun onProcessingComplete(sessionKey: String, outcome: String) {
     Log.d("BasePlatformAdapter", "Processing complete: session=$sessionKey outcome=$outcome")
+}
+
+// ── Constants ported from gateway/platforms/base.py ────────────────────────
+
+const val GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE: String =
+    "Secure secret entry is not supported over messaging. " +
+        "Load this skill in the local CLI to be prompted, or add the key to ~/.hermes/.env manually."
+
+/** Image cache directory (lazy — created on demand). */
+val IMAGE_CACHE_DIR: File = File(System.getProperty("java.io.tmpdir") ?: "/tmp", "hermes_image_cache")
+
+/** Audio cache directory. */
+val AUDIO_CACHE_DIR: File = File(System.getProperty("java.io.tmpdir") ?: "/tmp", "hermes_audio_cache")
+
+/** Video cache directory. */
+val VIDEO_CACHE_DIR: File = File(System.getProperty("java.io.tmpdir") ?: "/tmp", "hermes_video_cache")
+
+/** Document cache directory. */
+val DOCUMENT_CACHE_DIR: File = File(System.getProperty("java.io.tmpdir") ?: "/tmp", "hermes_document_cache")
+
+/**
+ * Error substrings indicating a transient connection failure worth retrying.
+ *
+ * "timeout" / "timed out" are intentionally excluded because a read/write
+ * timeout on a non-idempotent call may have reached the server.
+ */
+val _RETRYABLE_ERROR_PATTERNS: Array<String> = arrayOf(
+    "connecterror",
+    "connectionerror",
+    "connectionreset",
+    "connectionrefused",
+    "connecttimeout",
+    "network",
+    "broken pipe",
+    "remotedisconnected",
+    "eoferror"
+)
+
+// ── Module-level helpers ported from gateway/platforms/base.py ─────────────
+
+/**
+ * Return the largest codepoint offset *n* such that `lenFn(s[:n]) <= budget`.
+ *
+ * Used by truncateMessage when lenFn measures length in units different from
+ * Python codepoints (e.g. UTF-16 code units). Falls back to binary search.
+ */
+fun _customUnitToCp(s: String, budget: Int, lenFn: (String) -> Int): Int {
+    if (lenFn(s) <= budget) return s.length
+    var lo = 0
+    var hi = s.length
+    while (lo < hi) {
+        val mid = (lo + hi + 1) / 2
+        if (lenFn(s.substring(0, mid)) <= budget) lo = mid else hi = mid - 1
+    }
+    return lo
+}
+
+/**
+ * Read the macOS system HTTP(S) proxy via `scutil --proxy`.
+ *
+ * Android-side stub — always returns null (Android doesn't have scutil and
+ * gateway traffic uses Android's own proxy chain).
+ */
+fun _detectMacosSystemProxy(): String? = null
+
+/**
+ * Build kwargs for a Discord-style bot client with proxy.
+ *
+ * Returns a map suitable for spreading into SDK constructors:
+ *  - SOCKS URL  → {"connector": proxyConnector}
+ *  - HTTP URL   → {"proxy": url}
+ *  - null       → {}
+ *
+ * Android-side: SDK connectors aren't used, so this just forwards the URL.
+ */
+fun proxyKwargsForBot(proxyUrl: String?): Map<String, Any?> {
+    if (proxyUrl.isNullOrEmpty()) return emptyMap()
+    return if (proxyUrl.lowercase().startsWith("socks")) {
+        mapOf("socks_proxy" to proxyUrl)
+    } else {
+        mapOf("proxy" to proxyUrl)
+    }
+}
+
+/**
+ * Build (sessionKwargs, requestKwargs) for aiohttp-style clients with proxy.
+ *
+ * Android-side: returns simplified map pair; real HTTP client layer handles
+ * the proxy plumbing.
+ */
+fun proxyKwargsForAiohttp(proxyUrl: String?): Pair<Map<String, Any?>, Map<String, Any?>> {
+    if (proxyUrl.isNullOrEmpty()) return emptyMap<String, Any?>() to emptyMap<String, Any?>()
+    return if (proxyUrl.lowercase().startsWith("socks")) {
+        mapOf<String, Any?>("socks_proxy" to proxyUrl) to emptyMap()
+    } else {
+        emptyMap<String, Any?>() to mapOf("proxy" to proxyUrl)
+    }
+}
+
+/**
+ * Re-validate each redirect target to prevent redirect-based SSRF.
+ *
+ * Python side: httpx response event hook that inspects `response.next_request`
+ * and raises if it points to a private/internal address.
+ *
+ * Android-side stub — HTTP redirects are validated in the tool layer.
+ */
+suspend fun _ssrfRedirectGuard(response: Any?) {
+    // No-op on Android; redirect guards are applied by UrlSafety at tool entry.
+}
+
+/** Return the video cache directory, creating it if it doesn't exist. */
+fun getVideoCacheDir(): File {
+    if (!VIDEO_CACHE_DIR.exists()) VIDEO_CACHE_DIR.mkdirs()
+    return VIDEO_CACHE_DIR
+}
+
+/** Save raw video bytes to the cache and return the absolute file path. */
+fun cacheVideoFromBytes(data: ByteArray, ext: String = ".mp4"): String {
+    val dir = getVideoCacheDir()
+    val filename = "video_${java.util.UUID.randomUUID().toString().replace("-", "").take(12)}$ext"
+    val target = File(dir, filename)
+    target.writeBytes(data)
+    return target.absolutePath
+}
+
+/**
+ * Store or merge a pending message event for a session.
+ *
+ * Photo bursts/albums often arrive as multiple near-simultaneous PHOTO
+ * events; merge those into the existing queued event so the next turn sees
+ * the whole burst. When `mergeText=true`, rapid follow-up TEXT events are
+ * appended instead of replacing the pending turn.
+ */
+fun mergePendingMessageEvent(
+    pendingMessages: MutableMap<String, MessageEvent>,
+    sessionKey: String,
+    event: MessageEvent,
+    mergeText: Boolean = false) {
+    val existing = pendingMessages[sessionKey]
+    if (existing != null) {
+        val existingIsPhoto = existing.messageType == MessageType.PHOTO
+        val incomingIsPhoto = event.messageType == MessageType.PHOTO
+        val existingHasMedia = existing.mediaUrls.isNotEmpty()
+        val incomingHasMedia = event.mediaUrls.isNotEmpty()
+
+        if (existingIsPhoto && incomingIsPhoto) {
+            val mergedText = if (event.text.isNotEmpty())
+                if (existing.text.isNotEmpty()) "${existing.text}\n${event.text}" else event.text
+            else existing.text
+            pendingMessages[sessionKey] = existing.copy(
+                text = mergedText,
+                mediaUrls = existing.mediaUrls + event.mediaUrls,
+                mediaTypes = existing.mediaTypes + event.mediaTypes)
+            return
+        }
+
+        if (existingHasMedia || incomingHasMedia) {
+            val mergedText = if (event.text.isNotEmpty())
+                if (existing.text.isNotEmpty()) "${existing.text}\n${event.text}" else event.text
+            else existing.text
+            val mergedType = if (existingIsPhoto || incomingIsPhoto) MessageType.PHOTO else existing.messageType
+            val mergedUrls = if (incomingHasMedia) existing.mediaUrls + event.mediaUrls else existing.mediaUrls
+            val mergedMimeTypes = if (incomingHasMedia) existing.mediaTypes + event.mediaTypes else existing.mediaTypes
+            pendingMessages[sessionKey] = existing.copy(
+                text = mergedText,
+                messageType = mergedType,
+                mediaUrls = mergedUrls,
+                mediaTypes = mergedMimeTypes)
+            return
+        }
+
+        if (mergeText && existing.messageType == MessageType.TEXT && event.messageType == MessageType.TEXT) {
+            if (event.text.isNotEmpty()) {
+                val mergedText = if (existing.text.isNotEmpty()) "${existing.text}\n${event.text}" else event.text
+                pendingMessages[sessionKey] = existing.copy(text = mergedText)
+            }
+            return
+        }
+    }
+
+    pendingMessages[sessionKey] = event
+}
+
+/**
+ * Resolve a per-channel ephemeral prompt from platform config.
+ *
+ * Looks up `channel_prompts` in the adapter's `config.extra` dict.
+ * Prefers an exact match on *channelId*; falls back to *parentId* (useful
+ * for forum threads / child channels inheriting a parent prompt).
+ */
+fun resolveChannelPrompt(
+    configExtra: Map<String, Any?>,
+    channelId: String,
+    parentId: String? = null): String? {
+    val prompts = configExtra["channel_prompts"] as? Map<*, *> ?: return null
+    for (key in listOf(channelId, parentId)) {
+        if (key.isNullOrEmpty()) continue
+        val raw = prompts[key] ?: continue
+        val prompt = raw.toString().trim()
+        if (prompt.isNotEmpty()) return prompt
+    }
+    return null
 }
