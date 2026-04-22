@@ -106,7 +106,7 @@ class OperitChatCompletionServer(
         )
     }
 
-    private fun buildToolCallIdToNameMap(
+    internal fun buildToolCallIdToNameMap(
         messages: List<Map<String, Any?>>
     ): Map<String, String> {
         val out = HashMap<String, String>()
@@ -124,7 +124,7 @@ class OperitChatCompletionServer(
         return out
     }
 
-    private fun extractToolCalls(text: String): List<ToolCall>? {
+    internal fun extractToolCalls(text: String): List<ToolCall>? {
         val matches = ChatMarkupRegex.toolCallPattern.findAll(text).toList()
         if (matches.isEmpty()) return null
         return matches.map { match ->
@@ -147,7 +147,7 @@ class OperitChatCompletionServer(
         }
     }
 
-    private fun Map<String, Any?>.toPromptTurn(
+    internal fun Map<String, Any?>.toPromptTurn(
         toolCallIdToName: Map<String, String>
     ): PromptTurn {
         val role = (this["role"] as? String) ?: "user"
@@ -181,7 +181,7 @@ class OperitChatCompletionServer(
         return PromptTurn(kind = kind, content = rawContent, toolName = toolName)
     }
 
-    private fun detectToolResultStatus(json: String): String {
+    internal fun detectToolResultStatus(json: String): String {
         return try {
             val obj = JSONObject(json)
             val success = obj.optBoolean("success", true)
