@@ -15,18 +15,18 @@ import android.util.Log
  */
 class _AsyncWorker {
     companion object {
-        private const val TAG = "AsyncWorker"
+        private const val _TAG = "AsyncWorker"
     }
 
     private var running = false
 
     init {
-        Log.d(TAG, "AsyncWorker initialized")
+        Log.d(_TAG, "AsyncWorker initialized")
     }
 
     fun start() {
         running = true
-        Log.d(TAG, "AsyncWorker started")
+        Log.d(_TAG, "AsyncWorker started")
     }
 
     /**
@@ -44,13 +44,13 @@ class _AsyncWorker {
      */
     fun runCoroutine(coro: Any?, timeout: Any?): Any? {
         // Android stub: coroutine execution handled via kotlinx.coroutines
-        Log.d(TAG, "runCoroutine: stub (use Kotlin coroutines)")
+        Log.d(_TAG, "runCoroutine: stub (use Kotlin coroutines)")
         return null
     }
 
     fun stop() {
         running = false
-        Log.d(TAG, "AsyncWorker stopped")
+        Log.d(_TAG, "AsyncWorker stopped")
     }
 }
 
@@ -68,11 +68,11 @@ class ModalEnvironment(
     private val taskId: String = "default"
 ) {
     companion object {
-        private const val TAG = "ModalEnvironment"
+        private const val _TAG = "ModalEnvironment"
     }
 
     init {
-        Log.d(TAG, "ModalEnvironment initialized (stub - Modal SDK not available on Android)")
+        Log.d(_TAG, "ModalEnvironment initialized (stub - Modal SDK not available on Android)")
     }
 
     /**
@@ -80,7 +80,7 @@ class ModalEnvironment(
      * On Android, this is a server-side operation.
      */
     fun _modalUpload(hostPath: String, remotePath: String) {
-        Log.d(TAG, "modalUpload: $hostPath -> $remotePath (server-side stub)")
+        Log.d(_TAG, "modalUpload: $hostPath -> $remotePath (server-side stub)")
     }
 
     /**
@@ -88,14 +88,14 @@ class ModalEnvironment(
      */
     fun _modalBulkUpload(files: List<Pair<String, String>>) {
         if (files.isEmpty()) return
-        Log.d(TAG, "modalBulkUpload: ${files.size} files (server-side stub)")
+        Log.d(_TAG, "modalBulkUpload: ${files.size} files (server-side stub)")
     }
 
     /**
      * Download remote .hermes/ as a tar archive from Modal sandbox.
      */
     fun _modalBulkDownload(dest: String) {
-        Log.d(TAG, "modalBulkDownload: -> $dest (server-side stub)")
+        Log.d(_TAG, "modalBulkDownload: -> $dest (server-side stub)")
     }
 
     /**
@@ -103,7 +103,7 @@ class ModalEnvironment(
      */
     fun _modalDelete(remotePaths: List<String>) {
         if (remotePaths.isEmpty()) return
-        Log.d(TAG, "modalDelete: ${remotePaths.size} files (server-side stub)")
+        Log.d(_TAG, "modalDelete: ${remotePaths.size} files (server-side stub)")
     }
 
     /**
@@ -111,7 +111,7 @@ class ModalEnvironment(
      */
     fun _beforeExecute() {
         // Would trigger FileSyncManager.sync()
-        Log.d(TAG, "beforeExecute: file sync (server-side stub)")
+        Log.d(_TAG, "beforeExecute: file sync (server-side stub)")
     }
 
     /**
@@ -119,7 +119,7 @@ class ModalEnvironment(
      * On Android, Modal SDK is not available.
      */
     fun _runBash(cmdString: String): Any? {
-        Log.d(TAG, "runBash: Modal SDK not available on Android")
+        Log.d(_TAG, "runBash: Modal SDK not available on Android")
         return null
     }
 
@@ -127,6 +127,6 @@ class ModalEnvironment(
      * Clean up the Modal sandbox.
      */
     fun cleanup() {
-        Log.d(TAG, "cleanup: terminating Modal sandbox (server-side stub)")
+        Log.d(_TAG, "cleanup: terminating Modal sandbox (server-side stub)")
     }
 }

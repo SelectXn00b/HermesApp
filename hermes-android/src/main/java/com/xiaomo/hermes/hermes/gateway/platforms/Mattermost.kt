@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Mattermost(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.MATTERMOST) {
-    companion object { private const val TAG = "Mattermost" }
+    companion object { private const val _TAG = "Mattermost" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "Mattermost adapter is a stub — not implemented on Android")
+        Log.w(_TAG, "Mattermost adapter is a stub — not implemented on Android")
         return false
     }
 

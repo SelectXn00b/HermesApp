@@ -13,7 +13,7 @@ import java.nio.ByteOrder
  */
 object NeuTtsSynth {
 
-    private const val TAG = "NeuTtsSynth"
+    private const val _TAG = "NeuTtsSynth"
 
     /**
      * Write a WAV file from float32 samples (no external dependencies).
@@ -66,7 +66,7 @@ object NeuTtsSynth {
             fos.write(buf.array())
         }
 
-        Log.d(TAG, "WAV written: $path (${pcm.size} samples)")
+        Log.d(_TAG, "WAV written: $path (${pcm.size} samples)")
     }
 
     /**

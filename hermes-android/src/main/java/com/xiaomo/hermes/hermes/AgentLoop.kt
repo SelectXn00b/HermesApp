@@ -174,7 +174,7 @@ class HermesAgentLoop(
      */
     val beforeNextTurn: (suspend (turnIndex: Int, messages: List<Map<String, Any?>>) -> Boolean)? = null) {
     companion object {
-        private const val TAG = "HermesAgentLoop"
+        private const val _TAG = "HermesAgentLoop"
 
         /** Thread pool for running sync tool calls. */
         private val toolExecutor = Executors.newFixedThreadPool(128)
@@ -185,7 +185,7 @@ class HermesAgentLoop(
         try {
             sink.invoke(event)
         } catch (e: Exception) {
-            Log.w(TAG, "eventSink threw on $event: ${e.message}")
+            Log.w(_TAG, "eventSink threw on $event: ${e.message}")
         }
     }
 
@@ -226,11 +226,11 @@ class HermesAgentLoop(
                 val shouldContinue = try {
                     beforeNextTurn.invoke(turn, messages.toList())
                 } catch (e: Exception) {
-                    Log.w(TAG, "beforeNextTurn threw: ${e.message}", e)
+                    Log.w(_TAG, "beforeNextTurn threw: ${e.message}", e)
                     true
                 }
                 if (!shouldContinue) {
-                    Log.i(TAG, "beforeNextTurn aborted the loop at turn ${turn + 1}")
+                    Log.i(_TAG, "beforeNextTurn aborted the loop at turn ${turn + 1}")
                     val lastText = (messages.lastOrNull { it["role"] == "assistant" }
                         ?.get("content") as? String).orEmpty()
                     emit(AgentEvent.Final(
@@ -258,7 +258,7 @@ class HermesAgentLoop(
                     maxTokens = maxTokens,
                     extraBody = extraBody)
             } catch (e: Exception) {
-                Log.e(TAG, "API call failed on turn ${turn + 1}: ${e.message}", e)
+                Log.e(_TAG, "API call failed on turn ${turn + 1}: ${e.message}", e)
                 emit(AgentEvent.Error("API call failed: ${e.message}", turn + 1))
                 return AgentResult(
                     messages = messages,
@@ -269,7 +269,7 @@ class HermesAgentLoop(
             }
 
             if (response == null || response.choices.isEmpty()) {
-                Log.w(TAG, "Empty response on turn ${turn + 1}")
+                Log.w(_TAG, "Empty response on turn ${turn + 1}")
                 emit(AgentEvent.Error("Empty response from server", turn + 1))
                 return AgentResult(
                     messages = messages,
@@ -327,7 +327,7 @@ class HermesAgentLoop(
                             arguments = toolArgsRaw.take(200),
                             error = "Unknown tool '$toolName'",
                             toolResult = toolResult))
-                        Log.w(TAG, "Model called unknown tool '$toolName' on turn ${turn + 1}")
+                        Log.w(_TAG, "Model called unknown tool '$toolName' on turn ${turn + 1}")
 
                         val persistedResult = toolResultPersister?.maybePersist(
                             toolResult, toolName, tc.id
@@ -358,7 +358,7 @@ class HermesAgentLoop(
                             arguments = toolArgsRaw.take(200),
                             error = "Invalid JSON: ${toolArgsRaw.take(100)}",
                             toolResult = toolResult))
-                        Log.w(TAG, "Invalid JSON in tool call args for '$toolName': ${toolArgsRaw.take(200)}")
+                        Log.w(_TAG, "Invalid JSON in tool call args for '$toolName': ${toolArgsRaw.take(200)}")
                         emit(AgentEvent.ToolCallStart(tc.id, toolName, toolArgsRaw, turn + 1))
                         emit(AgentEvent.ToolCallEnd(tc.id, toolName, toolResult, "Invalid JSON", turn + 1))
                     } else {
@@ -373,7 +373,7 @@ class HermesAgentLoop(
                                 userTask = userTask)
                             val elapsed = (System.nanoTime() - submitTime) / 1_000_000_000.0
                             if (elapsed > 30) {
-                                Log.w(TAG, "[$taskId] turn ${turn + 1}: $toolName took ${"%.1f".format(elapsed)}s")
+                                Log.w(_TAG, "[$taskId] turn ${turn + 1}: $toolName took ${"%.1f".format(elapsed)}s")
                             }
                             result
                         } catch (e: Exception) {
@@ -387,7 +387,7 @@ class HermesAgentLoop(
                                 arguments = toolArgsRaw.take(200),
                                 error = dispatchError,
                                 toolResult = errMsg))
-                            Log.e(TAG, "Tool '$toolName' failed on turn ${turn + 1}: ${e.message}", e)
+                            Log.e(_TAG, "Tool '$toolName' failed on turn ${turn + 1}: ${e.message}", e)
                             errMsg
                         }
 
@@ -421,7 +421,7 @@ class HermesAgentLoop(
                 }
 
                 val turnElapsed = (System.nanoTime() - turnStart) / 1_000_000_000.0
-                Log.i(TAG, "[$taskId] turn ${turn + 1}: ${assistantMsg.toolCalls.size} tools, total=${"%.1f".format(turnElapsed)}s")
+                Log.i(_TAG, "[$taskId] turn ${turn + 1}: ${assistantMsg.toolCalls.size} tools, total=${"%.1f".format(turnElapsed)}s")
             } else {
                 // No tool calls — model is done
                 val msgDict = mutableMapOf<String, Any?>(
@@ -448,7 +448,7 @@ class HermesAgentLoop(
         }
 
         // Hit max turns
-        Log.i(TAG, "Agent hit maxTurns ($maxTurns) without finishing")
+        Log.i(_TAG, "Agent hit maxTurns ($maxTurns) without finishing")
         val lastText = (messages.lastOrNull { it["role"] == "assistant" }
             ?.get("content") as? String).orEmpty()
         emit(AgentEvent.Final(

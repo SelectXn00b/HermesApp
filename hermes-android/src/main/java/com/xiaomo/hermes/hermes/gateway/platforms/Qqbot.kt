@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Qqbot(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.QQBOT) {
-    companion object { private const val TAG = "Qqbot" }
+    companion object { private const val _TAG = "Qqbot" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "QQ Bot adapter is a stub — not implemented on Android")
+        Log.w(_TAG, "QQ Bot adapter is a stub — not implemented on Android")
         return false
     }
 

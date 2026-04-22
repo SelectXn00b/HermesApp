@@ -13,7 +13,7 @@ import android.util.Log
 class BrowserUseProvider {
 
     companion object {
-        private const val TAG = "BrowserUseProvider"
+        private const val _TAG = "BrowserUseProvider"
         private const val BASE_URL = "https://api.browser-use.com/api/v3"
         private const val DEFAULT_MANAGED_TIMEOUT_MINUTES = 5
         private const val DEFAULT_MANAGED_PROXY_COUNTRY_CODE = "us"
@@ -74,7 +74,7 @@ class BrowserUseProvider {
         val sessionName = "hermes_${taskId}_${System.currentTimeMillis().toString(16).takeLast(8)}"
 
         // On Android we cannot actually create a browser session — log and return stub
-        Log.w(TAG, "createSession called but Android cannot run headless browsers. Session: $sessionName")
+        Log.w(_TAG, "createSession called but Android cannot run headless browsers. Session: $sessionName")
 
         return mapOf(
             "session_name" to sessionName,
@@ -88,7 +88,7 @@ class BrowserUseProvider {
      * Close a browser session.
      */
     fun closeSession(sessionId: String): Boolean {
-        Log.d(TAG, "closeSession called for $sessionId — no-op on Android")
+        Log.d(_TAG, "closeSession called for $sessionId — no-op on Android")
         return false
     }
 
@@ -96,7 +96,7 @@ class BrowserUseProvider {
      * Emergency cleanup for a browser session.
      */
     fun emergencyCleanup(sessionId: String) {
-        Log.w(TAG, "emergencyCleanup called for $sessionId — no-op on Android")
+        Log.w(_TAG, "emergencyCleanup called for $sessionId — no-op on Android")
     }
 
     /** Alias: get config or null. */

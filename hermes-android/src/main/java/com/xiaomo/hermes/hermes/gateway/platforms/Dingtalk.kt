@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class Dingtalk(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.DINGTALK) {
-    companion object { private const val TAG = "Dingtalk" }
+    companion object { private const val _TAG = "Dingtalk" }
 
     private val _appKey: String = config.extra("app_key") ?: System.getenv("DINGTALK_APP_KEY") ?: ""
     private val _appSecret: String = config.extra("app_secret") ?: System.getenv("DINGTALK_APP_SECRET") ?: ""
@@ -42,7 +42,7 @@ class Dingtalk(
 
     override suspend fun connect(): Boolean {
         if (_appKey.isEmpty() || _appSecret.isEmpty()) {
-            Log.e(TAG, "DINGTALK_APP_KEY or DINGTALK_APP_SECRET not set")
+            Log.e(_TAG, "DINGTALK_APP_KEY or DINGTALK_APP_SECRET not set")
             return false
         }
         return _refreshAccessToken()
@@ -65,12 +65,12 @@ class Dingtalk(
                 if (data.optInt("errcode", 0) != 0) return@withContext false
                 _accessToken = data.getString("access_token")
                 _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
-                Log.i(TAG, "Access token refreshed")
+                Log.i(_TAG, "Access token refreshed")
                 markConnected()
                 return@withContext true
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Token refresh failed: ${e.message}")
+            Log.e(_TAG, "Token refresh failed: ${e.message}")
             return@withContext false
         }
     }

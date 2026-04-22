@@ -34,7 +34,7 @@ data class DeliveryResult(
  */
 class DeliveryRouter {
     companion object {
-        private const val TAG = "DeliveryRouter"
+        private const val _TAG = "DeliveryRouter"
     }
 
     /** Platform name → adapter. */
@@ -43,13 +43,13 @@ class DeliveryRouter {
     /** Register an adapter. */
     fun register(adapter: BasePlatformAdapter) {
         _adapters[adapter.name] = adapter
-        Log.i(TAG, "Registered adapter for platform: ${adapter.name}")
+        Log.i(_TAG, "Registered adapter for platform: ${adapter.name}")
     }
 
     /** Unregister an adapter. */
     fun unregister(platformName: String) {
         _adapters.remove(platformName)
-        Log.i(TAG, "Unregistered adapter for platform: $platformName")
+        Log.i(_TAG, "Unregistered adapter for platform: $platformName")
     }
 
     /** Get an adapter by platform name. */
@@ -71,14 +71,14 @@ class DeliveryRouter {
         replyTo: String? = null): DeliveryResult {
         val adapter = _adapters[platform]
         if (adapter == null) {
-            Log.w(TAG, "No adapter for platform: $platform")
+            Log.w(_TAG, "No adapter for platform: $platform")
             return DeliveryResult(success = false, error = "No adapter for platform: $platform")
         }
         return try {
             val result = adapter.send(chatId, text, replyTo, null)
             DeliveryResult(success = result.success, messageId = result.messageId, error = result.error, rawResponse = result.rawResponse)
         } catch (e: Exception) {
-            Log.e(TAG, "Delivery failed for $platform:$chatId: ${e.message}")
+            Log.e(_TAG, "Delivery failed for $platform:$chatId: ${e.message}")
             DeliveryResult(success = false, error = e.message)
         }
     }
@@ -100,7 +100,7 @@ class DeliveryRouter {
             val result = adapter.sendImage(chatId, imageUrl, caption, replyTo)
             DeliveryResult(success = result.success, messageId = result.messageId, error = result.error, rawResponse = result.rawResponse)
         } catch (e: Exception) {
-            Log.e(TAG, "Image delivery failed for $platform:$chatId: ${e.message}")
+            Log.e(_TAG, "Image delivery failed for $platform:$chatId: ${e.message}")
             DeliveryResult(success = false, error = e.message)
         }
     }
@@ -123,7 +123,7 @@ class DeliveryRouter {
             val result = adapter.sendDocument(chatId, filePath, fileName, caption, replyTo)
             DeliveryResult(success = result.success, messageId = result.messageId, error = result.error, rawResponse = result.rawResponse)
         } catch (e: Exception) {
-            Log.e(TAG, "Document delivery failed for $platform:$chatId: ${e.message}")
+            Log.e(_TAG, "Document delivery failed for $platform:$chatId: ${e.message}")
             DeliveryResult(success = false, error = e.message)
         }
     }
@@ -136,7 +136,7 @@ class DeliveryRouter {
         try {
             adapter.sendTyping(chatId, null)
         } catch (e: Exception) {
-            Log.w(TAG, "Typing indicator failed for $platform:$chatId: ${e.message}")
+            Log.w(_TAG, "Typing indicator failed for $platform:$chatId: ${e.message}")
         }
     }
 

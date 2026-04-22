@@ -61,7 +61,7 @@ abstract class BaseModalExecutionEnvironment(
     protected val modalTimeout: Int = 60
 ) {
     companion object {
-        private const val TAG = "BaseModalExec"
+        private const val _TAG = "BaseModalExec"
     }
 
     protected open val stdinMode: String = "payload"

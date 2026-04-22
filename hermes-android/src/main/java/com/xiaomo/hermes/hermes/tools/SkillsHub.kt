@@ -21,7 +21,7 @@ import java.util.zip.ZipInputStream
  * Ported from skills_hub.py
  */
 object SkillsHub {
-    private const val TAG = "SkillsHub"
+    private const val _TAG = "SkillsHub"
 
     data class SkillInfo(
         val name: String,
@@ -313,7 +313,7 @@ object SkillsHub {
             val remaining = headers["X-RateLimit-Remaining"]?.firstOrNull() ?: ""
             if (remaining == "0") {
                 _rateLimited = true
-                Log.w(TAG,
+                Log.w(_TAG,
                     "GitHub API rate limit exhausted (unauthenticated: 60 req/hr). " +
                     "Set GITHUB_TOKEN or install the gh CLI to raise the limit to 5,000/hr."
                 )

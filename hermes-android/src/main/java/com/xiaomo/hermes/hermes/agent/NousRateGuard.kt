@@ -19,7 +19,7 @@ import java.io.File
  */
 object NousRateGuard {
 
-    private const val TAG = "NousRateGuard"
+    private const val _TAG = "NousRateGuard"
 
     private const val STATE_SUBDIR = "rate_limits"
     private const val STATE_FILENAME = "nous.json"
@@ -135,11 +135,11 @@ object NousRateGuard {
                 throw e
             }
 
-            Log.i(TAG, "Nous rate limit recorded: resets in %.0fs (at %.0f)".format(
+            Log.i(_TAG, "Nous rate limit recorded: resets in %.0fs (at %.0f)".format(
                 resetAt!! - now, resetAt
             ))
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to write Nous rate limit state: $e")
+            Log.d(_TAG, "Failed to write Nous rate limit state: $e")
         }
     }
 
@@ -181,7 +181,7 @@ object NousRateGuard {
         } catch (_: java.io.FileNotFoundException) {
             // already gone
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to clear Nous rate limit state: $e")
+            Log.d(_TAG, "Failed to clear Nous rate limit state: $e")
         }
     }
 

@@ -46,7 +46,7 @@ class Telegram(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.TELEGRAM) {
     companion object {
-        private const val TAG = "Telegram"
+        private const val _TAG = "Telegram"
         const val MAX_MESSAGE_LENGTH = 4096
         const val API_BASE = "https://api.telegram.org"
 
@@ -118,7 +118,7 @@ class Telegram(
 
     override suspend fun connect(): Boolean {
         if (_token.isEmpty()) {
-            Log.e(TAG, "TELEGRAM_BOT_TOKEN not set")
+            Log.e(_TAG, "TELEGRAM_BOT_TOKEN not set")
             return false
         }
 
@@ -131,21 +131,21 @@ class Telegram(
 
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    Log.e(TAG, "Failed to get bot info: HTTP ${resp.code}")
+                    Log.e(_TAG, "Failed to get bot info: HTTP ${resp.code}")
                     return false
                 }
                 val data = JSONObject(resp.body!!.string())
                 if (!data.optBoolean("ok", false)) {
-                    Log.e(TAG, "getMe failed: ${data.optString("description")}")
+                    Log.e(_TAG, "getMe failed: ${data.optString("description")}")
                     return false
                 }
                 val result = data.getJSONObject("result")
                 _botUserId = result.getLong("id")
                 _botUserName = result.getString("username")
-                Log.i(TAG, "Bot connected: @$_botUserName ($_botUserId)")
+                Log.i(_TAG, "Bot connected: @$_botUserName ($_botUserId)")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Connection failed: ${e.message}")
+            Log.e(_TAG, "Connection failed: ${e.message}")
             return false
         }
 
@@ -177,7 +177,7 @@ class Telegram(
         }
 
         markDisconnected()
-        Log.i(TAG, "Disconnected")
+        Log.i(_TAG, "Disconnected")
     }
 
     // ------------------------------------------------------------------
@@ -189,14 +189,14 @@ class Telegram(
      */
     private fun _startPolling() {
         _pollingJob = scope.launch {
-            Log.i(TAG, "Starting long polling...")
+            Log.i(_TAG, "Starting long polling...")
             while (isActive) {
                 try {
                     _pollUpdates()
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    Log.w(TAG, "Polling error: ${e.message}")
+                    Log.w(_TAG, "Polling error: ${e.message}")
                     delay(5000) // Wait before retry
                 }
             }
@@ -222,13 +222,13 @@ class Telegram(
 
         _httpClient.newCall(request).execute().use { resp ->
             if (!resp.isSuccessful) {
-                Log.w(TAG, "getUpdates HTTP ${resp.code}")
+                Log.w(_TAG, "getUpdates HTTP ${resp.code}")
                 return@withContext
             }
 
             val data = JSONObject(resp.body!!.string())
             if (!data.optBoolean("ok", false)) {
-                Log.w(TAG, "getUpdates failed: ${data.optString("description")}")
+                Log.w(_TAG, "getUpdates failed: ${data.optString("description")}")
                 return@withContext
             }
 
@@ -252,10 +252,10 @@ class Telegram(
                 update.has("channel_post") -> _handleChannelPost(update.getJSONObject("channel_post"))
                 update.has("callback_query") -> _handleCallbackQuery(update.getJSONObject("callback_query"))
                 update.has("reaction") -> _handleReaction(update.getJSONArray("reaction"))
-                else -> Log.d(TAG, "Unknown update type")
+                else -> Log.d(_TAG, "Unknown update type")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Error handling update: ${e.message}")
+            Log.w(_TAG, "Error handling update: ${e.message}")
         }
     }
 
@@ -491,7 +491,7 @@ class Telegram(
             try {
                 handleMessage(event)
             } catch (e: Exception) {
-                Log.e(TAG, "Error processing message in chat $chatId: ${e.message}")
+                Log.e(_TAG, "Error processing message in chat $chatId: ${e.message}")
             }
         }
     }
@@ -524,7 +524,7 @@ class Telegram(
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
                     val errorBody = resp.body?.string() ?: ""
-                    Log.e(TAG, "Send failed: HTTP ${resp.code}: $errorBody")
+                    Log.e(_TAG, "Send failed: HTTP ${resp.code}: $errorBody")
                     return@withContext SendResult(success = false, error = "HTTP ${resp.code}")
                 }
 
@@ -628,11 +628,11 @@ class Telegram(
 
                 _httpClient.newCall(request).execute().use { resp ->
                     if (!resp.isSuccessful) {
-                        Log.w(TAG, "Typing indicator failed: HTTP ${resp.code}")
+                        Log.w(_TAG, "Typing indicator failed: HTTP ${resp.code}")
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Typing indicator error: ${e.message}")
+                Log.w(_TAG, "Typing indicator error: ${e.message}")
             }
         }
     }
@@ -651,11 +651,11 @@ class Telegram(
 
                 _httpClient.newCall(request).execute().use { resp ->
                     if (resp.isSuccessful) {
-                        Log.i(TAG, "Pending updates dropped")
+                        Log.i(_TAG, "Pending updates dropped")
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to drop pending updates: ${e.message}")
+                Log.w(_TAG, "Failed to drop pending updates: ${e.message}")
             }
         }
     }
@@ -678,13 +678,13 @@ class Telegram(
 
                 _httpClient.newCall(request).execute().use { resp ->
                     if (resp.isSuccessful) {
-                        Log.i(TAG, "Webhook set to $_webhookUrl")
+                        Log.i(_TAG, "Webhook set to $_webhookUrl")
                     } else {
-                        Log.e(TAG, "Failed to set webhook: HTTP ${resp.code}")
+                        Log.e(_TAG, "Failed to set webhook: HTTP ${resp.code}")
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to set webhook: ${e.message}")
+                Log.e(_TAG, "Failed to set webhook: ${e.message}")
             }
         }
     }
@@ -698,9 +698,9 @@ class Telegram(
                     .build()
 
                 _httpClient.newCall(request).execute()
-                Log.i(TAG, "Webhook deleted")
+                Log.i(_TAG, "Webhook deleted")
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to delete webhook: ${e.message}")
+                Log.w(_TAG, "Failed to delete webhook: ${e.message}")
             }
         }
     }

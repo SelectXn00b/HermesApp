@@ -24,7 +24,7 @@ import android.util.Log
  */
 object Patches {
 
-    private const val TAG = "Patches"
+    private const val _TAG = "Patches"
 
     @Volatile
     private var _patchesApplied = false
@@ -36,7 +36,7 @@ object Patches {
         if (_patchesApplied) {
             return
         }
-        Log.d(TAG, "applyPatches() called; no patches needed (async safety is built-in)")
+        Log.d(_TAG, "applyPatches() called; no patches needed (async safety is built-in)")
         _patchesApplied = true
     }
 }

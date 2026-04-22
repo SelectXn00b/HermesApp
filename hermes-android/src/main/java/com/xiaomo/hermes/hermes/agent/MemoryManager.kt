@@ -12,7 +12,7 @@ class MemoryManager(
 ) {
 
     companion object {
-        private const val TAG = "MemoryManager"
+        private const val _TAG = "MemoryManager"
     }
 
     private val _providers: MutableList<MemoryProvider> = mutableListOf()
@@ -114,7 +114,7 @@ class MemoryManager(
         if (!isBuiltin) {
             if (_hasExternal) {
                 val existing = _providers.firstOrNull { it !is InMemoryMemoryProvider && it != this.provider }
-                android.util.Log.w(TAG,
+                android.util.Log.w(_TAG,
                     "Rejected memory provider — external provider is already registered. " +
                     "Only one external memory provider is allowed at a time."
                 )
@@ -135,7 +135,7 @@ class MemoryManager(
             }
         } catch (_: Exception) { }
 
-        android.util.Log.d(TAG, "Memory provider registered (${provider.getToolSchemas().size} tools)")
+        android.util.Log.d(_TAG, "Memory provider registered (${provider.getToolSchemas().size} tools)")
     }
 
     /** All registered providers in order. */
@@ -156,7 +156,7 @@ class MemoryManager(
                 val block = p.systemPromptBlock()
                 if (block.isNotEmpty()) blocks.add(block)
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "system_prompt_block() failed: ${e.message}")
+                android.util.Log.w(_TAG, "system_prompt_block() failed: ${e.message}")
             }
         }
         return blocks.joinToString("\n\n")
@@ -170,7 +170,7 @@ class MemoryManager(
                 val result = p.prefetch(query)
                 if (result.isNotEmpty()) parts.add(result)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "prefetch failed (non-fatal): ${e.message}")
+                android.util.Log.d(_TAG, "prefetch failed (non-fatal): ${e.message}")
             }
         }
         return parts.joinToString("\n\n")
@@ -182,7 +182,7 @@ class MemoryManager(
             try {
                 p.queuePrefetch(query)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "queue_prefetch failed (non-fatal): ${e.message}")
+                android.util.Log.d(_TAG, "queue_prefetch failed (non-fatal): ${e.message}")
             }
         }
     }
@@ -193,7 +193,7 @@ class MemoryManager(
             try {
                 p.syncTurn(userContent, assistantContent)
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "sync_turn failed: ${e.message}")
+                android.util.Log.w(_TAG, "sync_turn failed: ${e.message}")
             }
         }
     }
@@ -212,7 +212,7 @@ class MemoryManager(
                     }
                 }
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "get_tool_schemas() failed: ${e.message}")
+                android.util.Log.w(_TAG, "get_tool_schemas() failed: ${e.message}")
             }
         }
         return schemas
@@ -237,7 +237,7 @@ class MemoryManager(
         return try {
             p.handleToolCall(toolName, args, kwargs)
         } catch (e: Exception) {
-            android.util.Log.e(TAG, "handle_tool_call($toolName) failed: ${e.message}")
+            android.util.Log.e(_TAG, "handle_tool_call($toolName) failed: ${e.message}")
             "Error: Memory tool '$toolName' failed: ${e.message}"
         }
     }
@@ -248,7 +248,7 @@ class MemoryManager(
             try {
                 p.onTurnStart(turnNumber, message, kwargs)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "on_turn_start failed: ${e.message}")
+                android.util.Log.d(_TAG, "on_turn_start failed: ${e.message}")
             }
         }
     }
@@ -259,7 +259,7 @@ class MemoryManager(
             try {
                 p.onSessionEnd(messages)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "on_session_end failed: ${e.message}")
+                android.util.Log.d(_TAG, "on_session_end failed: ${e.message}")
             }
         }
     }
@@ -272,7 +272,7 @@ class MemoryManager(
                 val result = p.onPreCompress(messages)
                 if (result.isNotEmpty()) parts.add(result)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "on_pre_compress failed: ${e.message}")
+                android.util.Log.d(_TAG, "on_pre_compress failed: ${e.message}")
             }
         }
         return parts.joinToString("\n\n")
@@ -285,7 +285,7 @@ class MemoryManager(
             try {
                 p.onMemoryWrite(action, target, content)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "on_memory_write failed: ${e.message}")
+                android.util.Log.d(_TAG, "on_memory_write failed: ${e.message}")
             }
         }
     }
@@ -296,7 +296,7 @@ class MemoryManager(
             try {
                 p.onDelegation(task, result, kwargs)
             } catch (e: Exception) {
-                android.util.Log.d(TAG, "on_delegation failed: ${e.message}")
+                android.util.Log.d(_TAG, "on_delegation failed: ${e.message}")
             }
         }
     }
@@ -307,7 +307,7 @@ class MemoryManager(
             try {
                 p.shutdown()
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "shutdown failed: ${e.message}")
+                android.util.Log.w(_TAG, "shutdown failed: ${e.message}")
             }
         }
     }
@@ -318,7 +318,7 @@ class MemoryManager(
             try {
                 p.initialize(sessionId, kwargs)
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "initialize failed: ${e.message}")
+                android.util.Log.w(_TAG, "initialize failed: ${e.message}")
             }
         }
     }

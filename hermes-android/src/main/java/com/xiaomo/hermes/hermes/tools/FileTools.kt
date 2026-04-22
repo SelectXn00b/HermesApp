@@ -12,7 +12,7 @@ import java.io.File
  */
 object FileTools {
 
-    private const val TAG = "FileTools"
+    private const val _TAG = "FileTools"
     private val gson = Gson()
 
     /**

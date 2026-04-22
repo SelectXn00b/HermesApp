@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  */
 object BrowserCamofox {
 
-    private const val TAG = "BrowserCamofox"
+    private const val _TAG = "BrowserCamofox"
     private const val TIMEOUT_SECONDS = 30L
     private val gson = Gson()
     private val JSON = "application/json".toMediaType()

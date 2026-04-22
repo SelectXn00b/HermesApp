@@ -20,13 +20,13 @@ class DaytonaEnvironment(
     private val taskId: String = "default"
 ) {
     companion object {
-        private const val TAG = "DaytonaEnvironment"
+        private const val _TAG = "DaytonaEnvironment"
     }
 
     private var remoteHome: String = "/root"
 
     init {
-        Log.d(TAG, "DaytonaEnvironment initialized for task=$taskId (stub - SDK not available on Android)")
+        Log.d(_TAG, "DaytonaEnvironment initialized for task=$taskId (stub - SDK not available on Android)")
     }
 
     /**
@@ -34,7 +34,7 @@ class DaytonaEnvironment(
      * On Android, this is a server-side operation.
      */
     fun _daytonaUpload(hostPath: String, remotePath: String) {
-        Log.d(TAG, "daytonaUpload: $hostPath -> $remotePath (server-side stub)")
+        Log.d(_TAG, "daytonaUpload: $hostPath -> $remotePath (server-side stub)")
     }
 
     /**
@@ -44,14 +44,14 @@ class DaytonaEnvironment(
      */
     fun _daytonaBulkUpload(files: List<Pair<String, String>>) {
         if (files.isEmpty()) return
-        Log.d(TAG, "daytonaBulkUpload: ${files.size} files (server-side stub)")
+        Log.d(_TAG, "daytonaBulkUpload: ${files.size} files (server-side stub)")
     }
 
     /**
      * Download remote .hermes/ as a tar archive from Daytona sandbox.
      */
     fun _daytonaBulkDownload(dest: String) {
-        Log.d(TAG, "daytonaBulkDownload: -> $dest (server-side stub)")
+        Log.d(_TAG, "daytonaBulkDownload: -> $dest (server-side stub)")
     }
 
     /**
@@ -59,7 +59,7 @@ class DaytonaEnvironment(
      */
     fun _daytonaDelete(remotePaths: List<String>) {
         if (remotePaths.isEmpty()) return
-        Log.d(TAG, "daytonaDelete: ${remotePaths.size} files (server-side stub)")
+        Log.d(_TAG, "daytonaDelete: ${remotePaths.size} files (server-side stub)")
     }
 
     /**
@@ -67,7 +67,7 @@ class DaytonaEnvironment(
      */
     fun _ensureSandboxReady() {
         // On Android, sandbox lifecycle is managed server-side
-        Log.d(TAG, "ensureSandboxReady: server-side operation")
+        Log.d(_TAG, "ensureSandboxReady: server-side operation")
     }
 
     /**
@@ -76,7 +76,7 @@ class DaytonaEnvironment(
     fun _beforeExecute() {
         _ensureSandboxReady()
         // Would trigger FileSyncManager.sync()
-        Log.d(TAG, "beforeExecute: file sync (server-side stub)")
+        Log.d(_TAG, "beforeExecute: file sync (server-side stub)")
     }
 
     /**
@@ -84,7 +84,7 @@ class DaytonaEnvironment(
      * On Android, Daytona SDK is not available.
      */
     fun _runBash(cmdString: String): Any? {
-        Log.d(TAG, "runBash: Daytona SDK not available on Android")
+        Log.d(_TAG, "runBash: Daytona SDK not available on Android")
         return null
     }
 
@@ -94,6 +94,6 @@ class DaytonaEnvironment(
      * Otherwise, deletes the sandbox entirely.
      */
     fun cleanup() {
-        Log.d(TAG, "cleanup: ${if (persistentFilesystem) "stopping" else "deleting"} sandbox (server-side stub)")
+        Log.d(_TAG, "cleanup: ${if (persistentFilesystem) "stopping" else "deleting"} sandbox (server-side stub)")
     }
 }

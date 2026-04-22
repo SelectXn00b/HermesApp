@@ -2,7 +2,7 @@ package com.xiaomo.hermes.hermes.gateway
 
 import android.util.Log
 
-private const val TAG = "Display"
+private const val _TAG = "Display"
 
 // ── Utility functions ───────────────────────────────────────────────
 

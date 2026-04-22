@@ -35,7 +35,7 @@ private const val MAX_FAILED_ATTEMPTS = 5               // Failed approvals befo
  */
 class PairingStore {
     companion object {
-        private const val TAG = "PairingStore"
+        private const val _TAG = "PairingStore"
     }
 
     private val _lock = ReentrantLock()
@@ -63,7 +63,7 @@ class PairingStore {
             path.parentFile?.mkdirs()
             path.writeText(data.toString(2), Charsets.UTF_8)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to save JSON to ${path.path}: ${e.message}")
+            Log.w(_TAG, "Failed to save JSON to ${path.path}: ${e.message}")
         }
     }
 
@@ -237,7 +237,7 @@ class PairingStore {
             val lockoutKey = "_lockout:$platform"
             limits.put(lockoutKey, System.currentTimeMillis() / 1000.0 + LOCKOUT_SECONDS)
             limits.put(failKey, 0)
-            Log.w(TAG, "Platform $platform locked out for ${LOCKOUT_SECONDS}s after $MAX_FAILED_ATTEMPTS failed attempts")
+            Log.w(_TAG, "Platform $platform locked out for ${LOCKOUT_SECONDS}s after $MAX_FAILED_ATTEMPTS failed attempts")
         }
         _saveJson(_rateLimitPath(), limits)
     }

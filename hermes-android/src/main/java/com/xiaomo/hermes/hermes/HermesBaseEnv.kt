@@ -100,7 +100,7 @@ abstract class HermesAgentBaseEnv(
     val config: HermesAgentEnvConfig
 ) {
     companion object {
-        private const val TAG = "HermesAgentBaseEnv"
+        private const val _TAG = "HermesAgentBaseEnv"
     }
 
     // Current group's resolved tools (set in collectTrajectories)
@@ -126,7 +126,7 @@ abstract class HermesAgentBaseEnv(
     private fun _resolveToolsForGroup(): Pair<List<Map<String, Any?>>, Set<String>> {
         val groupToolsets: List<String>? = if (config.distribution != null) {
             // Would sample from distribution - stub for Android
-            Log.i(TAG, "Distribution sampling not available on Android, using all tools")
+            Log.i(_TAG, "Distribution sampling not available on Android, using all tools")
             null
         } else {
             config.enabledToolsets
@@ -136,7 +136,7 @@ abstract class HermesAgentBaseEnv(
         // Real tool definitions come from the agent loop server-side
         val tools = emptyList<Map<String, Any?>>()
         val validNames = emptySet<String>()
-        Log.i(TAG, "Resolved ${validNames.size} tools for group")
+        Log.i(_TAG, "Resolved ${validNames.size} tools for group")
         return Pair(tools, validNames)
     }
 
@@ -238,7 +238,7 @@ abstract class HermesAgentBaseEnv(
      */
     suspend fun addRolloutsForWandb(scoredData: Map<String, Any?>?, item: Item? = null) {
         // On Android, wandb logging is a no-op (server-side concern)
-        Log.d(TAG, "addRolloutsForWandb called (no-op on Android)")
+        Log.d(_TAG, "addRolloutsForWandb called (no-op on Android)")
     }
 
     /**
@@ -264,7 +264,7 @@ abstract class HermesAgentBaseEnv(
         }
 
         // On Android, wandb logging is handled server-side
-        Log.d(TAG, "wandbLog: ${metrics.size} metrics")
+        Log.d(_TAG, "wandbLog: ${metrics.size} metrics")
     }
 
     /**

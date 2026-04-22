@@ -10,7 +10,7 @@ import android.util.Log
  */
 class BrowserbaseProvider {
     companion object {
-        private const val TAG = "BrowserbaseProvider"
+        private const val _TAG = "BrowserbaseProvider"
         private const val PROVIDER_NAME = "browserbase"
     }
 
@@ -59,7 +59,7 @@ class BrowserbaseProvider {
      */
     fun createSession(taskId: String): Map<String, Any?> {
         // On Android, browser session creation is a server-side operation
-        Log.d(TAG, "createSession: server-side operation for task=$taskId")
+        Log.d(_TAG, "createSession: server-side operation for task=$taskId")
         return mapOf(
             "session_id" to "",
             "connect_url" to "",
@@ -72,7 +72,7 @@ class BrowserbaseProvider {
      */
     fun closeSession(sessionId: String): Boolean {
         if (sessionId.isEmpty()) return false
-        Log.d(TAG, "closeSession: $sessionId (server-side)")
+        Log.d(_TAG, "closeSession: $sessionId (server-side)")
         return true
     }
 
@@ -84,7 +84,7 @@ class BrowserbaseProvider {
         try {
             closeSession(sessionId)
         } catch (e: Exception) {
-            Log.w(TAG, "Emergency cleanup failed for session $sessionId: ${e.message}")
+            Log.w(_TAG, "Emergency cleanup failed for session $sessionId: ${e.message}")
         }
     }
 }

@@ -29,7 +29,7 @@ class FileSyncManager(
     private val bulkDownloadFn: BulkDownloadFn? = null
 ) {
     companion object {
-        private const val TAG = "FileSyncManager"
+        private const val _TAG = "FileSyncManager"
         private const val SYNC_BACK_MAX_RETRIES = 3
         private val SYNC_BACK_BACKOFF = intArrayOf(2, 4, 8)
         private const val SYNC_BACK_MAX_BYTES = 2L * 1024 * 1024 * 1024 // 2 GiB
@@ -101,7 +101,7 @@ class FileSyncManager(
             syncedFiles = prevFiles
             pushedHashes = prevHashes
             lastSyncTime = System.currentTimeMillis()
-            Log.w(TAG, "file_sync: sync failed, rolled back state: ${e.message}")
+            Log.w(_TAG, "file_sync: sync failed, rolled back state: ${e.message}")
         }
     }
 
@@ -116,7 +116,7 @@ class FileSyncManager(
 
         // Nothing was ever committed -- skip
         if (pushedHashes.isEmpty() && syncedFiles.isEmpty()) {
-            Log.d(TAG, "sync_back: no prior push state -- skipping")
+            Log.d(_TAG, "sync_back: no prior push state -- skipping")
             return
         }
 
@@ -132,12 +132,12 @@ class FileSyncManager(
                 lastExc = e
                 if (attempt < SYNC_BACK_MAX_RETRIES - 1) {
                     val delay = SYNC_BACK_BACKOFF[attempt]
-                    Log.w(TAG, "sync_back: attempt ${attempt + 1} failed (${e.message}), retrying in ${delay}s")
+                    Log.w(_TAG, "sync_back: attempt ${attempt + 1} failed (${e.message}), retrying in ${delay}s")
                     Thread.sleep(delay * 1000L)
                 }
             }
         }
-        Log.w(TAG, "sync_back: all $SYNC_BACK_MAX_RETRIES attempts failed: ${lastExc?.message}")
+        Log.w(_TAG, "sync_back: all $SYNC_BACK_MAX_RETRIES attempts failed: ${lastExc?.message}")
     }
 
     /**
@@ -173,13 +173,13 @@ class FileSyncManager(
 
             val tarSize = tempFile.length()
             if (tarSize > SYNC_BACK_MAX_BYTES) {
-                Log.w(TAG, "sync_back: remote tar is $tarSize bytes (cap $SYNC_BACK_MAX_BYTES) -- skipping")
+                Log.w(_TAG, "sync_back: remote tar is $tarSize bytes (cap $SYNC_BACK_MAX_BYTES) -- skipping")
                 return
             }
 
             // On Android, tar extraction would need a tar library
             // This is a structural stub
-            Log.d(TAG, "sync_back: would extract and apply changed files from tar")
+            Log.d(_TAG, "sync_back: would extract and apply changed files from tar")
         } finally {
             tempFile.delete()
         }

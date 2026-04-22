@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
  */
 object OpenrouterClient {
 
-    private const val TAG = "OpenRouter"
+    private const val _TAG = "OpenRouter"
     private const val BASE_URL = "https://openrouter.ai/api/v1"
     private const val TIMEOUT_SECONDS = 120L
     private val gson = Gson()

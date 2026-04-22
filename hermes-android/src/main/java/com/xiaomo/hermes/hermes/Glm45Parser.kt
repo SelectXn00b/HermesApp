@@ -16,7 +16,7 @@ import java.util.regex.Pattern
 open class Glm45ToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("glm45")
     companion object {
-        private const val TAG = "Glm45Parser"
+        private const val _TAG = "Glm45Parser"
         internal val FUNC_CALL_REGEX = Pattern.compile("<tool_call>.*?</tool_call>", Pattern.DOTALL)
         internal val FUNC_DETAIL_REGEX = Pattern.compile("<tool_call>([^\\n]*)\\n(.*)</tool_call>", Pattern.DOTALL)
         internal val FUNC_ARG_REGEX = Pattern.compile("<arg_key>(.*?)</arg_key>\\s*<arg_value>(.*?)</arg_value>", Pattern.DOTALL)

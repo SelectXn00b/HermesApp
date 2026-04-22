@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
  */
 object McpTool {
 
-    private const val TAG = "Mcptool"
+    private const val _TAG = "Mcptool"
     private val gson = Gson()
     private val JSON = "application/json".toMediaType()
 
@@ -93,7 +93,7 @@ object McpTool {
 
             client.newCall(requestBuilder.build()).execute().use { response ->
                 if (!response.isSuccessful) {
-                    Log.w(TAG, "Failed to list tools from $serverName: ${response.code}")
+                    Log.w(_TAG, "Failed to list tools from $serverName: ${response.code}")
                     return emptyList()
                 }
                 val body = response.body?.string() ?: return emptyList()
@@ -111,7 +111,7 @@ object McpTool {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to discover tools from $serverName: ${e.message}")
+            Log.e(_TAG, "Failed to discover tools from $serverName: ${e.message}")
             emptyList()
         }
     }
@@ -366,7 +366,7 @@ object McpTool {
      * Not supported on Android (no subprocess management).
      */
     suspend fun _runStdio(config: Any?): Any? {
-        Log.w(TAG, "_runStdio: stdio transport not supported on Android")
+        Log.w(_TAG, "_runStdio: stdio transport not supported on Android")
         return null
     }
 
@@ -429,7 +429,7 @@ object McpTool {
         for (name in serverNames) {
             unregisterServer(name)
         }
-        Log.i(TAG, "Shutdown complete. Unregistered ${serverNames.size} servers.")
+        Log.i(_TAG, "Shutdown complete. Unregistered ${serverNames.size} servers.")
         return true
     }
 

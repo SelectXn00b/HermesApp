@@ -36,7 +36,7 @@ data class LogEntry(
 // ── 日志系统 ──────────────────────────────────────────────────────────────
 object HermesLogging {
 
-    private const val TAG = "Hermes"
+    private const val _TAG = "Hermes"
     private var _logLevel: LogLevel = LogLevel.INFO
     private var _logFile: File? = null
     private val _logBuffer = ConcurrentLinkedQueue<LogEntry>()
@@ -58,7 +58,7 @@ object HermesLogging {
         // 创建日志目录
         logFile?.parentFile?.mkdirs()
 
-        Log.i(TAG, "Hermes logging initialized (level=${level.tag})")
+        Log.i(_TAG, "Hermes logging initialized (level=${level.tag})")
     }
 
     /**
@@ -94,9 +94,9 @@ object HermesLogging {
             LogLevel.ERROR -> Log.ERROR
             LogLevel.CRITICAL -> Log.ERROR
         }
-        Log.println(androidLevel, "$TAG.$loggerName", message)
+        Log.println(androidLevel, "$_TAG.$loggerName", message)
         if (exception != null) {
-            Log.e("$TAG.$loggerName", exceptionStr ?: exception.toString())
+            Log.e("$_TAG.$loggerName", exceptionStr ?: exception.toString())
         }
 
         // 写入文件
@@ -108,7 +108,7 @@ object HermesLogging {
                     file.appendText(exceptionStr + "\n")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to write to log file: ${e.message}")
+                Log.e(_TAG, "Failed to write to log file: ${e.message}")
             }
         }
 
@@ -147,7 +147,7 @@ object HermesLogging {
             try {
                 it.delete()
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to delete old log file: ${it.name}")
+                Log.w(_TAG, "Failed to delete old log file: ${it.name}")
             }
         }
     }

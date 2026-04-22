@@ -41,7 +41,7 @@ class MirrorBridge(
         .readTimeout(30, TimeUnit.SECONDS)
         .build()) {
     companion object {
-        private const val TAG = "MirrorBridge"
+        private const val _TAG = "MirrorBridge"
     }
 
     /** source_key → MirrorRule */
@@ -75,7 +75,7 @@ class MirrorBridge(
         try {
             _deliver(rule, text, userId)
         } catch (e: Exception) {
-            Log.w(TAG, "Mirror delivery failed for $sourceKey: ${e.message}")
+            Log.w(_TAG, "Mirror delivery failed for $sourceKey: ${e.message}")
         }
     }
 
@@ -94,7 +94,7 @@ class MirrorBridge(
                 .build()
             httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    Log.w(TAG, "Mirror HTTP ${resp.code}: ${resp.body?.string()}")
+                    Log.w(_TAG, "Mirror HTTP ${resp.code}: ${resp.body?.string()}")
                 }
             }
         }

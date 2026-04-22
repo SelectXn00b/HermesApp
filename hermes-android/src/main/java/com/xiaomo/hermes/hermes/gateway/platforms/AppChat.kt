@@ -45,7 +45,7 @@ class AppChat(
 ) : BasePlatformAdapter(config, Platform.APP_CHAT) {
 
     companion object {
-        private const val TAG = "AppChat"
+        private const val _TAG = "AppChat"
         private val messageIdCounter = AtomicLong(0)
     }
 
@@ -60,13 +60,13 @@ class AppChat(
 
     override suspend fun connect(): Boolean {
         markConnected()
-        Log.i(TAG, "AppChat connected (in-process)")
+        Log.i(_TAG, "AppChat connected (in-process)")
         return true
     }
 
     override suspend fun disconnect() {
         markDisconnected()
-        Log.i(TAG, "AppChat disconnected")
+        Log.i(_TAG, "AppChat disconnected")
     }
 
     // ── Inbound: Chat UI → GatewayRunner ────────────────────────────
@@ -102,7 +102,7 @@ class AppChat(
             timestamp = Instant.now()
         )
 
-        Log.d(TAG, "Pushing message: ${text.take(80)}")
+        Log.d(_TAG, "Pushing message: ${text.take(80)}")
         handleMessage(event)
     }
 
@@ -115,7 +115,7 @@ class AppChat(
         metadata: JSONObject?
     ): SendResult {
         val msgId = "app_resp_${messageIdCounter.incrementAndGet()}"
-        Log.d(TAG, "Sending response to chat=$chatId: ${content.take(80)}")
+        Log.d(_TAG, "Sending response to chat=$chatId: ${content.take(80)}")
 
         val response = ChatResponse(
             text = content,

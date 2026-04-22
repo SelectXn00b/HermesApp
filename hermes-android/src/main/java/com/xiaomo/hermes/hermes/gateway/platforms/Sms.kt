@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Sms(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.SMS) {
-    companion object { private const val TAG = "Sms" }
+    companion object { private const val _TAG = "Sms" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "SMS adapter is iOS-specific — not supported on Android")
+        Log.w(_TAG, "SMS adapter is iOS-specific — not supported on Android")
         return false
     }
 

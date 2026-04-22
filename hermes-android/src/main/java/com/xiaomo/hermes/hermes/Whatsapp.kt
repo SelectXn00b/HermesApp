@@ -10,7 +10,7 @@ class WhatsAppAdapter(
     private val config: Any? = null
 ) {
     companion object {
-        private const val TAG = "WhatsAppAdapter"
+        private const val _TAG = "WhatsAppAdapter"
     }
 
     private fun whatsappRequireMention(): Boolean {

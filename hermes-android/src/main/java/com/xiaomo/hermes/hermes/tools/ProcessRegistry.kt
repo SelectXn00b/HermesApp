@@ -15,7 +15,7 @@ import kotlin.concurrent.thread
  */
 object ProcessRegistry {
 
-    private const val TAG = "ProcessRegistry"
+    private const val _TAG = "ProcessRegistry"
 
     // Limits
     private const val MAX_OUTPUT_CHARS = 200_000  // 200KB rolling output buffer
@@ -207,7 +207,7 @@ object ProcessRegistry {
             val proc = pb.start()
             proc.waitFor(5, TimeUnit.SECONDS)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to terminate host PID $pid: ${e.message}")
+            Log.w(_TAG, "Failed to terminate host PID $pid: ${e.message}")
             try {
                 val pb = ProcessBuilder("kill", "-9", pid.toString())
                 pb.redirectErrorStream(true)
@@ -241,7 +241,7 @@ object ProcessRegistry {
             startedAt = currentTimeSeconds())
 
         if (usePty) {
-            Log.w(TAG, "PTY mode not supported on Android, falling back to pipe mode")
+            Log.w(_TAG, "PTY mode not supported on Android, falling back to pipe mode")
         }
 
         try {
@@ -280,7 +280,7 @@ object ProcessRegistry {
             session.exited = true
             session.exitCode = -1
             session.outputBuffer = "Failed to start: ${e.message}"
-            Log.e(TAG, "Failed to spawn local process: ${e.message}")
+            Log.e(_TAG, "Failed to spawn local process: ${e.message}")
         }
 
         return session
@@ -382,12 +382,12 @@ object ProcessRegistry {
                 checkWatchPatterns(session, chunk)
             }
         } catch (e: Exception) {
-            Log.d(TAG, "Process stdout reader ended: ${e.message}")
+            Log.d(_TAG, "Process stdout reader ended: ${e.message}")
         } finally {
             try {
                 proc.waitFor(5, TimeUnit.SECONDS)
             } catch (e: Exception) {
-                Log.d(TAG, "Process wait timed out or failed: ${e.message}")
+                Log.d(_TAG, "Process wait timed out or failed: ${e.message}")
             }
             session.exited = true
             session.exitCode = try { proc.exitValue() } catch (_: Exception) { -1 }
@@ -452,7 +452,7 @@ object ProcessRegistry {
 
     fun ptyReaderLoop(session: ProcessSession) {
         // PTY not supported on Android — Log.w and mark as exited
-        Log.w(TAG, "PTY reader loop called but PTY is not supported on Android")
+        Log.w(_TAG, "PTY reader loop called but PTY is not supported on Android")
         session.exited = true
         session.exitCode = -1
         moveToFinished(session)
@@ -769,7 +769,7 @@ object ProcessRegistry {
                 file.writeText(json.toString())
             }
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to write checkpoint file: ${e.message}")
+            Log.d(_TAG, "Failed to write checkpoint file: ${e.message}")
         }
     }
 
@@ -789,7 +789,7 @@ object ProcessRegistry {
 
             val pidScope = entry.optString("pid_scope", "host")
             if (pidScope != "host") {
-                Log.i(TAG, "Skipping recovery for non-host process: ${entry.optString("command", "unknown").take(60)}")
+                Log.i(_TAG, "Skipping recovery for non-host process: ${entry.optString("command", "unknown").take(60)}")
                 continue
             }
 
@@ -818,7 +818,7 @@ object ProcessRegistry {
                     } catch (_: Exception) { emptyList() })
                 _running[session.id] = session
                 recovered++
-                Log.i(TAG, "Recovered detached process: ${session.command.take(60)} (pid=$pid)")
+                Log.i(_TAG, "Recovered detached process: ${session.command.take(60)} (pid=$pid)")
 
                 if (session.watcherInterval > 0) {
                     pendingWatchers.add(mapOf(

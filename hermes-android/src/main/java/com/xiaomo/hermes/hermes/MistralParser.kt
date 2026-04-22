@@ -24,7 +24,7 @@ class MistralToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("mistral")
 
     companion object {
-        private const val TAG = "MistralParser"
+        private const val _TAG = "MistralParser"
         private const val BOT_TOKEN = "[TOOL_CALLS]"
 
         /** Mistral tool call IDs are 9-char alphanumeric strings. */
@@ -151,7 +151,7 @@ class MistralToolCallParser : ToolCallParser() {
 
             return ParseResult(if (content.isNotEmpty()) content else null, toolCalls)
         } catch (e: Exception) {
-            Log.d(TAG, "parse error: ${e.message}")
+            Log.d(_TAG, "parse error: ${e.message}")
             return ParseResult(response, null)
         }
     }

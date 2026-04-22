@@ -10,7 +10,7 @@ import android.util.Log
  */
 class FirecrawlProvider {
     companion object {
-        private const val TAG = "FirecrawlProvider"
+        private const val _TAG = "FirecrawlProvider"
         private const val PROVIDER_NAME = "firecrawl"
         private const val DEFAULT_API_URL = "https://api.firecrawl.dev"
     }
@@ -48,7 +48,7 @@ class FirecrawlProvider {
         }
 
         // On Android, session creation is a server-side HTTP operation
-        Log.d(TAG, "createSession: server-side operation for task=$taskId")
+        Log.d(_TAG, "createSession: server-side operation for task=$taskId")
         return mapOf(
             "session_id" to taskId,
             "provider" to PROVIDER_NAME,
@@ -62,7 +62,7 @@ class FirecrawlProvider {
      */
     fun closeSession(sessionId: String): Boolean {
         // Firecrawl is stateless - no session to close
-        Log.d(TAG, "closeSession: $sessionId (no-op for stateless API)")
+        Log.d(_TAG, "closeSession: $sessionId (no-op for stateless API)")
         return true
     }
 
@@ -72,6 +72,6 @@ class FirecrawlProvider {
      */
     fun emergencyCleanup(sessionId: String) {
         // Firecrawl is stateless - nothing to clean up
-        Log.d(TAG, "emergencyCleanup: $sessionId (no-op)")
+        Log.d(_TAG, "emergencyCleanup: $sessionId (no-op)")
     }
 }

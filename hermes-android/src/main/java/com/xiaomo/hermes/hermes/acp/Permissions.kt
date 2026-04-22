@@ -11,7 +11,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  */
 object Permissions {
 
-    private const val TAG = "ACP.Permissions"
+    private const val _TAG = "ACP.Permissions"
 
     /**
      * Maps ACP PermissionOptionKind -> hermes approval result strings.
@@ -104,13 +104,13 @@ object Permissions {
                             }
                         }
                     } else {
-                        Log.w(TAG, "Permission request timed out")
+                        Log.w(_TAG, "Permission request timed out")
                     }
                 }
                 // Note: In a real implementation, we'd need to block here to
                 // return the result synchronously. This is a structural placeholder.
             } catch (e: Exception) {
-                Log.w(TAG, "Permission request failed: ${e.message}")
+                Log.w(_TAG, "Permission request failed: ${e.message}")
                 result = "deny"
             }
 

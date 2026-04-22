@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Slack(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.SLACK) {
-    companion object { private const val TAG = "Slack" }
+    companion object { private const val _TAG = "Slack" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "Slack adapter is a stub — not implemented on Android")
+        Log.w(_TAG, "Slack adapter is a stub — not implemented on Android")
         return false
     }
 

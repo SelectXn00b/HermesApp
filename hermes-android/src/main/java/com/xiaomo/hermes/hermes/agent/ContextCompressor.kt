@@ -416,7 +416,7 @@ class ContextCompressor(
     private var summaryTargetRatio: Double = 0.20
 
     companion object {
-        private const val TAG = "ContextCompressor"
+        private const val _TAG = "ContextCompressor"
         private const val MINIMUM_CONTEXT_LENGTH = 4096
         private const val _MIN_SUMMARY_TOKENS = 2000
         private const val _SUMMARY_RATIO = 0.20
@@ -566,7 +566,7 @@ class ContextCompressor(
     fun _generateSummary(turnsToSummarize: List<Map<String, Any>>, focusTopic: String? = null): String? {
         // Android side cannot call LLM directly for summarization.
         // Return null to signal the caller to use a static fallback.
-        android.util.Log.d(TAG, "_generateSummary called but LLM summarization not available on Android")
+        android.util.Log.d(_TAG, "_generateSummary called but LLM summarization not available on Android")
         return null
     }
 
@@ -739,7 +739,7 @@ class ContextCompressor(
         if (lastUserIdx < 0) return cutIdx
         if (lastUserIdx >= cutIdx) return cutIdx
         if (!quietMode) {
-            android.util.Log.d(TAG, "Anchoring tail cut to last user message at index $lastUserIdx (was $cutIdx)")
+            android.util.Log.d(_TAG, "Anchoring tail cut to last user message at index $lastUserIdx (was $cutIdx)")
         }
         return maxOf(lastUserIdx, headEnd + 1)
     }

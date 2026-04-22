@@ -11,7 +11,7 @@ import org.json.JSONObject
  */
 object FeishuDocTool {
 
-    private const val TAG = "FeishuDocTool"
+    private const val _TAG = "FeishuDocTool"
 
     // Thread-local storage for the lark client injected by feishu_comment handler.
     private val _local = ThreadLocal<Any?>()
@@ -95,7 +95,7 @@ object FeishuDocTool {
             }
             return toolError("No content returned from document API")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to read document", e)
+            Log.e(_TAG, "Failed to read document", e)
             return toolError("Failed to read document: ${e.message}")
         }
     }
@@ -107,7 +107,7 @@ object FeishuDocTool {
     private fun executeDocRequest(client: Any, docToken: String): String? {
         // This would be implemented with the actual Feishu SDK
         // For now, returning null to match the structural pattern
-        Log.d(TAG, "executeDocRequest: docToken=$docToken")
+        Log.d(_TAG, "executeDocRequest: docToken=$docToken")
         return null
     }
 

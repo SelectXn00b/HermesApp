@@ -17,10 +17,10 @@ import org.json.JSONObject
 class ApiServer(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.API_SERVER) {
-    companion object { private const val TAG = "ApiServer" }
+    companion object { private const val _TAG = "ApiServer" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "API Server adapter requires HTTP server — not supported on Android")
+        Log.w(_TAG, "API Server adapter requires HTTP server — not supported on Android")
         return false
     }
 

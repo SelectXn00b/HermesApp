@@ -295,7 +295,7 @@ abstract class BasePlatformAdapter(
     /** Platform name. */
     val platform: Platform) {
     companion object {
-        private const val TAG = "BasePlatformAdapter"
+        private const val _TAG = "BasePlatformAdapter"
     }
 
     /** Platform name as a string. */
@@ -349,13 +349,13 @@ abstract class BasePlatformAdapter(
     /** Mark the adapter as connected. */
     protected fun markConnected() {
         isConnected.set(true)
-        Log.i(TAG, "[$name] Connected")
+        Log.i(_TAG, "[$name] Connected")
     }
 
     /** Mark the adapter as disconnected. */
     protected fun markDisconnected() {
         isConnected.set(false)
-        Log.i(TAG, "[$name] Disconnected")
+        Log.i(_TAG, "[$name] Disconnected")
     }
 
     // ------------------------------------------------------------------
@@ -445,13 +445,13 @@ abstract class BasePlatformAdapter(
     protected suspend fun handleMessage(event: MessageEvent) {
         val handler = messageHandler
         if (handler == null) {
-            Log.w(TAG, "[$name] No message handler registered, dropping message")
+            Log.w(_TAG, "[$name] No message handler registered, dropping message")
             return
         }
         try {
             handler(event)
         } catch (e: Exception) {
-            Log.e(TAG, "[$name] Message handler error: ${e.message}")
+            Log.e(_TAG, "[$name] Message handler error: ${e.message}")
         }
     }
 
@@ -513,7 +513,7 @@ abstract class BasePlatformAdapter(
         _fatalErrorMessage = message
         _fatalErrorRetryable = retryable
         isConnected.set(false)
-        Log.e(TAG, "Fatal error on $name: [$code] $message (retryable=$retryable)")
+        Log.e(_TAG, "Fatal error on $name: [$code] $message (retryable=$retryable)")
     }
 
     /** Notify fatal error handler. */
@@ -529,7 +529,7 @@ abstract class BasePlatformAdapter(
     fun acquirePlatformLock(scope: String, identity: String, resourceDesc: String): Boolean {
         if (_platformLockScope != null) return false
         _platformLockScope = scope
-        Log.d(TAG, "Any? acquired: $scope/$identity for $resourceDesc")
+        Log.d(_TAG, "Any? acquired: $scope/$identity for $resourceDesc")
         return true
     }
 

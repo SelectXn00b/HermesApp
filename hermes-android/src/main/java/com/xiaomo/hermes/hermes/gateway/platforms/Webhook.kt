@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Webhook(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEBHOOK) {
-    companion object { private const val TAG = "Webhook" }
+    companion object { private const val _TAG = "Webhook" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "Webhook adapter requires HTTP server — not supported on Android")
+        Log.w(_TAG, "Webhook adapter requires HTTP server — not supported on Android")
         return false
     }
 

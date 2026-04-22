@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Matrix(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.MATRIX) {
-    companion object { private const val TAG = "Matrix" }
+    companion object { private const val _TAG = "Matrix" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "Matrix adapter is a stub — not implemented on Android")
+        Log.w(_TAG, "Matrix adapter is a stub — not implemented on Android")
         return false
     }
 

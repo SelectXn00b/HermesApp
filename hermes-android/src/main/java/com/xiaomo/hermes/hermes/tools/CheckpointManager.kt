@@ -9,7 +9,7 @@ import java.io.File
  */
 object CheckpointManager {
 
-    private const val TAG = "CheckpointManager"
+    private const val _TAG = "CheckpointManager"
 
     /** Per-turn dedup: set of directories already checkpointed this turn. */
     private val _checkpointedDirs: MutableSet<String> = mutableSetOf()
@@ -95,7 +95,7 @@ object CheckpointManager {
         // handles this efficiently.  The log listing is already limited
         // by maxSnapshots.  Full pruning would require rebase --onto
         // or filter-branch which is fragile for a background feature.
-        Log.d(TAG, "Checkpoint repo has $count commits (limit $maxSnapshots)")
+        Log.d(_TAG, "Checkpoint repo has $count commits (limit $maxSnapshots)")
     }
 
 }

@@ -23,7 +23,7 @@ class KimiK2ToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("kimi_k2")
 
     companion object {
-        private const val TAG = "KimiK2Parser"
+        private const val _TAG = "KimiK2Parser"
         private val START_TOKENS = listOf(
             "<|tool_calls_section_begin|>",
             "<|tool_call_section_begin|>"

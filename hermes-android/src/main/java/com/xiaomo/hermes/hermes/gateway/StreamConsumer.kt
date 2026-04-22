@@ -75,7 +75,7 @@ class StreamConsumer(
     private val deliveryRouter: DeliveryRouter,
     private val config: StreamConsumerConfig = StreamConsumerConfig()) {
     companion object {
-        private const val TAG = "StreamConsumer"
+        private const val _TAG = "StreamConsumer"
 
         /** After this many consecutive flood-control failures, permanently disable progressive edits. */
         private const val MAX_FLOOD_STRIKES = 3
@@ -220,7 +220,7 @@ class StreamConsumer(
         chunks: Flow<StreamChunk>,
         metadata: Map<String, Any>? = null): String? {
         if (_isActive.getAndSet(true)) {
-            Log.w(TAG, "StreamConsumer is already active")
+            Log.w(_TAG, "StreamConsumer is already active")
             return null
         }
 
@@ -256,7 +256,7 @@ class StreamConsumer(
                 launch {
                     chunks.collect { chunk ->
                         if (chunk.error != null) {
-                            Log.w(TAG, "Stream error: ${chunk.error}")
+                            Log.w(_TAG, "Stream error: ${chunk.error}")
                             _handleError(chunk.error)
                             return@collect
                         }
@@ -274,7 +274,7 @@ class StreamConsumer(
                 runJob.join()
             }
         } catch (e: CancellationException) {
-            Log.i(TAG, "Stream cancelled")
+            Log.i(_TAG, "Stream cancelled")
             // Best-effort final edit on cancellation
             if (_accumulated.isNotEmpty() && _messageId != null) {
                 try { _sendOrEdit(_accumulated) } catch (_: Exception) {}
@@ -282,7 +282,7 @@ class StreamConsumer(
             if (_alreadySent) _finalResponseSent = true
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "Stream consumer error: ${e.message}")
+            Log.e(_TAG, "Stream consumer error: ${e.message}")
             _handleError(e.message ?: "Unknown error")
         } finally {
             _isActive.set(false)
@@ -301,7 +301,7 @@ class StreamConsumer(
         channel: Channel<StreamChunk>,
         metadata: Map<String, Any>? = null): String? {
         if (_isActive.getAndSet(true)) {
-            Log.w(TAG, "StreamConsumer is already active")
+            Log.w(_TAG, "StreamConsumer is already active")
             return null
         }
 
@@ -355,7 +355,7 @@ class StreamConsumer(
             if (_alreadySent) _finalResponseSent = true
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "Stream consumer error: ${e.message}")
+            Log.e(_TAG, "Stream consumer error: ${e.message}")
             _handleError(e.message ?: "Unknown error")
         } finally {
             _isActive.set(false)
@@ -411,7 +411,7 @@ class StreamConsumer(
                 _editCount++
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Edit failed: ${e.message}")
+            Log.w(_TAG, "Edit failed: ${e.message}")
         }
     }
 
@@ -645,7 +645,7 @@ class StreamConsumer(
             }
             if (_alreadySent) _finalResponseSent = true
         } catch (e: Exception) {
-            Log.e(TAG, "Stream consumer run error: ${e.message}")
+            Log.e(_TAG, "Stream consumer run error: ${e.message}")
         }
     }
 
@@ -697,7 +697,7 @@ class StreamConsumer(
                 return replyToId
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Stream send chunk error: ${e.message}")
+            Log.e(_TAG, "Stream send chunk error: ${e.message}")
             return replyToId
         }
     }
@@ -770,7 +770,7 @@ class StreamConsumer(
                 result = deliveryRouter.deliverText(_platform, _chatId, chunk, null)
                 if (result.success) break
                 if (attempt == 0 && _isFloodError(result)) {
-                    Log.d(TAG, "Flood control on fallback send, retrying in 3s")
+                    Log.d(_TAG, "Flood control on fallback send, retrying in 3s")
                     delay(3000)
                 } else {
                     break
@@ -842,7 +842,7 @@ class StreamConsumer(
                 return true
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Commentary send error: ${e.message}")
+            Log.e(_TAG, "Commentary send error: ${e.message}")
         }
         return false
     }
@@ -894,7 +894,7 @@ class StreamConsumer(
                                 _currentEditIntervalMs = minOf(
                                     _currentEditIntervalMs * 2, 10000L
                                 )
-                                Log.d(TAG,
+                                Log.d(_TAG,
                                     "Flood control on edit (strike $_floodStrikes/$MAX_FLOOD_STRIKES), " +
                                     "backoff interval → ${_currentEditIntervalMs}ms"
                                 )
@@ -904,7 +904,7 @@ class StreamConsumer(
                                 }
                             }
                             // Non-flood error or flood strikes exhausted → fallback mode
-                            Log.d(TAG, "Edit failed (strikes=$_floodStrikes), entering fallback mode")
+                            Log.d(_TAG, "Edit failed (strikes=$_floodStrikes), entering fallback mode")
                             _fallbackPrefix = _visiblePrefix()
                             _fallbackFinalSend = true
                             _editSupported = false
@@ -941,7 +941,7 @@ class StreamConsumer(
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Stream send/edit error: ${e.message}")
+            Log.e(_TAG, "Stream send/edit error: ${e.message}")
             return false
         }
     }

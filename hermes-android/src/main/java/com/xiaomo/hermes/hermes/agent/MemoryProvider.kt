@@ -122,14 +122,14 @@ class InMemoryMemoryProvider : MemoryProvider {
     private var sessionId: String = ""
 
     companion object {
-        private const val TAG = "InMemoryMemoryProvider"
+        private const val _TAG = "InMemoryMemoryProvider"
     }
 
     // ── MemoryEntry CRUD (suspend) ────────────────────────────────────
 
     override suspend fun store(entry: MemoryEntry) {
         store[entry.key] = entry
-        Log.d(TAG, "Stored entry key=${entry.key} category=${entry.category}")
+        Log.d(_TAG, "Stored entry key=${entry.key} category=${entry.category}")
     }
 
     override suspend fun recall(key: String): MemoryEntry? = store[key]
@@ -170,7 +170,7 @@ class InMemoryMemoryProvider : MemoryProvider {
     override fun initialize(sessionId: String, kwargs: Any) {
         this.sessionId = sessionId
         this.initialized = true
-        Log.i(TAG, "Initialized for session=$sessionId")
+        Log.i(_TAG, "Initialized for session=$sessionId")
     }
 
     /** Return text to include in the system prompt.
@@ -221,7 +221,7 @@ class InMemoryMemoryProvider : MemoryProvider {
 
     /** Clean shutdown — flush queues, close connections. */
     override fun shutdown() {
-        Log.i(TAG, "Shutting down, clearing ${store.size} entries")
+        Log.i(_TAG, "Shutting down, clearing ${store.size} entries")
         store.clear()
         initialized = false
     }
@@ -233,7 +233,7 @@ class InMemoryMemoryProvider : MemoryProvider {
 
     /** Called when a session ends (explicit exit or timeout). */
     override fun onSessionEnd(messages: List<Map<String, Any>>) {
-        Log.i(TAG, "Session ended: $sessionId, ${store.size} entries in store")
+        Log.i(_TAG, "Session ended: $sessionId, ${store.size} entries in store")
     }
 
     /** Called before context compression discards old messages.
@@ -262,7 +262,7 @@ class InMemoryMemoryProvider : MemoryProvider {
         when (action) {
             "add" -> {
                 store[key] = MemoryEntry(key = key, value = content, category = target)
-                Log.d(TAG, "onMemoryWrite add: key=$key target=$target")
+                Log.d(_TAG, "onMemoryWrite add: key=$key target=$target")
             }
             "replace" -> {
                 // Find most recent entry for this target and replace
@@ -271,17 +271,17 @@ class InMemoryMemoryProvider : MemoryProvider {
                     .maxByOrNull { it.timestamp }
                 if (existing != null) {
                     store[existing.key] = existing.copy(value = content, timestamp = System.currentTimeMillis())
-                    Log.d(TAG, "onMemoryWrite replace: key=${existing.key} target=$target")
+                    Log.d(_TAG, "onMemoryWrite replace: key=${existing.key} target=$target")
                 } else {
                     store[key] = MemoryEntry(key = key, value = content, category = target)
-                    Log.d(TAG, "onMemoryWrite replace (no existing): key=$key target=$target")
+                    Log.d(_TAG, "onMemoryWrite replace (no existing): key=$key target=$target")
                 }
             }
             "remove" -> {
                 val removed = store.values
                     .filter { it.category == target && it.value == content }
                     .forEach { store.remove(it.key) }
-                Log.d(TAG, "onMemoryWrite remove: target=$target")
+                Log.d(_TAG, "onMemoryWrite remove: target=$target")
             }
         }
     }

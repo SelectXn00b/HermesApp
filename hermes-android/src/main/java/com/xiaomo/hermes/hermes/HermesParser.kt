@@ -16,7 +16,7 @@ import java.util.regex.Pattern
 open class HermesToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("hermes")
     companion object {
-        private const val TAG = "HermesParser"
+        private const val _TAG = "HermesParser"
         private val PATTERN = Pattern.compile("<tool_call>\\s*(.*?)\\s*</tool_call>|<tool_call>\\s*(.*)", Pattern.DOTALL)
     }
     override fun parse(response: String): ParseResult {

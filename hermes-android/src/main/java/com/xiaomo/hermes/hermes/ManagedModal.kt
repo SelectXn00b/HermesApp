@@ -34,7 +34,7 @@ class ManagedModalEnvironment(
     private val taskId: String = "default"
 ) {
     companion object {
-        private const val TAG = "ManagedModal"
+        private const val _TAG = "ManagedModal"
         private const val CONNECT_TIMEOUT_SECONDS = 1.0
         private const val POLL_READ_TIMEOUT_SECONDS = 5.0
         private const val CANCEL_READ_TIMEOUT_SECONDS = 5.0
@@ -49,7 +49,7 @@ class ManagedModalEnvironment(
 
     init {
         // On Android, sandbox creation is handled server-side
-        Log.d(TAG, "ManagedModalEnvironment initialized for task=$taskId (server-side)")
+        Log.d(_TAG, "ManagedModalEnvironment initialized for task=$taskId (server-side)")
     }
 
     /**
@@ -58,7 +58,7 @@ class ManagedModalEnvironment(
      */
     fun _startModalExec(prepared: PreparedModalExec): ModalExecStart {
         // Server-side operation: the gateway handles exec creation
-        Log.d(TAG, "startModalExec: server-side operation")
+        Log.d(_TAG, "startModalExec: server-side operation")
         return ModalExecStart(
             immediateResult = mapOf(
                 "output" to "[ManagedModal not available on Android - use server-side gateway]",
@@ -84,7 +84,7 @@ class ManagedModalEnvironment(
         try {
             _cancelExec(handle.execId)
         } catch (e: Exception) {
-            Log.w(TAG, "Modal exec cancel failed: ${e.message}")
+            Log.w(_TAG, "Modal exec cancel failed: ${e.message}")
         }
     }
 
@@ -104,7 +104,7 @@ class ManagedModalEnvironment(
      */
     fun _createSandbox(): String {
         // Server-side operation
-        Log.d(TAG, "createSandbox: server-side operation for task=$taskId")
+        Log.d(_TAG, "createSandbox: server-side operation for task=$taskId")
         return ""
     }
 
@@ -123,7 +123,7 @@ class ManagedModalEnvironment(
      */
     fun _request(method: String, path: String): Any? {
         // Server-side operation - would use OkHttp in a real implementation
-        Log.d(TAG, "request: $method $path (server-side)")
+        Log.d(_TAG, "request: $method $path (server-side)")
         return null
     }
 
@@ -132,9 +132,9 @@ class ManagedModalEnvironment(
      */
     fun _cancelExec(execId: String) {
         try {
-            Log.d(TAG, "cancelExec: $execId (server-side)")
+            Log.d(_TAG, "cancelExec: $execId (server-side)")
         } catch (e: Exception) {
-            Log.w(TAG, "Managed Modal exec cancel failed: ${e.message}")
+            Log.w(_TAG, "Managed Modal exec cancel failed: ${e.message}")
         }
     }
 
@@ -180,9 +180,9 @@ class ManagedModalEnvironment(
     fun cleanup() {
         if (sandboxId == null) return
         try {
-            Log.d(TAG, "cleanup: terminating sandbox (server-side)")
+            Log.d(_TAG, "cleanup: terminating sandbox (server-side)")
         } catch (e: Exception) {
-            Log.w(TAG, "Managed Modal cleanup failed: ${e.message}")
+            Log.w(_TAG, "Managed Modal cleanup failed: ${e.message}")
         } finally {
             sandboxId = null
         }

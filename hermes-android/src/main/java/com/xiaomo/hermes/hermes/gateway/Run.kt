@@ -39,7 +39,7 @@ class GatewayRunner(
     /** Gateway configuration. */
     private val config: GatewayConfig) {
     companion object {
-        private const val TAG = "GatewayRunner"
+        private const val _TAG = "GatewayRunner"
     }
 
     /** Whether the gateway is running. */
@@ -96,11 +96,11 @@ class GatewayRunner(
      */
     suspend fun start() {
         if (isRunning.getAndSet(true)) {
-            Log.w(TAG, "Gateway already running")
+            Log.w(_TAG, "Gateway already running")
             return
         }
 
-        Log.i(TAG, "Starting gateway...")
+        Log.i(_TAG, "Starting gateway...")
 
         // Load persisted sessions
         sessionStore.load()
@@ -113,10 +113,10 @@ class GatewayRunner(
                     _adapters[adapter.name] = adapter
                     deliveryRouter.register(adapter)
                     status.markConnected(adapter.name)
-                    Log.i(TAG, "Platform ${adapter.name} connected")
+                    Log.i(_TAG, "Platform ${adapter.name} connected")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to connect platform ${platformConfig.platform}: ${e.message}")
+                Log.e(_TAG, "Failed to connect platform ${platformConfig.platform}: ${e.message}")
             }
         }
 
@@ -125,7 +125,7 @@ class GatewayRunner(
             hookPipeline.run(HookEvent.ON_START)
         }
 
-        Log.i(TAG, "Gateway started with ${_adapters.size} platform(s)")
+        Log.i(_TAG, "Gateway started with ${_adapters.size} platform(s)")
     }
 
     /**
@@ -138,7 +138,7 @@ class GatewayRunner(
             return
         }
 
-        Log.i(TAG, "Stopping gateway...")
+        Log.i(_TAG, "Stopping gateway...")
 
         // Run shutdown hooks
         try {
@@ -146,7 +146,7 @@ class GatewayRunner(
                 hookPipeline.run(HookEvent.ON_STOP)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Shutdown hooks timed out: ${e.message}")
+            Log.w(_TAG, "Shutdown hooks timed out: ${e.message}")
         }
 
         // Disconnect all adapters
@@ -155,9 +155,9 @@ class GatewayRunner(
                 adapter.disconnect()
                 deliveryRouter.unregister(name)
                 status.markDisconnected(name)
-                Log.i(TAG, "Platform $name disconnected")
+                Log.i(_TAG, "Platform $name disconnected")
             } catch (e: Exception) {
-                Log.e(TAG, "Error disconnecting platform $name: ${e.message}")
+                Log.e(_TAG, "Error disconnecting platform $name: ${e.message}")
             }
         }
         _adapters.clear()
@@ -168,7 +168,7 @@ class GatewayRunner(
         // Cancel background scope
         _scope.cancel()
 
-        Log.i(TAG, "Gateway stopped")
+        Log.i(_TAG, "Gateway stopped")
     }
 
     // ------------------------------------------------------------------
@@ -201,7 +201,7 @@ class GatewayRunner(
             Platform.BLUEBUBBLES -> Bluebubbles(context, platformConfig)
             Platform.APP_CHAT -> AppChat(context, platformConfig)
             else -> {
-                Log.w(TAG, "Unknown platform: ${platformConfig.platform}")
+                Log.w(_TAG, "Unknown platform: ${platformConfig.platform}")
                 return null
             }
         }
@@ -212,7 +212,7 @@ class GatewayRunner(
         // Connect
         val connected = adapter.connect()
         if (!connected) {
-            Log.w(TAG, "Failed to connect platform ${adapter.name}")
+            Log.w(_TAG, "Failed to connect platform ${adapter.name}")
             return null
         }
 
@@ -225,7 +225,7 @@ class GatewayRunner(
     private suspend fun _handleMessage(event: MessageEvent, adapter: BasePlatformAdapter) {
         // Acquire session semaphore
         if (!_sessionSemaphore.tryAcquire()) {
-            Log.w(TAG, "Max concurrent sessions reached, dropping message")
+            Log.w(_TAG, "Max concurrent sessions reached, dropping message")
             return
         }
 
@@ -255,7 +255,7 @@ class GatewayRunner(
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             if (preValidateResult is HookResult.Halt) {
-                Log.i(TAG, "Message halted by pre-validate hook: ${preValidateResult.reason}")
+                Log.i(_TAG, "Message halted by pre-validate hook: ${preValidateResult.reason}")
                 return
             }
 
@@ -268,7 +268,7 @@ class GatewayRunner(
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             if (postValidateResult is HookResult.Halt) {
-                Log.i(TAG, "Message halted by post-validate hook: ${postValidateResult.reason}")
+                Log.i(_TAG, "Message halted by post-validate hook: ${postValidateResult.reason}")
                 return
             }
 
@@ -281,7 +281,7 @@ class GatewayRunner(
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             if (preAgentResult is HookResult.Halt) {
-                Log.i(TAG, "Message halted by pre-agent hook: ${preAgentResult.reason}")
+                Log.i(_TAG, "Message halted by pre-agent hook: ${preAgentResult.reason}")
                 return
             }
 
@@ -301,7 +301,7 @@ class GatewayRunner(
                     "Agent loop not configured"
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Agent loop error", e)
+                Log.e(_TAG, "Agent loop error", e)
                 "Error: ${e.message}"
             }
 
@@ -316,7 +316,7 @@ class GatewayRunner(
             val finalResponse = when (postAgentResult) {
                 is HookResult.Replace -> postAgentResult.newText
                 is HookResult.Halt -> {
-                    Log.i(TAG, "Any? halted by post-agent hook: ${postAgentResult.reason}")
+                    Log.i(_TAG, "Any? halted by post-agent hook: ${postAgentResult.reason}")
                     return
                 }
                 else -> responseText
@@ -333,7 +333,7 @@ class GatewayRunner(
             val sendText = when (preSendResult) {
                 is HookResult.Replace -> preSendResult.newText
                 is HookResult.Halt -> {
-                    Log.i(TAG, "Send halted by pre-send hook: ${preSendResult.reason}")
+                    Log.i(_TAG, "Send halted by pre-send hook: ${preSendResult.reason}")
                     return
                 }
                 else -> finalResponse
@@ -351,7 +351,7 @@ class GatewayRunner(
                 status.countersFor(adapter.name).recordSent()
             } else {
                 status.countersFor(adapter.name).recordError()
-                Log.w(TAG, "Failed to send response: ${result.error}")
+                Log.w(_TAG, "Failed to send response: ${result.error}")
             }
 
             // Run post-send hooks
@@ -374,7 +374,7 @@ class GatewayRunner(
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error handling message: ${e.message}")
+            Log.e(_TAG, "Error handling message: ${e.message}")
         } finally {
             sessionStore.get(event.sessionKey)?.markIdle()
             status.processingSessions--
@@ -417,7 +417,7 @@ class GatewayRunner(
     fun requestCleanExit(reason: String) {
         _exitReason = reason
         _exitCode = 0
-        Log.i(TAG, "Clean exit requested: $reason")
+        Log.i(_TAG, "Clean exit requested: $reason")
     }
 
     /** Number of currently running agents. */
@@ -455,12 +455,12 @@ class GatewayRunner(
 
     /** Set adapter auto-TTS disabled. */
     fun setAdapterAutoTtsDisabled(adapter: BasePlatformAdapter, chatId: String, disabled: Boolean) {
-        Log.d(TAG, "setAutoTtsDisabled=$disabled for chat=$chatId on ${adapter.name}")
+        Log.d(_TAG, "setAutoTtsDisabled=$disabled for chat=$chatId on ${adapter.name}")
     }
 
     /** Sync voice mode state to adapter. */
     fun syncVoiceModeStateToAdapter(adapter: BasePlatformAdapter) {
-        Log.d(TAG, "Syncing voice mode state to ${adapter.name}")
+        Log.d(_TAG, "Syncing voice mode state to ${adapter.name}")
     }
 
     // ── Session helpers (ported from gateway/run.py) ────────────────
@@ -498,18 +498,18 @@ class GatewayRunner(
 
     /** Update runtime status. */
     fun updateRuntimeStatus(gatewayState: String? = null, exitReason: String? = null) {
-        gatewayState?.let { Log.i(TAG, "Gateway state: $it") }
+        gatewayState?.let { Log.i(_TAG, "Gateway state: $it") }
         exitReason?.let { _exitReason = it }
     }
 
     /** Update platform runtime status. */
     fun updatePlatformRuntimeStatus(adapterName: String, connected: Boolean, error: String? = null) {
-        Log.i(TAG, "Platform $adapterName: connected=$connected error=$error")
+        Log.i(_TAG, "Platform $adapterName: connected=$connected error=$error")
     }
 
     /** Flush memories for a session. */
     fun flushMemoriesForSession(sessionKey: String, sessionId: String) {
-        Log.d(TAG, "Flushing memories for session $sessionKey")
+        Log.d(_TAG, "Flushing memories for session $sessionKey")
     }
 
     // ── Config loading ──────────────────────────────────────────────
@@ -590,14 +590,14 @@ class GatewayRunner(
     /** Interrupt running agents. */
     fun _interruptRunningAgents(reason: String) {
         sessionStore.clear()
-        Log.i(TAG, "Interrupted running agents: $reason")
+        Log.i(_TAG, "Interrupted running agents: $reason")
     }
 
     // ── Background tasks ────────────────────────────────────────────
 
     /** Run a background task. */
     fun runBackgroundTask(prompt: String, source: Map<String, Any?>, taskId: String) {
-        Log.d(TAG, "Background task $taskId: ${prompt.take(50)}")
+        Log.d(_TAG, "Background task $taskId: ${prompt.take(50)}")
     }
 
     // ── Gateway lifecycle ───────────────────────────────────────────
@@ -625,7 +625,7 @@ class GatewayRunner(
 
     /** Update notification watch. */
     fun scheduleUpdateNotificationWatch() {
-        Log.d(TAG, "Scheduled update notification watch")
+        Log.d(_TAG, "Scheduled update notification watch")
     }
 
     /** Agent config signature for caching. */
@@ -635,7 +635,7 @@ class GatewayRunner(
 
     /** Evict a cached agent. */
     fun evictCachedAgent(sessionKey: String) {
-        Log.d(TAG, "Evicted cached agent: $sessionKey")
+        Log.d(_TAG, "Evicted cached agent: $sessionKey")
     }
 
     /** Check if the hermes-agent-setup skill is installed. */
@@ -870,11 +870,11 @@ class GatewayRunner(
     }
     /** Inject a watch-pattern notification as a synthetic message event. */
     suspend fun _injectWatchNotification(synthText: String, originalEvent: Any?): Unit {
-        Log.d(TAG, "Watch notification: $synthText")
+        Log.d(_TAG, "Watch notification: $synthText")
     }
     /** Periodically check a background process and push updates to the user. */
     suspend fun _runProcessWatcher(watcher: Any?): Unit {
-        Log.d(TAG, "Process watcher not applicable on Android")
+        Log.d(_TAG, "Process watcher not applicable on Android")
     }
     /** Compute a stable string key from agent config values. */
     fun _agentConfigSignature(model: String, runtime: Any?, enabledToolsets: Any?, ephemeralPrompt: String): String {
@@ -923,7 +923,7 @@ class GatewayRunner(
         synchronized(_agentCacheLock) {
             _agentCache.remove(sessionKey)
         }
-        Log.d(TAG, "Evicted cached agent for session $sessionKey")
+        Log.d(_TAG, "Evicted cached agent for session $sessionKey")
     }
     /** Run the agent with the given message and context. */
     suspend fun _runAgent(message: String, contextPrompt: String, history: List<Map<String, Any>>, source: SessionSource, sessionId: String, sessionKey: String? = null, _interruptDepth: Int = 0, eventMessageId: String? = null): Map<String, Any> {
@@ -939,7 +939,7 @@ class GatewayRunner(
         if (filePath.isEmpty()) return emptyList()
         val file = java.io.File(filePath)
         if (!file.exists()) {
-            Log.w(TAG, "Prefill messages file not found: $filePath")
+            Log.w(_TAG, "Prefill messages file not found: $filePath")
             return emptyList()
         }
         return try {
@@ -951,7 +951,7 @@ class GatewayRunner(
                 map.toMap()
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to load prefill messages from $filePath: ${e.message}")
+            Log.w(_TAG, "Failed to load prefill messages from $filePath: ${e.message}")
             emptyList()
         }
     }
@@ -967,7 +967,7 @@ class GatewayRunner(
         val mode = (System.getenv("HERMES_BACKGROUND_NOTIFICATIONS") ?: "all").trim().lowercase()
         val valid = setOf("all", "result", "error", "off")
         if (mode !in valid) {
-            Log.w(TAG, "Unknown background_process_notifications '$mode', defaulting to 'all'")
+            Log.w(_TAG, "Unknown background_process_notifications '$mode', defaulting to 'all'")
             return "all"
         }
         return mode
@@ -984,7 +984,7 @@ class GatewayRunner(
     /** Queue or replace a pending message event for a session. */
     fun _queueOrReplacePendingEvent(sessionKey: String, event: MessageEvent) {
         val adapter = _adapters[event.source.platform] ?: return
-        Log.d(TAG, "Queuing pending event for session $sessionKey on ${adapter.name}")
+        Log.d(_TAG, "Queuing pending event for session $sessionKey on ${adapter.name}")
     }
 
     /** Handle a message arriving while the session's agent is busy.
@@ -996,7 +996,7 @@ class GatewayRunner(
         try {
             adapter.send(event.source.chatId, message, replyTo = event.message_id)
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to send busy-ack: ${e.message}")
+            Log.d(_TAG, "Failed to send busy-ack: ${e.message}")
         }
         return true
     }
@@ -1033,7 +1033,7 @@ class GatewayRunner(
                 _adapters[platform]?.send(chatId, msg)
                 notified.add(dedupKey)
             } catch (e: Exception) {
-                Log.d(TAG, "Failed to send shutdown notification to $platform:$chatId: ${e.message}")
+                Log.d(_TAG, "Failed to send shutdown notification to $platform:$chatId: ${e.message}")
             }
         }
     }
@@ -1049,7 +1049,7 @@ class GatewayRunner(
     fun _cleanupAgentResources(agent: Any?) {
         if (agent == null) return
         // On Android, agent cleanup is minimal — no subprocess or sandbox resources
-        Log.d(TAG, "Cleaned up agent resources")
+        Log.d(_TAG, "Cleaned up agent resources")
     }
 
     /** Increment restart-failure counters for sessions active at shutdown.
@@ -1073,7 +1073,7 @@ class GatewayRunner(
             }
             file.writeText(JSONObject(newCounts as Map<*, *>).toString(), Charsets.UTF_8)
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to save restart failure counts: ${e.message}")
+            Log.d(_TAG, "Failed to save restart failure counts: ${e.message}")
         }
     }
 
@@ -1099,7 +1099,7 @@ class GatewayRunner(
                 if (session != null) {
                     sessionStore.remove(key)
                     suspended++
-                    Log.w(TAG, "Auto-suspended stuck session $key (active across $count consecutive restarts)")
+                    Log.w(_TAG, "Auto-suspended stuck session $key (active across $count consecutive restarts)")
                 }
             }
         }
@@ -1128,7 +1128,7 @@ class GatewayRunner(
 
     /** On Android, detached restart is handled by the service layer — no subprocess needed. */
     suspend fun _launchDetachedRestartCommand() {
-        Log.i(TAG, "Detached restart requested — Android service will handle restart")
+        Log.i(_TAG, "Detached restart requested — Android service will handle restart")
     }
 
     @Volatile private var _restartRequested = false
@@ -1158,16 +1158,16 @@ class GatewayRunner(
                     if (sessionStore.isSessionExpired(entry)) {
                         sessionStore.remove(key)
                         _evictCachedAgent(key)
-                        Log.d(TAG, "Expired session cleaned up: $key")
+                        Log.d(_TAG, "Expired session cleaned up: $key")
                     }
                 }
                 // Sweep idle cached agents
                 val evicted = _sweepIdleCachedAgents()
                 if (evicted > 0) {
-                    Log.i(TAG, "Agent cache idle sweep: evicted $evicted agent(s)")
+                    Log.i(_TAG, "Agent cache idle sweep: evicted $evicted agent(s)")
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "Session expiry watcher error: ${e.message}")
+                Log.d(_TAG, "Session expiry watcher error: ${e.message}")
             }
             // Sleep in small increments for quick stop
             for (i in 0 until interval) {
@@ -1225,7 +1225,7 @@ class GatewayRunner(
     /** Handle transcribed voice from a user in a voice channel.
      *  Not applicable on Android — voice channels are a Discord desktop feature. */
     suspend fun _handleVoiceChannelInput(guildId: Int, userId: Int, transcript: String): Any? {
-        Log.d(TAG, "Voice channel input not supported on Android")
+        Log.d(_TAG, "Voice channel input not supported on Android")
         return null
     }
 
@@ -1233,7 +1233,7 @@ class GatewayRunner(
      *  On Android, media delivery is handled by the adapter's native sharing. */
     suspend fun _deliverMediaFromResponse(response: String, event: MessageEvent, adapter: Any?) {
         // Android adapters handle media inline — no post-stream extraction needed
-        Log.d(TAG, "Post-stream media delivery not applicable on Android")
+        Log.d(_TAG, "Post-stream media delivery not applicable on Android")
     }
 
     /** Handle /rollback command — list or restore filesystem checkpoints.
@@ -1289,7 +1289,7 @@ class GatewayRunner(
             val preview = if (question.length > 60) question.take(60) + "..." else question
             adapter.send(msgSource.chatId, "💬 /btw: \"$preview\"\n\n$response")
         } catch (e: Exception) {
-            Log.e(TAG, "/btw task $taskId failed", e)
+            Log.e(_TAG, "/btw task $taskId failed", e)
             try { adapter.send(msgSource.chatId, "❌ /btw failed: ${e.message}") } catch (_: Exception) {}
         }
     }
@@ -1419,7 +1419,7 @@ class GatewayRunner(
 
     /** Watch update progress — not applicable on Android. */
     suspend fun _watchUpdateProgress(pollInterval: Double, streamInterval: Double, timeout: Double) {
-        Log.d(TAG, "Update progress watching not applicable on Android")
+        Log.d(_TAG, "Update progress watching not applicable on Android")
     }
 
     /** Check if an update finished and notify user — not applicable on Android. */
@@ -1429,7 +1429,7 @@ class GatewayRunner(
 
     /** Notify the chat that initiated /restart that the gateway is back. */
     suspend fun _sendRestartNotification() {
-        Log.d(TAG, "Restart notification — gateway is back")
+        Log.d(_TAG, "Restart notification — gateway is back")
     }
 
     /** Set session context variables for the current task.
@@ -1468,7 +1468,7 @@ class GatewayRunner(
             _agentCache.remove(sessionKey)
         }
         sessionStore.get(sessionKey)?.markIdle()
-        Log.d(TAG, "Released running agent state for $sessionKey")
+        Log.d(_TAG, "Released running agent state for $sessionKey")
     }
 
     /** Soft cleanup for cache-evicted agents — preserves session tool state. */
@@ -1487,7 +1487,7 @@ class GatewayRunner(
         val keysToEvict = _agentCache.keys.toList().take(excess)
         for (key in keysToEvict) {
             val agent = _agentCache.remove(key)
-            Log.i(TAG, "Agent cache at cap; evicting LRU session=$key (cache_size=${_agentCache.size})")
+            Log.i(_TAG, "Agent cache at cap; evicting LRU session=$key (cache_size=${_agentCache.size})")
             if (agent != null) {
                 _releaseEvictedAgentSoft(agent)
             }
@@ -1594,7 +1594,7 @@ class GatewayRunner(
                 response.close()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Proxy connection error to $proxyUrl: ${e.message}")
+            Log.e(_TAG, "Proxy connection error to $proxyUrl: ${e.message}")
             if (fullResponse.isEmpty()) {
                 return mapOf("final_response" to "⚠️ Proxy connection error: ${e.message}", "messages" to emptyList<Any>(), "api_calls" to 0)
             }

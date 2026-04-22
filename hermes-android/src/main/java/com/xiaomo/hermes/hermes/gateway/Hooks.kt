@@ -180,7 +180,7 @@ object BuiltinHookNames {
  */
 class HookRegistry {
     companion object {
-        private const val TAG = "HookRegistry"
+        private const val _TAG = "HookRegistry"
     }
 
     /** event_type → [handler_fn, ...] */
@@ -242,13 +242,13 @@ class HookRegistry {
         handle("pre_agent") { sessionKey, data ->
             val text = data["text"] as? String ?: ""
             if (text.isBlank()) {
-                Log.w(TAG, "Empty message in pre-agent hook")
+                Log.w(_TAG, "Empty message in pre-agent hook")
             }
         }
         // Post-agent: format output, log usage
         handle("post_agent") { sessionKey, data ->
             val response = data["text"] as? String ?: ""
-            Log.d(TAG, "Post-agent response length: ${response.length}")
+            Log.d(_TAG, "Post-agent response length: ${response.length}")
         }
     }
 

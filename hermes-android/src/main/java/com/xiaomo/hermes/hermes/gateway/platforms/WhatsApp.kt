@@ -17,10 +17,10 @@ import org.json.JSONObject
 class WhatsApp(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WHATSAPP) {
-    companion object { private const val TAG = "WhatsApp" }
+    companion object { private const val _TAG = "WhatsApp" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "WhatsApp adapter is a stub — not implemented on Android")
+        Log.w(_TAG, "WhatsApp adapter is a stub — not implemented on Android")
         return false
     }
 

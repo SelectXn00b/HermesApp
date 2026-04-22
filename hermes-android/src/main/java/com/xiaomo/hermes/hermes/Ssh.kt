@@ -18,14 +18,14 @@ class SSHEnvironment(
     private val keyPath: String = ""
 ) {
     companion object {
-        private const val TAG = "SSHEnvironment"
+        private const val _TAG = "SSHEnvironment"
     }
 
     private var controlSocket: String = ""
     private var remoteHome: String = ""
 
     init {
-        Log.d(TAG, "SSHEnvironment initialized for $user@$host:$port")
+        Log.d(_TAG, "SSHEnvironment initialized for $user@$host:$port")
     }
 
     /**
@@ -59,7 +59,7 @@ class SSHEnvironment(
      */
     fun _establishConnection() {
         // Android stub: SSH connections would use JSch or similar library
-        Log.d(TAG, "establishConnection: would connect to $user@$host:$port")
+        Log.d(_TAG, "establishConnection: would connect to $user@$host:$port")
     }
 
     /**
@@ -75,7 +75,7 @@ class SSHEnvironment(
      */
     fun _ensureRemoteDirs() {
         val base = "$remoteHome/.hermes"
-        Log.d(TAG, "ensureRemoteDirs: would create $base/{skills,credentials,cache}")
+        Log.d(_TAG, "ensureRemoteDirs: would create $base/{skills,credentials,cache}")
     }
 
     /**
@@ -83,7 +83,7 @@ class SSHEnvironment(
      * On Android, file upload would use SFTP via JSch.
      */
     fun _scpUpload(hostPath: String, remotePath: String) {
-        Log.d(TAG, "scpUpload: $hostPath -> $remotePath (stub)")
+        Log.d(_TAG, "scpUpload: $hostPath -> $remotePath (stub)")
     }
 
     /**
@@ -93,14 +93,14 @@ class SSHEnvironment(
      */
     fun _sshBulkUpload(files: List<Pair<String, String>>) {
         if (files.isEmpty()) return
-        Log.d(TAG, "sshBulkUpload: ${files.size} files (stub)")
+        Log.d(_TAG, "sshBulkUpload: ${files.size} files (stub)")
     }
 
     /**
      * Download remote .hermes/ as a tar archive.
      */
     fun _sshBulkDownload(dest: String) {
-        Log.d(TAG, "sshBulkDownload: -> $dest (stub)")
+        Log.d(_TAG, "sshBulkDownload: -> $dest (stub)")
     }
 
     /**
@@ -108,7 +108,7 @@ class SSHEnvironment(
      */
     fun _sshDelete(remotePaths: List<String>) {
         if (remotePaths.isEmpty()) return
-        Log.d(TAG, "sshDelete: ${remotePaths.size} files (stub)")
+        Log.d(_TAG, "sshDelete: ${remotePaths.size} files (stub)")
     }
 
     /**
@@ -116,7 +116,7 @@ class SSHEnvironment(
      */
     fun _beforeExecute() {
         // Would trigger FileSyncManager.sync()
-        Log.d(TAG, "beforeExecute: file sync (stub)")
+        Log.d(_TAG, "beforeExecute: file sync (stub)")
     }
 
     /**
@@ -125,7 +125,7 @@ class SSHEnvironment(
      */
     fun _runBash(cmdString: String): Any? {
         // Android stub: would use JSch to execute remote commands
-        Log.d(TAG, "runBash: command execution (stub)")
+        Log.d(_TAG, "runBash: command execution (stub)")
         return null
     }
 
@@ -133,6 +133,6 @@ class SSHEnvironment(
      * Clean up SSH connection and sync files back.
      */
     fun cleanup() {
-        Log.d(TAG, "cleanup: closing SSH connection to $user@$host")
+        Log.d(_TAG, "cleanup: closing SSH connection to $user@$host")
     }
 }

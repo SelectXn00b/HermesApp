@@ -17,7 +17,7 @@ import java.util.UUID
  * HTTP 调用使用 HttpURLConnection。
  */
 
-private const val TAG = "GeminiCloudcodeAdapter"
+private const val _TAG = "GeminiCloudcodeAdapter"
 
 // =============================================================================
 // Request translation: OpenAI → Gemini
@@ -43,7 +43,7 @@ private fun _coerceContentToText(content: Any?): String {
                 if (p["type"] == "text" && p["text"] is String) {
                     pieces.add(p["text"] as String)
                 } else if (p["type"] in listOf("image_url", "input_audio")) {
-                    Log.d(TAG, "Dropping multimodal part (not yet supported): ${p["type"]}")
+                    Log.d(_TAG, "Dropping multimodal part (not yet supported): ${p["type"]}")
                 }
             }
         }

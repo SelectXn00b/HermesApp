@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Android 简化版：保留接口定义和转换逻辑，AWS SDK 调用由 app 模块实现。
  */
 
-private const val TAG = "BedrockAdapter"
+private const val _TAG = "BedrockAdapter"
 
 // ---------------------------------------------------------------------------
 // Client cache (placeholder for Android — actual AWS SDK calls delegated)
@@ -605,7 +605,7 @@ fun buildConverseKwargs(
                 kwargs["toolConfig"] = mapOf("tools" to converseTools)
             } else {
                 Log.w(
-                    TAG,
+                    _TAG,
                     "Model $model does not support tool calling — tools stripped. " +
                         "The agent will operate in text-only mode."
                 )
@@ -656,7 +656,7 @@ fun discoverBedrockModels(
         return cached.second
     }
     // On Android, actual discovery requires AWS SDK — return empty
-    Log.d(TAG, "Bedrock model discovery not implemented on Android for region: $region")
+    Log.d(_TAG, "Bedrock model discovery not implemented on Android for region: $region")
     return emptyList()
 }
 

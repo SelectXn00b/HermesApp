@@ -59,7 +59,7 @@ class TelegramNetworkClient(
     /** Read timeout (seconds). */
     private val readTimeoutSeconds: Long = 30) {
     companion object {
-        private const val TAG = "TelegramNetworkClient"
+        private const val _TAG = "TelegramNetworkClient"
     }
 
     private val _httpClient: OkHttpClient = OkHttpClient.Builder()
@@ -212,7 +212,7 @@ class TelegramNetworkClient(
                             val data = JSONObject(bodyStr)
                             val retryAfter = data.optInt("retry_after", 1)
                             if (attempt < maxRetries - 1) {
-                                Log.w(TAG, "Rate limited, retrying after ${retryAfter}s")
+                                Log.w(_TAG, "Rate limited, retrying after ${retryAfter}s")
                                 delay(retryAfter * 1000L)
                                 continue
                             }
@@ -221,7 +221,7 @@ class TelegramNetworkClient(
                         in 500..599 -> {
                             if (attempt < maxRetries - 1) {
                                 val delayMs = baseDelayMs * (1 shl attempt)
-                                Log.w(TAG, "Server error HTTP ${resp.code}, retrying after ${delayMs}ms")
+                                Log.w(_TAG, "Server error HTTP ${resp.code}, retrying after ${delayMs}ms")
                                 delay(delayMs)
                                 continue
                             }
@@ -239,7 +239,7 @@ class TelegramNetworkClient(
                 errorCount.incrementAndGet()
                 if (attempt < maxRetries - 1) {
                     val delayMs = baseDelayMs * (1 shl attempt)
-                    Log.w(TAG, "Network error: ${e.message}, retrying after ${delayMs}ms")
+                    Log.w(_TAG, "Network error: ${e.message}, retrying after ${delayMs}ms")
                     delay(delayMs)
                     continue
                 }

@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val TAG = "QQAdapter"
+private const val _TAG = "QQAdapter"
 
 /**
  * Raised when QQ WebSocket closes with a specific code.
@@ -137,7 +137,7 @@ class QQAdapter(
 
     suspend fun connect(): Boolean {
         if (_appId.isEmpty() || _clientSecret.isEmpty()) {
-            Log.e(TAG, "[${_logTag()}] QQ startup failed: QQ_APP_ID and QQ_CLIENT_SECRET are required")
+            Log.e(_TAG, "[${_logTag()}] QQ startup failed: QQ_APP_ID and QQ_CLIENT_SECRET are required")
             return false
         }
 
@@ -147,7 +147,7 @@ class QQAdapter(
 
             // 2. Get WebSocket gateway URL
             val gatewayUrl = _getGatewayUrl()
-            Log.i(TAG, "[${_logTag()}] Gateway URL: $gatewayUrl")
+            Log.i(_TAG, "[${_logTag()}] Gateway URL: $gatewayUrl")
 
             // 3. Open WebSocket
             _openWs(gatewayUrl)
@@ -157,10 +157,10 @@ class QQAdapter(
 
             _isConnected.set(true)
             _isRunning.set(true)
-            Log.i(TAG, "[${_logTag()}] Connected")
+            Log.i(_TAG, "[${_logTag()}] Connected")
             return true
         } catch (e: Exception) {
-            Log.e(TAG, "[${_logTag()}] QQ startup failed: ${e.message}")
+            Log.e(_TAG, "[${_logTag()}] QQ startup failed: ${e.message}")
             _cleanup()
             return false
         }
@@ -177,7 +177,7 @@ class QQAdapter(
         _heartbeatJob = null
 
         _cleanup()
-        Log.i(TAG, "[${_logTag()}] Disconnected")
+        Log.i(_TAG, "[${_logTag()}] Disconnected")
     }
 
     suspend fun _cleanup() {
@@ -229,7 +229,7 @@ class QQAdapter(
             val expiresIn = data.optInt("expires_in", 7200)
             _accessToken = token
             _tokenExpiresAt = nowInner + expiresIn
-            Log.i(TAG, "[${_logTag()}] Access token refreshed, expires in ${expiresIn}s")
+            Log.i(_TAG, "[${_logTag()}] Access token refreshed, expires in ${expiresIn}s")
             return _accessToken!!
         }
     }
@@ -279,13 +279,13 @@ class QQAdapter(
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 _isConnected.set(false)
-                Log.w(TAG, "[${_logTag()}] WebSocket closing: code=$code reason=$reason")
+                Log.w(_TAG, "[${_logTag()}] WebSocket closing: code=$code reason=$reason")
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 _isConnected.set(false)
                 _failPending("Connection closed")
-                Log.w(TAG, "[${_logTag()}] WebSocket closed: code=$code reason=$reason")
+                Log.w(_TAG, "[${_logTag()}] WebSocket closed: code=$code reason=$reason")
                 // Schedule reconnect
                 if (_isRunning.get()) {
                     _scope.launch { _listenLoop() }
@@ -295,7 +295,7 @@ class QQAdapter(
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 _isConnected.set(false)
                 _failPending("Connection failed")
-                Log.e(TAG, "[${_logTag()}] WebSocket failure: ${t.message}")
+                Log.e(_TAG, "[${_logTag()}] WebSocket failure: ${t.message}")
                 // Schedule reconnect
                 if (_isRunning.get()) {
                     _scope.launch { _listenLoop() }
@@ -304,7 +304,7 @@ class QQAdapter(
         }
 
         _ws = _httpClient.newWebSocket(request, listener)
-        Log.i(TAG, "[${_logTag()}] WebSocket connected to $gatewayUrl")
+        Log.i(_TAG, "[${_logTag()}] WebSocket connected to $gatewayUrl")
     }
 
     suspend fun _listenLoop() {
@@ -313,7 +313,7 @@ class QQAdapter(
 
         while (_isRunning.get() && !_isConnected.get()) {
             if (backoffIdx >= MAX_RECONNECT_ATTEMPTS) {
-                Log.e(TAG, "[${_logTag()}] Max reconnect attempts reached")
+                Log.e(_TAG, "[${_logTag()}] Max reconnect attempts reached")
                 return
             }
 
@@ -328,7 +328,7 @@ class QQAdapter(
 
     suspend fun _reconnect(backoffIdx: Int): Boolean {
         val delay = RECONNECT_BACKOFF[backoffIdx.coerceAtMost(RECONNECT_BACKOFF.size - 1)]
-        Log.i(TAG, "[${_logTag()}] Reconnecting in ${delay}s (attempt ${backoffIdx + 1})...")
+        Log.i(_TAG, "[${_logTag()}] Reconnecting in ${delay}s (attempt ${backoffIdx + 1})...")
         delay(delay * 1000L)
 
         _heartbeatInterval = 30.0
@@ -337,10 +337,10 @@ class QQAdapter(
             val gatewayUrl = _getGatewayUrl()
             _openWs(gatewayUrl)
             _isConnected.set(true)
-            Log.i(TAG, "[${_logTag()}] Reconnected")
+            Log.i(_TAG, "[${_logTag()}] Reconnected")
             true
         } catch (e: Exception) {
-            Log.w(TAG, "[${_logTag()}] Reconnect failed: ${e.message}")
+            Log.w(_TAG, "[${_logTag()}] Reconnect failed: ${e.message}")
             false
         }
     }
@@ -362,7 +362,7 @@ class QQAdapter(
                     }
                     ws.send(heartbeat.toString())
                 } catch (e: Exception) {
-                    Log.d(TAG, "[${_logTag()}] Heartbeat failed: ${e.message}")
+                    Log.d(_TAG, "[${_logTag()}] Heartbeat failed: ${e.message}")
                 }
             }
         } catch (_: CancellationException) {
@@ -388,9 +388,9 @@ class QQAdapter(
         }
         try {
             _ws?.send(identifyPayload.toString())
-            Log.i(TAG, "[${_logTag()}] Identify sent")
+            Log.i(_TAG, "[${_logTag()}] Identify sent")
         } catch (e: Exception) {
-            Log.e(TAG, "[${_logTag()}] Failed to send Identify: ${e.message}")
+            Log.e(_TAG, "[${_logTag()}] Failed to send Identify: ${e.message}")
         }
     }
 
@@ -406,9 +406,9 @@ class QQAdapter(
         }
         try {
             _ws?.send(resumePayload.toString())
-            Log.i(TAG, "[${_logTag()}] Resume sent (session_id=$_sessionId, seq=$_lastSeq)")
+            Log.i(_TAG, "[${_logTag()}] Resume sent (session_id=$_sessionId, seq=$_lastSeq)")
         } catch (e: Exception) {
-            Log.e(TAG, "[${_logTag()}] Failed to send Resume: ${e.message}")
+            Log.e(_TAG, "[${_logTag()}] Failed to send Resume: ${e.message}")
             _sessionId = null
             _lastSeq = null
         }
@@ -437,7 +437,7 @@ class QQAdapter(
             val dData = d as? Map<*, *> ?: emptyMap<String, Any>()
             val intervalMs = (dData["heartbeat_interval"] as? Number)?.toInt() ?: 30000
             _heartbeatInterval = intervalMs / 1000.0 * 0.8
-            Log.d(TAG, "[${_logTag()}] Hello received, heartbeat_interval=${intervalMs}ms")
+            Log.d(_TAG, "[${_logTag()}] Hello received, heartbeat_interval=${intervalMs}ms")
 
             if (_sessionId != null && _lastSeq != null) {
                 _createTask { _sendResume() }
@@ -451,7 +451,7 @@ class QQAdapter(
         if (op == 0 && t != null) {
             when (t) {
                 "READY" -> _handleReady(d)
-                "RESUMED" -> Log.i(TAG, "[${_logTag()}] Session resumed")
+                "RESUMED" -> Log.i(_TAG, "[${_logTag()}] Session resumed")
                 "C2C_MESSAGE_CREATE",
                 "GROUP_AT_MESSAGE_CREATE",
                 "DIRECT_MESSAGE_CREATE",
@@ -459,7 +459,7 @@ class QQAdapter(
                 "GUILD_AT_MESSAGE_CREATE" -> {
                     _scope.launch { _onMessage(t, d) }
                 }
-                else -> Log.d(TAG, "[${_logTag()}] Unhandled dispatch: $t")
+                else -> Log.d(_TAG, "[${_logTag()}] Unhandled dispatch: $t")
             }
             return
         }
@@ -467,13 +467,13 @@ class QQAdapter(
         // op 11 = Heartbeat ACK
         if (op == 11) return
 
-        Log.d(TAG, "[${_logTag()}] Unknown op: $op")
+        Log.d(_TAG, "[${_logTag()}] Unknown op: $op")
     }
 
     fun _handleReady(d: Any?) {
         if (d is Map<*, *>) {
             _sessionId = d["session_id"]?.toString()
-            Log.i(TAG, "[${_logTag()}] Ready, session_id=$_sessionId")
+            Log.i(_TAG, "[${_logTag()}] Ready, session_id=$_sessionId")
         }
     }
 
@@ -483,7 +483,7 @@ class QQAdapter(
             val obj = JSONObject(jsonStr)
             obj.keys().asSequence().associateWith { key -> obj.opt(key) }
         } catch (e: Exception) {
-            Log.w(TAG, "[QQBot] Failed to parse JSON: $raw")
+            Log.w(_TAG, "[QQBot] Failed to parse JSON: $raw")
             null
         }
     }
@@ -508,7 +508,7 @@ class QQAdapter(
 
         val msgId = dMap["id"]?.toString() ?: ""
         if (msgId.isEmpty() || _isDuplicate(msgId)) {
-            Log.d(TAG, "[${_logTag()}] Duplicate or missing message id: $msgId")
+            Log.d(_TAG, "[${_logTag()}] Duplicate or missing message id: $msgId")
             return
         }
 
@@ -750,7 +750,7 @@ class QQAdapter(
                         imageMediaTypes.add(ct.ifEmpty { "image/jpeg" })
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "[${_logTag()}] Failed to cache image: ${e.message}")
+                    Log.d(_TAG, "[${_logTag()}] Failed to cache image: ${e.message}")
                 }
             } else {
                 try {
@@ -759,7 +759,7 @@ class QQAdapter(
                         otherAttachments.add("[Attachment: ${filename.ifEmpty { ct }}]")
                     }
                 } catch (e: Exception) {
-                    Log.d(TAG, "[${_logTag()}] Failed to cache attachment: ${e.message}")
+                    Log.d(_TAG, "[${_logTag()}] Failed to cache attachment: ${e.message}")
                 }
             }
         }
@@ -786,7 +786,7 @@ class QQAdapter(
 
                 val response = _httpClient.newCall(request).execute()
                 if (!response.isSuccessful) {
-                    Log.d(TAG, "[${_logTag()}] Download failed for ${url.take(80)}: HTTP ${response.code}")
+                    Log.d(_TAG, "[${_logTag()}] Download failed for ${url.take(80)}: HTTP ${response.code}")
                     return@withContext null
                 }
 
@@ -816,7 +816,7 @@ class QQAdapter(
                     }
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "[${_logTag()}] Download exception for ${url.take(80)}: ${e.message}")
+                Log.d(_TAG, "[${_logTag()}] Download exception for ${url.take(80)}: ${e.message}")
                 null
             }
         }
@@ -841,7 +841,7 @@ class QQAdapter(
     suspend fun _sttVoiceAttachment(url: String, contentType: String, filename: String, asrReferText: String? = null): String? {
         // 1. Use QQ's built-in ASR text if available
         if (!asrReferText.isNullOrEmpty()) {
-            Log.d(TAG, "[${_logTag()}] STT: using QQ asr_refer_text")
+            Log.d(_TAG, "[${_logTag()}] STT: using QQ asr_refer_text")
             return asrReferText
         }
 
@@ -871,7 +871,7 @@ class QQAdapter(
 
                 transcript
             } catch (e: Exception) {
-                Log.w(TAG, "[${_logTag()}] STT failed for voice attachment: ${e.message}")
+                Log.w(_TAG, "[${_logTag()}] STT failed for voice attachment: ${e.message}")
                 null
             }
         }
@@ -960,7 +960,7 @@ class QQAdapter(
             }
             wavPath
         } catch (e: Exception) {
-            Log.d(TAG, "[${_logTag()}] raw PCM fallback failed: ${e.message}")
+            Log.d(_TAG, "[${_logTag()}] raw PCM fallback failed: ${e.message}")
             null
         }
     }
@@ -1022,7 +1022,7 @@ class QQAdapter(
 
     suspend fun _callStt(wavPath: String): String? {
         val sttCfg = _resolveSttConfig() ?: run {
-            Log.w(TAG, "[${_logTag()}] STT not configured")
+            Log.w(_TAG, "[${_logTag()}] STT not configured")
             return null
         }
 
@@ -1069,7 +1069,7 @@ class QQAdapter(
 
                 null
             } catch (e: Exception) {
-                Log.w(TAG, "[${_logTag()}] STT API call failed: ${e.message}")
+                Log.w(_TAG, "[${_logTag()}] STT API call failed: ${e.message}")
                 null
             }
         }
@@ -1157,17 +1157,17 @@ class QQAdapter(
     suspend fun _waitForReconnection(): Boolean {
         val maxWait = 15.0
         val pollInterval = 0.5
-        Log.i(TAG, "[${_logTag()}] Not connected - waiting for reconnection (up to ${maxWait}s)")
+        Log.i(_TAG, "[${_logTag()}] Not connected - waiting for reconnection (up to ${maxWait}s)")
         var waited = 0.0
         while (waited < maxWait) {
             delay((pollInterval * 1000).toLong())
             waited += pollInterval
             if (_isConnected.get()) {
-                Log.i(TAG, "[${_logTag()}] Reconnected after ${waited}s")
+                Log.i(_TAG, "[${_logTag()}] Reconnected after ${waited}s")
                 return true
             }
         }
-        Log.w(TAG, "[${_logTag()}] Still not connected after ${maxWait}s")
+        Log.w(_TAG, "[${_logTag()}] Still not connected after ${maxWait}s")
         return false
     }
 
@@ -1218,7 +1218,7 @@ class QQAdapter(
         }
 
         val errorMsg = lastExc?.message ?: "Unknown error"
-        Log.e(TAG, "[${_logTag()}] Send failed: $errorMsg")
+        Log.e(_TAG, "[${_logTag()}] Send failed: $errorMsg")
         return SendResult(success = false, error = errorMsg)
     }
 
@@ -1277,7 +1277,7 @@ class QQAdapter(
         if (result.success || !_isUrl(imageUrl)) return result
 
         // Fallback to text URL
-        Log.w(TAG, "[${_logTag()}] Image send failed, falling back to text: ${result.error}")
+        Log.w(_TAG, "[${_logTag()}] Image send failed, falling back to text: ${result.error}")
         val fallback = if (caption != null) "$caption\n$imageUrl" else imageUrl
         return send(chatId = chatId, content = fallback, replyTo = replyTo)
     }
@@ -1345,7 +1345,7 @@ class QQAdapter(
                 rawResponse = sendData
             )
         } catch (e: Exception) {
-            Log.e(TAG, "[${_logTag()}] Media send failed: ${e.message}")
+            Log.e(_TAG, "[${_logTag()}] Media send failed: ${e.message}")
             SendResult(success = false, error = e.message ?: "Media send failed")
         }
     }
@@ -1403,7 +1403,7 @@ class QQAdapter(
             _apiRequest("POST", "/v2/users/$chatId/messages", body)
             _typingSentAt[chatId] = now
         } catch (e: Exception) {
-            Log.d(TAG, "[${_logTag()}] send_typing failed: ${e.message}")
+            Log.d(_TAG, "[${_logTag()}] send_typing failed: ${e.message}")
         }
     }
 

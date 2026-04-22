@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
  */
 object BrowserTool {
 
-    private const val TAG = "BrowserTool"
+    private const val _TAG = "BrowserTool"
     private const val DEFAULT_COMMAND_TIMEOUT = 30
     private const val SNAPSHOT_SUMMARIZE_THRESHOLD = 8000
     private val gson = Gson()
@@ -157,7 +157,7 @@ object BrowserTool {
                 response.isSuccessful
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Click failed: ${e.message}")
+            Log.e(_TAG, "Click failed: ${e.message}")
             false
         }
     }
@@ -178,7 +178,7 @@ object BrowserTool {
                 response.isSuccessful
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Type failed: ${e.message}")
+            Log.e(_TAG, "Type failed: ${e.message}")
             false
         }
     }

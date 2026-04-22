@@ -13,7 +13,7 @@ import java.io.File
 
 // ── Helper functions ────────────────────────────────────────────────
 
-private const val TAG = "GatewayConfig"
+private const val _TAG = "GatewayConfig"
 
 /** Coerce bool-ish config values. */
 private fun coerceBool(value: Any?, default: Boolean = true): Boolean {
@@ -311,7 +311,7 @@ data class GatewayConfig(
                 val map = jsonToMap(json)
                 fromDict(map)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to load config from ${file.path}: ${e.message}")
+                Log.e(_TAG, "Failed to load config from ${file.path}: ${e.message}")
                 null
             }
         }

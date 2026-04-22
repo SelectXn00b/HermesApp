@@ -21,7 +21,7 @@ import java.util.UUID
  */
 object MemoryTool {
 
-    private const val TAG = "MemoryTool"
+    private const val _TAG = "MemoryTool"
     private val gson = Gson()
 
     private const val ENTRY_DELIMITER = "\n§\n"

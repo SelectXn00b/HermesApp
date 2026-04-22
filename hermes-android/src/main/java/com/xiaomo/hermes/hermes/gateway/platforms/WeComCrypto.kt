@@ -72,7 +72,7 @@ class WXBizMsgCrypt(
     /** Corp ID or receive ID. */
     val receiveId: String) {
     companion object {
-        private const val TAG = "WXBizMsgCrypt"
+        private const val _TAG = "WXBizMsgCrypt"
 
         /**
          * Generate a random nonce.

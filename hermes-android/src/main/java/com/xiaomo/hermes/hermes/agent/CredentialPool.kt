@@ -24,7 +24,7 @@ import kotlin.math.min
 class CredentialPool {
 
     companion object {
-        private const val TAG = "CredentialPool"
+        private const val _TAG = "CredentialPool"
 
         // --- Status and type constants ---
         const val STATUS_OK = "ok"
@@ -334,7 +334,7 @@ class CredentialPool {
             file.parentFile?.mkdirs()
             file.writeText(root.toString())
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to persist credential pool for $poolProvider", e)
+            Log.w(_TAG, "Failed to persist credential pool for $poolProvider", e)
         }
     }
 
@@ -366,7 +366,7 @@ class CredentialPool {
             val fileAccess = json.optString("accessToken", "")
             val fileExpires = json.optLong("expiresAt", 0)
             if (fileRefresh.isNotEmpty() && fileRefresh != entry.refreshToken) {
-                Log.d(TAG, "Pool entry ${entry.id}: syncing tokens from credentials file")
+                Log.d(_TAG, "Pool entry ${entry.id}: syncing tokens from credentials file")
                 val updated = entry.copy(
                     accessToken = fileAccess,
                     refreshToken = fileRefresh,
@@ -379,7 +379,7 @@ class CredentialPool {
                 updated
             } else entry
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to sync from credentials file: ${e.message}")
+            Log.d(_TAG, "Failed to sync from credentials file: ${e.message}")
             entry
         }
     }
@@ -393,7 +393,7 @@ class CredentialPool {
             val cliRefresh = json.optString("refresh_token", "")
             val cliAccess = json.optString("access_token", "")
             if (cliRefresh.isNotEmpty() && cliRefresh != entry.refreshToken) {
-                Log.d(TAG, "Pool entry ${entry.id}: syncing tokens from ~/.codex/auth.json")
+                Log.d(_TAG, "Pool entry ${entry.id}: syncing tokens from ~/.codex/auth.json")
                 val updated = entry.copy(
                     accessToken = cliAccess,
                     refreshToken = cliRefresh,
@@ -405,7 +405,7 @@ class CredentialPool {
                 updated
             } else entry
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to sync from ~/.codex/auth.json: ${e.message}")
+            Log.d(_TAG, "Failed to sync from ~/.codex/auth.json: ${e.message}")
             entry
         }
     }
@@ -443,7 +443,7 @@ class CredentialPool {
             }
             file.writeText(root.toString())
         } catch (e: Exception) {
-            Log.d(TAG, "Failed to sync $poolProvider pool entry back to auth store: ${e.message}")
+            Log.d(_TAG, "Failed to sync $poolProvider pool entry back to auth store: ${e.message}")
         }
     }
 
@@ -454,7 +454,7 @@ class CredentialPool {
         }
         // On Android, OAuth token refresh requires network calls to provider APIs.
         // Implement provider-specific refresh logic as needed.
-        Log.w(TAG, "Token refresh not implemented for provider=${poolProvider} on Android. Entry ${entry.id} marked exhausted.")
+        Log.w(_TAG, "Token refresh not implemented for provider=${poolProvider} on Android. Entry ${entry.id} marked exhausted.")
         _markExhausted(entry, null)
         return null
     }
@@ -545,7 +545,7 @@ class CredentialPool {
         val available = availableEntries(clearExpired = true, refresh = true)
         if (available.isEmpty()) {
             _currentId = null
-            Log.i(TAG, "credential pool: no available entries (all exhausted or empty)")
+            Log.i(_TAG, "credential pool: no available entries (all exhausted or empty)")
             return null
         }
 
@@ -591,13 +591,13 @@ class CredentialPool {
         _lock.withLock {
             val entry = current() ?: selectUnlocked() ?: return null
             val label = entry.label.ifEmpty { entry.id.take(8) }
-            Log.i(TAG, "credential pool: marking $label exhausted (status=$statusCode), rotating")
+            Log.i(_TAG, "credential pool: marking $label exhausted (status=$statusCode), rotating")
             _markExhausted(entry, statusCode, errorContext)
             _currentId = null
             val nextEntry = selectUnlocked()
             if (nextEntry != null) {
                 val nextLabel = nextEntry.label.ifEmpty { nextEntry.id.take(8) }
-                Log.i(TAG, "credential pool: rotated to $nextLabel")
+                Log.i(_TAG, "credential pool: rotated to $nextLabel")
             }
             return nextEntry
         }
@@ -837,7 +837,7 @@ class CredentialPool {
                 jsonToMap(arr.getJSONObject(i))
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to read credential pool for $provider", e)
+            Log.w(_TAG, "Failed to read credential pool for $provider", e)
             emptyList()
         }
     }
@@ -852,7 +852,7 @@ class CredentialPool {
             file.parentFile?.mkdirs()
             file.writeText(root.toString())
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to write credential pool for $provider", e)
+            Log.w(_TAG, "Failed to write credential pool for $provider", e)
         }
     }
 

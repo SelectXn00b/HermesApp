@@ -17,7 +17,7 @@ import javax.net.ssl.HttpsURLConnection
  */
 object Onboard {
 
-    private const val TAG = "Onboard"
+    private const val _TAG = "Onboard"
 
     // -----------------------------------------------------------------------
     // Bind status
@@ -88,7 +88,7 @@ object Onboard {
                 throw RuntimeException("create_bind_task: missing task_id in response")
             }
 
-            Log.d(TAG, "create_bind_task ok: task_id=$taskId")
+            Log.d(_TAG, "create_bind_task ok: task_id=$taskId")
             return BindTaskResult(taskId, key)
         } finally {
             conn.disconnect()

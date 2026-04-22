@@ -8,7 +8,7 @@ import android.util.Log
  */
 object SkillsGuard {
 
-    private const val TAG = "SkillsGuard"
+    private const val _TAG = "SkillsGuard"
 
     data class GuardResult(
         val allowed: Boolean = false,

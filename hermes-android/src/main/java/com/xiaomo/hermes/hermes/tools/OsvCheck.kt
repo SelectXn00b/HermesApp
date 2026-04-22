@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  */
 object OsvCheck {
 
-    private const val TAG = "OsvCheck"
+    private const val _TAG = "OsvCheck"
     private const val DEFAULT_ENDPOINT = "https://api.osv.dev/v1/query"
     private const val TIMEOUT_SECONDS = 10L
 
@@ -46,7 +46,7 @@ object OsvCheck {
                 "BLOCKED: Package '$packageName' ($ecosystem) has known malware advisories: $ids. Details: $summaries"
             } else null
         } catch (e: Exception) {
-            Log.d(TAG, "OSV check failed for $ecosystem/$packageName (allowing): ${e.message}")
+            Log.d(_TAG, "OSV check failed for $ecosystem/$packageName (allowing): ${e.message}")
             null // Fail-open
         }
     }

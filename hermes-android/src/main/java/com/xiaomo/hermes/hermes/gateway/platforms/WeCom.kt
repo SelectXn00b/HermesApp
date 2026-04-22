@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class WeCom(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WECOM) {
-    companion object { private const val TAG = "WeCom" }
+    companion object { private const val _TAG = "WeCom" }
 
     private val _corpId: String = config.extra("corp_id") ?: System.getenv("WECOM_CORP_ID") ?: ""
     private val _corpSecret: String = config.extra("corp_secret") ?: System.getenv("WECOM_CORP_SECRET") ?: ""
@@ -44,7 +44,7 @@ class WeCom(
 
     override suspend fun connect(): Boolean {
         if (_corpId.isEmpty() || _corpSecret.isEmpty()) {
-            Log.e(TAG, "WECOM_CORP_ID or WECOM_CORP_SECRET not set")
+            Log.e(_TAG, "WECOM_CORP_ID or WECOM_CORP_SECRET not set")
             return false
         }
 
@@ -68,12 +68,12 @@ class WeCom(
                 if (data.optInt("errcode", 0) != 0) return@withContext false
                 _accessToken = data.getString("access_token")
                 _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
-                Log.i(TAG, "Access token refreshed")
+                Log.i(_TAG, "Access token refreshed")
                 markConnected()
                 return@withContext true
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Token refresh failed: ${e.message}")
+            Log.e(_TAG, "Token refresh failed: ${e.message}")
             return@withContext false
         }
     }

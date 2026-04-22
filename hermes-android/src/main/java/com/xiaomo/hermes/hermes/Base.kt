@@ -25,7 +25,7 @@ abstract class BaseEnvironment(
     /** Extra environment variables merged into every command. */
     val env: Map<String, String> = emptyMap()) {
     companion object {
-        private const val TAG = "BaseEnvironment"
+        private const val _TAG = "BaseEnvironment"
     }
 
     // ── Session management ──────────────────────────────────────────────
@@ -119,9 +119,9 @@ abstract class BaseEnvironment(
             val result = _waitForProcess(proc, snapshotTimeout)
             _snapshotReady = true
             _updateCwd(result)
-            Log.d(TAG, "Session snapshot created (session=$_sessionId, cwd=$cwd)")
+            Log.d(_TAG, "Session snapshot created (session=$_sessionId, cwd=$cwd)")
         } catch (e: Exception) {
-            Log.w(TAG, "init_session failed (session=$_sessionId): ${e.message} — falling back to bash -l per command")
+            Log.w(_TAG, "init_session failed (session=$_sessionId): ${e.message} — falling back to bash -l per command")
             _snapshotReady = false
         }
     }

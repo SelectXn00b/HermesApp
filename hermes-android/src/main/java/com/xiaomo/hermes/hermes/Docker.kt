@@ -16,11 +16,11 @@ class DockerEnvironment(
     private val taskId: String = "default"
 ) {
     companion object {
-        private const val TAG = "DockerEnvironment"
+        private const val _TAG = "DockerEnvironment"
     }
 
     init {
-        Log.d(TAG, "DockerEnvironment initialized (stub - Docker not available on Android)")
+        Log.d(_TAG, "DockerEnvironment initialized (stub - Docker not available on Android)")
     }
 
     /**
@@ -41,7 +41,7 @@ class DockerEnvironment(
      */
     fun _runBash(cmdString: String): Any? {
         // Android stub: Docker execution requires a Docker daemon
-        Log.d(TAG, "runBash: Docker not available on Android")
+        Log.d(_TAG, "runBash: Docker not available on Android")
         return null
     }
 
@@ -58,6 +58,6 @@ class DockerEnvironment(
      * Clean up the Docker container.
      */
     fun cleanup() {
-        Log.d(TAG, "cleanup: removing Docker container (server-side stub)")
+        Log.d(_TAG, "cleanup: removing Docker container (server-side stub)")
     }
 }

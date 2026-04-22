@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Bluebubbles(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.BLUEBUBBLES) {
-    companion object { private const val TAG = "Bluebubbles" }
+    companion object { private const val _TAG = "Bluebubbles" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "BlueBubbles is iOS/macOS-specific — not supported on Android")
+        Log.w(_TAG, "BlueBubbles is iOS/macOS-specific — not supported on Android")
         return false
     }
 

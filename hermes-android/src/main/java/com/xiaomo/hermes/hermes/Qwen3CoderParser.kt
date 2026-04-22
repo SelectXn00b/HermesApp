@@ -15,7 +15,7 @@ import java.util.regex.Pattern
 class Qwen3CoderToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("qwen3_coder")
     companion object {
-        private const val TAG = "Qwen3CoderParser"
+        private const val _TAG = "Qwen3CoderParser"
         private val TOOL_CALL_PATTERN = Pattern.compile("<tool_call>\\s*(.*?)\\s*</tool_call>", Pattern.DOTALL)
         private val FUNC_PATTERN = Pattern.compile("<function=(.*?)>\\s*(.*?)\\s*</function>", Pattern.DOTALL)
         private val PARAM_PATTERN = Pattern.compile("<parameter=(.*?)>(.*?)</parameter>", Pattern.DOTALL)

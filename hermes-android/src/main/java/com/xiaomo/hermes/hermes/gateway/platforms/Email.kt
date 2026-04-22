@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Email(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.EMAIL) {
-    companion object { private const val TAG = "Email" }
+    companion object { private const val _TAG = "Email" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "Email adapter is a stub — requires IMAP/SMTP libraries on Android")
+        Log.w(_TAG, "Email adapter is a stub — requires IMAP/SMTP libraries on Android")
         return false
     }
 

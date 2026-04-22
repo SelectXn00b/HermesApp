@@ -42,7 +42,7 @@ class Discord(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.DISCORD) {
     companion object {
-        private const val TAG = "Discord"
+        private const val _TAG = "Discord"
         const val MAX_MESSAGE_LENGTH = 2000
         const val API_BASE = "https://discord.com/api/v10"
     }
@@ -72,7 +72,7 @@ class Discord(
 
     override suspend fun connect(): Boolean {
         if (_token.isEmpty()) {
-            Log.e(TAG, "DISCORD_TOKEN not set")
+            Log.e(_TAG, "DISCORD_TOKEN not set")
             return false
         }
 
@@ -86,15 +86,15 @@ class Discord(
 
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    Log.e(TAG, "Failed to get bot info: HTTP ${resp.code}")
+                    Log.e(_TAG, "Failed to get bot info: HTTP ${resp.code}")
                     return false
                 }
                 val data = JSONObject(resp.body!!.string())
                 _botUserId = data.getString("id")
-                Log.i(TAG, "Bot connected: ${data.getString("username")} ($_botUserId)")
+                Log.i(_TAG, "Bot connected: ${data.getString("username")} ($_botUserId)")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Connection failed: ${e.message}")
+            Log.e(_TAG, "Connection failed: ${e.message}")
             return false
         }
 
@@ -109,7 +109,7 @@ class Discord(
         _chatJobs.clear()
         _chatQueues.clear()
         markDisconnected()
-        Log.i(TAG, "Disconnected")
+        Log.i(_TAG, "Disconnected")
     }
 
     override suspend fun send(
@@ -140,7 +140,7 @@ class Discord(
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
                     val errorBody = resp.body?.string() ?: ""
-                    Log.e(TAG, "Send failed: HTTP ${resp.code}: $errorBody")
+                    Log.e(_TAG, "Send failed: HTTP ${resp.code}: $errorBody")
                     return@withContext SendResult(success = false, error = "HTTP ${resp.code}")
                 }
 
@@ -222,11 +222,11 @@ class Discord(
 
                 _httpClient.newCall(request).execute().use { resp ->
                     if (!resp.isSuccessful) {
-                        Log.w(TAG, "Typing indicator failed: HTTP ${resp.code}")
+                        Log.w(_TAG, "Typing indicator failed: HTTP ${resp.code}")
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Typing indicator error: ${e.message}")
+                Log.w(_TAG, "Typing indicator error: ${e.message}")
             }
         }
     }

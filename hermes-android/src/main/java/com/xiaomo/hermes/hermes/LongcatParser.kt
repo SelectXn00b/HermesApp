@@ -18,7 +18,7 @@ class LongcatToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("longcat")
 
     companion object {
-        private const val TAG = "LongcatParser"
+        private const val _TAG = "LongcatParser"
         private val PATTERN = Pattern.compile(
             "<longcat_tool_call>\\s*(.*?)\\s*</longcat_tool_call>|<longcat_tool_call>\\s*(.*)",
             Pattern.DOTALL

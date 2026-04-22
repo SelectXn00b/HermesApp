@@ -30,7 +30,7 @@ data class ContextWindow(
 abstract class ContextEngine {
 
     companion object {
-        private const val TAG = "ContextEngine"
+        private const val _TAG = "ContextEngine"
     }
 
     // ── Token state (read by run_agent for display/logging) ───────────
@@ -61,7 +61,7 @@ abstract class ContextEngine {
         lastPromptTokens = (usage["prompt_tokens"] as? Number)?.toInt() ?: lastPromptTokens
         lastCompletionTokens = (usage["completion_tokens"] as? Number)?.toInt() ?: lastCompletionTokens
         lastTotalTokens = (usage["total_tokens"] as? Number)?.toInt() ?: lastTotalTokens
-        Log.d(TAG, "Updated tokens: prompt=$lastPromptTokens completion=$lastCompletionTokens total=$lastTotalTokens")
+        Log.d(_TAG, "Updated tokens: prompt=$lastPromptTokens completion=$lastCompletionTokens total=$lastTotalTokens")
     }
 
     /** Return True if compaction should fire this turn. */
@@ -77,7 +77,7 @@ abstract class ContextEngine {
         messages: List<Map<String, Any>>,
         currentTokens: Int?
     ): List<Map<String, Any>> {
-        Log.w(TAG, "compress() called on base ContextEngine — returning messages unchanged")
+        Log.w(_TAG, "compress() called on base ContextEngine — returning messages unchanged")
         return messages
     }
 
@@ -93,13 +93,13 @@ abstract class ContextEngine {
     /** Called when a new conversation session begins.
      *  Use this to load persisted state (DAG, store) for the session. */
     open fun onSessionStart(sessionId: String, kwargs: Any) {
-        Log.d(TAG, "Session started: $sessionId")
+        Log.d(_TAG, "Session started: $sessionId")
     }
 
     /** Called at real session boundaries (CLI exit, /reset, gateway expiry).
      *  Use this to flush state, close DB connections, etc. */
     open fun onSessionEnd(sessionId: String, messages: List<Map<String, Any>>) {
-        Log.d(TAG, "Session ended: $sessionId, compressionCount=$compressionCount")
+        Log.d(_TAG, "Session ended: $sessionId, compressionCount=$compressionCount")
     }
 
     /** Called on /new or /reset. Reset per-session state. */
@@ -108,7 +108,7 @@ abstract class ContextEngine {
         lastCompletionTokens = 0
         lastTotalTokens = 0
         compressionCount = 0
-        Log.d(TAG, "Session state reset")
+        Log.d(_TAG, "Session state reset")
     }
 
     // ── Tools ─────────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ abstract class ContextEngine {
     ) {
         this.contextLength = contextLength
         this.thresholdTokens = (contextLength * thresholdPercent).toInt()
-        Log.d(TAG, "Model updated: model=$model contextLength=$contextLength thresholdTokens=$thresholdTokens")
+        Log.d(_TAG, "Model updated: model=$model contextLength=$contextLength thresholdTokens=$thresholdTokens")
     }
 
     // ── Abstract: concrete subclasses must implement ──────────────────

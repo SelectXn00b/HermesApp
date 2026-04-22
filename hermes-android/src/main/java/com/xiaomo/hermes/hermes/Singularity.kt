@@ -16,13 +16,13 @@ class SingularityEnvironment(
     private val taskId: String = "default"
 ) {
     companion object {
-        private const val TAG = "SingularityEnvironment"
+        private const val _TAG = "SingularityEnvironment"
     }
 
     private var instanceName: String = ""
 
     init {
-        Log.d(TAG, "SingularityEnvironment initialized (stub - Singularity not available on Android)")
+        Log.d(_TAG, "SingularityEnvironment initialized (stub - Singularity not available on Android)")
     }
 
     /**
@@ -33,7 +33,7 @@ class SingularityEnvironment(
      */
     fun _startInstance(): Any? {
         // Android stub: Singularity requires Linux kernel features not available on Android
-        Log.d(TAG, "startInstance: Singularity not available on Android")
+        Log.d(_TAG, "startInstance: Singularity not available on Android")
         instanceName = "hermes-$taskId"
         return null
     }
@@ -44,7 +44,7 @@ class SingularityEnvironment(
      * On Android, Singularity is not available.
      */
     fun _runBash(cmdString: String): Any? {
-        Log.d(TAG, "runBash: Singularity not available on Android")
+        Log.d(_TAG, "runBash: Singularity not available on Android")
         return null
     }
 
@@ -52,6 +52,6 @@ class SingularityEnvironment(
      * Clean up the Singularity instance and overlay.
      */
     fun cleanup() {
-        Log.d(TAG, "cleanup: stopping Singularity instance (server-side stub)")
+        Log.d(_TAG, "cleanup: stopping Singularity instance (server-side stub)")
     }
 }

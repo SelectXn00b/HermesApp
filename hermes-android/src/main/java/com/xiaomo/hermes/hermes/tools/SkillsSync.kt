@@ -10,7 +10,7 @@ import java.security.MessageDigest
  */
 object SkillsSync {
 
-    private const val TAG = "SkillsSync"
+    private const val _TAG = "SkillsSync"
 
     data class SyncResult(
         val copied: List<String>,
@@ -43,7 +43,7 @@ object SkillsSync {
                 .joinToString("\n") { "${it.key}:${it.value}" } + "\n"
             manifestFile.writeText(data, Charsets.UTF_8)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to write skills manifest: ${e.message}")
+            Log.w(_TAG, "Failed to write skills manifest: ${e.message}")
         }
     }
 
@@ -101,10 +101,10 @@ object SkillsSync {
                         skillSrc.copyRecursively(dest)
                         copied.add(skillName)
                         manifest[skillName] = bundledHash
-                        if (!quiet) Log.i(TAG, "+ $skillName")
+                        if (!quiet) Log.i(_TAG, "+ $skillName")
                     }
                 } catch (e: Exception) {
-                    if (!quiet) Log.w(TAG, "! Failed to copy $skillName: ${e.message}")
+                    if (!quiet) Log.w(_TAG, "! Failed to copy $skillName: ${e.message}")
                 }
             } else if (dest.exists()) {
                 val originHash = manifest[skillName] ?: ""
@@ -118,7 +118,7 @@ object SkillsSync {
 
                 if (userHash != originHash) {
                     userModified.add(skillName)
-                    if (!quiet) Log.i(TAG, "~ $skillName (user-modified, skipping)")
+                    if (!quiet) Log.i(_TAG, "~ $skillName (user-modified, skipping)")
                     continue
                 }
 
@@ -130,7 +130,7 @@ object SkillsSync {
                             skillSrc.copyRecursively(dest)
                             manifest[skillName] = bundledHash
                             updated.add(skillName)
-                            if (!quiet) Log.i(TAG, "↑ $skillName (updated)")
+                            if (!quiet) Log.i(_TAG, "↑ $skillName (updated)")
                             backup.deleteRecursively()
                         } catch (e: Exception) {
                             if (backup.exists() && !dest.exists()) {
@@ -139,7 +139,7 @@ object SkillsSync {
                             throw e
                         }
                     } catch (e: Exception) {
-                        if (!quiet) Log.w(TAG, "! Failed to update $skillName: ${e.message}")
+                        if (!quiet) Log.w(_TAG, "! Failed to update $skillName: ${e.message}")
                     }
                 } else {
                     skipped++

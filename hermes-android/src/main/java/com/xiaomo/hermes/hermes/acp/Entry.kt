@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
  */
 object Entry {
 
-    private const val TAG = "ACP.Entry"
+    private const val _TAG = "ACP.Entry"
 
     /**
      * Route all logging to Android logcat.
@@ -28,7 +28,7 @@ object Entry {
     fun _setupLogging() {
         // Android uses Logcat by default; nothing special needed.
         // Quiet down noisy libraries by setting their log level if needed.
-        Log.i(TAG, "Logging configured for ACP adapter")
+        Log.i(_TAG, "Logging configured for ACP adapter")
     }
 
     /**
@@ -39,7 +39,7 @@ object Entry {
     fun _loadEnv() {
         // On Android, env loading is handled by the app's config system.
         // Python upstream: load_hermes_dotenv(hermes_home=get_hermes_home())
-        Log.i(TAG, "Env loading skipped on Android (handled by app config)")
+        Log.i(_TAG, "Env loading skipped on Android (handled by app config)")
     }
 
     /**
@@ -52,7 +52,7 @@ object Entry {
         _setupLogging()
         _loadEnv()
 
-        Log.i(TAG, "Starting hermes-agent ACP adapter")
+        Log.i(_TAG, "Starting hermes-agent ACP adapter")
 
         // Python upstream:
         //   agent = HermesACPAgent()
@@ -62,9 +62,9 @@ object Entry {
         // structurally for event/tool bridging only.
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                Log.i(TAG, "ACP adapter initialized (server not started on Android)")
+                Log.i(_TAG, "ACP adapter initialized (server not started on Android)")
             } catch (e: Exception) {
-                Log.e(TAG, "ACP agent crashed", e)
+                Log.e(_TAG, "ACP agent crashed", e)
             }
         }
     }

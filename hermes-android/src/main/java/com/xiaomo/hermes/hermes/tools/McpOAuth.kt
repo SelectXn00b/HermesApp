@@ -13,7 +13,7 @@ import java.util.Base64
  */
 object McpOAuth {
 
-    private const val TAG = "McpOAuth"
+    private const val _TAG = "McpOAuth"
     private val gson = Gson()
 
     data class TokenSet(
@@ -41,7 +41,7 @@ object McpOAuth {
                 val accessToken = entry["access_token"] as? String
                 if (!accessToken.isNullOrBlank()) return accessToken.trim()
             } catch (e: Exception) {
-                Log.d(TAG, "Failed to load OAuth token for $serverName: ${e.message}")
+                Log.d(_TAG, "Failed to load OAuth token for $serverName: ${e.message}")
             }
         }
 
@@ -88,10 +88,10 @@ object McpOAuth {
         try {
             tmp.writeText(jsonStr, Charsets.UTF_8)
             tmp.renameTo(path)
-            Log.d(TAG, "OAuth client info saved for $serverName")
+            Log.d(_TAG, "OAuth client info saved for $serverName")
         } catch (e: Exception) {
             tmp.delete()
-            Log.e(TAG, "Failed to save client info: ${e.message}")
+            Log.e(_TAG, "Failed to save client info: ${e.message}")
         }
     }
     /** Delete all stored OAuth state for this server. */
@@ -100,7 +100,7 @@ object McpOAuth {
         val clientInfoPath = File(_clientInfoPath(serverName))
         tokensPath.delete()
         clientInfoPath.delete()
-        Log.d(TAG, "OAuth tokens removed for '$serverName'")
+        Log.d(_TAG, "OAuth tokens removed for '$serverName'")
     }
     /** Return True if we have tokens on disk (may be expired). */
     fun hasCachedTokens(serverName: String): Boolean {

@@ -94,7 +94,7 @@ class Feishu(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.FEISHU) {
     companion object {
-        private const val TAG = "Feishu"
+        private const val _TAG = "Feishu"
 
         /** Maximum message length for Feishu. */
         const val MAX_MESSAGE_LENGTH = 30000
@@ -241,19 +241,19 @@ class Feishu(
      */
     override suspend fun connect(): Boolean {
         if (_appId.isEmpty() || _appSecret.isEmpty()) {
-            Log.e(TAG, "FEISHU_APP_ID or FEISHU_APP_SECRET not set")
+            Log.e(_TAG, "FEISHU_APP_ID or FEISHU_APP_SECRET not set")
             return false
         }
 
         // Step 1: Get access token
         if (!_refreshAccessToken()) {
-            Log.e(TAG, "Failed to obtain tenant_access_token")
+            Log.e(_TAG, "Failed to obtain tenant_access_token")
             return false
         }
 
         // Step 2: Resolve bot identity
         if (!_resolveBotIdentity()) {
-            Log.w(TAG, "Failed to resolve bot identity (continuing anyway)")
+            Log.w(_TAG, "Failed to resolve bot identity (continuing anyway)")
         }
 
         // Step 3: Start transport
@@ -278,7 +278,7 @@ class Feishu(
         _chatJobs.clear()
         _chatQueues.clear()
         markDisconnected()
-        Log.i(TAG, "Disconnected")
+        Log.i(_TAG, "Disconnected")
     }
 
     // ------------------------------------------------------------------
@@ -305,22 +305,22 @@ class Feishu(
 
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    Log.e(TAG, "Token refresh HTTP ${resp.code}")
+                    Log.e(_TAG, "Token refresh HTTP ${resp.code}")
                     return@withContext false
                 }
                 val data = JSONObject(resp.body!!.string())
                 if (data.optInt("code", -1) != 0) {
-                    Log.e(TAG, "Token refresh error: ${data.optString("msg")}")
+                    Log.e(_TAG, "Token refresh error: ${data.optString("msg")}")
                     return@withContext false
                 }
                 _accessToken = data.getString("tenant_access_token")
                 val expire = data.optInt("expire", 7200)
                 _accessTokenExpiry = System.currentTimeMillis() / 1000 + expire - 300
-                Log.i(TAG, "Access token refreshed (expires in ${expire}s)")
+                Log.i(_TAG, "Access token refreshed (expires in ${expire}s)")
                 return@withContext true
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Token refresh failed: ${e.message}")
+            Log.e(_TAG, "Token refresh failed: ${e.message}")
             return@withContext false
         }
     }
@@ -357,11 +357,11 @@ class Feishu(
                 val bot = data.optJSONObject("bot") ?: return@withContext false
                 _botUserId = bot.optString("open_id", "")
                 _botUserName = bot.optString("name", "Bot")
-                Log.i(TAG, "Bot identity: $_botUserName ($_botUserId)")
+                Log.i(_TAG, "Bot identity: $_botUserName ($_botUserId)")
                 return@withContext true
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to resolve bot identity: ${e.message}")
+            Log.w(_TAG, "Failed to resolve bot identity: ${e.message}")
             return@withContext false
         }
     }
@@ -383,7 +383,7 @@ class Feishu(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    Log.w(TAG, "WebSocket error: ${e.message}, reconnecting in ${reconnectDelay}s")
+                    Log.w(_TAG, "WebSocket error: ${e.message}, reconnecting in ${reconnectDelay}s")
                     delay((reconnectDelay * 1000).toLong())
                     reconnectDelay = minOf(reconnectDelay * 2, WS_MAX_RECONNECT_DELAY)
                 }
@@ -405,7 +405,7 @@ class Feishu(
 
         val listener = object : okhttp3.WebSocketListener() {
             override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
-                Log.i(TAG, "WebSocket connected")
+                Log.i(_TAG, "WebSocket connected")
                 markConnected()
             }
 
@@ -416,12 +416,12 @@ class Feishu(
             }
 
             override fun onClosing(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
-                Log.i(TAG, "WebSocket closing: $code $reason")
+                Log.i(_TAG, "WebSocket closing: $code $reason")
                 webSocket.close(code, reason)
             }
 
             override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
-                Log.e(TAG, "WebSocket failure: ${t.message}")
+                Log.e(_TAG, "WebSocket failure: ${t.message}")
             }
         }
 
@@ -450,12 +450,12 @@ class Feishu(
                 FeishuEventType.REACTION -> _handleReactionEvent(json)
                 FeishuEventType.CARD_ACTION -> _handleCardAction(json)
                 FeishuEventType.MESSAGE_READ -> { /* ignore read receipts */ }
-                FeishuEventType.CHAT_JOINED -> { Log.i(TAG, "Bot added to chat") }
-                FeishuEventType.CHAT_LEFT -> { Log.i(TAG, "Bot removed from chat") }
-                null -> Log.d(TAG, "Unknown event type: $eventType")
+                FeishuEventType.CHAT_JOINED -> { Log.i(_TAG, "Bot added to chat") }
+                FeishuEventType.CHAT_LEFT -> { Log.i(_TAG, "Bot removed from chat") }
+                null -> Log.d(_TAG, "Unknown event type: $eventType")
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Error handling WebSocket message: ${e.message}")
+            Log.w(_TAG, "Error handling WebSocket message: ${e.message}")
         }
     }
 
@@ -478,7 +478,7 @@ class Feishu(
                 })
             }
             _wsClient?.send(connect.toString())
-            Log.i(TAG, "WebSocket handshake completed")
+            Log.i(_TAG, "WebSocket handshake completed")
         }
     }
 
@@ -500,13 +500,13 @@ class Feishu(
 
         // Dedup check
         if (_dedup.isDuplicate(messageId)) {
-            Log.d(TAG, "Duplicate message: $messageId")
+            Log.d(_TAG, "Duplicate message: $messageId")
             return
         }
 
         // Allowlist check
         if (!_allowAllUsers && openId !in _allowedUsers) {
-            Log.d(TAG, "User not in allowlist: $openId")
+            Log.d(_TAG, "User not in allowlist: $openId")
             return
         }
 
@@ -733,7 +733,7 @@ class Feishu(
             try {
                 handleMessage(event)
             } catch (e: Exception) {
-                Log.e(TAG, "Error processing message in chat $chatId: ${e.message}")
+                Log.e(_TAG, "Error processing message in chat $chatId: ${e.message}")
             }
         }
     }
@@ -759,11 +759,11 @@ class Feishu(
                     .build()
                 _httpClient.newCall(request).execute().use { resp ->
                     if (!resp.isSuccessful) {
-                        Log.w(TAG, "ACK reaction failed: HTTP ${resp.code}")
+                        Log.w(_TAG, "ACK reaction failed: HTTP ${resp.code}")
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "ACK reaction error: ${e.message}")
+                Log.w(_TAG, "ACK reaction error: ${e.message}")
             }
         }
     }
@@ -778,7 +778,7 @@ class Feishu(
     private fun _startWebhook(): Boolean {
         // On Android, we don't typically run HTTP servers.
         // This is a placeholder for the webhook transport.
-        Log.w(TAG, "Webhook transport not supported on Android. Use WebSocket instead.")
+        Log.w(_TAG, "Webhook transport not supported on Android. Use WebSocket instead.")
         return false
     }
 
@@ -809,7 +809,7 @@ class Feishu(
 
             SendResult(success = true, messageId = lastMessageId)
         } catch (e: Exception) {
-            Log.e(TAG, "Send failed: ${e.message}")
+            Log.e(_TAG, "Send failed: ${e.message}")
             SendResult(success = false, error = e.message)
         }
     }
@@ -849,7 +849,7 @@ class Feishu(
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
                     val errorBody = resp.body?.string() ?: ""
-                    Log.e(TAG, "Send HTTP ${resp.code}: $errorBody")
+                    Log.e(_TAG, "Send HTTP ${resp.code}: $errorBody")
                     return@withContext SendResult(success = false, error = "HTTP ${resp.code}")
                 }
 
@@ -1021,7 +1021,7 @@ class Feishu(
                 return@withContext data.optJSONObject("data")?.optString("image_key")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Image upload failed: ${e.message}")
+            Log.e(_TAG, "Image upload failed: ${e.message}")
             return@withContext null
         }
     }
@@ -1083,7 +1083,7 @@ class Feishu(
                 return@withContext data.optJSONObject("data")?.optString("file_key")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "File upload failed: ${e.message}")
+            Log.e(_TAG, "File upload failed: ${e.message}")
             return@withContext null
         }
     }
@@ -1168,7 +1168,7 @@ class Feishu(
             val body = JSONObject(response.body?.string() ?: "")
             body.optJSONObject("data")?.optString("name")
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to resolve chat name for $chatId: ${e.message}")
+            Log.w(_TAG, "Failed to resolve chat name for $chatId: ${e.message}")
             null
         }
     }
@@ -1188,7 +1188,7 @@ class Feishu(
             val body = JSONObject(response.body?.string() ?: "")
             body.optJSONObject("data")?.optJSONObject("user")?.optString("name")
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to resolve user name for $openId: ${e.message}")
+            Log.w(_TAG, "Failed to resolve user name for $openId: ${e.message}")
             null
         }
     }

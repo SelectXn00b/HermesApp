@@ -16,7 +16,7 @@ import java.util.ArrayDeque
  */
 object Events {
 
-    private const val TAG = "ACP.Events"
+    private const val _TAG = "ACP.Events"
 
     /**
      * Fire-and-forget an ACP session update from a worker thread.
@@ -33,9 +33,9 @@ object Events {
             try {
                 // ACP session update dispatch placeholder.
                 // Python: conn.session_update(session_id, update)
-                Log.d(TAG, "ACP update sent for session $sessionId: $update")
+                Log.d(_TAG, "ACP update sent for session $sessionId: $update")
             } catch (e: Exception) {
-                Log.d(TAG, "Failed to send ACP update: ${e.message}")
+                Log.d(_TAG, "Failed to send ACP update: ${e.message}")
             }
         }
     }
@@ -92,7 +92,7 @@ object Events {
                         // Android: placeholder — edit snapshot not yet implemented
                         snapshot = null
                     } catch (e: Exception) {
-                        Log.d(TAG, "Failed to capture ACP edit snapshot for $name: ${e.message}")
+                        Log.d(_TAG, "Failed to capture ACP edit snapshot for $name: ${e.message}")
                     }
                 }
                 toolCallMeta[tcId] = mutableMapOf("args" to parsedArgs, "snapshot" to snapshot)

@@ -20,7 +20,7 @@ class LlamaToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("llama3_json", "llama4_json")
 
     companion object {
-        private const val TAG = "LlamaParser"
+        private const val _TAG = "LlamaParser"
         private const val BOT_TOKEN = "<|python_tag|>"
         private val JSON_START = Regex("\\{")
     }

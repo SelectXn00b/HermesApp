@@ -15,11 +15,11 @@ class LocalEnvironment(
     private val timeout: Int = 120
 ) {
     companion object {
-        private const val TAG = "LocalEnvironment"
+        private const val _TAG = "LocalEnvironment"
     }
 
     init {
-        Log.d(TAG, "LocalEnvironment initialized with cwd=$cwd")
+        Log.d(_TAG, "LocalEnvironment initialized with cwd=$cwd")
     }
 
     /**
@@ -52,7 +52,7 @@ class LocalEnvironment(
             pb.redirectErrorStream(true)
             pb.start()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to spawn bash: ${e.message}")
+            Log.e(_TAG, "Failed to spawn bash: ${e.message}")
             null
         }
     }
@@ -89,6 +89,6 @@ class LocalEnvironment(
      * For local backend, this removes temp session files.
      */
     fun cleanup() {
-        Log.d(TAG, "cleanup: local environment (no persistent resources)")
+        Log.d(_TAG, "cleanup: local environment (no persistent resources)")
     }
 }

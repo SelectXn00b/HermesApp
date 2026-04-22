@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class Weixin(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEIXIN) {
-    companion object { private const val TAG = "Weixin" }
+    companion object { private const val _TAG = "Weixin" }
 
     private val _appId: String = config.extra("app_id") ?: System.getenv("WEIXIN_APP_ID") ?: ""
     private val _appSecret: String = config.extra("app_secret") ?: System.getenv("WEIXIN_APP_SECRET") ?: ""
@@ -42,7 +42,7 @@ class Weixin(
 
     override suspend fun connect(): Boolean {
         if (_appId.isEmpty() || _appSecret.isEmpty()) {
-            Log.e(TAG, "WEIXIN_APP_ID or WEIXIN_APP_SECRET not set")
+            Log.e(_TAG, "WEIXIN_APP_ID or WEIXIN_APP_SECRET not set")
             return false
         }
         return _refreshAccessToken()
@@ -65,12 +65,12 @@ class Weixin(
                 if (data.has("errcode")) return@withContext false
                 _accessToken = data.getString("access_token")
                 _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
-                Log.i(TAG, "Access token refreshed")
+                Log.i(_TAG, "Access token refreshed")
                 markConnected()
                 return@withContext true
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Token refresh failed: ${e.message}")
+            Log.e(_TAG, "Token refresh failed: ${e.message}")
             return@withContext false
         }
     }

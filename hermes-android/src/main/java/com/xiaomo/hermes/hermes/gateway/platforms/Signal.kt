@@ -17,10 +17,10 @@ import org.json.JSONObject
 class Signal(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.SIGNAL) {
-    companion object { private const val TAG = "Signal" }
+    companion object { private const val _TAG = "Signal" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "Signal adapter is a stub — not implemented on Android")
+        Log.w(_TAG, "Signal adapter is a stub — not implemented on Android")
         return false
     }
 

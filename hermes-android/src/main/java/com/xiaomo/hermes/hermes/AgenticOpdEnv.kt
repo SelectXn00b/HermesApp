@@ -134,7 +134,7 @@ class AgenticOPDEnv(
     val opdConfig: AgenticOPDConfig = AgenticOPDConfig()
 ) {
     companion object {
-        private const val TAG = "AgenticOPDEnv"
+        private const val _TAG = "AgenticOPDEnv"
         const val NAME = "agentic-opd"
         val DEFAULT_TOOLSETS = listOf("terminal", "file")
     }
@@ -166,7 +166,7 @@ class AgenticOPDEnv(
         val split = maxOf(1, builtinItems.size * 85 / 100)
         items = builtinItems.subList(0, split).toMutableList()
         evalItems = builtinItems.subList(split, builtinItems.size).toMutableList()
-        Log.i(TAG, "Using built-in coding tasks: ${items.size} train / ${evalItems.size} eval items")
+        Log.i(_TAG, "Using built-in coding tasks: ${items.size} train / ${evalItems.size} eval items")
     }
 
     // =========================================================================
@@ -281,7 +281,7 @@ class AgenticOPDEnv(
         efficiencyBuffer.add(efficiency)
         toolUsageBuffer.add(toolUsage)
 
-        Log.d(TAG, "Reward: correctness=%.2f, efficiency=%.2f, tool_usage=%.2f -> %.3f".format(
+        Log.d(_TAG, "Reward: correctness=%.2f, efficiency=%.2f, tool_usage=%.2f -> %.3f".format(
             correctness, efficiency, toolUsage, reward
         ))
         return reward
@@ -328,7 +328,7 @@ class AgenticOPDEnv(
     suspend fun _applyOpdPipeline(group: MutableMap<String, Any?>) {
         // OPD pipeline requires VLLM server for logprob scoring.
         // On Android, this is handled server-side.
-        Log.d(TAG, "OPD pipeline: server-side operation (no-op on Android)")
+        Log.d(_TAG, "OPD pipeline: server-side operation (no-op on Android)")
     }
 
     /**
@@ -416,7 +416,7 @@ class AgenticOPDEnv(
         nextStateRole: String
     ): String? {
         // Hint extraction requires LLM judge calls - server-side operation on Android
-        Log.d(TAG, "Hint extraction: server-side operation (no-op on Android)")
+        Log.d(_TAG, "Hint extraction: server-side operation (no-op on Android)")
         return null
     }
 
@@ -450,15 +450,15 @@ class AgenticOPDEnv(
      */
     suspend fun evaluate() {
         if (evalItems.isEmpty()) {
-            Log.w(TAG, "No eval items available.")
+            Log.w(_TAG, "No eval items available.")
             return
         }
         val evalSize = minOf(opdConfig.evalSize, evalItems.size)
         val evalSubset = evalItems.subList(0, evalSize)
 
-        Log.i(TAG, "Running eval on ${evalSubset.size} coding tasks...")
+        Log.i(_TAG, "Running eval on ${evalSubset.size} coding tasks...")
         // On Android, evaluation is delegated to server-side agent loop
-        Log.i(TAG, "Eval complete (server-side execution)")
+        Log.i(_TAG, "Eval complete (server-side execution)")
     }
 
     // =========================================================================
@@ -499,6 +499,6 @@ class AgenticOPDEnv(
             opdTurnsScoredBuffer.clear()
         }
 
-        Log.d(TAG, "wandbLog: ${metrics.size} metrics")
+        Log.d(_TAG, "wandbLog: ${metrics.size} metrics")
     }
 }

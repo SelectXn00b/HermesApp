@@ -26,7 +26,7 @@ class Homeassistant(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.HOMEASSISTANT) {
     companion object {
-        private const val TAG = "Homeassistant"
+        private const val _TAG = "Homeassistant"
         val BACKOFF_STEPS = listOf(5, 10, 30, 60, 120, 300)
         const val COOLDOWN_SECONDS = 10L
     }
@@ -55,7 +55,7 @@ class Homeassistant(
 
     override suspend fun connect(): Boolean {
         if (_hassUrl.isEmpty() || _hassToken.isEmpty()) {
-            Log.e(TAG, "HASS_URL or HASS_TOKEN not set")
+            Log.e(_TAG, "HASS_URL or HASS_TOKEN not set")
             return false
         }
 
@@ -69,17 +69,17 @@ class Homeassistant(
 
             _httpClient.newCall(request).execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    Log.e(TAG, "HA connection failed: HTTP ${resp.code}")
+                    Log.e(_TAG, "HA connection failed: HTTP ${resp.code}")
                     return false
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "HA connection failed: ${e.message}")
+            Log.e(_TAG, "HA connection failed: ${e.message}")
             return false
         }
 
         markConnected()
-        Log.i(TAG, "Connected to $_hassUrl")
+        Log.i(_TAG, "Connected to $_hassUrl")
         return true
     }
 
@@ -87,7 +87,7 @@ class Homeassistant(
         _pollJob?.cancel()
         _pollJob = null
         markDisconnected()
-        Log.i(TAG, "Disconnected")
+        Log.i(_TAG, "Disconnected")
     }
 
     override suspend fun send(

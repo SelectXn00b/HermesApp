@@ -17,10 +17,10 @@ import org.json.JSONObject
 class WeComCallback(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WECOM_CALLBACK) {
-    companion object { private const val TAG = "WeComCallback" }
+    companion object { private const val _TAG = "WeComCallback" }
 
     override suspend fun connect(): Boolean {
-        Log.w(TAG, "WeCom callback adapter requires HTTP server — use WeCom webhook mode on Android")
+        Log.w(_TAG, "WeCom callback adapter requires HTTP server — use WeCom webhook mode on Android")
         return false
     }
 
