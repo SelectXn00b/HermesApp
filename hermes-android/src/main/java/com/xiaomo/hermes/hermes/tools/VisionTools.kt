@@ -1,126 +1,64 @@
+/**
+ * Vision tools — image analysis using an auxiliary multimodal model.
+ *
+ * Android has no bundled vision backend (OpenRouter / Nous / Codex /
+ * Anthropic / custom OpenAI-compatible). The top-level surface mirrors
+ * tools/vision_tools.py so tool-registration stays aligned.
+ *
+ * Ported from tools/vision_tools.py
+ */
 package com.xiaomo.hermes.hermes.tools
 
-import android.util.Log
-import com.google.gson.Gson
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
-import java.util.Base64
-import java.util.concurrent.TimeUnit
+const val _VISION_DOWNLOAD_TIMEOUT: Double = 30.0
+const val _VISION_MAX_DOWNLOAD_BYTES: Int = 52_428_800
+const val _MAX_BASE64_BYTES: Int = 20_971_520
+const val _RESIZE_TARGET_BYTES: Int = 5_242_880
 
-/**
- * Vision tools — image analysis using LLM vision capabilities.
- * Ported from vision_tools.py
- */
-object VisionTools {
+val VISION_ANALYZE_SCHEMA: Map<String, Any> = mapOf(
+    "name" to "vision_analyze",
+    "description" to "Analyze images using AI vision. Provides a comprehensive description and answers a specific question about the image content.",
+    "parameters" to mapOf(
+        "type" to "object",
+        "properties" to mapOf(
+            "image_url" to mapOf(
+                "type" to "string",
+                "description" to "Image URL (http/https) or local file path to analyze."),
+            "question" to mapOf(
+                "type" to "string",
+                "description" to "Your specific question or request about the image to resolve. The AI will automatically provide a complete image description AND answer your specific question."),
+        ),
+        "required" to listOf("image_url", "question"),
+    ),
+)
 
-    private const val TAG = "VisionTools"
-    private const val TIMEOUT_SECONDS = 60L
-    private val gson = Gson()
-    private val JSON = "application/json".toMediaType()
+private fun _resolveDownloadTimeout(): Double = _VISION_DOWNLOAD_TIMEOUT
 
-    data class VisionResult(
-        val success: Boolean = false,
-        val analysis: String = "",
-        val error: String? = null)
+private fun _validateImageUrl(url: String): Boolean = false
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .build()
+private fun _detectImageMimeType(imagePath: String): String? = null
 
-    /**
-     * Analyze an image with a vision model.
-     * The actual API call is delegated to a callback (since Android apps
-     * will handle their own API configuration).
-     */
-    fun analyzeImage(
-        imagePath: String,
-        prompt: String = "Describe this image in detail.",
-        model: String? = null,
-        apiKey: String? = null,
-        baseUrl: String? = null): String {
-        val file = File(imagePath)
-        if (!file.exists()) return gson.toJson(mapOf("error" to "Image file not found: $imagePath"))
+private suspend fun _downloadImage(imageUrl: String, destination: String, maxRetries: Int = 3): String =
+    throw UnsupportedOperationException("vision download not available on Android")
 
-        val extension = file.extension.lowercase()
-        val mimeTypes = mapOf(
-            "png" to "image/png", "jpg" to "image/jpeg", "jpeg" to "image/jpeg",
-            "gif" to "image/gif", "webp" to "image/webp", "bmp" to "image/bmp")
-        val mimeType = mimeTypes[extension] ?: "image/png"
+private fun _determineMimeType(imagePath: String): String = "image/jpeg"
 
-        if (apiKey.isNullOrBlank()) {
-            return gson.toJson(mapOf("error" to "No API key configured for vision analysis"))
-        }
+private fun _imageToBase64DataUrl(imagePath: String, mimeType: String? = null): String = ""
 
-        return try {
-            val imageBytes = file.readBytes()
-            val base64Image = Base64.getEncoder().encodeToString(imageBytes)
-            val apiBase = baseUrl ?: "https://api.openai.com/v1"
-            val modelName = model ?: "gpt-4o-mini"
+private fun _isImageSizeError(error: Throwable): Boolean = false
 
-            val payload = gson.toJson(mapOf(
-                "model" to modelName,
-                "messages" to listOf(
-                    mapOf(
-                        "role" to "user",
-                        "content" to listOf(
-                            mapOf("type" to "text", "text" to prompt),
-                            mapOf(
-                                "type" to "image_url",
-                                "image_url" to mapOf(
-                                    "url" to "data:$mimeType;base64,$base64Image"))))),
-                "max_tokens" to 1000))
+private fun _resizeImageForVision(
+    imagePath: String,
+    mimeType: String? = null,
+    maxBase64Bytes: Int = _RESIZE_TARGET_BYTES,
+): String = ""
 
-            val request = Request.Builder()
-                .url("$apiBase/chat/completions")
-                .post(payload.toRequestBody(JSON))
-                .header("Authorization", "Bearer $apiKey")
-                .header("Content-Type", "application/json")
-                .build()
+suspend fun visionAnalyzeTool(
+    imageUrl: String,
+    userPrompt: String,
+    model: String? = null,
+): String = toolError("vision_analyze tool is not available on Android")
 
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
-                if (!response.isSuccessful) {
-                    return gson.toJson(mapOf("error" to "API error: ${response.code} - ${body.take(200)}"))
-                }
-                val json = gson.fromJson(body, Map::class.java) as Map<String, Any>
-                val choices = json["choices"] as? List<Map<String, Any>> ?: emptyList()
-                val content = choices.firstOrNull()
-                    ?.let { it["message"] as? Map<String, Any> }
-                    ?.get("content") as? String ?: ""
-                gson.toJson(mapOf("success" to true, "analysis" to content))
-            }
-        } catch (e: Exception) {
-            gson.toJson(mapOf("error" to "Vision analysis failed: ${e.message}"))
-        }
-    }
+fun checkVisionRequirements(): Boolean = false
 
-    /**
-     * Read an image file and return its base64 representation.
-     */
-    fun imageToBase64(imagePath: String): Map<String, String?> {
-        val file = File(imagePath)
-        if (!file.exists()) return mapOf("error" to "Image file not found: $imagePath")
-        return try {
-            val bytes = file.readBytes()
-            val extension = file.extension.lowercase()
-            val mimeType = when (extension) {
-                "png" -> "image/png"
-                "jpg", "jpeg" -> "image/jpeg"
-                "gif" -> "image/gif"
-                "webp" -> "image/webp"
-                else -> "image/png"
-            }
-            mapOf(
-                "base64" to Base64.getEncoder().encodeToString(bytes),
-                "mime_type" to mimeType)
-        } catch (e: Exception) {
-            mapOf("error" to "Failed to read image: ${e.message}")
-        }
-    }
-
-
-}
+fun _handleVisionAnalyze(args: Map<String, Any?>, vararg kw: Any?): String =
+    toolError("vision_analyze tool is not available on Android")
