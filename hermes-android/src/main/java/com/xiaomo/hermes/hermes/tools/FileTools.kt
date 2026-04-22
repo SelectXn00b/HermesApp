@@ -41,24 +41,6 @@ object FileTools {
     }
 
     /**
-     * Read the entire file content (no line numbers).
-     */
-    fun readFileRaw(
-        path: String,
-        ops: FileOperations? = null): String {
-        val fileOps = ops ?: LocalFileOperations()
-        val result = fileOps.readFileRaw(path)
-        return if (result.error != null) {
-            gson.toJson(mapOf("error" to result.error))
-        } else {
-            gson.toJson(mapOf(
-                "content" to result.content,
-                "total_lines" to result.totalLines,
-                "file_size" to result.fileSize))
-        }
-    }
-
-    /**
      * Write content to a file.
      */
     fun writeFile(
@@ -98,17 +80,6 @@ object FileTools {
     }
 
     /**
-     * Apply a V4A format patch.
-     */
-    fun patchV4a(
-        patchContent: String,
-        ops: FileOperations? = null): String {
-        val fileOps = ops ?: LocalFileOperations()
-        val result = fileOps.patchV4a(patchContent)
-        return gson.toJson(result.toMap())
-    }
-
-    /**
      * Search for content in files.
      */
     fun searchFiles(
@@ -120,37 +91,6 @@ object FileTools {
         val fileOps = ops ?: LocalFileOperations()
         val result = fileOps.search(pattern, path, fileGlob = fileGlob, limit = limit)
         return gson.toJson(result.toMap())
-    }
-
-    /**
-     * Delete a file.
-     */
-    fun deleteFile(
-        path: String,
-        ops: FileOperations? = null): String {
-        val fileOps = ops ?: LocalFileOperations()
-        val result = fileOps.deleteFile(path)
-        return if (result.error != null) {
-            gson.toJson(mapOf("error" to result.error))
-        } else {
-            gson.toJson(mapOf("success" to true))
-        }
-    }
-
-    /**
-     * Move/rename a file.
-     */
-    fun moveFile(
-        src: String,
-        dst: String,
-        ops: FileOperations? = null): String {
-        val fileOps = ops ?: LocalFileOperations()
-        val result = fileOps.moveFile(src, dst)
-        return if (result.error != null) {
-            gson.toJson(mapOf("error" to result.error))
-        } else {
-            gson.toJson(mapOf("success" to true))
-        }
     }
 
     /**
