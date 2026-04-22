@@ -31,7 +31,7 @@ object SkillsGuard {
 
         // Check write denial
         if (path != null && operation in listOf("write", "create", "delete", "move")) {
-            if (WritePathDenial.isWriteDenied(path)) {
+            if (_isWriteDenied(path)) {
                 return GuardResult(false, "Write to '$path' is blocked (denied path)")
             }
         }

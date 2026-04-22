@@ -20,7 +20,7 @@ fun readFileTool(
     offset: Int = 1,
     limit: Int = 500,
     ops: FileOperations? = null): String {
-    val fileOps = ops ?: LocalFileOperations()
+    val fileOps = ops ?: ShellFileOperations()
     val result = fileOps.readFile(path, offset, limit)
     return if (result.error != null) {
         val resp = mutableMapOf<String, Any>("error" to result.error)
@@ -45,7 +45,7 @@ fun writeFileTool(
     path: String,
     content: String,
     ops: FileOperations? = null): String {
-    val fileOps = ops ?: LocalFileOperations()
+    val fileOps = ops ?: ShellFileOperations()
     val result = fileOps.writeFile(path, content)
     return if (result.error != null) {
         _fileToolsGson.toJson(mapOf("error" to result.error))
@@ -66,7 +66,7 @@ fun patchTool(
     newString: String,
     replaceAll: Boolean = false,
     ops: FileOperations? = null): String {
-    val fileOps = ops ?: LocalFileOperations()
+    val fileOps = ops ?: ShellFileOperations()
     val result = fileOps.patchReplace(path, oldString, newString, replaceAll)
     return if (result.success) {
         val resp = mutableMapOf<String, Any>("success" to true)
@@ -88,9 +88,9 @@ fun searchTool(
     fileGlob: String? = null,
     limit: Int = 50,
     ops: FileOperations? = null): String {
-    val fileOps = ops ?: LocalFileOperations()
+    val fileOps = ops ?: ShellFileOperations()
     val result = fileOps.search(pattern, path, fileGlob = fileGlob, limit = limit)
-    return _fileToolsGson.toJson(result.toMap())
+    return _fileToolsGson.toJson(result.toDict())
 }
 
 /**
