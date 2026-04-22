@@ -16,7 +16,7 @@
 | ✅ | `:hermes-android:compileDebugKotlin` 通过 | JDK 21 构建日志 |
 | ✅ | `:app:compileDebugKotlin` 通过 | 同上 |
 | ✅ | `:app:assembleDebug` APK 成功 | app-debug.apk 已生成 |
-| ✅ | applicationId 避开 `com.xiaomi.mimo` provider 冲突 | `.hermes` 后缀，已安装成功 |
+| ✅ | applicationId 避开 `com.xiaomi.mimo` provider 冲突 | 现为 `com.xiaomo.androidforclaw`（commit 61b0102），与 `com.xiaomi.mimo` 无前缀重合 |
 
 ## 2. 内核替换（Plan Option B）
 
