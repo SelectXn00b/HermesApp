@@ -23,8 +23,8 @@ interface ProcessHandle {
     fun poll(): Int?
     fun kill()
     fun wait(timeout: Double? = null): Int
-    val stdout: InputStream?
-    val returncode: Int?
+    fun stdout(): InputStream?
+    fun returncode(): Int?
 }
 
 /**
@@ -73,11 +73,9 @@ class _ThreadedProcessHandle(
         worker.start()
     }
 
-    override val stdout: InputStream
-        get() = _outputStream
+    override fun stdout(): InputStream = _outputStream
 
-    override val returncode: Int?
-        get() = _returncode
+    override fun returncode(): Int? = _returncode
 
     override fun poll(): Int? {
         return if (done.count == 0L) _returncode else null
@@ -260,7 +258,7 @@ abstract class BaseEnvironment(
 
         val drainThread = Thread {
             try {
-                proc.stdout?.bufferedReader()?.forEachLine { line ->
+                proc.stdout()?.bufferedReader()?.forEachLine { line ->
                     outputChunks.add(line + "\n")
                 }
             } catch (_: Exception) {
@@ -298,7 +296,7 @@ abstract class BaseEnvironment(
 
         return mutableMapOf(
             "output" to outputChunks.joinToString(""),
-            "returncode" to proc.returncode
+            "returncode" to proc.returncode()
         )
     }
 
@@ -425,5 +423,122 @@ abstract class BaseEnvironment(
     protected open fun _prepareCommand(command: String): Pair<String, String?> {
         // Stub: sudo transformation not applicable on Android
         return Pair(command, null)
+    }
+}
+
+// ── Module-level helpers ported from tools/environments/base.py ───────────
+
+/** Opt-in debug trace: every is_interrupted() state change from _waitForProcess. */
+val _DEBUG_INTERRUPT: Boolean = (System.getenv("HERMES_DEBUG_INTERRUPT")?.isNotEmpty() == true)
+
+/** Thread-local activity callback — the agent sets this before a tool call. */
+private val _activityCallbackLocal: ThreadLocal<((String) -> Unit)?> = ThreadLocal()
+
+/** Register a callback that _waitForProcess fires periodically. */
+fun setActivityCallback(cb: ((String) -> Unit)?) {
+    _activityCallbackLocal.set(cb)
+}
+
+fun _getActivityCallback(): ((String) -> Unit)? = _activityCallbackLocal.get()
+
+/**
+ * Fire the activity callback at most once every `state['interval']` seconds.
+ *
+ * *state* must contain `last_touch` (monotonic timestamp) and `start`
+ * (monotonic timestamp of the operation start). An optional `interval`
+ * key overrides the default 10 s cadence.
+ */
+fun touchActivityIfDue(state: MutableMap<String, Any?>, label: String) {
+    val now = System.nanoTime() / 1_000_000_000.0
+    val interval = (state["interval"] as? Number)?.toDouble() ?: 10.0
+    val lastTouch = (state["last_touch"] as? Number)?.toDouble() ?: 0.0
+    if (now - lastTouch < interval) return
+    state["last_touch"] = now
+    try {
+        val cb = _getActivityCallback() ?: return
+        val start = (state["start"] as? Number)?.toDouble() ?: now
+        val elapsed = (now - start).toInt()
+        cb("$label (${elapsed}s elapsed)")
+    } catch (_: Exception) {
+    }
+}
+
+/**
+ * Return the host-side root for all sandbox storage (Docker workspaces,
+ * Singularity overlays/SIF cache, etc.).
+ *
+ * Configurable via TERMINAL_SANDBOX_DIR. Defaults to {HERMES_HOME}/sandboxes/.
+ */
+fun getSandboxDir(): java.io.File {
+    val custom = System.getenv("TERMINAL_SANDBOX_DIR")
+    val p = if (!custom.isNullOrEmpty()) {
+        java.io.File(custom)
+    } else {
+        java.io.File(System.getProperty("user.home") ?: "/data/local/tmp", ".hermes/sandboxes")
+    }
+    if (!p.exists()) p.mkdirs()
+    return p
+}
+
+/** Write *data* to proc.stdin on a daemon thread to avoid pipe-buffer deadlocks. */
+fun _pipeStdin(proc: Process, data: String) {
+    val t = Thread {
+        try {
+            proc.outputStream.write(data.toByteArray(Charsets.UTF_8))
+            proc.outputStream.close()
+        } catch (_: Exception) {
+        }
+    }
+    t.isDaemon = true
+    t.start()
+}
+
+/**
+ * Spawn a subprocess with standard stdout/stderr/stdin setup.
+ *
+ * If *stdinData* is provided, writes it asynchronously via [_pipeStdin].
+ * Backends with special Popen needs can bypass this and call [_pipeStdin] directly.
+ */
+fun _popenBash(cmd: List<String>, stdinData: String? = null, envOverrides: Map<String, String>? = null): Process {
+    val pb = ProcessBuilder(cmd)
+    pb.redirectErrorStream(true)
+    if (envOverrides != null) {
+        pb.environment().putAll(envOverrides)
+    }
+    val proc = pb.start()
+    if (stdinData != null) _pipeStdin(proc, stdinData)
+    return proc
+}
+
+/** Load a JSON file as a dict, returning empty map on any error. */
+@Suppress("UNCHECKED_CAST")
+fun _loadJsonStore(path: java.io.File): MutableMap<String, Any?> {
+    if (!path.exists()) return mutableMapOf()
+    return try {
+        val text = path.readText(Charsets.UTF_8)
+        val parsed = com.xiaomo.hermes.hermes.gson.fromJson(text, Map::class.java) as? Map<String, Any?>
+        (parsed ?: emptyMap()).toMutableMap()
+    } catch (_: Exception) {
+        mutableMapOf()
+    }
+}
+
+/** Write *data* as pretty-printed JSON to *path*. */
+fun _saveJsonStore(path: java.io.File, data: Map<String, Any?>) {
+    path.parentFile?.let { if (!it.exists()) it.mkdirs() }
+    try {
+        val json = com.xiaomo.hermes.hermes.gson.toJson(data)
+        path.writeText(json, Charsets.UTF_8)
+    } catch (_: Exception) {
+    }
+}
+
+/** Return (mtime, size) for cache comparison, or null if unreadable. */
+fun _fileMtimeKey(hostPath: String): Pair<Long, Long>? {
+    return try {
+        val f = java.io.File(hostPath)
+        if (!f.exists()) null else (f.lastModified() to f.length())
+    } catch (_: Exception) {
+        null
     }
 }
