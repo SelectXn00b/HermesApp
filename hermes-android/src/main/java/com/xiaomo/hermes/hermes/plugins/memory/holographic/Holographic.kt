@@ -4,19 +4,155 @@ import com.xiaomo.hermes.hermes.getLogger
 import com.xiaomo.hermes.hermes.plugins.memory.MemoryItem
 import com.xiaomo.hermes.hermes.plugins.memory.MemoryProvider
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
- * Holographic 记忆后端
+ * Holographic Reduced Representations (HRR) with phase encoding.
  * 1:1 对齐 hermes-agent/plugins/memory/holographic/holographic.py
  *
- * 基于本地文件的记忆存储和检索系统。
- * 使用向量相似度进行语义搜索。
+ * Phase vectors encode compositional structure into fixed-width distributed
+ * representations. Operations:
+ *   bind   — circular convolution (phase addition)
+ *   unbind — circular correlation (phase subtraction)
+ *   bundle — superposition (circular mean of complex exponentials)
+ *
+ * Atoms are generated deterministically from SHA-256 so representations are
+ * identical across processes and language versions.
  */
 
 private val logger = getLogger("holographic")
 
-// ── 配置 ──────────────────────────────────────────────────────────────────
+// ── Module-level constants (1:1 with Python) ───────────────────────────────
+
+const val _HAS_NUMPY: Boolean = false
+
+const val _TWO_PI: Double = 2.0 * Math.PI
+
+// ── Module-level functions (1:1 with Python) ──────────────────────────────
+
+fun _requireNumpy() {
+    // Android: pure JVM fallback — no numpy, but we implement the operations
+    // directly on DoubleArray so callers always succeed.
+}
+
+fun encodeAtom(word: String, dim: Int = 1024): DoubleArray {
+    _requireNumpy()
+    val valuesPerBlock = 16
+    val blocksNeeded = Math.ceil(dim.toDouble() / valuesPerBlock).toInt()
+    val uint16Values = IntArray(blocksNeeded * valuesPerBlock)
+    var offset = 0
+    for (i in 0 until blocksNeeded) {
+        val digest = MessageDigest.getInstance("SHA-256").digest("$word:$i".toByteArray(Charsets.UTF_8))
+        val bb = ByteBuffer.wrap(digest).order(ByteOrder.LITTLE_ENDIAN)
+        for (k in 0 until valuesPerBlock) {
+            uint16Values[offset + k] = bb.short.toInt() and 0xFFFF
+        }
+        offset += valuesPerBlock
+    }
+    val scale = _TWO_PI / 65536.0
+    val phases = DoubleArray(dim) { uint16Values[it] * scale }
+    return phases
+}
+
+fun bind(a: DoubleArray, b: DoubleArray): DoubleArray {
+    _requireNumpy()
+    val n = a.size
+    return DoubleArray(n) { ((a[it] + b[it]) % _TWO_PI + _TWO_PI) % _TWO_PI }
+}
+
+fun unbind(memory: DoubleArray, key: DoubleArray): DoubleArray {
+    _requireNumpy()
+    val n = memory.size
+    return DoubleArray(n) { ((memory[it] - key[it]) % _TWO_PI + _TWO_PI) % _TWO_PI }
+}
+
+fun bundle(vararg vectors: DoubleArray): DoubleArray {
+    _requireNumpy()
+    if (vectors.isEmpty()) return DoubleArray(0)
+    val dim = vectors[0].size
+    val reSum = DoubleArray(dim)
+    val imSum = DoubleArray(dim)
+    for (v in vectors) {
+        for (i in 0 until dim) {
+            reSum[i] += cos(v[i])
+            imSum[i] += sin(v[i])
+        }
+    }
+    return DoubleArray(dim) {
+        val ang = atan2(imSum[it], reSum[it])
+        (ang % _TWO_PI + _TWO_PI) % _TWO_PI
+    }
+}
+
+fun similarity(a: DoubleArray, b: DoubleArray): Double {
+    _requireNumpy()
+    if (a.isEmpty()) return 0.0
+    var sum = 0.0
+    for (i in a.indices) sum += cos(a[i] - b[i])
+    return sum / a.size
+}
+
+fun encodeText(text: String, dim: Int = 1024): DoubleArray {
+    _requireNumpy()
+    val strip = ".,!?;:\"'()[]{}".toCharArray().toSet()
+    val tokens = text.lowercase()
+        .split(Regex("\\s+"))
+        .map { it.trim { c -> c in strip } }
+        .filter { it.isNotEmpty() }
+    if (tokens.isEmpty()) return encodeAtom("__hrr_empty__", dim)
+    val atomVectors = tokens.map { encodeAtom(it, dim) }.toTypedArray()
+    return bundle(*atomVectors)
+}
+
+fun encodeFact(content: String, entities: List<String>, dim: Int = 1024): DoubleArray {
+    _requireNumpy()
+    val roleContent = encodeAtom("__hrr_role_content__", dim)
+    val roleEntity = encodeAtom("__hrr_role_entity__", dim)
+    val components = mutableListOf<DoubleArray>()
+    components += bind(encodeText(content, dim), roleContent)
+    for (entity in entities) {
+        components += bind(encodeAtom(entity.lowercase(), dim), roleEntity)
+    }
+    return bundle(*components.toTypedArray())
+}
+
+fun phasesToBytes(phases: DoubleArray): ByteArray {
+    _requireNumpy()
+    val bb = ByteBuffer.allocate(phases.size * 8).order(ByteOrder.LITTLE_ENDIAN)
+    for (v in phases) bb.putDouble(v)
+    return bb.array()
+}
+
+fun bytesToPhases(data: ByteArray): DoubleArray {
+    _requireNumpy()
+    val bb = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
+    val out = DoubleArray(data.size / 8)
+    for (i in out.indices) out[i] = bb.double
+    return out
+}
+
+fun snrEstimate(dim: Int, nItems: Int): Double {
+    _requireNumpy()
+    if (nItems <= 0) return Double.POSITIVE_INFINITY
+    val snr = sqrt(dim.toDouble() / nItems)
+    if (snr < 2.0) {
+        logger.warning(
+            "HRR storage near capacity: SNR=$snr (dim=$dim, n_items=$nItems). " +
+                "Retrieval accuracy may degrade. Consider increasing dim or reducing stored items."
+        )
+    }
+    return snr
+}
+
+// ── Android extension: provider-style backend ──────────────────────────────
+
 data class HolographicConfig(
     val storageDir: File? = null,
     val maxMemories: Int = 10000,
@@ -24,7 +160,6 @@ data class HolographicConfig(
     val similarityThreshold: Double = 0.7,
     val autoIndex: Boolean = true)
 
-// ── 记忆条目（扩展 MemoryItem）────────────────────────────────────────────
 data class HolographicMemory(
     val id: String,
     val content: String,
@@ -39,9 +174,6 @@ data class HolographicMemory(
     val importance: Double = 0.5,
     val decay: Double = 0.0)
 
-/**
- * Holographic 记忆后端实现
- */
 class HolographicProvider : MemoryProvider {
 
     override val providerName: String = "holographic"
@@ -72,7 +204,6 @@ class HolographicProvider : MemoryProvider {
 
     override suspend fun store(content: String, metadata: Map<String, Any>): String {
         checkInitialized()
-
         val id = generateMemoryId()
         val memory = HolographicMemory(
             id = id,
@@ -80,10 +211,8 @@ class HolographicProvider : MemoryProvider {
             metadata = metadata,
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis())
-
         _memories[id] = memory
         saveMemories()
-
         logger.debug("Stored memory: $id (${content.length} chars)")
         return id
     }
@@ -93,8 +222,6 @@ class HolographicProvider : MemoryProvider {
         limit: Int,
         threshold: Double): List<MemoryItem> {
         checkInitialized()
-
-        // 使用 TF-IDF + 余弦相似度进行检索
         val results = searchMemories(query, limit, threshold)
         return results.map { memory ->
             MemoryItem(
@@ -109,7 +236,6 @@ class HolographicProvider : MemoryProvider {
 
     override suspend fun delete(memoryId: String): Boolean {
         checkInitialized()
-
         val removed = _memories.remove(memoryId) != null
         if (removed) {
             saveMemories()
@@ -120,7 +246,6 @@ class HolographicProvider : MemoryProvider {
 
     override suspend fun list(limit: Int, offset: Int): List<MemoryItem> {
         checkInitialized()
-
         return _memories.values
             .sortedByDescending { it.createdAt }
             .drop(offset)
@@ -142,8 +267,6 @@ class HolographicProvider : MemoryProvider {
         logger.info("Holographic provider closed")
     }
 
-    // ── 内部方法 ──────────────────────────────────────────────────────────
-
     private fun checkInitialized() {
         if (!_initialized) {
             throw IllegalStateException("Holographic provider not initialized")
@@ -159,7 +282,6 @@ class HolographicProvider : MemoryProvider {
     private fun loadMemories() {
         val file = File(_storageDir, "memories.json")
         if (!file.exists()) return
-
         try {
             val content = file.readText(Charsets.UTF_8)
             val type = com.google.gson.reflect.TypeToken.getParameterized(
@@ -185,38 +307,26 @@ class HolographicProvider : MemoryProvider {
         }
     }
 
-    /**
-     * 基于 TF-IDF 的相似度搜索
-     * Python: holographic.py -> search_memories()
-     */
     private fun searchMemories(
         query: String,
         limit: Int,
         threshold: Double): List<HolographicMemory> {
         val queryTokens = tokenize(query)
         if (queryTokens.isEmpty()) return emptyList()
-
         val scores = mutableListOf<Pair<HolographicMemory, Double>>()
-
         for (memory in _memories.values) {
             val memoryTokens = tokenize(memory.content)
-            val similarity = cosineSimilarity(queryTokens, memoryTokens)
-            if (similarity >= threshold) {
-                scores.add(memory to similarity)
+            val sim = cosineSimilarity(queryTokens, memoryTokens)
+            if (sim >= threshold) {
+                scores.add(memory to sim)
             }
         }
-
         return scores
             .sortedByDescending { it.second }
             .take(limit)
-            .map { (memory, score) ->
-                memory.copy(score = score)
-            }
+            .map { (memory, score) -> memory.copy(score = score) }
     }
 
-    /**
-     * 简单分词
-     */
     private fun tokenize(text: String): Map<String, Int> {
         val tokens = mutableMapOf<String, Int>()
         text.lowercase()
@@ -229,19 +339,14 @@ class HolographicProvider : MemoryProvider {
         return tokens
     }
 
-    /**
-     * 余弦相似度（基于词频向量）
-     */
     private fun cosineSimilarity(
         vec1: Map<String, Int>,
         vec2: Map<String, Int>): Double {
         val allKeys = (vec1.keys + vec2.keys).toSet()
         if (allKeys.isEmpty()) return 0.0
-
         var dotProduct = 0.0
         var norm1 = 0.0
         var norm2 = 0.0
-
         for (key in allKeys) {
             val v1 = vec1[key]?.toDouble() ?: 0.0
             val v2 = vec2[key]?.toDouble() ?: 0.0
@@ -249,16 +354,10 @@ class HolographicProvider : MemoryProvider {
             norm1 += v1 * v1
             norm2 += v2 * v2
         }
-
         val denominator = Math.sqrt(norm1) * Math.sqrt(norm2)
         return if (denominator > 0) dotProduct / denominator else 0.0
     }
 
-    // ── 公开方法（扩展功能）────────────────────────────────────────────────
-
-    /**
-     * 更新记忆
-     */
     suspend fun update(memoryId: String, content: String, metadata: Map<String, Any>? = null): Boolean {
         checkInitialized()
         val existing = _memories[memoryId] ?: return false
@@ -271,29 +370,23 @@ class HolographicProvider : MemoryProvider {
         return true
     }
 
-    /**
-     * 搜索记忆（带标签过滤）
-     */
     suspend fun searchWithTags(
         query: String,
         tags: List<String>,
         limit: Int = 10,
         threshold: Double = 0.7): List<MemoryItem> {
         checkInitialized()
-
         val filtered = _memories.values.filter { memory ->
             tags.any { it in memory.tags }
         }
-
         val queryTokens = tokenize(query)
         val scores = filtered.mapNotNull { memory ->
             val memoryTokens = tokenize(memory.content)
-            val similarity = cosineSimilarity(queryTokens, memoryTokens)
-            if (similarity >= threshold) {
-                memory.copy(score = similarity) to similarity
+            val sim = cosineSimilarity(queryTokens, memoryTokens)
+            if (sim >= threshold) {
+                memory.copy(score = sim) to sim
             } else null
         }
-
         return scores
             .sortedByDescending { it.second }
             .take(limit)
@@ -308,9 +401,6 @@ class HolographicProvider : MemoryProvider {
             }
     }
 
-    /**
-     * 获取记忆统计
-     */
     fun getStats(): Map<String, Any> {
         return mapOf(
             "totalMemories" to _memories.size,
