@@ -22,8 +22,7 @@ import java.util.UUID
 
 private const val _TAG = "codex_responses"
 
-// TODO: port agent.prompt_builder.DEFAULT_AGENT_IDENTITY
-private const val DEFAULT_AGENT_IDENTITY = "You are a helpful assistant."
+// DEFAULT_AGENT_IDENTITY lives in PromptBuilder.kt (aligned 1:1 with Python).
 
 // ---------------------------------------------------------------------------
 // Attribute / field access helper

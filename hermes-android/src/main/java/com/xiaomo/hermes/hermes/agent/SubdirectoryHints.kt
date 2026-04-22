@@ -244,8 +244,4 @@ private fun _shlexSplit(cmd: String): List<String> {
     return out
 }
 
-/** Security scan for context content — TODO: port prompt_builder._scan_context_content. */
-private fun _scanContextContent(content: String, filename: String): String {
-    // TODO: port agent.prompt_builder._scan_context_content
-    return content
-}
+// _scanContextContent lives in PromptBuilder.kt (aligned 1:1 with Python).
