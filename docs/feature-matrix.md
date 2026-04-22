@@ -26,8 +26,8 @@
 | ✅ | `HermesAgentLoop.beforeNextTurn` hook 新增 | AgentLoop.kt |
 | ✅ | `EnhancedAIService.sendMessage` L917-1104 替换为 `runViaHermes(...)` | |
 | ✅ | `processStreamCompletion` / `handleToolInvocation` / `processToolResults` 废弃（或仅保留定义） | |
-| ⬜ | 轮间 token 阈值在 `beforeNextTurn` 里等价原 L2089-2110 | 需人工验证 onTokenLimitExceeded 触发 |
-| ⬜ | accumulated*TokenCount 会计与原实现一致 | 需对比原 L1020、L2218 |
+| ✅ | 轮间 token 阈值在 `beforeNextTurn` 里等价原 L2089-2110 | `git show origin/main:…/EnhancedAIService.kt` L2089-2110 vs 当前 L1138-1165: 同 `estimatePreparedRequestWindow` 调用、同 `usageRatio >= tokenUsageThreshold` 判据、同 `onTokenLimitExceeded` + `isConversationActive.set(false)` + `stopAiService` 退出链。新增 `turn > 0` 守卫匹配原 "after tool call" 语义，增加的 `isExecutionContextActive` 属额外防御 |
+| ✅ | accumulated*TokenCount 会计与原实现一致 | `git show origin/main:…/EnhancedAIService.kt` L1020 / L2218（两处重复）vs 当前 `onTurnComplete` 回调 L1020-1034：同样做 `accumulatedInputTokenCount += input` 等三字段累加 + 同 `updateTokensForProviderModel` + 同 `incrementRequestCountForProviderModel`，原两处整合为单一每轮回调，由 `OperitChatCompletionServer` L71-75 传入 `service.{input,cachedInput,output}TokenCount` |
 
 ## 3. 真机冒烟（S7）
 
@@ -47,11 +47,11 @@
 
 | 状态 | 项目 | 证据 |
 |---|---|---|
-| ⬜ | Memory query hook 仍工作（execContext 构造不变） | |
-| ⬜ | Role card 注入仍生效 | |
-| ⬜ | Group orchestration 不受影响 | |
-| ⬜ | `onNonFatalError` 回调正常触发 | |
-| ⬜ | `onToolInvocation` 回调每次工具调用触发一次 | |
+| ✅ | Memory query hook 仍工作（execContext 构造不变） | `execContext` 在 L775 构造后经 L926 传入 `runViaHermes`；`enableMemoryQuery` 继续传到 L1108 的 `handleTaskCompletion` 与 L1293 的 memory-query 路径 |
+| ✅ | Role card 注入仍生效 | `roleCardId` 在 L942 传入 `runViaHermes`、L859 传入 tool-hook payload、L1111 / L1123 用于 `handleTaskCompletion` / `handleWaitForUserNeed` 的 avatarUri 解析 |
+| ✅ | Group orchestration 不受影响 | `enableGroupOrchestrationHint` 仍在 L625 入口保留、L813 传入 prompt hook bridge；`isSubTask` 在 L939 传入 Hermes 路径并在 L972/L1160 用于 stopAiService 判定 |
+| ✅ | `onNonFatalError` 回调正常触发 | 通过 L935/L1037 传入 `OperitChatCompletionServer`；新 sink 中 `AgentEvent.Error` 在 L1095 直接调用；memory-query 路径在 L1303 调用 |
+| ✅ | `onToolInvocation` 回调每次工具调用触发一次 | L944 传入 `runViaHermes`；sink 的 `ToolCallStart` 事件在 L1076 每次触发一次 `onToolInvocation?.invoke(event.name)` — 每个工具调用恰好一次 |
 
 ## 5. 清理（可选，不影响核心功能）
 
