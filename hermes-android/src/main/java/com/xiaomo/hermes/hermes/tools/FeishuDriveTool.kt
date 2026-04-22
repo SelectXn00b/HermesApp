@@ -80,10 +80,10 @@ val FEISHU_DRIVE_LIST_COMMENTS_SCHEMA = mapOf(
 )
 
 private fun _handleListComments(args: Map<String, Any>): String {
-    val client = getClient() ?: return Registry.toolError("Feishu client not available")
+    val client = getClient() ?: return toolError("Feishu client not available")
 
     val fileToken = (args["file_token"] as? String)?.trim() ?: ""
-    if (fileToken.isEmpty()) return Registry.toolError("file_token is required")
+    if (fileToken.isEmpty()) return toolError("file_token is required")
 
     val fileType = (args["file_type"] as? String) ?: "docx"
     val isWhole = args["is_whole"] as? Boolean ?: false
@@ -103,9 +103,9 @@ private fun _handleListComments(args: Map<String, Any>): String {
         paths = mapOf("file_token" to fileToken),
         queries = queries
     )
-    if (code != 0) return Registry.toolError("List comments failed: code=$code msg=$msg")
+    if (code != 0) return toolError("List comments failed: code=$code msg=$msg")
 
-    return Registry.toolResult(data)
+    return toolResult(data)
 }
 
 // ---------------------------------------------------------------------------
@@ -131,11 +131,11 @@ val FEISHU_DRIVE_LIST_REPLIES_SCHEMA = mapOf(
 )
 
 private fun _handleListReplies(args: Map<String, Any>): String {
-    val client = getClient() ?: return Registry.toolError("Feishu client not available")
+    val client = getClient() ?: return toolError("Feishu client not available")
 
     val fileToken = (args["file_token"] as? String)?.trim() ?: ""
     val commentId = (args["comment_id"] as? String)?.trim() ?: ""
-    if (fileToken.isEmpty() || commentId.isEmpty()) return Registry.toolError("file_token and comment_id are required")
+    if (fileToken.isEmpty() || commentId.isEmpty()) return toolError("file_token and comment_id are required")
 
     val fileType = (args["file_type"] as? String) ?: "docx"
     val pageSize = (args["page_size"] as? Number)?.toInt() ?: 100
@@ -153,9 +153,9 @@ private fun _handleListReplies(args: Map<String, Any>): String {
         paths = mapOf("file_token" to fileToken, "comment_id" to commentId),
         queries = queries
     )
-    if (code != 0) return Registry.toolError("List replies failed: code=$code msg=$msg")
+    if (code != 0) return toolError("List replies failed: code=$code msg=$msg")
 
-    return Registry.toolResult(data)
+    return toolResult(data)
 }
 
 // ---------------------------------------------------------------------------
@@ -180,13 +180,13 @@ val FEISHU_DRIVE_REPLY_SCHEMA = mapOf(
 )
 
 private fun _handleReplyComment(args: Map<String, Any>): String {
-    val client = getClient() ?: return Registry.toolError("Feishu client not available")
+    val client = getClient() ?: return toolError("Feishu client not available")
 
     val fileToken = (args["file_token"] as? String)?.trim() ?: ""
     val commentId = (args["comment_id"] as? String)?.trim() ?: ""
     val content = (args["content"] as? String)?.trim() ?: ""
     if (fileToken.isEmpty() || commentId.isEmpty() || content.isEmpty()) {
-        return Registry.toolError("file_token, comment_id, and content are required")
+        return toolError("file_token, comment_id, and content are required")
     }
 
     val fileType = (args["file_type"] as? String) ?: "docx"
@@ -208,9 +208,9 @@ private fun _handleReplyComment(args: Map<String, Any>): String {
         queries = listOf("file_type" to fileType),
         body = body
     )
-    if (code != 0) return Registry.toolError("Reply comment failed: code=$code msg=$msg")
+    if (code != 0) return toolError("Reply comment failed: code=$code msg=$msg")
 
-    return Registry.toolResult(data)
+    return toolResult(data)
 }
 
 // ---------------------------------------------------------------------------
@@ -234,12 +234,12 @@ val FEISHU_DRIVE_ADD_COMMENT_SCHEMA = mapOf(
 )
 
 private fun _handleAddComment(args: Map<String, Any>): String {
-    val client = getClient() ?: return Registry.toolError("Feishu client not available")
+    val client = getClient() ?: return toolError("Feishu client not available")
 
     val fileToken = (args["file_token"] as? String)?.trim() ?: ""
     val content = (args["content"] as? String)?.trim() ?: ""
     if (fileToken.isEmpty() || content.isEmpty()) {
-        return Registry.toolError("file_token and content are required")
+        return toolError("file_token and content are required")
     }
 
     val fileType = (args["file_type"] as? String) ?: "docx"
@@ -256,9 +256,9 @@ private fun _handleAddComment(args: Map<String, Any>): String {
         paths = mapOf("file_token" to fileToken),
         body = body
     )
-    if (code != 0) return Registry.toolError("Add comment failed: code=$code msg=$msg")
+    if (code != 0) return toolError("Add comment failed: code=$code msg=$msg")
 
-    return Registry.toolResult(data)
+    return toolResult(data)
 }
 
 // ---------------------------------------------------------------------------
