@@ -20,42 +20,6 @@ import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 
-/** DM access policies. */
-enum class DmPolicy { OPEN, ALLOWLIST, DISABLED, PAIRING }
-
-/** Group access policies. */
-enum class GroupPolicy { OPEN, ALLOWLIST, DISABLED }
-
-/** MIME type → file extension (for cached downloads). */
-val MIME_TYPE_EXTENSIONS: Map<String, String> = mapOf(
-    "image/jpeg" to ".jpg",
-    "image/png" to ".png",
-    "image/gif" to ".gif",
-    "image/webp" to ".webp",
-    "audio/mpeg" to ".mp3",
-    "audio/ogg" to ".ogg",
-    "audio/wav" to ".wav",
-    "audio/mp4" to ".m4a",
-    "audio/aac" to ".aac",
-    "video/mp4" to ".mp4",
-    "application/pdf" to ".pdf",
-    "application/zip" to ".zip",
-    "text/plain" to ".txt",
-    "text/csv" to ".csv",
-    "application/json" to ".json")
-
-/**
- * Supported image types for platform adapters.
- */
-val SUPPORTED_IMAGE_TYPES: Set<String> = setOf(
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp")
-
-/**
- * Supported audio types for platform adapters.
- */
-val SUPPORTED_AUDIO_TYPES: Set<String> = setOf(
-    "audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4", "audio/aac")
-
 /**
  * Supported document types for platform adapters.
  */
@@ -428,21 +392,6 @@ abstract class BasePlatformAdapter(
         replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
-     * Send an audio/voice message.
-     *
-     * @param chatId    Target chat/channel id.
-     * @param audioUrl  URL or local path to the audio file.
-     * @param caption   Optional caption text.
-     * @param replyTo   Optional message id to reply to.
-     * @return SendResult
-     */
-    suspend fun sendAudio(
-        chatId: String,
-        audioUrl: String,
-        caption: String? = null,
-        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
-
-    /**
      * Send a document/file message.
      *
      * @param chatId    Target chat/channel id.
@@ -467,18 +416,6 @@ abstract class BasePlatformAdapter(
     suspend open fun sendTyping(chatId: String, metadata: JSONObject? = null) {}
 
     /**
-     * Send a reaction to a message.
-     *
-     * @param chatId    Chat/channel id.
-     * @param messageId Message id to react to.
-     * @param emoji     Reaction emoji.
-     */
-    suspend fun sendReaction(
-        chatId: String,
-        messageId: String,
-        emoji: String): SendResult = SendResult(success = false, error = "Not supported")
-
-    /**
      * Edit a previously sent message.
      *
      * @param chatId    Chat/channel id.
@@ -489,16 +426,6 @@ abstract class BasePlatformAdapter(
         chatId: String,
         messageId: String,
         newText: String): SendResult = SendResult(success = false, error = "Not supported")
-
-    /**
-     * Delete a message.
-     *
-     * @param chatId    Chat/channel id.
-     * @param messageId Message id to delete.
-     */
-    suspend fun deleteMessage(
-        chatId: String,
-        messageId: String): SendResult = SendResult(success = false, error = "Not supported")
 
     /**
      * Get info about a chat/channel.
@@ -549,30 +476,6 @@ abstract class BasePlatformAdapter(
         isAdmin = isAdmin)
 
     /**
-     * Check if a user is allowed to DM the bot.
-     */
-    fun isDmAllowed(userId: String): Boolean = when (config.dmPolicy) {
-        "open" -> true
-        "allowlist" -> userId in config.dmAllowFrom
-        "disabled" -> false
-        "pairing" -> userId in config.dmAllowFrom
-        else -> true
-    }
-
-    /**
-     * Check if a user is allowed to interact in a group.
-     */
-    fun isGroupAllowed(groupId: String, userId: String): Boolean = when (config.groupPolicy) {
-        "open" -> true
-        "allowlist" -> {
-            groupId in config.groupAllowFrom ||
-                userId in (config.groupUserAllowFrom[groupId] ?: emptyList())
-        }
-        "disabled" -> false
-        else -> false
-    }
-
-    /**
      * Cancel all background tasks.
      */
     protected fun cancelBackgroundTasks() {
@@ -602,19 +505,6 @@ abstract class BasePlatformAdapter(
     /** Set a handler for fatal errors. */
     fun setFatalErrorHandler(handler: suspend (BasePlatformAdapter) -> Unit) {
         _fatalErrorHandler = handler
-    }
-
-    /** Mark adapter as connected (clearing fatal error). */
-    protected fun markConnectedInternal() {
-        _fatalErrorCode = null
-        _fatalErrorMessage = null
-        _fatalErrorRetryable = false
-        isConnected.set(true)
-    }
-
-    /** Mark adapter as disconnected. */
-    protected fun markDisconnectedInternal() {
-        isConnected.set(false)
     }
 
     /** Set a fatal error. */
