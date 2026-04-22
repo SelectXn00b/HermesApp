@@ -260,7 +260,7 @@ class Feishu(
         return if (_useWebSocket) {
             _startWebSocket()
         } else {
-            _startWebhook()
+            _connectWebhook()
         }
     }
 
@@ -446,9 +446,9 @@ class Feishu(
             val eventType = header.optString("event_type", "")
 
             when (FeishuEventType.fromValue(eventType)) {
-                FeishuEventType.MESSAGE -> _handleMessageEvent(json)
+                FeishuEventType.MESSAGE -> _handleMessageEventData(json)
                 FeishuEventType.REACTION -> _handleReactionEvent(json)
-                FeishuEventType.CARD_ACTION -> _handleCardAction(json)
+                FeishuEventType.CARD_ACTION -> _handleCardActionEvent(json)
                 FeishuEventType.MESSAGE_READ -> { /* ignore read receipts */ }
                 FeishuEventType.CHAT_JOINED -> { Log.i(_TAG, "Bot added to chat") }
                 FeishuEventType.CHAT_LEFT -> { Log.i(_TAG, "Bot removed from chat") }
@@ -485,7 +485,7 @@ class Feishu(
     /**
      * Handle an incoming message event.
      */
-    private suspend fun _handleMessageEvent(json: JSONObject) {
+    private suspend fun _handleMessageEventData(json: JSONObject) {
         val eventData = json.optJSONObject("event") ?: return
         val message = eventData.optJSONObject("message") ?: return
         val sender = eventData.optJSONObject("sender") ?: return
@@ -683,7 +683,7 @@ class Feishu(
     /**
      * Handle a card action (button click) event.
      */
-    private suspend fun _handleCardAction(json: JSONObject) {
+    private suspend fun _handleCardActionEvent(json: JSONObject) {
         val event = json.optJSONObject("event") ?: return
         val action = event.optJSONObject("action") ?: return
         val operator = event.optJSONObject("operator") ?: return
@@ -775,7 +775,7 @@ class Feishu(
     /**
      * Start the webhook server.
      */
-    private fun _startWebhook(): Boolean {
+    private fun _connectWebhook(): Boolean {
         // On Android, we don't typically run HTTP servers.
         // This is a placeholder for the webhook transport.
         Log.w(_TAG, "Webhook transport not supported on Android. Use WebSocket instead.")
