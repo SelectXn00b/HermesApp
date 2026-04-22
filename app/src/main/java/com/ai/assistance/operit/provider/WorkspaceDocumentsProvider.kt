@@ -82,7 +82,7 @@ class WorkspaceDocumentsProvider : DocumentsProvider() {
             DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD
         )
         row.add(DocumentsContract.Root.COLUMN_ICON, android.R.drawable.ic_menu_view)
-        row.add(DocumentsContract.Root.COLUMN_TITLE, "Operit Workspace")
+        row.add(DocumentsContract.Root.COLUMN_TITLE, "Hermes Workspace")
         row.add(DocumentsContract.Root.COLUMN_SUMMARY, "Access workspace files")
         row.add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, getDocIdForFile(workspaceRoot))
         row.add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, workspaceRoot.freeSpace)
