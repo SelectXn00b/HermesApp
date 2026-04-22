@@ -24,8 +24,6 @@ private const val _TAG_MEMORY_TOOL = "MemoryTool"
 private val _memoryGson = Gson()
 
 const val ENTRY_DELIMITER = "\n§\n"
-const val DEFAULT_MEMORY_CHAR_LIMIT = 2200
-const val DEFAULT_USER_CHAR_LIMIT = 1375
 
 private val _MEMORY_THREAT_PATTERNS: List<Pair<Regex, String>> = listOf(
     Regex("""ignore\s+(previous|all|above|prior)\s+instructions""", RegexOption.IGNORE_CASE) to "prompt_injection",
@@ -42,10 +40,6 @@ private val _INVISIBLE_CHARS: Set<Char> = setOf(
     '\u202a', '\u202b', '\u202c', '\u202d', '\u202e')
 
 private var _memoryDir: File? = null
-
-fun setMemoryDir(dir: File) {
-    _memoryDir = dir
-}
 
 fun getMemoryDir(): File {
     return _memoryDir ?: File("/data/local/tmp/hermes/memories")
@@ -76,8 +70,8 @@ private fun _scanMemoryContent(content: String): String? {
  *     Tool responses always reflect this live state.
  */
 class MemoryStore(
-    val memoryCharLimit: Int = DEFAULT_MEMORY_CHAR_LIMIT,
-    val userCharLimit: Int = DEFAULT_USER_CHAR_LIMIT
+    val memoryCharLimit: Int = 2200,
+    val userCharLimit: Int = 1375
 ) {
     var memoryEntries: MutableList<String> = mutableListOf()
     var userEntries: MutableList<String> = mutableListOf()
