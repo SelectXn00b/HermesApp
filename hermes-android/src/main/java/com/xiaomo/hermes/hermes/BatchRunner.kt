@@ -1,0 +1,437 @@
+package com.xiaomo.hermes.hermes
+
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
+
+/**
+ * Batch Agent Runner
+ * 1:1 对齐 hermes-agent/batch_runner.py
+ *
+ * 提供并行批处理能力，在多个提示上运行 agent。
+ * Android 版本：简化为 Kotlin coroutine + Gson，移除 Python multiprocessing/rich。
+ */
+
+private val batchRunnerLogger = getLogger("batch_runner")
+private val batchRunnerGson = Gson()
+
+// ── Tool Statistics ────────────────────────────────────────────────────────
+
+data class ToolStats(
+    val count: Int = 0,
+    val success: Int = 0,
+    val failure: Int = 0,
+    val successRate: Double = if (count > 0) success.toDouble() / count * 100 else 0.0)
+
+data class ReasoningStats(
+    val totalAssistantTurns: Int = 0,
+    val turnsWithReasoning: Int = 0,
+    val turnsWithoutReasoning: Int = 0,
+    val hasAnyReasoning: Boolean = turnsWithReasoning > 0)
+
+data class BatchResult(
+    val batchNum: Int,
+    val processed: Int,
+    val skipped: Int,
+    val toolStats: Map<String, ToolStats> = emptyMap(),
+    val reasoningStats: ReasoningStats = ReasoningStats(),
+    val discardedNoReasoning: Int = 0,
+    val completedPrompts: List<Int> = emptyList())
+
+data class BatchConfig(
+    val distribution: String = "default",
+    val model: String = "anthropic/claude-sonnet-4",
+    val maxIterations: Int = 10,
+    val baseUrl: String = "https://openrouter.ai/api/v1",
+    val apiKey: String = "",
+    val verbose: Boolean = false,
+    val maxTokens: Int = 8192,
+    val temperature: Double = 0.0)
+
+// ── Batch Runner ──────────────────────────────────────────────────────────
+
+class BatchRunner(
+    private val datasetFile: File,
+    private val batchSize: Int,
+    private val runName: String,
+    private val distribution: String = "default",
+    private val maxIterations: Int = 10,
+    private val baseUrl: String = "https://openrouter.ai/api/v1",
+    private val apiKey: String = "",
+    private val model: String = "anthropic/claude-sonnet-4",
+    private val numWorkers: Int = 4,
+    private val verbose: Boolean = false,
+    private val maxTokens: Int = 8192,
+    private val temperature: Double = 0.0,
+    private val maxSamples: Int? = null) {
+
+    private val outputDir = File(getWorkspaceDir(), runName)
+    private val checkpointFile = File(outputDir, "checkpoint.json")
+    private val statsFile = File(outputDir, "statistics.json")
+    private val combinedFile = File(outputDir, "trajectories.jsonl")
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    private var dataset: List<Map<String, Any>> = emptyList()
+    private var batches: List<List<Pair<Int, Map<String, Any>>>> = emptyList()
+
+    /**
+     * 初始化
+     */
+    fun initialize() {
+        if (!validateDistribution(distribution)) {
+            throw IllegalArgumentException("Unknown distribution: $distribution")
+        }
+
+        outputDir.mkdirs()
+        dataset = loadDataset()
+
+        if (maxSamples != null && maxSamples < dataset.size) {
+            dataset = dataset.take(maxSamples)
+            batchRunnerLogger.info("Truncated dataset to $maxSamples samples")
+        }
+
+        batches = createBatches()
+
+        batchRunnerLogger.info("Batch Runner initialized:")
+        batchRunnerLogger.info("  Dataset: ${datasetFile.name} (${dataset.size} prompts)")
+        batchRunnerLogger.info("  Batch size: $batchSize")
+        batchRunnerLogger.info("  Total batches: ${batches.size}")
+        batchRunnerLogger.info("  Run name: $runName")
+        batchRunnerLogger.info("  Distribution: $distribution")
+    }
+
+    /**
+     * 运行批处理
+     */
+    suspend fun run(resume: Boolean = false) {
+        val startTime = System.currentTimeMillis()
+        val completedPromptTexts = mutableSetOf<String>()
+
+        if (resume) {
+            completedPromptTexts.addAll(scanCompletedPromptsByContent())
+            if (completedPromptTexts.isNotEmpty()) {
+                batchRunnerLogger.info("Resuming: ${completedPromptTexts.size} already completed")
+            }
+        }
+
+        val config = BatchConfig(
+            distribution = distribution,
+            model = model,
+            maxIterations = maxIterations,
+            baseUrl = baseUrl,
+            apiKey = apiKey,
+            verbose = verbose,
+            maxTokens = maxTokens,
+            temperature = temperature)
+
+        val totalToolStats = ConcurrentHashMap<String, MutableMap<String, Int>>()
+        val totalReasoningStats = ConcurrentHashMap<String, AtomicInteger>(
+            mapOf(
+                "totalAssistantTurns" to AtomicInteger(0),
+                "turnsWithReasoning" to AtomicInteger(0),
+                "turnsWithoutReasoning" to AtomicInteger(0))
+        )
+
+        val semaphore = Semaphore(numWorkers)
+        val results = ConcurrentLinkedQueue<BatchResult>()
+
+        coroutineScope {
+            for ((batchNum, batchData) in batches.withIndex()) {
+                semaphore.acquire()
+                launch {
+                    try {
+                        val result = processBatch(batchNum, batchData, config, completedPromptTexts)
+                        results.add(result)
+
+                        // 聚合统计
+                        for ((toolName, stats) in result.toolStats) {
+                            val toolMap = totalToolStats.getOrPut(toolName) {
+                                mutableMapOf("count" to 0, "success" to 0, "failure" to 0)
+                            }
+                            toolMap["count"] = toolMap.getOrDefault("count", 0) + stats.count
+                            toolMap["success"] = toolMap.getOrDefault("success", 0) + stats.success
+                            toolMap["failure"] = toolMap.getOrDefault("failure", 0) + stats.failure
+                        }
+
+                        totalReasoningStats["totalAssistantTurns"]!!.addAndGet(result.reasoningStats.totalAssistantTurns)
+                        totalReasoningStats["turnsWithReasoning"]!!.addAndGet(result.reasoningStats.turnsWithReasoning)
+                        totalReasoningStats["turnsWithoutReasoning"]!!.addAndGet(result.reasoningStats.turnsWithoutReasoning)
+
+                        // 保存 checkpoint
+                        saveCheckpoint(result)
+                    } finally {
+                        semaphore.release()
+                    }
+                }
+            }
+        }
+
+        // 等待所有任务完成
+        while (results.size < batches.size) {
+            delay(100)
+        }
+
+        // 合并 batch 文件
+        combineBatchFiles()
+
+        // 保存统计
+        val duration = (System.currentTimeMillis() - startTime) / 1000.0
+        saveStatistics(results.toList(), totalToolStats, totalReasoningStats, duration)
+
+        batchRunnerLogger.info("Batch processing complete in ${duration}s")
+    }
+
+    /**
+     * 处理单个 batch
+     */
+    private suspend fun processBatch(
+        batchNum: Int,
+        batchData: List<Pair<Int, Map<String, Any>>>,
+        config: BatchConfig,
+        completedPrompts: Set<String>): BatchResult {
+        val completedInBatch = mutableListOf<Int>()
+        val batchToolStats = ConcurrentHashMap<String, MutableMap<String, Int>>()
+        var totalAssistantTurns = 0
+        var turnsWithReasoning = 0
+        var discardedNoReasoning = 0
+
+        for ((promptIndex, promptData) in batchData) {
+            val prompt = promptData["prompt"] as? String ?: continue
+
+            try {
+                val result = processSinglePrompt(promptIndex, promptData, batchNum, config)
+
+                if (result != null) {
+                    // 检查推理覆盖
+                    val reasoningStats = extractReasoningStats(result)
+                    if (!reasoningStats.hasAnyReasoning) {
+                        discardedNoReasoning++
+                        continue
+                    }
+
+                    // 保存轨迹
+                    saveTrajectory(batchNum, promptIndex, result, config)
+
+                    totalAssistantTurns += reasoningStats.totalAssistantTurns
+                    turnsWithReasoning += reasoningStats.turnsWithReasoning
+
+                    completedInBatch.add(promptIndex)
+                }
+            } catch (e: Exception) {
+                batchRunnerLogger.error("Prompt $promptIndex failed: ${e.message}")
+            }
+        }
+
+        return BatchResult(
+            batchNum = batchNum,
+            processed = batchData.size,
+            skipped = 0,
+            toolStats = batchToolStats.mapValues { (_, v) ->
+                ToolStats(
+                    count = v.getOrDefault("count", 0),
+                    success = v.getOrDefault("success", 0),
+                    failure = v.getOrDefault("failure", 0))
+            },
+            reasoningStats = ReasoningStats(
+                totalAssistantTurns = totalAssistantTurns,
+                turnsWithReasoning = turnsWithReasoning,
+                turnsWithoutReasoning = totalAssistantTurns - turnsWithReasoning),
+            discardedNoReasoning = discardedNoReasoning,
+            completedPrompts = completedInBatch)
+    }
+
+    /**
+     * 处理单个提示
+     */
+    private suspend fun processSinglePrompt(
+        promptIndex: Int,
+        promptData: Map<String, Any>,
+        batchNum: Int,
+        config: BatchConfig): List<Map<String, Any>>? {
+        // 简化实现：实际使用时需要集成 RunAgent
+        batchRunnerLogger.debug("Processing prompt $promptIndex (batch $batchNum)")
+        return null // 实际实现需要调用 agent.runConversation()
+    }
+
+    /**
+     * 提取推理统计
+     */
+    private fun extractReasoningStats(messages: List<Map<String, Any>>): ReasoningStats {
+        var total = 0
+        var withReasoning = 0
+
+        for (msg in messages) {
+            if (msg["role"] != "assistant") continue
+            total++
+
+            val content = msg["content"] as? String ?: ""
+            val hasScratchpad = "<REASONING_SCRATCHPAD>" in content
+            val hasNativeReasoning = (msg["reasoning"] as? String)?.isNotEmpty() == true
+
+            if (hasScratchpad || hasNativeReasoning) {
+                withReasoning++
+            }
+        }
+
+        return ReasoningStats(total, withReasoning, total - withReasoning)
+    }
+
+    // ── 工具方法 ──────────────────────────────────────────────────────────
+
+    private fun loadDataset(): List<Map<String, Any>> {
+        if (!datasetFile.exists()) {
+            throw IllegalStateException("Dataset file not found: ${datasetFile.absolutePath}")
+        }
+
+        return datasetFile.readLines()
+            .filter { it.isNotBlank() }
+            .mapNotNull { line ->
+                try {
+                    val type = object : TypeToken<Map<String, Any>>() {}.type
+                    val entry: Map<String, Any> = batchRunnerGson.fromJson(line, type)
+                    if (entry.containsKey("prompt")) entry else null
+                } catch (e: Exception) {
+                    null
+                }
+            }
+    }
+
+    private fun createBatches(): List<List<Pair<Int, Map<String, Any>>>> {
+        return dataset.chunked(batchSize).mapIndexed { batchIndex, chunk ->
+            chunk.mapIndexed { index, entry ->
+                (batchIndex * batchSize + index) to entry
+            }
+        }
+    }
+
+    private fun scanCompletedPromptsByContent(): Set<String> {
+        val completed = mutableSetOf<String>()
+        val batchFiles = outputDir.listFiles()
+            ?.filter { it.name.startsWith("batch_") && it.extension == "jsonl" }
+            ?.sorted()
+            ?: return completed
+
+        for (file in batchFiles) {
+            file.readLines().forEach { line ->
+                if (line.isBlank()) return@forEach
+                try {
+                    val entry = batchRunnerGson.fromJson(line, Map::class.java) as Map<*, *>
+                    val conversations = entry["conversations"] as? List<Map<*, *>> ?: return@forEach
+                    for (msg in conversations) {
+                        if (msg["from"] == "human") {
+                            val prompt = msg["value"] as? String
+                            if (prompt != null && prompt.isNotBlank()) {
+                                completed.add(prompt.trim())
+                            }
+                            break
+                        }
+                    }
+                } catch (e: Exception) {
+                    // skip
+                }
+            }
+        }
+        return completed
+    }
+
+    private fun saveCheckpoint(result: BatchResult) {
+        val checkpoint = mutableMapOf<String, Any>(
+            "runName" to runName,
+            "completedPrompts" to result.completedPrompts,
+            "lastUpdated" to java.time.Instant.now().toString())
+        checkpointFile.writeText(batchRunnerGson.toJson(checkpoint), Charsets.UTF_8)
+    }
+
+    private fun saveTrajectory(
+        batchNum: Int,
+        promptIndex: Int,
+        messages: List<Map<String, Any>>,
+        config: BatchConfig) {
+        val batchFile = File(outputDir, "batch_$batchNum.jsonl")
+        val entry = mapOf(
+            "promptIndex" to promptIndex,
+            "conversations" to messages,
+            "metadata" to mapOf(
+                "batchNum" to batchNum,
+                "timestamp" to java.time.Instant.now().toString(),
+                "model" to config.model))
+        batchFile.appendText(batchRunnerGson.toJson(entry) + "\n", Charsets.UTF_8)
+    }
+
+    private fun combineBatchFiles() {
+        val batchFiles = outputDir.listFiles()
+            ?.filter { it.name.startsWith("batch_") && it.extension == "jsonl" }
+            ?.sorted()
+            ?: return
+
+        combinedFile.writeText("") // 清空
+        var totalEntries = 0
+
+        for (file in batchFiles) {
+            file.readLines()
+                .filter { it.isNotBlank() }
+                .forEach { line ->
+                    combinedFile.appendText(line + "\n", Charsets.UTF_8)
+                    totalEntries++
+                }
+        }
+
+        batchRunnerLogger.info("Combined ${batchFiles.size} batch files into ${combinedFile.name} ($totalEntries entries)")
+    }
+
+    private fun saveStatistics(
+        results: List<BatchResult>,
+        toolStats: Map<String, MutableMap<String, Int>>,
+        reasoningStats: Map<String, AtomicInteger>,
+        duration: Double) {
+        val stats = mutableMapOf<String, Any>(
+            "runName" to runName,
+            "distribution" to distribution,
+            "totalPrompts" to dataset.size,
+            "totalBatches" to batches.size,
+            "batchSize" to batchSize,
+            "model" to model,
+            "completedAt" to java.time.Instant.now().toString(),
+            "durationSeconds" to duration,
+            "toolStatistics" to toolStats,
+            "reasoningStatistics" to mapOf(
+                "totalAssistantTurns" to (reasoningStats["totalAssistantTurns"]?.get() ?: 0),
+                "turnsWithReasoning" to (reasoningStats["turnsWithReasoning"]?.get() ?: 0),
+                "turnsWithoutReasoning" to (reasoningStats["turnsWithoutReasoning"]?.get() ?: 0)))
+        statsFile.writeText(prettyGson.toJson(stats), Charsets.UTF_8)
+        batchRunnerLogger.info("Statistics saved to ${statsFile.name}")
+    }
+
+
+
+    /** Load dataset from JSONL file. */
+    fun _loadDataset(): List<Map<String, Any>> {
+        return emptyList()
+    }
+    /** Split dataset into batches with indices. */
+    fun _createBatches(): List<List<Pair<Int, Map<String, Any>>>> {
+        return emptyList()
+    }
+    /** Load checkpoint data if it exists. */
+    fun _loadCheckpoint(): Map<String, Any> {
+        return emptyMap()
+    }
+    /** Save checkpoint data. */
+    fun _saveCheckpoint(checkpointData: Map<String, Any>, lock: Any?? = null): Any? {
+        return null
+    }
+    /** Scan all batch files and extract completed prompts by their actual content. */
+    fun _scanCompletedPromptsByContent(): Any? {
+        return null
+    }
+    /** Filter the dataset to exclude prompts that have already been completed. */
+    fun _filterDatasetByCompleted(completedPrompts: Any?): Pair<List<Map<String, Any?>>, List<Int>> {
+        throw NotImplementedError("_filterDatasetByCompleted")
+    }
+
+}

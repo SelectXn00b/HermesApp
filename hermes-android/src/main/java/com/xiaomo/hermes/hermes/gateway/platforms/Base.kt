@@ -1,0 +1,1229 @@
+package com.xiaomo.hermes.hermes.gateway.platforms
+
+/**
+ * Base platform adapter — abstract interface that all platform adapters implement.
+ *
+ * Ported from gateway/platforms/base.py
+ */
+
+import android.content.Context
+import android.util.Log
+import com.xiaomo.hermes.hermes.gateway.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
+import java.time.Instant
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
+
+/** DM access policies. */
+enum class DmPolicy { OPEN, ALLOWLIST, DISABLED, PAIRING }
+
+/** Group access policies. */
+enum class GroupPolicy { OPEN, ALLOWLIST, DISABLED }
+
+/** MIME type → file extension (for cached downloads). */
+val MIME_TYPE_EXTENSIONS: Map<String, String> = mapOf(
+    "image/jpeg" to ".jpg",
+    "image/png" to ".png",
+    "image/gif" to ".gif",
+    "image/webp" to ".webp",
+    "audio/mpeg" to ".mp3",
+    "audio/ogg" to ".ogg",
+    "audio/wav" to ".wav",
+    "audio/mp4" to ".m4a",
+    "audio/aac" to ".aac",
+    "video/mp4" to ".mp4",
+    "application/pdf" to ".pdf",
+    "application/zip" to ".zip",
+    "text/plain" to ".txt",
+    "text/csv" to ".csv",
+    "application/json" to ".json")
+
+/**
+ * Supported image types for platform adapters.
+ */
+val SUPPORTED_IMAGE_TYPES: Set<String> = setOf(
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp")
+
+/**
+ * Supported audio types for platform adapters.
+ */
+val SUPPORTED_AUDIO_TYPES: Set<String> = setOf(
+    "audio/mpeg", "audio/ogg", "audio/wav", "audio/mp4", "audio/aac")
+
+/**
+ * Supported document types for platform adapters.
+ */
+val SUPPORTED_DOCUMENT_TYPES: Set<String> = setOf(
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "text/plain",
+    "text/csv",
+    "application/json",
+    "application/xml",
+    "application/zip")
+
+/**
+ * Supported video types for platform adapters.
+ */
+val SUPPORTED_VIDEO_TYPES: Set<String> = setOf(
+    "video/mp4", "video/quicktime", "video/x-msvideo", "video/x-matroska", "video/webm")
+
+/**
+ * Message types that can be received from a platform.
+ */
+enum class MessageType {
+    /** Plain text message. */
+    TEXT,
+    /** Photo/image message. */
+    PHOTO,
+    /** Audio/voice message. */
+    AUDIO,
+    /** Video message. */
+    VIDEO,
+    /** Document/file message. */
+    DOCUMENT,
+    /** Sticker message. */
+    STICKER,
+    /** Location message. */
+    LOCATION,
+    /** Contact message. */
+    CONTACT,
+    /** Poll message. */
+    POLL,
+    /** Command message (e.g. /start). */
+    COMMAND,
+    /** System/event message. */
+    SYSTEM,
+    /** Reaction event. */
+    REACTION,
+    /** Edited message. */
+    EDITED,
+    /** Deleted message. */
+    DELETED,
+    /** Unknown type. */
+    UNKNOWN,
+}
+
+/**
+ * Source of a message (platform, chat, user metadata).
+ */
+data class MessageSource(
+    /** Platform name. */
+    val platform: String,
+    /** Chat/channel id. */
+    val chatId: String,
+    /** Chat name (best-effort). */
+    val chatName: String = "",
+    /** Chat type: "dm", "group", "channel". */
+    val chatType: String = "dm",
+    /** User id. */
+    val userId: String = "",
+    /** User name. */
+    val userName: String = "",
+    /** Thread/topic id (if applicable). */
+    val threadId: String? = null,
+    /** Whether the user is an admin in the chat. */
+    val isAdmin: Boolean = false,
+    /** Arbitrary metadata. */
+    val metadata: JSONObject = JSONObject()) {
+    /** Build a session key from this source. */
+    val sessionKey: String get() = buildSessionKey(platform, chatId, userId)
+
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("platform", platform)
+        put("chat_id", chatId)
+        put("chat_name", chatName)
+        put("chat_type", chatType)
+        put("user_id", userId)
+        put("user_name", userName)
+        threadId?.let { put("thread_id", it) }
+        put("is_admin", isAdmin)
+        put("metadata", metadata)
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject): MessageSource = MessageSource(
+            platform = json.getString("platform"),
+            chatId = json.getString("chat_id"),
+            chatName = json.optString("chat_name", ""),
+            chatType = json.optString("chat_type", "dm"),
+            userId = json.optString("user_id", ""),
+            userName = json.optString("user_name", ""),
+            threadId = json.optString("thread_id", null),
+            isAdmin = json.optBoolean("is_admin", false),
+            metadata = json.optJSONObject("metadata") ?: JSONObject())
+    }
+}
+
+/**
+ * Processing outcome — returned by the agent handler.
+ */
+data class ProcessingOutcome(
+    /** Whether the message was successfully processed. */
+    val success: Boolean = true,
+    /** The response text to send back. */
+    val responseText: String = "",
+    /** Media URLs to include in the response. */
+    val mediaUrls: List<String> = emptyList(),
+    /** Whether to suppress sending (e.g. for silent commands). */
+    val suppressSend: Boolean = false,
+    /** Error message (if success == false). */
+    val error: String? = null)
+
+/**
+ * Result of a send operation.
+ */
+data class SendResult(
+    /** Whether the send was successful. */
+    val success: Boolean = true,
+    /** Platform-specific message id. */
+    val messageId: String? = null,
+    /** Error message (if success == false). */
+    val error: String? = null,
+    /** Raw response from the platform. */
+    val rawResponse: Any? = null)
+
+/**
+ * Incoming message event from a platform.
+ */
+data class MessageEvent(
+    /** The message text. */
+    val text: String,
+    /** The message type. */
+    val messageType: MessageType = MessageType.TEXT,
+    /** Source metadata. */
+    val source: MessageSource,
+    /** Original message id from the platform. */
+    val message_id: String = "",
+    /** ID of the message this is replying to (if any). */
+    val replyToMessageId: String? = null,
+    /** Timestamp of the message. */
+    val timestamp: Instant = Instant.now(),
+    /** Raw message data from the platform. */
+    val rawMessage: Any? = null,
+    /** Media URLs (for photo/audio/video/document messages). */
+    val mediaUrls: List<String> = emptyList(),
+    /** Media types corresponding to mediaUrls. */
+    val mediaTypes: List<String> = emptyList(),
+    /** Sticker set name (if applicable). */
+    val stickerSet: String? = null,
+    /** Sticker file id (if applicable). */
+    val stickerFileId: String? = null,
+    /** Location latitude (if applicable). */
+    val latitude: Double? = null,
+    /** Location longitude (if applicable). */
+    val longitude: Double? = null,
+    /** Contact name (if applicable). */
+    val contactName: String? = null,
+    /** Contact phone (if applicable). */
+    val contactPhone: String? = null,
+    /** Poll question (if applicable). */
+    val pollQuestion: String? = null,
+    /** Poll options (if applicable). */
+    val pollOptions: List<String> = emptyList(),
+    /** Reaction emoji (if applicable). */
+    val reactionEmoji: String? = null,
+    /** Whether the reaction was added (true) or removed (false). */
+    val reactionAdded: Boolean = true,
+    /** Whether this is an edited message. */
+    val isEdited: Boolean = false,
+    /** Whether this is a deleted message. */
+    val isDeleted: Boolean = false,
+    /** Arbitrary metadata. */
+    val metadata: JSONObject = JSONObject()) {
+    /** Build a session key from this event. */
+    val sessionKey: String get() = source.sessionKey
+
+    /** True when the message has media attachments. */
+    val hasMedia: Boolean get() = mediaUrls.isNotEmpty()
+
+    /** True when the message is a command (starts with /). */
+    val isCommand: Boolean get() = text.startsWith("/") || messageType == MessageType.COMMAND
+
+    /** Extract the command name (e.g. "/start" → "start"). */
+    val commandName: String?
+        get() = if (isCommand) text.substringBefore(" ").removePrefix("/") else null
+
+    /** Extract the command arguments. */
+    val commandArgs: String?
+        get() = if (isCommand) text.substringAfter(" ", "").ifEmpty { null } else null
+
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("text", text)
+        put("message_type", messageType.name)
+        put("source", source.toJson())
+        put("message_id", message_id)
+        replyToMessageId?.let { put("reply_to_message_id", it) }
+        put("timestamp", timestamp.toString())
+        put("media_urls", mediaUrls)
+        put("media_types", mediaTypes)
+        stickerSet?.let { put("sticker_set", it) }
+        stickerFileId?.let { put("sticker_file_id", it) }
+        latitude?.let { put("latitude", it) }
+        longitude?.let { put("longitude", it) }
+        contactName?.let { put("contact_name", it) }
+        contactPhone?.let { put("contact_phone", it) }
+        pollQuestion?.let { put("poll_question", it) }
+        put("poll_options", pollOptions)
+        reactionEmoji?.let { put("reaction_emoji", it) }
+        put("reaction_added", reactionAdded)
+        put("is_edited", isEdited)
+        put("is_deleted", isDeleted)
+        put("metadata", metadata)
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject): MessageEvent = MessageEvent(
+            text = json.getString("text"),
+            messageType = try { MessageType.valueOf(json.getString("message_type")) } catch (_unused: Exception) { MessageType.TEXT },
+            source = MessageSource.fromJson(json.getJSONObject("source")),
+            message_id = json.optString("message_id", ""),
+            replyToMessageId = json.optString("reply_to_message_id", null),
+            timestamp = try { Instant.parse(json.getString("timestamp")) } catch (_unused: Exception) { Instant.now() },
+            mediaUrls = json.optJSONArray("media_urls")?.let { arr ->
+                (0 until arr.length()).map { arr.getString(it) }
+            } ?: emptyList(),
+            mediaTypes = json.optJSONArray("media_types")?.let { arr ->
+                (0 until arr.length()).map { arr.getString(it) }
+            } ?: emptyList(),
+            stickerSet = json.optString("sticker_set", null),
+            stickerFileId = json.optString("sticker_file_id", null),
+            latitude = json.optDouble("latitude").takeIf { !it.isNaN() },
+            longitude = json.optDouble("longitude").takeIf { !it.isNaN() },
+            contactName = json.optString("contact_name", null),
+            contactPhone = json.optString("contact_phone", null),
+            pollQuestion = json.optString("poll_question", null),
+            pollOptions = json.optJSONArray("poll_options")?.let { arr ->
+                (0 until arr.length()).map { arr.getString(it) }
+            } ?: emptyList(),
+            reactionEmoji = json.optString("reaction_emoji", null),
+            reactionAdded = json.optBoolean("reaction_added", true),
+            isEdited = json.optBoolean("is_edited", false),
+            isDeleted = json.optBoolean("is_deleted", false))
+    }
+}
+
+/**
+ * Abstract base class for all platform adapters.
+ *
+ * Platform adapters bridge between the gateway and an external messaging
+ * platform (Telegram, Discord, Feishu, etc.).  They handle:
+ * - Connecting to the platform (WebSocket, polling, webhook, etc.)
+ * - Receiving inbound messages and converting them to [MessageEvent]
+ * - Sending outbound messages (text, image, document, etc.)
+ * - Typing indicators
+ * - Managing connection lifecycle
+ */
+abstract class BasePlatformAdapter(
+    /** Platform configuration. */
+    val config: PlatformConfig,
+    /** Platform name. */
+    val platform: Platform) {
+    companion object {
+        private const val TAG = "BasePlatformAdapter"
+    }
+
+    /** Platform name as a string. */
+    val name: String get() = platform.value
+
+    /** Whether the adapter is currently connected. */
+    open val isConnected: AtomicBoolean = AtomicBoolean(false)
+
+    /** Whether the adapter is running. */
+    val isRunning: AtomicBoolean = AtomicBoolean(false)
+
+    /** Background tasks managed by this adapter. */
+    protected val _backgroundTasks: MutableSet<kotlinx.coroutines.Job> = java.util.Collections.synchronizedSet(LinkedHashSet())
+
+    /** Message handler callback — set by the gateway runner. */
+    var messageHandler: (suspend (MessageEvent) -> Unit)? = null
+
+    /** Busy session handler — called when a message arrives for a session already processing. */
+    private var _busySessionHandler: (suspend (MessageEvent, String) -> Boolean)? = null
+
+    /** Session store reference for active session checks. */
+    private var _sessionStore: Any? = null
+
+    /** Set of chat IDs where typing indicator is paused. */
+    private val _typingPaused: MutableSet<String> = java.util.Collections.synchronizedSet(mutableSetOf())
+
+    /** Coroutine scope for this adapter. */
+    protected val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    /** Home channel id for system notifications. */
+    val homeChatId: String? get() = config.homeChannel?.chatId
+
+    // ------------------------------------------------------------------
+    // Lifecycle
+    // ------------------------------------------------------------------
+
+    /**
+     * Connect to the platform.
+     *
+     * Returns true on success, false on failure.
+     */
+    abstract suspend fun connect(): Boolean
+
+    /**
+     * Disconnect from the platform.
+     *
+     * Should be idempotent — safe to call multiple times.
+     */
+    abstract suspend fun disconnect()
+
+    /** Mark the adapter as connected. */
+    protected fun markConnected() {
+        isConnected.set(true)
+        Log.i(TAG, "[$name] Connected")
+    }
+
+    /** Mark the adapter as disconnected. */
+    protected fun markDisconnected() {
+        isConnected.set(false)
+        Log.i(TAG, "[$name] Disconnected")
+    }
+
+    // ------------------------------------------------------------------
+    // Outbound messaging
+    // ------------------------------------------------------------------
+
+    /**
+     * Send a text message.
+     *
+     * @param chatId   Target chat/channel id.
+     * @param content  Message text.
+     * @param replyTo  Optional message id to reply to.
+     * @return SendResult
+     */
+    abstract suspend fun send(
+        chatId: String,
+        content: String,
+        replyTo: String? = null,
+        metadata: JSONObject? = null): SendResult
+
+    /**
+     * Send an image message.
+     *
+     * @param chatId    Target chat/channel id.
+     * @param imageUrl  URL or local path to the image.
+     * @param caption   Optional caption text.
+     * @param replyTo   Optional message id to reply to.
+     * @return SendResult
+     */
+    suspend open fun sendImage(
+        chatId: String,
+        imageUrl: String,
+        caption: String? = null,
+        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
+
+    /**
+     * Send an audio/voice message.
+     *
+     * @param chatId    Target chat/channel id.
+     * @param audioUrl  URL or local path to the audio file.
+     * @param caption   Optional caption text.
+     * @param replyTo   Optional message id to reply to.
+     * @return SendResult
+     */
+    suspend fun sendAudio(
+        chatId: String,
+        audioUrl: String,
+        caption: String? = null,
+        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
+
+    /**
+     * Send a document/file message.
+     *
+     * @param chatId    Target chat/channel id.
+     * @param fileUrl   URL or local path to the file.
+     * @param fileName  Optional display name.
+     * @param caption   Optional caption text.
+     * @param replyTo   Optional message id to reply to.
+     * @return SendResult
+     */
+    suspend open fun sendDocument(
+        chatId: String,
+        fileUrl: String,
+        fileName: String? = null,
+        caption: String? = null,
+        replyTo: String? = null): SendResult = SendResult(success = false, error = "Not supported")
+
+    /**
+     * Send a typing indicator.
+     *
+     * @param chatId  Target chat/channel id.
+     */
+    suspend open fun sendTyping(chatId: String, metadata: JSONObject? = null) {}
+
+    /**
+     * Send a reaction to a message.
+     *
+     * @param chatId    Chat/channel id.
+     * @param messageId Message id to react to.
+     * @param emoji     Reaction emoji.
+     */
+    suspend fun sendReaction(
+        chatId: String,
+        messageId: String,
+        emoji: String): SendResult = SendResult(success = false, error = "Not supported")
+
+    /**
+     * Edit a previously sent message.
+     *
+     * @param chatId    Chat/channel id.
+     * @param messageId Message id to edit.
+     * @param newText   New message text.
+     */
+    suspend fun editMessage(
+        chatId: String,
+        messageId: String,
+        newText: String): SendResult = SendResult(success = false, error = "Not supported")
+
+    /**
+     * Delete a message.
+     *
+     * @param chatId    Chat/channel id.
+     * @param messageId Message id to delete.
+     */
+    suspend fun deleteMessage(
+        chatId: String,
+        messageId: String): SendResult = SendResult(success = false, error = "Not supported")
+
+    /**
+     * Get info about a chat/channel.
+     *
+     * @param chatId  Chat/channel id.
+     * @return JSON object with chat info.
+     */
+    suspend fun getChatInfo(chatId: String): JSONObject = JSONObject()
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    /**
+     * Dispatch an incoming message to the registered handler.
+     */
+    protected suspend fun handleMessage(event: MessageEvent) {
+        val handler = messageHandler
+        if (handler == null) {
+            Log.w(TAG, "[$name] No message handler registered, dropping message")
+            return
+        }
+        try {
+            handler(event)
+        } catch (e: Exception) {
+            Log.e(TAG, "[$name] Message handler error: ${e.message}")
+        }
+    }
+
+    /**
+     * Build a [MessageSource] from common parameters.
+     */
+    fun buildSource(
+        chatId: String,
+        chatName: String = "",
+        chatType: String = "dm",
+        userId: String = "",
+        userName: String = "",
+        threadId: String? = null,
+        isAdmin: Boolean = false): MessageSource = MessageSource(
+        platform = name,
+        chatId = chatId,
+        chatName = chatName,
+        chatType = chatType,
+        userId = userId,
+        userName = userName,
+        threadId = threadId,
+        isAdmin = isAdmin)
+
+    /**
+     * Check if a user is allowed to DM the bot.
+     */
+    fun isDmAllowed(userId: String): Boolean = when (config.dmPolicy) {
+        "open" -> true
+        "allowlist" -> userId in config.dmAllowFrom
+        "disabled" -> false
+        "pairing" -> userId in config.dmAllowFrom
+        else -> true
+    }
+
+    /**
+     * Check if a user is allowed to interact in a group.
+     */
+    fun isGroupAllowed(groupId: String, userId: String): Boolean = when (config.groupPolicy) {
+        "open" -> true
+        "allowlist" -> {
+            groupId in config.groupAllowFrom ||
+                userId in (config.groupUserAllowFrom[groupId] ?: emptyList())
+        }
+        "disabled" -> false
+        else -> false
+    }
+
+    /**
+     * Cancel all background tasks.
+     */
+    protected fun cancelBackgroundTasks() {
+        _backgroundTasks.forEach { it.cancel() }
+        _backgroundTasks.clear()
+    }
+
+    // ── Fatal error handling (ported from gateway/platforms/base.py) ─
+
+    @Volatile private var _fatalErrorCode: String? = null
+    @Volatile private var _fatalErrorMessage: String? = null
+    @Volatile private var _fatalErrorRetryable: Boolean = false
+    private var _fatalErrorHandler: (suspend (BasePlatformAdapter) -> Unit)? = null
+
+    /** Whether this adapter has a fatal error. */
+    fun hasFatalError(): Boolean = _fatalErrorCode != null
+
+    /** Fatal error message. */
+    fun fatalErrorMessage(): String? = _fatalErrorMessage
+
+    /** Fatal error code. */
+    fun fatalErrorCode(): String? = _fatalErrorCode
+
+    /** Whether the fatal error is retryable. */
+    fun fatalErrorRetryable(): Boolean = _fatalErrorRetryable
+
+    /** Set a handler for fatal errors. */
+    fun setFatalErrorHandler(handler: suspend (BasePlatformAdapter) -> Unit) {
+        _fatalErrorHandler = handler
+    }
+
+    /** Mark adapter as connected (clearing fatal error). */
+    protected fun markConnectedInternal() {
+        _fatalErrorCode = null
+        _fatalErrorMessage = null
+        _fatalErrorRetryable = false
+        isConnected.set(true)
+    }
+
+    /** Mark adapter as disconnected. */
+    protected fun markDisconnectedInternal() {
+        isConnected.set(false)
+    }
+
+    /** Set a fatal error. */
+    protected fun setFatalError(code: String, message: String, retryable: Boolean = false) {
+        _fatalErrorCode = code
+        _fatalErrorMessage = message
+        _fatalErrorRetryable = retryable
+        isConnected.set(false)
+        Log.e(TAG, "Fatal error on $name: [$code] $message (retryable=$retryable)")
+    }
+
+    /** Notify fatal error handler. */
+    protected suspend fun notifyFatalError() {
+        _fatalErrorHandler?.invoke(this)
+    }
+
+    // ── Platform locks ──────────────────────────────────────────────
+
+    @Volatile private var _platformLockScope: String? = null
+
+    /** Acquire a platform lock. */
+    fun acquirePlatformLock(scope: String, identity: String, resourceDesc: String): Boolean {
+        if (_platformLockScope != null) return false
+        _platformLockScope = scope
+        Log.d(TAG, "Any? acquired: $scope/$identity for $resourceDesc")
+        return true
+    }
+
+    /** Release the platform lock. */
+    fun releasePlatformLock() {
+        _platformLockScope = null
+    }
+
+    // ── Command detection ───────────────────────────────────────────
+
+    /** Check if a message is a command (starts with /). */
+    fun isCommand(event: MessageEvent): Boolean {
+        val text = event.text.ifEmpty { return false }
+        return text.startsWith("/")
+    }
+
+    /** Get the command name from a message. */
+    fun getCommand(event: MessageEvent): String? {
+        val text = event.text.ifEmpty { return null }
+        if (!text.startsWith("/")) return null
+        return text.substringBefore(' ').substring(1)
+    }
+
+    /** Get command arguments from a message. */
+    fun getCommandArgs(event: MessageEvent): String {
+        val text = event.text.ifEmpty { return "" }
+        if (!text.startsWith("/")) return text
+        val spaceIdx = text.indexOf(' ')
+        return if (spaceIdx >= 0) text.substring(spaceIdx + 1) else ""
+    }
+
+
+    fun name(): String {
+        return platform.value.replaceFirstChar { it.uppercase() }
+    }
+
+    fun isConnected(): Boolean {
+        return isConnected.get()
+    }
+
+    fun setBusySessionHandler(handler: (suspend (MessageEvent, String) -> Boolean)?) {
+        // Store busy session handler for checking if a session is already processing.
+        // On Android, this is a simplified callback interface.
+        _busySessionHandler = handler
+    }
+
+    fun setSessionStore(sessionStore: Any?) {
+        // Store a reference to the session store for active session checks.
+        _sessionStore = sessionStore
+    }
+
+    suspend fun playTts(chatId: String, audioPath: String): SendResult {
+        // Default: fall back to sending as voice message.
+        return sendVoice(chatId, audioPath)
+    }
+
+    fun pauseTypingForChat(chatId: String) {
+        _typingPaused.add(chatId)
+    }
+
+    fun resumeTypingForChat(chatId: String) {
+        _typingPaused.remove(chatId)
+    }
+}
+
+// ── Module-level utility functions (ported from gateway/platforms/base.py) ──
+
+/** Count UTF-16 code units (for LLM token counting). */
+fun utf16Len(s: String): Int = s.fold(0) { acc, c ->
+    acc + if (c.code > 0xFFFF) 2 else 1
+}
+
+/** Truncate string to UTF-16 limit. */
+fun prefixWithinUtf16Limit(s: String, limit: Int): String {
+    var count = 0
+    for ((i, c) in s.withIndex()) {
+        count += if (c.code > 0xFFFF) 2 else 1
+        if (count > limit) return s.substring(0, i)
+    }
+    return s
+}
+
+/** Sanitize URL for logging (mask credentials). */
+fun safeUrlForLog(url: String, maxLength: Int = 80): String {
+    val sanitized = url.replace(Regex("://[^@]+@"), "://***@")
+    return if (sanitized.length > maxLength) sanitized.take(maxLength - 3) + "..." else sanitized
+}
+
+/** Get image cache directory. */
+fun getImageCacheDir(context: Context): File {
+    return File(context.cacheDir, "media/images").also { it.mkdirs() }
+}
+
+/** Check if data looks like an image. */
+fun looksLikeImage(data: ByteArray): Boolean {
+    if (data.size < 4) return false
+    return (data[0] == 0xFF.toByte() && data[1] == 0xD8.toByte()) || // JPEG
+           (data[0] == 0x89.toByte() && data[1] == 0x50.toByte()) || // PNG
+           (data[0] == 0x47.toByte() && data[1] == 0x49.toByte())    // GIF
+}
+
+/** Cache image from URL. */
+suspend fun cacheImageFromUrl(context: Context, url: String, ext: String = ".jpg"): String {
+    return withContext(Dispatchers.IO) {
+        val client = okhttp3.OkHttpClient()
+        val request = okhttp3.Request.Builder().url(url).build()
+        val response = client.newCall(request).execute()
+        val bytes = response.body?.bytes() ?: byteArrayOf()
+        cacheImageFromBytes(context, bytes, ext)
+    }
+}
+
+/** Clean up old cached images. */
+fun cleanupImageCache(context: Context, maxAgeHours: Int = 24): Int {
+    val dir = getImageCacheDir(context)
+    val cutoff = System.currentTimeMillis() - maxAgeHours * 3600_000
+    var count = 0
+    dir.listFiles()?.forEach { file ->
+        if (file.lastModified() < cutoff && file.delete()) count++
+    }
+    return count
+}
+
+/** Get audio cache directory. */
+fun getAudioCacheDir(context: Context): File {
+    return File(context.cacheDir, "media/audio").also { it.mkdirs() }
+}
+
+/** Cache audio from URL. */
+suspend fun cacheAudioFromUrl(context: Context, url: String, ext: String = ".ogg"): String {
+    return withContext(Dispatchers.IO) {
+        val client = okhttp3.OkHttpClient()
+        val request = okhttp3.Request.Builder().url(url).build()
+        val response = client.newCall(request).execute()
+        val bytes = response.body?.bytes() ?: byteArrayOf()
+        cacheAudioFromBytes(context, bytes, ext)
+    }
+}
+
+/** Get document cache directory. */
+fun getDocumentCacheDir(context: Context): File {
+    return File(context.cacheDir, "media/documents").also { it.mkdirs() }
+}
+
+/** Clean up old cached documents. */
+fun cleanupDocumentCache(context: Context, maxAgeHours: Int = 24): Int {
+    val dir = getDocumentCacheDir(context)
+    val cutoff = System.currentTimeMillis() - maxAgeHours * 3600_000
+    var count = 0
+    dir.listFiles()?.forEach { file ->
+        if (file.lastModified() < cutoff && file.delete()) count++
+    }
+    return count
+}
+
+/**
+ * Cache an image from bytes and return the local file path.
+ */
+fun cacheImageFromBytes(
+    context: Context,
+    data: ByteArray,
+    extension: String = ".jpg"): String {
+    val dir = File(context.cacheDir, "media/images")
+    dir.mkdirs()
+    val file = File(dir, "${System.currentTimeMillis()}_${data.hashCode()}$extension")
+    file.writeBytes(data)
+    return file.absolutePath
+}
+
+/**
+ * Cache an audio file from bytes and return the local file path.
+ */
+fun cacheAudioFromBytes(
+    context: Context,
+    data: ByteArray,
+    extension: String = ".mp3"): String {
+    val dir = File(context.cacheDir, "media/audio")
+    dir.mkdirs()
+    val file = File(dir, "${System.currentTimeMillis()}_${data.hashCode()}$extension")
+    file.writeBytes(data)
+    return file.absolutePath
+}
+
+/**
+ * Cache a document from bytes and return the local file path.
+ */
+fun cacheDocumentFromBytes(
+    context: Context,
+    data: ByteArray,
+    filename: String = "document"): String {
+    val dir = File(context.cacheDir, "media/documents")
+    dir.mkdirs()
+    val file = File(dir, "${System.currentTimeMillis()}_$filename")
+    file.writeBytes(data)
+    return file.absolutePath
+}
+
+/**
+ * Check if the network is accessible (non-loopback, non-link-local).
+ */
+fun isNetworkAccessible(): Boolean {
+    return try {
+        val addr = java.net.InetAddress.getLocalHost()
+        !addr.isLoopbackAddress && !addr.isLinkLocalAddress
+    } catch (e: Exception) {
+        false
+    }
+}
+
+/**
+ * Resolve proxy URL from environment or system settings.
+ */
+fun resolveProxyUrl(): String? {
+    return System.getenv("HTTPS_PROXY")
+        ?: System.getenv("https_proxy")
+        ?: System.getenv("HTTP_PROXY")
+        ?: System.getenv("http_proxy")
+}
+
+// ── Missing methods from base.py ──────────────────────────────────
+
+/**
+ * Send an audio/voice file natively.
+ */
+suspend fun BasePlatformAdapter.sendVoice(chatId: String, audioPath: String, caption: String = "", replyTo: String? = null): SendResult {
+    return send(chatId, "[Voice: $audioPath]", replyTo = replyTo)
+}
+
+/**
+ * Send a video natively.
+ */
+suspend fun BasePlatformAdapter.sendVideo(chatId: String, videoPath: String, caption: String = "", replyTo: String? = null): SendResult {
+    return send(chatId, "[Video: $videoPath]", replyTo = replyTo)
+}
+
+/**
+ * Send an animation/GIF natively.
+ */
+suspend fun BasePlatformAdapter.sendAnimation(chatId: String, animationUrl: String, caption: String = "", replyTo: String? = null): SendResult {
+    return send(chatId, "[Animation: $animationUrl]", replyTo = replyTo)
+}
+
+/**
+ * Send a local image file natively.
+ */
+suspend fun BasePlatformAdapter.sendImageFile(chatId: String, imagePath: String, caption: String = "", replyTo: String? = null): SendResult {
+    return send(chatId, "[Image: $imagePath]", replyTo = replyTo)
+}
+
+/**
+ * Stop a persistent typing indicator.
+ */
+fun BasePlatformAdapter.stopTyping(chatId: String) {
+    // Override in platform-specific adapters
+}
+
+/**
+ * Check if a URL points to an animated GIF.
+ */
+fun isAnimationUrl(url: String): Boolean {
+    return url.endsWith(".gif", ignoreCase = true) ||
+           url.contains("animated", ignoreCase = true) ||
+           url.contains("tenor.com", ignoreCase = true) ||
+           url.contains("giphy.com", ignoreCase = true)
+}
+
+/**
+ * Send message with automatic retry for transient errors.
+ */
+suspend fun BasePlatformAdapter.sendWithRetry(
+    chatId: String,
+    content: String,
+    replyTo: String? = null,
+    metadata: Map<String, Any?> = emptyMap(),
+    maxRetries: Int = 3,
+    baseDelayMs: Long = 1000): SendResult {
+    var lastError: Exception? = null
+    for (attempt in 0 until maxRetries) {
+        try {
+            return send(chatId, content, replyTo)
+        } catch (e: Exception) {
+            lastError = e
+            if (!isRetryableError(e.message ?: "")) break
+            if (attempt < maxRetries - 1) {
+                kotlinx.coroutines.delay(baseDelayMs * (attempt + 1))
+            }
+        }
+    }
+    throw lastError ?: RuntimeException("sendWithRetry failed")
+}
+
+/**
+ * Check if an error string looks like a transient network failure.
+ */
+fun isRetryableError(error: String): Boolean {
+    val lower = error.lowercase()
+    return "timeout" in lower || "connection" in lower || "rate limit" in lower ||
+           "429" in lower || "503" in lower || "502" in lower || "500" in lower
+}
+
+/**
+ * Check if an error string indicates a timeout.
+ */
+fun isTimeoutError(error: String): Boolean {
+    val lower = error.lowercase()
+    return "timeout" in lower || "read timed out" in lower || "connect timed out" in lower
+}
+
+/**
+ * Merge a new caption into existing text, avoiding duplicates.
+ */
+fun mergeCaption(existingText: String, newText: String): String {
+    if (newText.isBlank()) return existingText
+    if (existingText.isBlank()) return newText
+    if (existingText.contains(newText, ignoreCase = true)) return existingText
+    return "$existingText\n\n$newText"
+}
+
+/**
+ * Truncate a long message into chunks, preserving code block boundaries.
+ */
+fun truncateMessage(
+    content: String,
+    maxLength: Int = 4096,
+    lenFn: (String) -> Int = { it.length }): List<String> {
+    if (lenFn(content) <= maxLength) return listOf(content)
+    val chunks = mutableListOf<String>()
+    var remaining = content
+    while (lenFn(remaining) > maxLength) {
+        // Find a good split point
+        var splitAt = maxLength
+        // Try to split at newline
+        val newlineIdx = remaining.lastIndexOf('\n', maxLength)
+        if (newlineIdx > maxLength / 2) {
+            splitAt = newlineIdx + 1
+        } else {
+            // Try to split at space
+            val spaceIdx = remaining.lastIndexOf(' ', maxLength)
+            if (spaceIdx > maxLength / 2) {
+                splitAt = spaceIdx + 1
+            }
+        }
+        chunks.add(remaining.substring(0, splitAt))
+        remaining = remaining.substring(splitAt)
+    }
+    if (remaining.isNotEmpty()) chunks.add(remaining)
+    return chunks
+}
+
+/**
+ * Format a message for the platform (identity in base).
+ */
+fun formatMessage(content: String): String = content
+
+/**
+ * Extract image URLs from markdown and HTML in a response.
+ */
+fun extractImages(content: String): List<String> {
+    val urls = mutableListOf<String>()
+    // Markdown images: ![alt](url)
+    val mdPattern = Regex("""!\[.*?]\((https?://[^)]+)\)""")
+    mdPattern.findAll(content).forEach { urls.add(it.groupValues[1]) }
+    // HTML images: <img src="url">
+    val htmlPattern = Regex("""<img[^>]+src="(https?://[^"]+)"[^>]*>""")
+    htmlPattern.findAll(content).forEach { urls.add(it.groupValues[1]) }
+    // Bare URLs that look like images
+    val urlPattern = Regex("""https?://\S+\.(?:png|jpg|jpeg|gif|webp|svg)""")
+    urlPattern.findAll(content).forEach { urls.add(it.value) }
+    return urls.distinct()
+}
+
+/**
+ * Extract MEDIA:<path> tags and [[audio_as_voice]] directives.
+ */
+fun extractMedia(content: String): Triple<String, List<String>, Boolean> {
+    val mediaPaths = mutableListOf<String>()
+    var isVoice = false
+    var text = content
+
+    // Extract MEDIA:<path> tags
+    val mediaPattern = Regex("""MEDIA:(\S+)""")
+    mediaPattern.findAll(content).forEach {
+        mediaPaths.add(it.groupValues[1])
+    }
+    text = text.replace(mediaPattern, "")
+
+    // Check for [[audio_as_voice]]
+    if ("[[audio_as_voice]]" in text) {
+        isVoice = true
+        text = text.replace("[[audio_as_voice]]", "")
+    }
+
+    return Triple(text.trim(), mediaPaths, isVoice)
+}
+
+/**
+ * Detect bare local file paths in response text.
+ */
+fun extractLocalFiles(content: String): List<String> {
+    val paths = mutableListOf<String>()
+    // Match /path/to/file or ~/path or relative paths
+    val pattern = Regex("""(?:^|\s)([~/][\w\-./]+(?:\.[a-zA-Z0-9]+))(?:\s|$)""")
+    pattern.findAll(content).forEach {
+        paths.add(it.groupValues[1])
+    }
+    return paths.distinct()
+}
+
+/**
+ * Random delay in seconds for human-like response pacing.
+ */
+fun getHumanDelay(): Double {
+    return kotlin.random.Random.nextDouble(0.5, 2.0)
+}
+
+/**
+ * Check if there's a pending interrupt for a session.
+ */
+fun hasPendingInterrupt(sessionKey: String): Boolean {
+    return _pendingInterrupts.containsKey(sessionKey)
+}
+
+/** Pending interrupts storage. */
+private val _pendingInterrupts = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+/**
+ * Get and clear any pending message for a session.
+ */
+fun getPendingMessage(sessionKey: String): String? {
+    return _pendingInterrupts.remove(sessionKey)
+}
+
+/**
+ * Format duration in human-readable form.
+ */
+fun formatDuration(seconds: Long): String {
+    return when {
+        seconds < 60 -> "${seconds}s"
+        seconds < 3600 -> "${seconds / 60}m ${seconds % 60}s"
+        seconds < 86400 -> "${seconds / 3600}h ${(seconds % 3600) / 60}m"
+        else -> "${seconds / 86400}d ${(seconds % 86400) / 3600}h"
+    }
+}
+
+/**
+ * Continuously send typing indicator until cancelled (2s refresh).
+ * Paused chats are skipped via the adapter's [BasePlatformAdapter.pauseTypingForChat].
+ */
+suspend fun BasePlatformAdapter._keepTyping(
+    chatId: String,
+    intervalMs: Long = 2000L,
+    metadata: JSONObject? = null) {
+    try {
+        while (kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]?.isActive == true) {
+            try { sendTyping(chatId, metadata) } catch (_: Exception) {}
+            kotlinx.coroutines.delay(intervalMs)
+        }
+    } catch (_: kotlinx.coroutines.CancellationException) {
+        // Normal — parent cancelled the job
+    } finally {
+        try { stopTyping(chatId) } catch (_: Exception) {}
+    }
+}
+
+/**
+ * Run a lifecycle hook without letting failures break message flow.
+ *
+ * Catches all exceptions so a failed hook never propagates up to
+ * the message-processing pipeline.
+ */
+suspend fun BasePlatformAdapter._runProcessingHook(hookName: String) {
+    try {
+        // Subclasses override lifecycle hooks; base does nothing.
+    } catch (e: Exception) {
+        Log.w("BasePlatformAdapter", "[$name] $hookName hook failed: ${e.message}")
+    }
+}
+
+/**
+ * Background task that actually processes the message — ported from
+ * _process_message_background in gateway/platforms/base.py.
+ *
+ * Sends a continuous typing indicator, calls the message handler, sends
+ * the text response with retry, and sends any local files / media detected
+ * in the response.  Catches all errors and reports them to the user.
+ */
+suspend fun BasePlatformAdapter._processMessageBackground(
+    event: MessageEvent,
+    sessionKey: String) {
+    // Use structured concurrency — typing job is a child of this scope
+    kotlinx.coroutines.coroutineScope {
+        val typingJob = launch { _keepTyping(event.source.chatId) }
+
+        try {
+        // ── Call the message handler ──
+        val handler = messageHandler
+        if (handler == null) {
+            Log.w("BasePlatformAdapter", "[$name] No handler for session=$sessionKey")
+            return@coroutineScope
+        }
+        handler(event)
+
+        // ── Send text response ──
+        val responseText = event.text
+        if (responseText.isNotEmpty()) {
+            sendWithRetry(
+                chatId = event.source.chatId,
+                content = responseText,
+                replyTo = event.message_id.ifEmpty { null })
+        }
+
+        // ── Extract & send images from response ──
+        val imageUrls = extractImages(responseText)
+        for (imgUrl in imageUrls) {
+            try {
+                if (isAnimationUrl(imgUrl)) {
+                    sendAnimation(event.source.chatId, imgUrl)
+                } else {
+                    sendImage(event.source.chatId, imgUrl)
+                }
+            } catch (e: Exception) {
+                Log.w("BasePlatformAdapter", "[$name] Image send failed: ${e.message}")
+            }
+        }
+
+        // ── Extract & send media files ──
+        val (cleanText, mediaPaths, isVoice) = extractMedia(responseText)
+        val audioExts = setOf(".ogg", ".opus", ".mp3", ".wav", ".m4a", ".aac")
+        val videoExts = setOf(".mp4", ".mov", ".avi", ".mkv", ".webm")
+        val imageExts = setOf(".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp")
+
+        for (mediaPath in mediaPaths) {
+            try {
+                val ext = ".${mediaPath.substringAfterLast('.', "").lowercase()}"
+                when {
+                    isVoice || ext in audioExts -> sendVoice(event.source.chatId, mediaPath)
+                    ext in videoExts -> sendVideo(event.source.chatId, mediaPath)
+                    ext in imageExts -> sendImageFile(event.source.chatId, mediaPath)
+                    else -> sendDocument(event.source.chatId, mediaPath)
+                }
+            } catch (e: Exception) {
+                Log.w("BasePlatformAdapter", "[$name] Media send failed: ${e.message}")
+            }
+        }
+
+        // ── Extract & send bare local file paths ──
+        val localFiles = extractLocalFiles(responseText)
+        for (filePath in localFiles) {
+            try {
+                val ext = ".${filePath.substringAfterLast('.', "").lowercase()}"
+                when {
+                    ext in imageExts -> sendImageFile(event.source.chatId, filePath)
+                    ext in videoExts -> sendVideo(event.source.chatId, filePath)
+                    else -> sendDocument(event.source.chatId, filePath)
+                }
+            } catch (e: Exception) {
+                Log.w("BasePlatformAdapter", "[$name] File send failed: ${e.message}")
+            }
+        }
+
+    } catch (e: Exception) {
+        Log.e("BasePlatformAdapter", "[$name] Processing error: ${e.message}", e)
+        try {
+            send(
+                chatId = event.source.chatId,
+                content = "Error: ${e.javaClass.simpleName} — ${e.message ?: "unknown"}\nUse /reset to start fresh.")
+        } catch (_: Exception) { /* best-effort error delivery */ }
+    } finally {
+        typingJob.cancel()
+        try { typingJob.join() } catch (_: Exception) {}
+    }
+    } // coroutineScope
+}
+
+/**
+ * Lifecycle hook: called when background processing starts.
+ */
+fun onProcessingStart(sessionKey: String) {
+    Log.d("BasePlatformAdapter", "Processing started: session=$sessionKey")
+}
+
+/**
+ * Lifecycle hook: called when background processing completes.
+ */
+fun onProcessingComplete(sessionKey: String, outcome: String) {
+    Log.d("BasePlatformAdapter", "Processing complete: session=$sessionKey outcome=$outcome")
+}

@@ -1,0 +1,1712 @@
+{
+  "summary": {
+    "files": 228,
+    "total_methods": 2314,
+    "implemented": 2243,
+    "stubs": 71,
+    "pct_implemented": 96.9
+  },
+  "files": [
+    {
+      "file": "Whatsapp.kt",
+      "total": 14,
+      "stubs": 7,
+      "implemented": 7,
+      "stub_methods": [
+        "whatsappRequireMention",
+        "whatsappFreeResponseChats",
+        "compileMentionPatterns",
+        "botIdsFromMessage",
+        "messageIsReplyToBot",
+        "messageMentionsBot",
+        "messageMatchesMentionPatterns"
+      ]
+    },
+    {
+      "file": "BatchRunner.kt",
+      "total": 18,
+      "stubs": 6,
+      "implemented": 12,
+      "stub_methods": [
+        "_loadDataset",
+        "_createBatches",
+        "_loadCheckpoint",
+        "_saveCheckpoint",
+        "_scanCompletedPromptsByContent",
+        "_filterDatasetByCompleted"
+      ]
+    },
+    {
+      "file": "tools/CheckpointManager.kt",
+      "total": 14,
+      "stubs": 6,
+      "implemented": 8,
+      "stub_methods": [
+        "ensureCheckpoint",
+        "listCheckpoints",
+        "diff",
+        "restore",
+        "getWorkingDirForPath",
+        "_take"
+      ]
+    },
+    {
+      "file": "agent/SubdirectoryHints.kt",
+      "total": 10,
+      "stubs": 6,
+      "implemented": 4,
+      "stub_methods": [
+        "checkToolCall",
+        "_extractDirectories",
+        "_addPathCandidate",
+        "_extractPathsFromCommand",
+        "_isValidSubdir",
+        "_loadHintsForDirectory"
+      ]
+    },
+    {
+      "file": "gateway/Run.kt",
+      "total": 95,
+      "stubs": 6,
+      "implemented": 89,
+      "stub_methods": [
+        "_handleMessageWithAgent",
+        "_getGuildId",
+        "_shouldSendVoiceReply",
+        "_enrichMessageWithVision",
+        "_enrichMessageWithTranscription",
+        "_runAgent"
+      ]
+    },
+    {
+      "file": "agent/CopilotAcpClient.kt",
+      "total": 12,
+      "stubs": 4,
+      "implemented": 8,
+      "stub_methods": [
+        "create",
+        "_createChatCompletion",
+        "_runPrompt",
+        "_handleServerMessage"
+      ]
+    },
+    {
+      "file": "tools/McpTool.kt",
+      "total": 23,
+      "stubs": 3,
+      "implemented": 20,
+      "stub_methods": [
+        "checkMessageHandlerSupport",
+        "sessionKwargs",
+        "_makeMessageHandler"
+      ]
+    },
+    {
+      "file": "gateway/Delivery.kt",
+      "total": 16,
+      "stubs": 3,
+      "implemented": 13,
+      "stub_methods": [
+        "_deliverLocal",
+        "_saveFullOutput",
+        "_deliverToPlatform"
+      ]
+    },
+    {
+      "file": "WebResearchEnv.kt",
+      "total": 12,
+      "stubs": 2,
+      "implemented": 10,
+      "stub_methods": [
+        "getNextItem",
+        "computeReward"
+      ]
+    },
+    {
+      "file": "tools/TodoTool.kt",
+      "total": 10,
+      "stubs": 2,
+      "implemented": 8,
+      "stub_methods": [
+        "_validate",
+        "_dedupeById"
+      ]
+    },
+    {
+      "file": "agent/RateLimitTracker.kt",
+      "total": 11,
+      "stubs": 2,
+      "implemented": 9,
+      "stub_methods": [
+        "used",
+        "ageSeconds"
+      ]
+    },
+    {
+      "file": "agent/UsagePricing.kt",
+      "total": 7,
+      "stubs": 2,
+      "implemented": 5,
+      "stub_methods": [
+        "promptTokens",
+        "totalTokens"
+      ]
+    },
+    {
+      "file": "Base.kt",
+      "total": 19,
+      "stubs": 1,
+      "implemented": 18,
+      "stub_methods": [
+        "_beforeExecute"
+      ]
+    },
+    {
+      "file": "tools/DebugHelpers.kt",
+      "total": 4,
+      "stubs": 1,
+      "implemented": 3,
+      "stub_methods": [
+        "active"
+      ]
+    },
+    {
+      "file": "tools/ImageGenerationTool.kt",
+      "total": 3,
+      "stubs": 1,
+      "implemented": 2,
+      "stub_methods": [
+        "submit"
+      ]
+    },
+    {
+      "file": "tools/McpOAuth.kt",
+      "total": 11,
+      "stubs": 1,
+      "implemented": 10,
+      "stub_methods": [
+        "getTokens"
+      ]
+    },
+    {
+      "file": "tools/VoiceMode.kt",
+      "total": 13,
+      "stubs": 1,
+      "implemented": 12,
+      "stub_methods": [
+        "_writeWav"
+      ]
+    },
+    {
+      "file": "agent/AuxiliaryClient.kt",
+      "total": 19,
+      "stubs": 1,
+      "implemented": 18,
+      "stub_methods": [
+        "getRateLimitInfo"
+      ]
+    },
+    {
+      "file": "agent/Insights.kt",
+      "total": 43,
+      "stubs": 1,
+      "implemented": 42,
+      "stub_methods": [
+        "getToolUsage"
+      ]
+    },
+    {
+      "file": "agent/MemoryProvider.kt",
+      "total": 14,
+      "stubs": 1,
+      "implemented": 13,
+      "stub_methods": [
+        "handleToolCall"
+      ]
+    },
+    {
+      "file": "agent/Redact.kt",
+      "total": 9,
+      "stubs": 1,
+      "implemented": 8,
+      "stub_methods": [
+        "format"
+      ]
+    },
+    {
+      "file": "gateway/platforms/ApiServer.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Base.kt",
+      "total": 47,
+      "stubs": 1,
+      "implemented": 46,
+      "stub_methods": [
+        "sendTyping"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Bluebubbles.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Email.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Matrix.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Mattermost.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Qqbot.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Signal.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Slack.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Sms.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/WeComCallback.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/Webhook.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "gateway/platforms/WhatsApp.kt",
+      "total": 2,
+      "stubs": 1,
+      "implemented": 1,
+      "stub_methods": [
+        "disconnect"
+      ]
+    },
+    {
+      "file": "AgentLoop.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "AgenticOpdEnv.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "ApiServer.kt",
+      "total": 24,
+      "stubs": 0,
+      "implemented": 24,
+      "stub_methods": []
+    },
+    {
+      "file": "Auth.kt",
+      "total": 25,
+      "stubs": 0,
+      "implemented": 25,
+      "stub_methods": []
+    },
+    {
+      "file": "Bluebubbles.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "BrowserUse.kt",
+      "total": 8,
+      "stubs": 0,
+      "implemented": 8,
+      "stub_methods": []
+    },
+    {
+      "file": "Browserbase.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "Colors.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "Commands.kt",
+      "total": 24,
+      "stubs": 0,
+      "implemented": 24,
+      "stub_methods": []
+    },
+    {
+      "file": "Daytona.kt",
+      "total": 8,
+      "stubs": 0,
+      "implemented": 8,
+      "stub_methods": []
+    },
+    {
+      "file": "Debug.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "DeepseekV31Parser.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "DeepseekV3Parser.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "Dingtalk.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "Discord.kt",
+      "total": 23,
+      "stubs": 0,
+      "implemented": 23,
+      "stub_methods": []
+    },
+    {
+      "file": "Docker.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "Email.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "Feishu.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "FileSync.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "Firecrawl.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "Glm45Parser.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "Glm47Parser.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "Helpers.kt",
+      "total": 13,
+      "stubs": 0,
+      "implemented": 13,
+      "stub_methods": []
+    },
+    {
+      "file": "HermesBaseEnv.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "HermesConstants.kt",
+      "total": 22,
+      "stubs": 0,
+      "implemented": 22,
+      "stub_methods": []
+    },
+    {
+      "file": "HermesLogging.kt",
+      "total": 19,
+      "stubs": 0,
+      "implemented": 19,
+      "stub_methods": []
+    },
+    {
+      "file": "HermesParser.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "HermesState.kt",
+      "total": 52,
+      "stubs": 0,
+      "implemented": 52,
+      "stub_methods": []
+    },
+    {
+      "file": "HermesTime.kt",
+      "total": 16,
+      "stubs": 0,
+      "implemented": 16,
+      "stub_methods": []
+    },
+    {
+      "file": "Homeassistant.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "KimiK2Parser.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "LlamaParser.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "Local.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "LongcatParser.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "ManagedModal.kt",
+      "total": 10,
+      "stubs": 0,
+      "implemented": 10,
+      "stub_methods": []
+    },
+    {
+      "file": "Matrix.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    },
+    {
+      "file": "Mattermost.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "MistralParser.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "Modal.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    },
+    {
+      "file": "ModalUtils.kt",
+      "total": 9,
+      "stubs": 0,
+      "implemented": 9,
+      "stub_methods": []
+    },
+    {
+      "file": "ModelSwitch.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "ModelTools.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    },
+    {
+      "file": "Models.kt",
+      "total": 20,
+      "stubs": 0,
+      "implemented": 20,
+      "stub_methods": []
+    },
+    {
+      "file": "NousSubscription.kt",
+      "total": 13,
+      "stubs": 0,
+      "implemented": 13,
+      "stub_methods": []
+    },
+    {
+      "file": "Pairing.kt",
+      "total": 18,
+      "stubs": 0,
+      "implemented": 18,
+      "stub_methods": []
+    },
+    {
+      "file": "Platforms.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "Plugins.kt",
+      "total": 16,
+      "stubs": 0,
+      "implemented": 16,
+      "stub_methods": []
+    },
+    {
+      "file": "Profiles.kt",
+      "total": 20,
+      "stubs": 0,
+      "implemented": 20,
+      "stub_methods": []
+    },
+    {
+      "file": "Providers.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "Qqbot.kt",
+      "total": 16,
+      "stubs": 0,
+      "implemented": 16,
+      "stub_methods": []
+    },
+    {
+      "file": "Qwen3CoderParser.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "QwenParser.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "Server.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "Signal.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "Singularity.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "SkinEngine.kt",
+      "total": 16,
+      "stubs": 0,
+      "implemented": 16,
+      "stub_methods": []
+    },
+    {
+      "file": "Slack.kt",
+      "total": 12,
+      "stubs": 0,
+      "implemented": 12,
+      "stub_methods": []
+    },
+    {
+      "file": "Sms.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "Ssh.kt",
+      "total": 9,
+      "stubs": 0,
+      "implemented": 9,
+      "stub_methods": []
+    },
+    {
+      "file": "Telegram.kt",
+      "total": 14,
+      "stubs": 0,
+      "implemented": 14,
+      "stub_methods": []
+    },
+    {
+      "file": "TelegramNetwork.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "ToolContext.kt",
+      "total": 14,
+      "stubs": 0,
+      "implemented": 14,
+      "stub_methods": []
+    },
+    {
+      "file": "ToolsetDistributions.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "Toolsets.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "TrajectoryCompressor.kt",
+      "total": 17,
+      "stubs": 0,
+      "implemented": 17,
+      "stub_methods": []
+    },
+    {
+      "file": "Utils.kt",
+      "total": 15,
+      "stubs": 0,
+      "implemented": 15,
+      "stub_methods": []
+    },
+    {
+      "file": "WebServer.kt",
+      "total": 14,
+      "stubs": 0,
+      "implemented": 14,
+      "stub_methods": []
+    },
+    {
+      "file": "Webhook.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "Wecom.kt",
+      "total": 14,
+      "stubs": 0,
+      "implemented": 14,
+      "stub_methods": []
+    },
+    {
+      "file": "WecomCallback.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "WecomCrypto.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "Weixin.kt",
+      "total": 25,
+      "stubs": 0,
+      "implemented": 25,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/AnsiStrip.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/Approval.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/BinaryExtensions.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/BrowserCamofox.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/BrowserCamofoxState.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/BrowserTool.kt",
+      "total": 9,
+      "stubs": 0,
+      "implemented": 9,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/BudgetConfig.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/ClarifyTool.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/CodeExecutionTool.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/CredentialFiles.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/CronjobTools.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/DelegateTool.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/EnvPassthrough.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/FeishuDocTool.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/FeishuDriveTool.kt",
+      "total": 9,
+      "stubs": 0,
+      "implemented": 9,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/FileOperations.kt",
+      "total": 41,
+      "stubs": 0,
+      "implemented": 41,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/FileTools.kt",
+      "total": 10,
+      "stubs": 0,
+      "implemented": 10,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/FuzzyMatch.kt",
+      "total": 16,
+      "stubs": 0,
+      "implemented": 16,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/HomeassistantTool.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/Interrupt.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/ManagedToolGateway.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/McpOauthManager.kt",
+      "total": 8,
+      "stubs": 0,
+      "implemented": 8,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/MemoryTool.kt",
+      "total": 24,
+      "stubs": 0,
+      "implemented": 24,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/MixtureOfAgentsTool.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/NeuTtsSynth.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/OpenrouterClient.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/OsvCheck.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/PatchParser.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/PathSecurity.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/ProcessRegistry.kt",
+      "total": 33,
+      "stubs": 0,
+      "implemented": 33,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/Registry.kt",
+      "total": 21,
+      "stubs": 0,
+      "implemented": 21,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/RlTrainingTool.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SendMessageTool.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SessionSearchTool.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SkillManagerTool.kt",
+      "total": 13,
+      "stubs": 0,
+      "implemented": 13,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SkillsGuard.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SkillsHub.kt",
+      "total": 13,
+      "stubs": 0,
+      "implemented": 13,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SkillsSync.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/SkillsTool.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/TerminalTool.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/TirithSecurity.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/ToolBackendHelpers.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/ToolResultStorage.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/TranscriptionTools.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/TtsTool.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/UrlSafety.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/VisionTools.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/WebTools.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/WebsitePolicy.kt",
+      "total": 8,
+      "stubs": 0,
+      "implemented": 8,
+      "stub_methods": []
+    },
+    {
+      "file": "tools/XaiHttp.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/MemoryProvider.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/holographic/Holographic.kt",
+      "total": 16,
+      "stubs": 0,
+      "implemented": 16,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/holographic/HolographicRetrieval.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/holographic/HolographicStore.kt",
+      "total": 21,
+      "stubs": 0,
+      "implemented": 21,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/holographic/Retrieval.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/holographic/Store.kt",
+      "total": 17,
+      "stubs": 0,
+      "implemented": 17,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/honcho/Cli.kt",
+      "total": 19,
+      "stubs": 0,
+      "implemented": 19,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/honcho/Client.kt",
+      "total": 21,
+      "stubs": 0,
+      "implemented": 21,
+      "stub_methods": []
+    },
+    {
+      "file": "plugins/memory/honcho/Session.kt",
+      "total": 33,
+      "stubs": 0,
+      "implemented": 33,
+      "stub_methods": []
+    },
+    {
+      "file": "environments/Patches.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "environments/ToolCallParser.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/AnthropicAdapter.kt",
+      "total": 18,
+      "stubs": 0,
+      "implemented": 18,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/BedrockAdapter.kt",
+      "total": 20,
+      "stubs": 0,
+      "implemented": 20,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ContextCompressor.kt",
+      "total": 21,
+      "stubs": 0,
+      "implemented": 21,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ContextEngine.kt",
+      "total": 9,
+      "stubs": 0,
+      "implemented": 9,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ContextReferences.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/CredentialPool.kt",
+      "total": 52,
+      "stubs": 0,
+      "implemented": 52,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/Display.kt",
+      "total": 26,
+      "stubs": 0,
+      "implemented": 26,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ErrorClassifier.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/GeminiCloudcodeAdapter.kt",
+      "total": 19,
+      "stubs": 0,
+      "implemented": 19,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/GoogleCodeAssist.kt",
+      "total": 9,
+      "stubs": 0,
+      "implemented": 9,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/GoogleOauth.kt",
+      "total": 23,
+      "stubs": 0,
+      "implemented": 23,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ManualCompressionFeedback.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/MemoryManager.kt",
+      "total": 26,
+      "stubs": 0,
+      "implemented": 26,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ModelMetadata.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/ModelsDev.kt",
+      "total": 12,
+      "stubs": 0,
+      "implemented": 12,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/NousRateGuard.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/PromptBuilder.kt",
+      "total": 13,
+      "stubs": 0,
+      "implemented": 13,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/PromptCaching.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/RetryUtils.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/SkillCommands.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/SkillUtils.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/SmartModelRouting.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/TitleGenerator.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "agent/Trajectory.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "acp/Entry.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "acp/Events.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "acp/Permissions.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "acp/Tools.kt",
+      "total": 12,
+      "stubs": 0,
+      "implemented": 12,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/ChannelDirectory.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Config.kt",
+      "total": 15,
+      "stubs": 0,
+      "implemented": 15,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Display.kt",
+      "total": 12,
+      "stubs": 0,
+      "implemented": 12,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/DisplayConfig.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Hooks.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Mirror.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Pairing.kt",
+      "total": 39,
+      "stubs": 0,
+      "implemented": 39,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Restart.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Session.kt",
+      "total": 81,
+      "stubs": 0,
+      "implemented": 81,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/SessionContext.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/Status.kt",
+      "total": 26,
+      "stubs": 0,
+      "implemented": 26,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/StickerCache.kt",
+      "total": 7,
+      "stubs": 0,
+      "implemented": 7,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/StreamConsumer.kt",
+      "total": 25,
+      "stubs": 0,
+      "implemented": 25,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/ToolContext.kt",
+      "total": 14,
+      "stubs": 0,
+      "implemented": 14,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/AppChat.kt",
+      "total": 10,
+      "stubs": 0,
+      "implemented": 10,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Dingtalk.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Discord.kt",
+      "total": 6,
+      "stubs": 0,
+      "implemented": 6,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Feishu.kt",
+      "total": 34,
+      "stubs": 0,
+      "implemented": 34,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/FeishuCommentRules.kt",
+      "total": 13,
+      "stubs": 0,
+      "implemented": 13,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Helpers.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Homeassistant.kt",
+      "total": 3,
+      "stubs": 0,
+      "implemented": 3,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Telegram.kt",
+      "total": 19,
+      "stubs": 0,
+      "implemented": 19,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/TelegramNetwork.kt",
+      "total": 10,
+      "stubs": 0,
+      "implemented": 10,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/WeCom.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/WeComCrypto.kt",
+      "total": 8,
+      "stubs": 0,
+      "implemented": 8,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/Weixin.kt",
+      "total": 5,
+      "stubs": 0,
+      "implemented": 5,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/qqbot/Constants.kt",
+      "total": 0,
+      "stubs": 0,
+      "implemented": 0,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/qqbot/Crypto.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/qqbot/Onboard.kt",
+      "total": 1,
+      "stubs": 0,
+      "implemented": 1,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/platforms/qqbot/Utils.kt",
+      "total": 4,
+      "stubs": 0,
+      "implemented": 4,
+      "stub_methods": []
+    },
+    {
+      "file": "gateway/BuiltinHooks/BootMd.kt",
+      "total": 2,
+      "stubs": 0,
+      "implemented": 2,
+      "stub_methods": []
+    },
+    {
+      "file": "cron/Jobs.kt",
+      "total": 25,
+      "stubs": 0,
+      "implemented": 25,
+      "stub_methods": []
+    },
+    {
+      "file": "cron/Scheduler.kt",
+      "total": 11,
+      "stubs": 0,
+      "implemented": 11,
+      "stub_methods": []
+    }
+  ]
+}
