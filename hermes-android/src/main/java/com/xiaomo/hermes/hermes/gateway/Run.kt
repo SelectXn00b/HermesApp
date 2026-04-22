@@ -1575,6 +1575,67 @@ class GatewayRunner(
             "session_id" to sessionId
         )
     }
+
+    // ── Missing methods ported from gateway/run.py (Android stubs) ─────
+
+    /** Docker media delivery volume risk warning. No-op on Android. */
+    fun _warnIfDockerMediaDeliveryIsRisky(platformConfig: Map<String, Any?>?) {
+        /* Android: no Docker runtime, nothing to warn about. */
+    }
+
+    /** Compose a platform+chat key used to de-dup voice transcription work. */
+    fun _voiceKey(platform: String, chatId: String): String = "$platform:$chatId"
+
+    /** Disconnect an adapter without letting errors bubble up. */
+    suspend fun _safeAdapterDisconnect(adapter: Any?) {
+        try {
+            val m = adapter?.javaClass?.getMethod("disconnect") ?: return
+            m.invoke(adapter)
+        } catch (_: Throwable) {
+            /* swallow — best-effort disconnect */
+        }
+    }
+
+    private val _sessionRunGenerations = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val _sessionRunCounter = java.util.concurrent.atomic.AtomicLong(0)
+
+    /** Allocate a new run generation for a session. */
+    fun _beginSessionRunGeneration(sessionKey: String): Long {
+        val g = _sessionRunCounter.incrementAndGet()
+        _sessionRunGenerations[sessionKey] = g
+        return g
+    }
+
+    /** Invalidate any running generation for a session (e.g. on reset). */
+    fun _invalidateSessionRunGeneration(sessionKey: String) {
+        _sessionRunGenerations.remove(sessionKey)
+    }
+
+    /** True if the given generation is still the current one for a session. */
+    fun _isSessionRunCurrent(sessionKey: String, generation: Long): Boolean {
+        return _sessionRunGenerations[sessionKey] == generation
+    }
+
+    /** Record which adapter is bound to which session-run generation. */
+    fun _bindAdapterRunGeneration(sessionKey: String, generation: Long, adapter: Any?) {
+        /* Android stub — Python tracks adapter→generation for interrupt routing. */
+    }
+
+    /** Interrupt any running agent for [sessionKey] and wipe session state. */
+    suspend fun _interruptAndClearSession(sessionKey: String, reason: String) {
+        _invalidateSessionRunGeneration(sessionKey)
+        /* Android stub — Python tears down the running agent + clears state. */
+    }
+
+    /** Dispatch a resolved event to the real agent loop. Android stub. */
+    suspend fun _runAgent(
+        sessionKey: String,
+        event: Any?,
+        agentKwargs: Map<String, Any?>? = null
+    ): Any? {
+        /* Android routes through HermesAgentLoop outside this class. */
+        return null
+    }
 }
 
 /**
@@ -1647,3 +1708,124 @@ class GatewayStatus {
         }
     }
 }
+
+// ── Module-level constants (1:1 with gateway/run.py) ───────────────────
+
+/** Docker bind-mount spec parser — host:container[:options]. */
+val _DOCKER_VOLUME_SPEC_RE: Regex =
+    Regex("^(?<host>.+):(?<container>/[^:]+?)(?::(?<options>[^:]+))?$")
+
+/** Container-side paths treated as media-output dirs. */
+val _DOCKER_MEDIA_OUTPUT_CONTAINER_PATHS: Set<String> = setOf("/output", "/outputs")
+
+/** Sentinel indicating an agent slot is reserved but not yet spawned. */
+val _AGENT_PENDING_SENTINEL: Any = Any()
+
+const val _INTERRUPT_REASON_STOP: String = "Stop requested"
+const val _INTERRUPT_REASON_RESET: String = "Session reset requested"
+const val _INTERRUPT_REASON_TIMEOUT: String = "Execution timed out (inactivity)"
+const val _INTERRUPT_REASON_SSE_DISCONNECT: String = "SSE client disconnected"
+const val _INTERRUPT_REASON_GATEWAY_SHUTDOWN: String = "Gateway shutting down"
+const val _INTERRUPT_REASON_GATEWAY_RESTART: String = "Gateway restarting"
+
+/** Control-flow interrupt reasons (lowercased) used for routing. */
+val _CONTROL_INTERRUPT_MESSAGES: Set<String> = setOf(
+    _INTERRUPT_REASON_STOP.lowercase(),
+    _INTERRUPT_REASON_RESET.lowercase(),
+    _INTERRUPT_REASON_TIMEOUT.lowercase(),
+    _INTERRUPT_REASON_SSE_DISCONNECT.lowercase(),
+    _INTERRUPT_REASON_GATEWAY_SHUTDOWN.lowercase(),
+    _INTERRUPT_REASON_GATEWAY_RESTART.lowercase(),
+)
+
+// ── Module-level functions (1:1 with gateway/run.py, Android stubs) ────
+
+/** Ensure SSL CA bundle is available — no-op on Android (system store). */
+fun _ensureSslCerts() { /* Android stub — system trust store handles certs. */ }
+
+/** Normalize a WhatsApp identifier (E.164 digits, strip '+'). */
+fun _normalizeWhatsappIdentifier(raw: String?): String {
+    if (raw.isNullOrBlank()) return ""
+    return raw.trim().trimStart('+').filter { it.isDigit() }
+}
+
+/** Expand WhatsApp auth aliases (bare number → chatId list). */
+fun _expandWhatsappAuthAliases(entries: List<String>?): List<String> {
+    if (entries.isNullOrEmpty()) return emptyList()
+    val out = mutableListOf<String>()
+    for (e in entries) {
+        val trimmed = e.trim()
+        if (trimmed.isEmpty()) continue
+        out.add(trimmed)
+        val norm = _normalizeWhatsappIdentifier(trimmed)
+        if (norm.isNotEmpty() && norm != trimmed) out.add(norm)
+    }
+    return out.distinct()
+}
+
+/** Resolve runtime agent kwargs merged from defaults + platform overrides. */
+fun _resolveRuntimeAgentKwargs(
+    defaults: Map<String, Any?>?,
+    platformKwargs: Map<String, Any?>?
+): Map<String, Any?> {
+    val out = mutableMapOf<String, Any?>()
+    if (defaults != null) out.putAll(defaults)
+    if (platformKwargs != null) out.putAll(platformKwargs)
+    return out
+}
+
+/** Build a media placeholder string for a non-text attachment. */
+fun _buildMediaPlaceholder(mediaType: String, url: String = ""): String {
+    val label = when (mediaType.lowercase()) {
+        "image", "photo" -> "Image"
+        "audio", "voice" -> "Voice"
+        "video" -> "Video"
+        "document", "file" -> "Document"
+        "sticker" -> "Sticker"
+        else -> mediaType.ifEmpty { "Media" }
+    }
+    return if (url.isNotEmpty()) "[$label: $url]" else "[$label]"
+}
+
+/** Pop the next pending event for a session, or null. */
+fun _dequeuePendingEvent(queue: MutableList<Any?>?): Any? {
+    if (queue.isNullOrEmpty()) return null
+    return queue.removeAt(0)
+}
+
+/** True if a message is a control-flow interrupt (stop/reset/timeout/etc). */
+fun _isControlInterruptMessage(reason: String?): Boolean {
+    if (reason.isNullOrBlank()) return false
+    return reason.trim().lowercase() in _CONTROL_INTERRUPT_MESSAGES
+}
+
+/** Check whether a skill is unavailable on the current platform/runtime. */
+fun _checkUnavailableSkill(skillId: String?, unavailable: Set<String>?): Boolean {
+    if (skillId.isNullOrBlank()) return false
+    val set = unavailable ?: return false
+    return skillId in set
+}
+
+/** Build a deterministic config key from a platform descriptor. */
+fun _platformConfigKey(platform: String, chatId: String? = null): String {
+    return if (chatId.isNullOrBlank()) platform else "$platform:$chatId"
+}
+
+/** Load gateway YAML/JSON config — Android returns empty map (injected). */
+fun _loadGatewayConfig(path: String? = null): Map<String, Any?> = emptyMap()
+
+/** Parse "platform:chatId" session key into (platform, chatId). */
+fun _parseSessionKey(sessionKey: String): Pair<String, String> {
+    val idx = sessionKey.indexOf(':')
+    return if (idx < 0) sessionKey to ""
+    else sessionKey.substring(0, idx) to sessionKey.substring(idx + 1)
+}
+
+/** Start a cron ticker thread — Android returns an inert handle. */
+fun _startCronTicker(): Any? = null
+
+/** Bootstrap entry: connect adapters and run the gateway loop. Android stub. */
+suspend fun startGateway(config: Map<String, Any?>? = null): Int = 0
+
+/** CLI entrypoint — maps to ``python -m hermes.gateway.run``. Android: no-op. */
+fun main() { /* Android: gateway is embedded, not launched from CLI. */ }
