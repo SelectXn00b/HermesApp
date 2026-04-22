@@ -273,6 +273,22 @@ fun getConfigPath(): File {
 }
 
 /**
+ * Return the path to the skills directory under HERMES_HOME.
+ * 1:1 对齐 hermes_constants.py#get_skills_dir
+ */
+fun getSkillsDir(): File {
+    return File(getHermesHome(), "skills")
+}
+
+/**
+ * Return the path to the ``.env`` file under HERMES_HOME.
+ * 1:1 对齐 hermes_constants.py#get_env_path
+ */
+fun getEnvPath(): File {
+    return File(getHermesHome(), ".env")
+}
+
+/**
  * 获取配置
  * Python: load_config() + merge with defaults
  */
