@@ -12,6 +12,12 @@ package com.xiaomo.hermes.hermes.gateway
 import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.platforms.BasePlatformAdapter
 
+/** Upper bound on characters of output we paste inline into a platform message. */
+const val MAX_PLATFORM_OUTPUT: Int = 4000
+
+/** Portion of truncated output that remains visible before the spillover marker. */
+const val TRUNCATED_VISIBLE: Int = 2000
+
 /**
  * Result of a delivery attempt.
  */
@@ -94,6 +100,47 @@ class DeliveryRouter {
             Log.w(_TAG, "Typing indicator failed for $platform:$chatId: ${e.message}")
         }
     }
+
+    /**
+     * Deliver a message to one or more targets.
+     * Mirrors Python's DeliveryRouter.deliver.
+     */
+    suspend fun deliver(
+        targets: List<DeliveryTarget>,
+        text: String,
+        replyTo: String? = null): List<DeliveryResult> {
+        val results = mutableListOf<DeliveryResult>()
+        for (target in targets) {
+            val result = if (target.platform == "local") {
+                _deliverLocal(text)
+            } else {
+                _deliverToPlatform(target, text, replyTo)
+            }
+            results.add(result)
+        }
+        return results
+    }
+
+    /** Deliver to the local (headless) target — no-op stub. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _deliverLocal(text: String): DeliveryResult =
+        DeliveryResult(success = true)
+
+    /**
+     * Save full output to local storage when truncated for platform delivery.
+     * Stub: returns empty path; real implementation writes a file.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _saveFullOutput(text: String, platform: String): String = ""
+
+    /** Deliver to a concrete platform target. */
+    private suspend fun _deliverToPlatform(
+        target: DeliveryTarget,
+        text: String,
+        replyTo: String? = null): DeliveryResult {
+        val chatId = target.chatId ?: return DeliveryResult(success = false, error = "no chat_id for platform target")
+        return deliverText(target.platform, chatId, text, replyTo)
+    }
 }
 
 /**
@@ -106,6 +153,12 @@ data class DeliveryTarget(
     val threadId: String? = null,
     val isOrigin: Boolean = false,
     val isExplicit: Boolean = false) {
+    /** Mirror Python DeliveryTarget.to_string — `platform:chat[:thread]`. */
+    override fun toString(): String {
+        val base = if (chatId != null) "$platform:$chatId" else platform
+        return if (threadId != null) "$base:$threadId" else base
+    }
+
     companion object {
         /** Parse a delivery target string. */
         fun parse(target: String, originPlatform: String? = null, originChatId: String? = null, originThreadId: String? = null): DeliveryTarget {
