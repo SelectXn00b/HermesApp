@@ -45,14 +45,17 @@ class Weixin(
             Log.e(_TAG, "WEIXIN_APP_ID or WEIXIN_APP_SECRET not set")
             return false
         }
-        return _refreshAccessToken()
+        return _getAccessToken() != null
     }
 
     override suspend fun disconnect() {
         markDisconnected()
     }
 
-    private suspend fun _refreshAccessToken(): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun _getAccessToken(): String? = withContext(Dispatchers.IO) {
+        if (_accessToken.isNotEmpty() && System.currentTimeMillis() / 1000 < _accessTokenExpiry) {
+            return@withContext _accessToken
+        }
         try {
             val request = Request.Builder()
                 .url("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$_appId&secret=$_appSecret")
@@ -60,24 +63,18 @@ class Weixin(
                 .build()
 
             _httpClient.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) return@withContext false
+                if (!resp.isSuccessful) return@withContext null
                 val data = JSONObject(resp.body!!.string())
-                if (data.has("errcode")) return@withContext false
+                if (data.has("errcode")) return@withContext null
                 _accessToken = data.getString("access_token")
                 _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
                 Log.i(_TAG, "Access token refreshed")
                 markConnected()
-                return@withContext true
+                return@withContext _accessToken
             }
         } catch (e: Exception) {
             Log.e(_TAG, "Token refresh failed: ${e.message}")
-            return@withContext false
-        }
-    }
-
-    private suspend fun _ensureAccessToken() {
-        if (_accessToken.isEmpty() || System.currentTimeMillis() / 1000 >= _accessTokenExpiry) {
-            _refreshAccessToken()
+            return@withContext null
         }
     }
 
@@ -87,7 +84,7 @@ class Weixin(
         replyTo: String?,
         metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
         try {
-            _ensureAccessToken()
+            val token = _getAccessToken() ?: return@withContext SendResult(success = false, error = "no access token")
 
             val payload = JSONObject().apply {
                 put("touser", chatId)
@@ -99,7 +96,7 @@ class Weixin(
                 .toRequestBody("application/json; charset=utf-8".toMediaType())
 
             val request = Request.Builder()
-                .url("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=$_accessToken")
+                .url("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=$token")
                 .post(body)
                 .build()
 
