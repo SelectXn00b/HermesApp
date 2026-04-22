@@ -124,8 +124,8 @@ abstract class BaseEnvironment(
     protected open val snapshotTimeout: Int = 30
 
     private val sessionId: String = UUID.randomUUID().toString().replace("-", "").substring(0, 12)
-    private val snapshotPath: String
-    private val cwdFile: String
+    protected val snapshotPath: String
+    protected val cwdFile: String
     private val _cwdMarker: String
     private var snapshotReady: Boolean = false
 
