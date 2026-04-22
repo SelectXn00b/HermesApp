@@ -58,7 +58,10 @@ class FileSyncManager(
         val newFiles = syncedFiles.toMutableMap()
 
         for ((hostPath, remotePath) in currentFiles) {
-            val fileKey = fileMtimeKey(hostPath) ?: continue
+            val fileKey = try {
+                val file = File(hostPath)
+                Pair(file.lastModified(), file.length())
+            } catch (_: Exception) { continue }
             if (syncedFiles[remotePath] == fileKey) continue
             toUpload.add(Pair(hostPath, remotePath))
             newFiles[remotePath] = fileKey
@@ -213,15 +216,6 @@ class FileSyncManager(
     }
 
     // --- Utilities ---
-
-    private fun fileMtimeKey(path: String): Pair<Long, Long>? {
-        return try {
-            val file = File(path)
-            Pair(file.lastModified(), file.length())
-        } catch (_: Exception) {
-            null
-        }
-    }
 
     private fun sha256File(path: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
