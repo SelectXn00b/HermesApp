@@ -17,7 +17,7 @@ package com.xiaomo.hermes.hermes.agent.transports
  */
 class AnthropicTransport : ProviderTransport() {
 
-    override val apiMode: String = "anthropic_messages"
+    override fun apiMode(): String = "anthropic_messages"
 
     /**
      * Convert OpenAI messages to Anthropic (system, messages) tuple.

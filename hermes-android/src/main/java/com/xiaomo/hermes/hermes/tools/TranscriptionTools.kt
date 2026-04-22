@@ -146,3 +146,12 @@ private fun _resolveOpenaiAudioClientConfig(): Pair<String, String> =
     throw IllegalStateException("OpenAI audio backend not configured on Android")
 
 private fun _extractTranscriptText(transcription: Any?): String = transcription?.toString()?.trim() ?: ""
+
+/** Python `_safe_find_spec` — stub, modules never loadable on Android. */
+private fun _safeFindSpec(name: String): Any? = null
+
+private object _TranscriptionToolsConstants {
+    const val _HAS_FASTER_WHISPER: Boolean = false
+    const val _HAS_OPENAI: Boolean = false
+    const val _HAS_MISTRAL: Boolean = false
+}

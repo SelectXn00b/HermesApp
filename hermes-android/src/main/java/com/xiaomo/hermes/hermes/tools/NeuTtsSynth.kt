@@ -64,3 +64,6 @@ fun _writeWav(path: String, samples: FloatArray, sampleRate: Int = 24000) {
 
     Log.d(_TAG_NEUTTS, "WAV written: $path (${pcm.size} samples)")
 }
+
+/** Python `main` — stub (Android has no CLI entry). */
+fun main(args: Array<String>) {}

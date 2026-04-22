@@ -69,3 +69,13 @@ object Entry {
         }
     }
 }
+
+/** Python `_BENIGN_PROBE_METHODS` — JSON-RPC methods safe to log at debug only. */
+private val _BENIGN_PROBE_METHODS: Set<String> = setOf(
+    "initialize", "shutdown", "exit", "ping"
+)
+
+/** Python `_BenignProbeMethodFilter` — logging filter that drops benign probe log records. */
+private class _BenignProbeMethodFilter {
+    fun filter(record: Any?): Boolean = true
+}

@@ -8,3 +8,6 @@ package com.xiaomo.hermes.hermes
  * is not yet translated on Android.
  */
 class ToolContext
+
+/** Python `_run_tool_in_thread` — stub. */
+private suspend fun _runToolInThread(toolName: String, args: Map<String, Any?>): Any? = null

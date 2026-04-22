@@ -17,8 +17,7 @@ import java.io.File
 
 private val logger = getLogger("honcho.cli")
 
-/** Host constant – references the HONCHO_HOST defined in Client.kt */
-private val HOST = HONCHO_HOST
+/** Host constant is `HOST` (Python top-level), defined in Client.kt */
 
 // ── 配置读写 ──────────────────────────────────────────────────────────────
 

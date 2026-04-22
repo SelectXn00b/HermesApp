@@ -227,3 +227,6 @@ private object _SkillsSyncConstants {
     /** Name of the manifest file describing bundled skills (Python `MANIFEST_FILE`). */
     const val MANIFEST_FILE: String = "skill.md"
 }
+
+/** Python `reset_bundled_skill` — stub. */
+fun resetBundledSkill(skillName: String): Boolean = false

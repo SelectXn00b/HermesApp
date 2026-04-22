@@ -92,3 +92,6 @@ fun checkCommandSecurity(command: String): Map<String, Any?> {
         mapOf("action" to "block", "findings" to emptyList<Any?>(), "summary" to "tirith spawn failed (fail-closed): unavailable on Android")
     }
 }
+
+/** Python `_INSTALL_FAILED` — in-memory flag that the installer gave up. */
+private val _INSTALL_FAILED: Boolean = false

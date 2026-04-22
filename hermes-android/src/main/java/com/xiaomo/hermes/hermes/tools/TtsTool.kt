@@ -126,3 +126,10 @@ private fun _stripMarkdownForTts(text: String): String = text
 
 fun streamTtsToSpeaker(vararg args: Any?): String =
     toolError("stream_tts_to_speaker is not available on Android")
+
+/** Python `_generate_edge_tts` — stub. */
+private suspend fun _generateEdgeTts(text: String, voice: String = "en-US-AriaNeural"): ByteArray =
+    ByteArray(0)
+
+/** Python `_check_kittentts_available` — stub. */
+private fun _checkKittenttsAvailable(): Boolean = false

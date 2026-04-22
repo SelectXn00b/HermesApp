@@ -311,3 +311,12 @@ fun toolResult(data: Any? = null, kwargs: Map<String, Any?> = emptyMap()): Strin
     if (data != null) return Gson().toJson(data)
     return Gson().toJson(kwargs)
 }
+
+/** Python `_is_registry_register_call` — stub. */
+private fun _isRegistryRegisterCall(node: Any?): Boolean = false
+
+/** Python `_module_registers_tools` — stub. */
+private fun _moduleRegistersTools(modulePath: String): Boolean = false
+
+/** Python `discover_builtin_tools` — stub. */
+fun discoverBuiltinTools(): List<String> = emptyList()

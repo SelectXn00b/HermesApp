@@ -43,3 +43,6 @@ class NoOpCompressionFeedback : ManualCompressionFeedback {
 
 
 }
+
+/** Python `summarize_manual_compression` — stub. */
+fun summarizeManualCompression(messages: List<Map<String, Any?>>): String = ""

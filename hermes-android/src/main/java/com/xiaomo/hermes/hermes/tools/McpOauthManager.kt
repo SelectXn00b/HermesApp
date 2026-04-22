@@ -219,3 +219,6 @@ class _ProviderEntry(
     val lock: kotlinx.coroutines.sync.Mutex = kotlinx.coroutines.sync.Mutex(),
     val pending401: MutableMap<String, kotlinx.coroutines.CompletableDeferred<Boolean>> = mutableMapOf()
 )
+
+/** Python `_make_hermes_provider_class` — stub. */
+private fun _makeHermesProviderClass(serverName: String): Any? = null

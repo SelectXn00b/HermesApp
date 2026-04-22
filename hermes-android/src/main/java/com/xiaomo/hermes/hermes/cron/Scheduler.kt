@@ -607,3 +607,12 @@ fun tick(verbose: Boolean = true): Int {
         }
     }
 }
+
+/** Python `_send_media_via_adapter` — stub. */
+private suspend fun _sendMediaViaAdapter(platform: String, target: String, path: String): Boolean = false
+
+/** Python `_parse_wake_gate` — stub. */
+private fun _parseWakeGate(expr: String): Any? = null
+
+/** Python `_SCRIPT_TIMEOUT` — default cron script timeout (seconds). */
+private val _SCRIPT_TIMEOUT: Int = 120

@@ -44,3 +44,7 @@ fun getAllPassthrough(): Set<String> = _getAllowed().toSet() + _loadConfigPassth
 fun clearEnvPassthrough() {
     _getAllowed().clear()
 }
+
+/** Python `_is_hermes_provider_credential` — stub. */
+private fun _isHermesProviderCredential(key: String): Boolean =
+    key.startsWith("HERMES_") && (key.contains("_KEY") || key.contains("_TOKEN"))

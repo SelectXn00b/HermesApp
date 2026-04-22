@@ -478,3 +478,9 @@ class HermesAgentLoop(
         return null
     }
 }
+
+/** Python `resize_tool_pool` — stub. */
+fun resizeToolPool(newSize: Int) {}
+
+/** Python `_extract_reasoning_from_message` — stub. */
+private fun _extractReasoningFromMessage(msg: Map<String, Any?>): String = ""

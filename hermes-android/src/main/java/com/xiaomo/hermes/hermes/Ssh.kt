@@ -136,3 +136,6 @@ class SSHEnvironment(
         Log.d(_TAG, "cleanup: closing SSH connection to $user@$host")
     }
 }
+
+/** Python `_ensure_ssh_available` — stub. */
+private fun _ensureSshAvailable(): Boolean = false

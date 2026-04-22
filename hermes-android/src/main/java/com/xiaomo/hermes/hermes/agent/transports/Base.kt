@@ -16,7 +16,7 @@ package com.xiaomo.hermes.hermes.agent.transports
 abstract class ProviderTransport {
 
     /** The api_mode string this transport handles (e.g. "anthropic_messages"). */
-    abstract val apiMode: String
+    abstract fun apiMode(): String
 
     /**
      * Convert OpenAI-format messages to provider-native format.

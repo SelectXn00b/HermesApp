@@ -1064,3 +1064,5 @@ suspend fun main(
         logger.info("Compression complete!")
     }
 }
+/** Python `_effective_temperature_for_model` — stub. */
+private fun _effectiveTemperatureForModel(model: String): Double = 0.0

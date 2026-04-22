@@ -330,3 +330,9 @@ fun checkToolsetRequirements(): Map<String, Boolean> = registry.checkToolsetRequ
 
 fun checkToolAvailability(quiet: Boolean = false): Pair<List<String>, List<Map<String, Any?>>> =
     registry.checkToolAvailability(quiet = quiet)
+
+/** Python `_get_tool_loop` — stub. */
+private fun _getToolLoop(): Any? = null
+
+/** Python `_get_worker_loop` — stub. */
+private fun _getWorkerLoop(): Any? = null

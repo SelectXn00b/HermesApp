@@ -372,3 +372,6 @@ fun resolveProjectContext(
         source = "discovered",
     )
 }
+
+/** Python `_ONBOARDING_POLL_INTERVAL_SECONDS` — seconds between onboarding status polls. */
+private const val _ONBOARDING_POLL_INTERVAL_SECONDS: Double = 2.0

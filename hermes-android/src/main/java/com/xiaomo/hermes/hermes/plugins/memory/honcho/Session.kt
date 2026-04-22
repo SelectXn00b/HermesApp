@@ -970,3 +970,6 @@ class HonchoSessionManager(
         }
     }
 }
+
+/** Python `_ASYNC_SHUTDOWN` — sentinel used to signal async shutdown requests. */
+private val _ASYNC_SHUTDOWN: Any = Any()

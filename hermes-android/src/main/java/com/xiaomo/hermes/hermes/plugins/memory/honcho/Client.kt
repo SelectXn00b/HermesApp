@@ -950,3 +950,6 @@ data class HonchoPeerContext(
     val peerRepresentation: String = "",
     val peerCard: List<String> = emptyList()
 )
+
+/** Python `HOST` — default Honcho workspace host identifier. */
+const val HOST: String = "hermes"

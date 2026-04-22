@@ -532,3 +532,6 @@ private fun _expandUserHome(raw: String): String {
     val home = System.getProperty("user.home") ?: return raw
     return if (raw == "~" || raw.startsWith("~/")) home + raw.substring(1) else raw
 }
+
+/** Python `preprocess_context_references` — stub. */
+fun preprocessContextReferences(text: String): String = text

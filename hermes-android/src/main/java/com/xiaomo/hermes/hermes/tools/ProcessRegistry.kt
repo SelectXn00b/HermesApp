@@ -864,3 +864,15 @@ private object _ProcessRegistryConstants {
     /** OpenAI-shaped schema for the `process_*` tool family (stub). */
     val PROCESS_SCHEMA: Map<String, Any?> = emptyMap()
 }
+
+/** Python `format_uptime_short` — stub. */
+fun formatUptimeShort(seconds: Double): String {
+    val s = seconds.toInt()
+    if (s < 60) return "${s}s"
+    if (s < 3600) return "${s / 60}m"
+    if (s < 86400) return "${s / 3600}h"
+    return "${s / 86400}d"
+}
+
+/** Python `_handle_process` — stub. */
+private fun _handleProcess(pid: Int, action: String): Boolean = false

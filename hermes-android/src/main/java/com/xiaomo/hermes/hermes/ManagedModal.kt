@@ -188,3 +188,7 @@ class ManagedModalEnvironment(
         }
     }
 }
+
+/** Python `_request_timeout_env` — stub. */
+private fun _requestTimeoutEnv(): Int =
+    System.getenv("HERMES_MODAL_TIMEOUT")?.toIntOrNull() ?: 600

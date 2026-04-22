@@ -995,3 +995,18 @@ fun buildSessionContext(entry: SessionEntry?): Map<String, Any?> {
         "last_message_at" to entry.lastMessageAt
     )
 }
+
+/** Python `_PII_SAFE_PLATFORMS` — platforms where PII redaction is already applied upstream. */
+private val _PII_SAFE_PLATFORMS: Set<String> = setOf("feishu", "discord", "telegram")
+
+/** Python `SessionContext` — full session state used for dynamic system-prompt injection. */
+data class SessionContext(
+    val source: SessionSource,
+    val connectedPlatforms: List<String> = emptyList(),
+    val homeChannels: Map<String, Any?> = emptyMap(),
+    val sharedMultiUserSession: Boolean = false,
+    val sessionKey: String = "",
+    val sessionId: String = "",
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+)

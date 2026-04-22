@@ -65,3 +65,6 @@ fun isSafeUrl(url: String): Boolean {
         false
     }
 }
+
+/** Python `_CGNAT_NETWORK` — RFC 6598 carrier-grade NAT CIDR. */
+private const val _CGNAT_NETWORK: String = "100.64.0.0/10"

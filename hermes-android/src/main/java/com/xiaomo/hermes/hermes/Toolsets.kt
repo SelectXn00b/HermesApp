@@ -257,3 +257,14 @@ fun getToolsetInfo(name: String): ToolsetInfo? {
 
 
 }
+
+/** Python `_HERMES_CORE_TOOLS` — names of tools included in the default core distribution. */
+private val _HERMES_CORE_TOOLS: Set<String> = setOf(
+    "bash", "edit", "read", "write", "memory"
+)
+
+/** Python `_get_plugin_toolset_names` — returns names of plugin-exposed toolsets. */
+private fun _getPluginToolsetNames(): List<String> = emptyList()
+
+/** Python `_get_registry_toolset_aliases` — returns registry toolset alias map. */
+private fun _getRegistryToolsetAliases(): Map<String, String> = emptyMap()

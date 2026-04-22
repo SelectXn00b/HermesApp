@@ -772,3 +772,6 @@ class _GeminiChatCompletions(private val _client: GeminiCloudCodeClient) {
 class _GeminiChatNamespace(client: GeminiCloudCodeClient) {
     val completions = _GeminiChatCompletions(client)
 }
+
+/** Python `_iter_sse_events` — stub. */
+private fun _iterSseEvents(lines: Sequence<String>): Sequence<String> = lines

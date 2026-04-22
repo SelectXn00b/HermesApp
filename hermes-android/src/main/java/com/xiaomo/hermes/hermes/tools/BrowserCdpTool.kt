@@ -220,3 +220,6 @@ private fun _browserCdpCheck(): Boolean {
 
 // Module-load side-effect: register with the tool registry.
 // TODO: registry.register signature once BrowserTool is ported.
+
+/** Python `_run_async` — stub. */
+private suspend fun _runAsync(block: suspend () -> Any?): Any? = block()

@@ -292,3 +292,21 @@ fun baseUrlHostMatches(baseUrl: String?, domain: String?): Boolean {
     if (normalized.isEmpty()) return false
     return hostname == normalized || hostname.endsWith(".$normalized")
 }
+
+/** Python `_preserve_file_mode` — stub. */
+private fun _preserveFileMode(path: String): Int? = null
+
+/** Python `_restore_file_mode` — stub. */
+private fun _restoreFileMode(path: String, mode: Int?) {}
+
+/** Python `normalize_proxy_url` — stub. */
+fun normalizeProxyUrl(url: String): String = url
+
+/** Python `normalize_proxy_env_vars` — stub. */
+fun normalizeProxyEnvVars(env: Map<String, String>): Map<String, String> = env
+
+/** Python `_PROXY_ENV_KEYS` — environment variable names consulted for proxy settings. */
+private val _PROXY_ENV_KEYS: List<String> = listOf(
+    "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+    "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+)

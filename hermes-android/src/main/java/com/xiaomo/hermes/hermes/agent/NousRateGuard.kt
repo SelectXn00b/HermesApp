@@ -201,3 +201,9 @@ object NousRateGuard {
         return if (m > 0) "${h}h ${m}m" else "${h}h"
     }
 }
+
+/** Python `_STATE_SUBDIR` — subdirectory for nous rate guard state. */
+private const val _STATE_SUBDIR: String = "nous"
+
+/** Python `_STATE_FILENAME` — filename for persisted rate guard state. */
+private const val _STATE_FILENAME: String = "rate_guard.json"

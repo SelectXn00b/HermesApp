@@ -286,3 +286,10 @@ fun applyV4aOperations(operations: List<PatchOperation>, baseDir: File): PatchRe
             error = errors.joinToString("\n"))
     }
 }
+
+/** Python `_count_occurrences` — stub. */
+private fun _countOccurrences(haystack: String, needle: String): Int =
+    if (needle.isEmpty()) 0 else haystack.split(needle).size - 1
+
+/** Python `_validate_operations` — stub. */
+private fun _validateOperations(operations: List<Any?>): Boolean = true

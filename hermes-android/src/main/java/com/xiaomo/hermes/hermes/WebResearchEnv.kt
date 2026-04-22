@@ -136,3 +136,10 @@ class WebResearchEnv {
         return domains
     }
 }
+
+/** Python `SAMPLE_QUESTIONS` — canned research prompts for benchmarking. */
+val SAMPLE_QUESTIONS: List<String> = listOf(
+    "What are the latest advances in AI safety?",
+    "Summarize the top cloud providers in 2025.",
+    "What is retrieval-augmented generation?",
+)

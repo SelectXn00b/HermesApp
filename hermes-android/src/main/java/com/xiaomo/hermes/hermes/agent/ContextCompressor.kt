@@ -652,3 +652,11 @@ class ContextCompressor(
         return maxOf(lastUserIdx, headEnd + 1)
     }
 }
+
+/** Python `_truncate_tool_call_args_json` — stub. */
+private fun _truncateToolCallArgsJson(args: String, limit: Int = 4096): String =
+    if (args.length <= limit) args else args.substring(0, limit) + "...[truncated]"
+
+/** Python `_summarize_tool_result` — stub. */
+private fun _summarizeToolResult(result: String, limit: Int = 2048): String =
+    if (result.length <= limit) result else result.substring(0, limit) + "...[summarized]"

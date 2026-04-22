@@ -74,4 +74,18 @@ class FirecrawlProvider {
         // Firecrawl is stateless - nothing to clean up
         Log.d(_TAG, "emergencyCleanup: $sessionId (no-op)")
     }
+
+    /** Python `_headers` — auth + content-type headers for Firecrawl API. */
+    fun _headers(): Map<String, String> {
+        val apiKey = System.getenv("FIRECRAWL_API_KEY") ?: ""
+        return mapOf(
+            "Authorization" to "Bearer $apiKey",
+            "Content-Type" to "application/json",
+        )
+    }
+}
+
+/** Python `_BASE_URL` — default Firecrawl API base URL. */
+private object _FirecrawlConstants {
+    const val _BASE_URL: String = "https://api.firecrawl.dev"
 }

@@ -57,3 +57,9 @@ fun getMoaConfiguration(): Map<String, Any> = mapOf(
     "reference_temperature" to REFERENCE_TEMPERATURE,
     "aggregator_temperature" to AGGREGATOR_TEMPERATURE,
     "min_successful_references" to MIN_SUCCESSFUL_REFERENCES)
+
+/** Python `_run_reference_model_safe` — stub. */
+private suspend fun _runReferenceModelSafe(prompt: String): String = ""
+
+/** Python `_run_aggregator_model` — stub. */
+private suspend fun _runAggregatorModel(prompt: String, references: List<String>): String = ""

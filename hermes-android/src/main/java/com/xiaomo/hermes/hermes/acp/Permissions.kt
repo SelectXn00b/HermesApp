@@ -117,4 +117,12 @@ object Permissions {
             result
         }
     }
+
+/** Python `_KIND_TO_HERMES` — maps ACP tool kind → Hermes permission name. */
+private val _KIND_TO_HERMES: Map<String, String> = mapOf(
+    "execute" to "Bash",
+    "edit" to "Edit",
+    "read" to "Read",
+    "fetch" to "WebFetch",
+)
 }

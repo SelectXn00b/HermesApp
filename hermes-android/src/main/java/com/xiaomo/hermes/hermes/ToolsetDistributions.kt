@@ -200,3 +200,6 @@ fun formatDistributionInfo(distributionName: String): String {
 
 
 }
+
+/** Python `print_distribution_info` — stub. */
+fun printDistributionInfo(name: String) {}
