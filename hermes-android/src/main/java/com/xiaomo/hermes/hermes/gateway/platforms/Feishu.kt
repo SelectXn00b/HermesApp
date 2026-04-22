@@ -378,7 +378,7 @@ class Feishu(
             var reconnectDelay = WS_RECONNECT_DELAY
             while (isActive) {
                 try {
-                    _connectWebSocket()
+                    _connectWebsocket()
                     reconnectDelay = WS_RECONNECT_DELAY // Reset on clean disconnect
                 } catch (e: CancellationException) {
                     throw e
@@ -395,7 +395,7 @@ class Feishu(
     /**
      * Establish a WebSocket connection.
      */
-    private suspend fun _connectWebSocket() {
+    private suspend fun _connectWebsocket() {
         _ensureAccessToken()
 
         val request = Request.Builder()
