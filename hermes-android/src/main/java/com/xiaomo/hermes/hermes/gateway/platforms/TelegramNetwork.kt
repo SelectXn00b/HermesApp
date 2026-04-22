@@ -402,3 +402,195 @@ class TelegramFallbackTransport {
         // No resources to release on Android
     }
 }
+
+// ── Module-level aligned with Python gateway/platforms/telegram_network.py ──
+
+const val _TELEGRAM_API_HOST: String = "api.telegram.org"
+
+/** DoH resolver timeout (seconds) — bounded so connect() isn't noticeably delayed. */
+const val _DOH_TIMEOUT: Double = 4.0
+
+/** Last-resort Telegram Bot API IPs when DoH is also blocked. */
+val _SEED_FALLBACK_IPS: List<String> = listOf("149.154.167.220")
+
+/** DNS-over-HTTPS providers used to discover reachable Telegram IPs. */
+val _DOH_PROVIDERS: List<Map<String, Any?>> = listOf(
+    mapOf(
+        "url" to "https://dns.google/resolve",
+        "params" to mapOf("name" to _TELEGRAM_API_HOST, "type" to "A"),
+        "headers" to emptyMap<String, String>()
+    ),
+    mapOf(
+        "url" to "https://cloudflare-dns.com/dns-query",
+        "params" to mapOf("name" to _TELEGRAM_API_HOST, "type" to "A"),
+        "headers" to mapOf("Accept" to "application/dns-json")
+    )
+)
+
+private const val _TN_TAG = "TelegramNetwork"
+
+/** Delegate to shared implementation (env vars + macOS system proxy detection). */
+fun _resolveProxyUrl(): String? {
+    val v = System.getenv("TELEGRAM_PROXY")
+    if (!v.isNullOrEmpty()) return v
+    return try {
+        resolveProxyUrl()
+    } catch (_: Throwable) {
+        null
+    }
+}
+
+/**
+ * Normalize a list of candidate IPv4 strings, dropping private/link-local/loopback
+ * and non-IPv4 entries. Mirrors the Python ipaddress-based filter.
+ */
+fun _normalizeFallbackIps(values: Iterable<String>): List<String> {
+    val normalized = mutableListOf<String>()
+    for (value in values) {
+        val raw = value.trim()
+        if (raw.isEmpty()) continue
+        val parts = raw.split('.')
+        if (parts.size != 4) {
+            Log.w(_TN_TAG, "Ignoring non-IPv4 Telegram fallback IP: $raw")
+            continue
+        }
+        val octets = try {
+            parts.map { it.toInt() }
+        } catch (_: NumberFormatException) {
+            Log.w(_TN_TAG, "Ignoring invalid Telegram fallback IP: $raw")
+            continue
+        }
+        if (octets.any { it < 0 || it > 255 }) {
+            Log.w(_TN_TAG, "Ignoring invalid Telegram fallback IP: $raw")
+            continue
+        }
+        val b0 = octets[0]
+        val b1 = octets[1]
+        // Private / loopback / link-local / unspecified (mirror Python semantics).
+        val isLoopback = b0 == 127
+        val isLinkLocal = b0 == 169 && b1 == 254
+        val isUnspecified = b0 == 0 && b1 == 0 && octets[2] == 0 && octets[3] == 0
+        val isPrivate = (b0 == 10) ||
+            (b0 == 192 && b1 == 168) ||
+            (b0 == 172 && b1 in 16..31)
+        if (isLoopback || isLinkLocal || isUnspecified || isPrivate) {
+            Log.w(_TN_TAG, "Ignoring private/internal Telegram fallback IP: $raw")
+            continue
+        }
+        normalized.add(octets.joinToString("."))
+    }
+    return normalized
+}
+
+/** Parse a comma-separated env string of fallback IPs. */
+fun parseFallbackIpEnv(value: String?): List<String> {
+    if (value.isNullOrEmpty()) return emptyList()
+    val parts = value.split(',').map { it.trim() }
+    return _normalizeFallbackIps(parts)
+}
+
+/** Return the IPv4 addresses that the OS resolver gives for api.telegram.org. */
+fun _resolveSystemDns(): Set<String> {
+    return try {
+        java.net.InetAddress.getAllByName(_TELEGRAM_API_HOST)
+            .filter { it is java.net.Inet4Address }
+            .map { it.hostAddress ?: "" }
+            .filter { it.isNotEmpty() }
+            .toSet()
+    } catch (_: Exception) {
+        emptySet()
+    }
+}
+
+/** Query one DoH provider and return A-record IPs (best-effort, swallows errors). */
+suspend fun _queryDohProvider(client: OkHttpClient, provider: Map<String, Any?>): List<String> {
+    return try {
+        @Suppress("UNCHECKED_CAST")
+        val params = (provider["params"] as? Map<String, String>) ?: emptyMap()
+        @Suppress("UNCHECKED_CAST")
+        val headers = (provider["headers"] as? Map<String, String>) ?: emptyMap()
+        val baseUrl = provider["url"] as? String ?: return emptyList()
+        val builder = StringBuilder(baseUrl)
+        if (params.isNotEmpty()) {
+            builder.append('?')
+            builder.append(params.entries.joinToString("&") { "${it.key}=${it.value}" })
+        }
+        val reqBuilder = Request.Builder().url(builder.toString())
+        for ((k, v) in headers) reqBuilder.header(k, v)
+        withContext(Dispatchers.IO) {
+            client.newCall(reqBuilder.build()).execute().use { resp ->
+                if (!resp.isSuccessful) return@use emptyList<String>()
+                val body = resp.body?.string() ?: return@use emptyList<String>()
+                val json = JSONObject(body)
+                val answers = json.optJSONArray("Answer") ?: return@use emptyList<String>()
+                val out = mutableListOf<String>()
+                for (i in 0 until answers.length()) {
+                    val a = answers.optJSONObject(i) ?: continue
+                    if (a.optInt("type", -1) != 1) continue
+                    val raw = a.optString("data", "").trim()
+                    if (raw.isNotEmpty()) out.add(raw)
+                }
+                out.toList()
+            }
+        }
+    } catch (_: Exception) {
+        emptyList()
+    }
+}
+
+/**
+ * Auto-discover Telegram API IPs via DNS-over-HTTPS.
+ *
+ * Resolves api.telegram.org through Google and Cloudflare DoH, excludes any IP
+ * the system resolver also returned (assumed unreachable), and falls back to
+ * the hardcoded seed list when discovery yields nothing.
+ */
+suspend fun discoverFallbackIps(): List<String> {
+    val client = OkHttpClient.Builder()
+        .connectTimeout((_DOH_TIMEOUT * 1000).toLong(), TimeUnit.MILLISECONDS)
+        .readTimeout((_DOH_TIMEOUT * 1000).toLong(), TimeUnit.MILLISECONDS)
+        .build()
+
+    val systemIps = withContext(Dispatchers.IO) { _resolveSystemDns() }
+    val dohIps = mutableListOf<String>()
+    for (provider in _DOH_PROVIDERS) {
+        dohIps.addAll(_queryDohProvider(client, provider))
+    }
+
+    val seen = mutableSetOf<String>()
+    val candidates = mutableListOf<String>()
+    for (ip in dohIps) {
+        if (ip in seen || ip in systemIps) continue
+        seen.add(ip)
+        candidates.add(ip)
+    }
+
+    val validated = _normalizeFallbackIps(candidates)
+    if (validated.isNotEmpty()) {
+        return validated
+    }
+    return _SEED_FALLBACK_IPS.toList()
+}
+
+/**
+ * Rewrite a request so it connects to [ip] but preserves the Telegram host
+ * for TLS SNI and the Host header. On Android we return a descriptor map
+ * rather than an httpx.Request since there is no direct equivalent.
+ */
+fun _rewriteRequestForIp(request: Any?, ip: String): Map<String, Any?> {
+    return mapOf(
+        "ip" to ip,
+        "host" to _TELEGRAM_API_HOST,
+        "sni_hostname" to _TELEGRAM_API_HOST,
+        "original" to request
+    )
+}
+
+/** Return true if [exc] is a retryable TCP connect error. */
+fun _isRetryableConnectError(exc: Throwable?): Boolean {
+    if (exc == null) return false
+    if (exc is java.net.ConnectException) return true
+    if (exc is java.net.SocketTimeoutException) return true
+    val msg = exc.message?.lowercase() ?: ""
+    return "connect" in msg && ("timeout" in msg || "refused" in msg || "unreachable" in msg)
+}
