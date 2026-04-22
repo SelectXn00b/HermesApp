@@ -895,3 +895,318 @@ class AsyncAnthropicAuxiliaryClient(syncWrapper: AnthropicAuxiliaryClient) {
     val apiKey: String = syncWrapper.apiKey
     val baseUrl: String = syncWrapper.baseUrl
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Module-level funcs & consts (1:1 对齐 agent/auxiliary_client.py).
+// Android 没有 Python OpenAI / Anthropic / Codex SDK，没有 ~/.nousrc /
+// ~/.codex/auth.json 这些本地凭据文件路径；provider-resolution 函数保留
+// 签名返回 null/空 Pair；纯逻辑函数（模型名/URL/错误分类）完整实现。
+// 真正的 HTTP 调用由上方 AuxiliaryClient 类走 OkHttp 负责。
+// ─────────────────────────────────────────────────────────────────────────
+
+private val auxiliaryLogger =
+    com.xiaomo.hermes.hermes.getLogger("auxiliary_client")
+
+val _AI_GATEWAY_HEADERS: Map<String, String> = mapOf(
+    "HTTP-Referer" to "https://hermes-agent.nousresearch.com",
+    "X-Title" to "Hermes Agent",
+    "User-Agent" to "HermesAgent/android"
+)
+
+const val _CLIENT_CACHE_MAX_SIZE: Int = 64
+
+// ── 纯逻辑函数 ──────────────────────────────────────────────────────────
+
+fun _isKimiModel(model: String?): Boolean {
+    if (model.isNullOrEmpty()) return false
+    val m = model.lowercase()
+    return "kimi" in m || "moonshot" in m
+}
+
+fun _fixedTemperatureForModel(model: String?, provider: String? = null): Double? {
+    if (model == null) return null
+    val m = model.lowercase()
+    if (_isKimiModel(m)) return 0.6
+    if ("gpt-5" in m || "codex" in m || "o1" in m || "o3" in m) return 1.0
+    return null
+}
+
+fun _codexCloudflareHeaders(accessToken: String): Map<String, String> {
+    return mapOf(
+        "Authorization" to "Bearer $accessToken",
+        "OpenAI-Beta" to "responses=experimental",
+        "User-Agent" to "codex_cli_rs/0.44.0 (darwin; arm64)"
+    )
+}
+
+fun _toOpenaiBaseUrl(baseUrl: String): String {
+    var url = baseUrl.trim().trimEnd('/')
+    if (url.isEmpty()) return url
+    if (!url.endsWith("/v1")) url = "$url/v1"
+    return url
+}
+
+fun _selectPoolEntry(provider: String): Pair<Boolean, Any?> = false to null
+
+fun _poolRuntimeApiKey(entry: Any?): String = ""
+
+fun _poolRuntimeBaseUrl(entry: Any?, fallback: String = ""): String = fallback
+
+@Suppress("UNCHECKED_CAST")
+fun _convertContentForResponses(content: Any?): Any? {
+    if (content == null) return null
+    if (content is String) return content
+    if (content is List<*>) {
+        return content.map { part ->
+            if (part is Map<*, *>) {
+                val p = part as Map<String, Any?>
+                when (p["type"]) {
+                    "image_url" -> {
+                        val urlMap = (p["image_url"] as? Map<String, Any?>) ?: emptyMap()
+                        mapOf("type" to "input_image", "image_url" to (urlMap["url"] ?: ""))
+                    }
+                    "text" -> mapOf("type" to "input_text", "text" to (p["text"] ?: ""))
+                    else -> p
+                }
+            } else part
+        }
+    }
+    return content
+}
+
+fun _readNousAuth(): Map<String, Any?>? = null
+
+fun _nousApiKey(provider: Map<String, Any?>): String = (provider["api_key"] as? String) ?: ""
+
+fun _nousBaseUrl(): String = "https://inference-api.nousresearch.com/v1"
+
+fun _readCodexAccessToken(): String? = null
+
+fun _resolveApiKeyProvider(): Pair<Any?, String?> = null to null
+
+fun _tryOpenrouter(): Pair<Any?, String?> = null to null
+
+fun _tryNous(vision: Boolean = false): Pair<Any?, String?> = null to null
+
+fun _readMainModel(): String = ""
+
+fun _readMainProvider(): String = ""
+
+fun _resolveCustomRuntime(): Triple<String?, String?, String?> = Triple(null, null, null)
+
+fun _currentCustomBaseUrl(): String = ""
+
+fun _validateProxyEnvUrls() { /* no-op on Android */ }
+
+fun _validateBaseUrl(baseUrl: String) {
+    // Mirrors Python: must be absolute http(s) with a host.
+    if (baseUrl.isEmpty()) return
+    val lower = baseUrl.lowercase()
+    if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+        throw IllegalArgumentException("Invalid base_url (missing scheme): $baseUrl")
+    }
+}
+
+fun _tryCustomEndpoint(): Pair<Any?, String?> = null to null
+
+fun _tryCodex(): Pair<Any?, String?> = null to null
+
+fun _tryAnthropic(): Pair<Any?, String?> = null to null
+
+@Suppress("UNCHECKED_CAST")
+fun _normalizeMainRuntime(mainRuntime: Map<String, Any?>?): Map<String, String> {
+    if (mainRuntime == null) return emptyMap()
+    val out = mutableMapOf<String, String>()
+    for ((k, v) in mainRuntime) {
+        if (v is String) out[k] = v
+    }
+    return out
+}
+
+fun _getProviderChain(): List<Pair<String, () -> Pair<Any?, String?>>> {
+    return listOf(
+        "openrouter" to { _tryOpenrouter() },
+        "nous" to { _tryNous(false) },
+        "custom" to { _tryCustomEndpoint() },
+        "codex" to { _tryCodex() },
+        "anthropic" to { _tryAnthropic() }
+    )
+}
+
+fun _isPaymentError(exc: Throwable): Boolean {
+    val msg = (exc.message ?: "").lowercase()
+    return "payment" in msg ||
+        "insufficient" in msg ||
+        "402" in msg ||
+        "billing" in msg ||
+        "quota" in msg ||
+        "credit" in msg
+}
+
+fun _isConnectionError(exc: Throwable): Boolean {
+    val name = exc::class.java.simpleName.lowercase()
+    if ("connect" in name || "timeout" in name || "socket" in name) return true
+    val msg = (exc.message ?: "").lowercase()
+    return "connection" in msg || "timed out" in msg || "network" in msg
+}
+
+fun _tryPaymentFallback(exc: Throwable, chainIdx: Int = 0): Pair<Any?, String?> = null to null
+
+fun _resolveAuto(mainRuntime: Map<String, Any?>? = null): Pair<Any?, String?> = null to null
+
+fun _toAsyncClient(syncClient: Any?, model: String): Any? = syncClient
+
+fun _normalizeResolvedModel(modelName: String?, provider: String): String? {
+    if (modelName.isNullOrEmpty()) return null
+    return when (provider.lowercase()) {
+        "anthropic" -> normalizeModelName(modelName, preserveDots = false)
+        else -> modelName
+    }
+}
+
+fun resolveProviderClient(
+    provider: String? = null,
+    model: String? = null,
+    mainRuntime: Map<String, Any?>? = null,
+    vision: Boolean = false
+): Triple<Any?, String?, String?> = Triple(null, null, null)
+
+fun getTextAuxiliaryClient(task: String = "", mainRuntime: Map<String, Any?>? = null): Any? = null
+
+fun getAsyncTextAuxiliaryClient(task: String = "", mainRuntime: Map<String, Any?>? = null): Any? = null
+
+fun _normalizeVisionProvider(provider: String?): String {
+    val p = provider?.trim()?.lowercase() ?: ""
+    return when (p) {
+        "openrouter", "or" -> "openrouter"
+        "nous" -> "nous"
+        "anthropic", "claude" -> "anthropic"
+        else -> p
+    }
+}
+
+fun _resolveStrictVisionBackend(provider: String): Pair<Any?, String?> = null to null
+
+fun _strictVisionBackendAvailable(provider: String): Boolean = false
+
+fun getAvailableVisionBackends(): List<String> = emptyList()
+
+fun resolveVisionProviderClient(
+    provider: String? = null,
+    model: String? = null
+): Triple<Any?, String?, String?> = Triple(null, null, null)
+
+fun getAuxiliaryExtraBody(): Map<String, Any?> = emptyMap()
+
+fun auxiliaryMaxTokensParam(value: Int): Map<String, Any?> = mapOf("max_tokens" to value)
+
+fun neuterAsyncHttpxDel() { /* no-op on Android */ }
+
+fun _forceCloseAsyncHttpx(client: Any?) { /* no-op on Android */ }
+
+fun shutdownCachedClients() { /* no-op — the OkHttp client is managed by AuxiliaryClient instance */ }
+
+fun cleanupStaleAsyncClients() { /* no-op on Android */ }
+
+fun _isOpenrouterClient(client: Any?): Boolean = false
+
+fun _compatModel(client: Any?, model: String?, cachedDefault: String?): String? {
+    return model ?: cachedDefault
+}
+
+fun _getCachedClient(
+    provider: String,
+    model: String? = null,
+    vision: Boolean = false
+): Pair<Any?, String?> = null to null
+
+fun _resolveTaskProviderModel(task: String): Pair<String, String> = "" to ""
+
+fun _getAuxiliaryTaskConfig(task: String): Map<String, Any?> = emptyMap()
+
+fun _getTaskTimeout(task: String, default: Double = 30.0): Double = default
+
+fun _getTaskExtraBody(task: String): Map<String, Any?> = emptyMap()
+
+fun _isAnthropicCompatEndpoint(provider: String, baseUrl: String): Boolean {
+    val p = provider.lowercase()
+    if (p == "anthropic") return true
+    val b = baseUrl.lowercase()
+    return "/anthropic" in b
+}
+
+@Suppress("UNCHECKED_CAST")
+fun _convertOpenaiImagesToAnthropic(messages: List<Map<String, Any?>>): List<Map<String, Any?>> {
+    return messages.map { m ->
+        val content = m["content"]
+        if (content is List<*>) {
+            val converted = content.map { part ->
+                if (part is Map<*, *>) {
+                    val p = part as Map<String, Any?>
+                    if (p["type"] == "image_url") {
+                        val urlMap = (p["image_url"] as? Map<String, Any?>) ?: emptyMap()
+                        mapOf(
+                            "type" to "image",
+                            "source" to _imageSourceFromOpenaiUrl(urlMap["url"] as? String)
+                        )
+                    } else p
+                } else part
+            }
+            m + ("content" to converted)
+        } else m
+    }
+}
+
+fun _buildCallKwargs(
+    task: String,
+    provider: String,
+    model: String,
+    messages: List<Map<String, Any?>>,
+    extra: Map<String, Any?> = emptyMap()
+): Map<String, Any?> {
+    val kwargs = mutableMapOf<String, Any?>(
+        "model" to model,
+        "messages" to messages
+    )
+    val t = _fixedTemperatureForModel(model, provider)
+    if (t != null) kwargs["temperature"] = t
+    kwargs.putAll(_getTaskExtraBody(task))
+    kwargs.putAll(extra)
+    return kwargs
+}
+
+fun _validateLlmResponse(response: Any?, task: String? = null): Any? = response
+
+fun callLlm(
+    task: String,
+    messages: List<Map<String, Any?>>,
+    extra: Map<String, Any?> = emptyMap()
+): Any? {
+    auxiliaryLogger.debug("callLlm($task) — Android auxiliary client not wired; returning null")
+    return null
+}
+
+@Suppress("UNCHECKED_CAST")
+fun extractContentOrReasoning(response: Any?): String {
+    if (response == null) return ""
+    if (response is String) return response
+    if (response !is Map<*, *>) return response.toString()
+    val r = response as Map<String, Any?>
+    val choices = (r["choices"] as? List<Map<String, Any?>>) ?: emptyList()
+    val first = choices.firstOrNull() ?: return ""
+    val message = (first["message"] as? Map<String, Any?>) ?: return ""
+    val content = message["content"]
+    if (content is String && content.isNotEmpty()) return content
+    val reasoning = message["reasoning"] ?: message["reasoning_content"]
+    if (reasoning is String) return reasoning
+    return content?.toString() ?: ""
+}
+
+suspend fun asyncCallLlm(
+    task: String,
+    messages: List<Map<String, Any?>>,
+    extra: Map<String, Any?> = emptyMap()
+): Any? {
+    auxiliaryLogger.debug("asyncCallLlm($task) — Android auxiliary client not wired; returning null")
+    return null
+}
