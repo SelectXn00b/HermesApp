@@ -82,9 +82,9 @@ object BrowserTool {
             return NavigationResult(error = "URL blocked by SSRF protection: $url")
         }
 
-        val blocked = WebsitePolicy.checkWebsiteAccess(url)
+        val blocked = checkWebsiteAccess(url)
         if (blocked != null) {
-            return NavigationResult(error = blocked.message)
+            return NavigationResult(error = blocked["message"] ?: "")
         }
 
         val baseUrl = _baseUrl ?: return NavigationResult(error = "Browser backend not configured")

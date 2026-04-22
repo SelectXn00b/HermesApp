@@ -1,194 +1,124 @@
+/**
+ * Website access policy helpers for URL-capable tools.
+ *
+ * Android does not ship a YAML config loader; the top-level surface
+ * mirrors tools/website_policy.py, and checkWebsiteAccess always
+ * allows (returns null) until an on-device config path is wired up.
+ *
+ * Ported from tools/website_policy.py
+ */
 package com.xiaomo.hermes.hermes.tools
 
-import android.util.Log
 import java.io.File
 import java.net.URL
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-/**
- * Website access policy helpers for URL-capable tools.
- * Ported from website_policy.py
- */
-object WebsitePolicy {
+val _DEFAULT_WEBSITE_BLOCKLIST: Map<String, Any> = mapOf(
+    "enabled" to false,
+    "domains" to emptyList<String>(),
+)
 
-    private const val TAG = "WebsitePolicy"
-    private const val CACHE_TTL_MS = 30_000L
+const val _CACHE_TTL_SECONDS: Double = 30.0
 
-    data class PolicyRule(
-        val pattern: String,
-        val source: String = "config")
+class WebsitePolicyError(message: String) : Exception(message)
 
-    data class WebsiteBlocklist(
-        val enabled: Boolean = false,
-        val rules: List<PolicyRule> = emptyList())
+private val _policyLock = ReentrantReadWriteLock()
+private var _cachedPolicy: Map<String, Any>? = null
+private var _cachedPolicyTime: Long = 0L
 
-    data class BlockedResult(
-        val url: String,
-        val host: String,
-        val rule: String,
-        val source: String,
-        val message: String)
+private fun _getDefaultConfigPath(): File? = null
 
-    private val lock = ReentrantReadWriteLock()
-    private var cachedPolicy: WebsiteBlocklist? = null
-    private var cachedPolicyTime: Long = 0L
+private fun _normalizeHost(host: String): String =
+    host.trim().lowercase().trimEnd('.')
 
-    private fun normalizeHost(host: String): String =
-        host.trim().lowercase().trimEnd('.')
+private fun _normalizeRule(rule: Any?): String? {
+    val raw = (rule as? String) ?: return null
+    val value = raw.trim().lowercase()
+    if (value.isEmpty() || value.startsWith("#")) return null
+    val extracted = if ("://" in value) {
+        try { URL(value).host ?: value } catch (e: Exception) { value }
+    } else value
+    val host = extracted.split("/").firstOrNull()?.trim()?.trimEnd('.') ?: return null
+    return if (host.startsWith("www.")) host.substring(4) else host
+}
 
-    private fun normalizeRule(rule: String): String? {
-        val value = rule.trim().lowercase()
-        if (value.isEmpty() || value.startsWith("#")) return null
-        val extracted = if ("://" in value) {
-            try { URL(value).host ?: value } catch (e: Exception) { value }
-        } else value
-        val host = extracted.split("/").firstOrNull()?.trim()?.trimEnd('.') ?: return null
-        return if (host.startsWith("www.")) host.substring(4) else host
-    }
+private fun _iterBlocklistFileRules(path: File): List<String> {
+    if (!path.exists()) return emptyList()
+    return path.readLines(Charsets.UTF_8)
+        .mapNotNull { _normalizeRule(it) }
+}
 
-    private fun extractHost(url: String): String {
-        return try {
-            val parsed = URL(url)
-            normalizeHost(parsed.host ?: "")
-        } catch (e: Exception) {
-            // Try as schemeless URL
-            try {
-                val schemeless = URL("http://$url")
-                normalizeHost(schemeless.host ?: "")
-            } catch (e2: Exception) {
-                ""
-            }
+private fun _loadPolicyConfig(configPath: File? = null): Map<String, Any> =
+    _DEFAULT_WEBSITE_BLOCKLIST
+
+fun loadWebsiteBlocklist(configPath: File? = null): Map<String, Any> {
+    _policyLock.read {
+        _cachedPolicy?.let { cached ->
+            val ageMs = System.currentTimeMillis() - _cachedPolicyTime
+            if (ageMs < (_CACHE_TTL_SECONDS * 1000).toLong()) return cached
         }
     }
-
-    private fun matchHost(host: String, pattern: String): Boolean {
-        if (host.isEmpty() || pattern.isEmpty()) return false
-        if (pattern.startsWith("*.")) {
-            return host.endsWith(pattern.substring(1)) || host == pattern.substring(2)
-        }
-        return host == pattern || host.endsWith(".$pattern")
+    val policy = try {
+        _loadPolicyConfig(configPath)
+    } catch (e: Exception) {
+        mapOf("enabled" to false, "rules" to emptyList<Map<String, String>>())
     }
-
-    /**
-     * Load website blocklist from config file.
-     * In Android context, this reads from a YAML or JSON config file.
-     */
-    fun loadBlocklist(configFile: File? = null): WebsiteBlocklist {
-        lock.read {
-            cachedPolicy?.let { policy ->
-                if (System.currentTimeMillis() - cachedPolicyTime < CACHE_TTL_MS) {
-                    return policy
-                }
-            }
-        }
-
-        val policy = try {
-            loadBlocklistFromFile(configFile)
-        } catch (e: Exception) {
-            Log.w(TAG, "Error loading website policy (failing open): ${e.message}")
-            WebsiteBlocklist(enabled = false)
-        }
-
-        lock.write {
-            cachedPolicy = policy
-            cachedPolicyTime = System.currentTimeMillis()
-        }
-
-        return policy
+    _policyLock.write {
+        _cachedPolicy = policy
+        _cachedPolicyTime = System.currentTimeMillis()
     }
+    return policy
+}
 
-    private fun loadBlocklistFromFile(configFile: File?): WebsiteBlocklist {
-        val file = configFile ?: return WebsiteBlocklist(enabled = false)
-        if (!file.exists()) return WebsiteBlocklist(enabled = false)
-
-        // Parse YAML config (simplified — expects standard structure)
-        val lines = file.readLines(Charsets.UTF_8)
-        val rules = mutableListOf<PolicyRule>()
-        var enabled = false
-        var inBlocklist = false
-        var inDomains = false
-
-        for (line in lines) {
-            val trimmed = line.trim()
-            when {
-                trimmed == "website_blocklist:" -> { inBlocklist = true; inDomains = false }
-                trimmed == "domains:" && inBlocklist -> inDomains = true
-                trimmed.startsWith("enabled:") && inBlocklist -> {
-                    enabled = trimmed.substringAfter(":").trim().lowercase() == "true"
-                }
-                inDomains && trimmed.startsWith("- ") -> {
-                    val rule = normalizeRule(trimmed.substring(2))
-                    if (rule != null) {
-                        rules.add(PolicyRule(rule, configFile.absolutePath))
-                    }
-                }
-                trimmed.isNotEmpty() && !trimmed.startsWith("-") && !trimmed.startsWith("#") -> {
-                    inDomains = false
-                    if (!trimmed.startsWith("domains:") && !trimmed.startsWith("enabled:")) {
-                        inBlocklist = false
-                    }
-                }
-            }
-        }
-
-        return WebsiteBlocklist(enabled = enabled, rules = rules)
+fun invalidateCache() {
+    _policyLock.write {
+        _cachedPolicy = null
+        _cachedPolicyTime = 0L
     }
+}
 
-    /**
-     * Check whether a URL is allowed by the website blocklist.
-     * Returns null if allowed, or BlockedResult if blocked.
-     */
-    fun checkWebsiteAccess(url: String, configFile: File? = null): BlockedResult? {
-        // Fast path: if cached policy is disabled, skip work
-        lock.read {
-            cachedPolicy?.let { policy ->
-                if (!policy.enabled) return null
-            }
-        }
-
-        val host = extractHost(url)
-        if (host.isEmpty()) return null
-
-        val policy = loadBlocklist(configFile)
-        if (!policy.enabled) return null
-
-        for (rule in policy.rules) {
-            if (matchHost(host, rule.pattern)) {
-                Log.i(TAG, "Blocked URL $url — matched rule '${rule.pattern}' from ${rule.source}")
-                return BlockedResult(
-                    url = url,
-                    host = host,
-                    rule = rule.pattern,
-                    source = rule.source,
-                    message = "Blocked by website policy: '$host' matched rule '${rule.pattern}' from ${rule.source}")
-            }
-        }
-        return null
+private fun _matchHostAgainstRule(host: String, pattern: String): Boolean {
+    if (host.isEmpty() || pattern.isEmpty()) return false
+    if (pattern.startsWith("*.")) {
+        return host.endsWith(pattern.substring(1)) || host == pattern.substring(2)
     }
+    return host == pattern || host.endsWith(".$pattern")
+}
 
-    /**
-     * Set a blocklist directly (for programmatic configuration).
-     */
-    fun setBlocklist(blocklist: WebsiteBlocklist) {
-        lock.write {
-            cachedPolicy = blocklist
-            cachedPolicyTime = System.currentTimeMillis()
-        }
+private fun _extractHostFromUrlish(url: String): String {
+    return try {
+        _normalizeHost(URL(url).host ?: "")
+    } catch (e: Exception) {
+        try { _normalizeHost(URL("http://$url").host ?: "") } catch (_: Exception) { "" }
     }
-
-    fun invalidateCache() {
-        lock.write {
-            cachedPolicy = null
-        }
-    }
-
-
 }
 
 /**
- * Raised when a website policy file is malformed.
- * Ported from WebsitePolicyError in website_policy.py.
+ * Check whether a URL is allowed by the website blocklist.
+ * Returns null if allowed, or a dict {url,host,rule,source,message} if blocked.
  */
-class WebsitePolicyError(message: String) : Exception(message)
+fun checkWebsiteAccess(url: String, configPath: File? = null): Map<String, String>? {
+    val policy = loadWebsiteBlocklist(configPath)
+    @Suppress("UNCHECKED_CAST")
+    if (policy["enabled"] != true) return null
+    val host = _extractHostFromUrlish(url)
+    if (host.isEmpty()) return null
+    @Suppress("UNCHECKED_CAST")
+    val rules = policy["rules"] as? List<Map<String, String>> ?: return null
+    for (rule in rules) {
+        val pattern = rule["pattern"] ?: continue
+        if (_matchHostAgainstRule(host, pattern)) {
+            val source = rule["source"] ?: "config"
+            return mapOf(
+                "url" to url,
+                "host" to host,
+                "rule" to pattern,
+                "source" to source,
+                "message" to "Blocked by website policy: '$host' matched rule '$pattern' from $source",
+            )
+        }
+    }
+    return null
+}

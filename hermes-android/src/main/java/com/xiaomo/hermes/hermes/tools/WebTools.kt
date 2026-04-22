@@ -40,9 +40,9 @@ object WebTools {
         }
 
         // Website policy check
-        val blocked = WebsitePolicy.checkWebsiteAccess(url)
+        val blocked = checkWebsiteAccess(url)
         if (blocked != null) {
-            return gson.toJson(mapOf("error" to blocked.message))
+            return gson.toJson(mapOf("error" to (blocked["message"] ?: "")))
         }
 
         return try {

@@ -61,11 +61,11 @@ object TirithSecurity {
 
         // Website policy check
         if (target != null && action in listOf("fetch", "browse")) {
-            val blocked = WebsitePolicy.checkWebsiteAccess(target)
+            val blocked = checkWebsiteAccess(target)
             checks.add(SecurityCheck(
                 name = "website_policy",
                 passed = blocked == null,
-                message = blocked?.message ?: "Website access allowed"))
+                message = blocked?.get("message") ?: "Website access allowed"))
         }
 
         val allPassed = checks.all { it.passed }
