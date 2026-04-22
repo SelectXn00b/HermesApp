@@ -55,29 +55,36 @@ class WeCom(
         markDisconnected()
     }
 
-    private suspend fun _getAccessToken(): String? = withContext(Dispatchers.IO) {
-        if (_accessToken.isNotEmpty() && System.currentTimeMillis() / 1000 < _accessTokenExpiry) {
-            return@withContext _accessToken
-        }
-        try {
-            val request = Request.Builder()
-                .url("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=$_corpId&corpsecret=$_corpSecret")
-                .get()
-                .build()
+    private val _getAccessToken: suspend () -> String? = {
+        withContext(Dispatchers.IO) {
+            if (_accessToken.isNotEmpty() && System.currentTimeMillis() / 1000 < _accessTokenExpiry) {
+                _accessToken
+            } else {
+                try {
+                    val request = Request.Builder()
+                        .url("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=$_corpId&corpsecret=$_corpSecret")
+                        .get()
+                        .build()
 
-            _httpClient.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) return@withContext null
-                val data = JSONObject(resp.body!!.string())
-                if (data.optInt("errcode", 0) != 0) return@withContext null
-                _accessToken = data.getString("access_token")
-                _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
-                Log.i(_TAG, "Access token refreshed")
-                markConnected()
-                return@withContext _accessToken
+                    _httpClient.newCall(request).execute().use { resp ->
+                        if (!resp.isSuccessful) null
+                        else {
+                            val data = JSONObject(resp.body!!.string())
+                            if (data.optInt("errcode", 0) != 0) null
+                            else {
+                                _accessToken = data.getString("access_token")
+                                _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
+                                Log.i(_TAG, "Access token refreshed")
+                                markConnected()
+                                _accessToken
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(_TAG, "Token refresh failed: ${e.message}")
+                    null
+                }
             }
-        } catch (e: Exception) {
-            Log.e(_TAG, "Token refresh failed: ${e.message}")
-            return@withContext null
         }
     }
 
