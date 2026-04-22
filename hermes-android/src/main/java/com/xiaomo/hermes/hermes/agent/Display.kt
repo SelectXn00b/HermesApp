@@ -450,3 +450,240 @@ class KawaiiSpinner {
         return THINKING_VERBS
     }
 }
+
+// ─── Module-level constants (1:1 with display.py) ─────────────────────────
+
+const val _RED: String = "\u001B[31m"
+const val _RESET: String = "\u001B[0m"
+const val _ANSI_RESET: String = "\u001B[0m"
+const val _MAX_INLINE_DIFF_FILES: Int = 6
+const val _MAX_INLINE_DIFF_LINES: Int = 80
+
+// ─── Module-level state (1:1 with display.py) ─────────────────────────────
+
+private var _toolPreviewMaxLen: Int = 0
+
+private val _EMOJI_BY_TOOL: Map<String, String> = mapOf(
+    "read_file" to "📄",
+    "write_file" to "✏️",
+    "patch" to "🩹",
+    "terminal" to "💻",
+    "search_files" to "🔎",
+    "web_search" to "🌐",
+    "web_extract" to "📰",
+    "execute_code" to "🐍",
+    "todo" to "🧾",
+    "memory" to "🧠",
+)
+
+// ─── Module-level functions (1:1 with display.py) ─────────────────────────
+
+fun _diffAnsi(): Map<String, String> = mapOf(
+    "dim" to "",
+    "file" to "",
+    "hunk" to "",
+    "minus" to "",
+    "plus" to "",
+    "reset" to "",
+)
+
+fun _diffDim(): String = ""
+fun _diffFile(): String = ""
+fun _diffHunk(): String = ""
+fun _diffMinus(): String = ""
+fun _diffPlus(): String = ""
+
+fun setToolPreviewMaxLen(n: Int) {
+    _toolPreviewMaxLen = n.coerceAtLeast(0)
+}
+
+fun getToolPreviewMaxLen(): Int = _toolPreviewMaxLen
+
+private fun _getSkin(): Map<String, String> = mapOf(
+    "tool_prefix" to "  ⎿",
+)
+
+fun getSkinToolPrefix(): String = _getSkin()["tool_prefix"] ?: "  ⎿"
+
+fun getToolEmoji(toolName: String, default: String = "⚡"): String {
+    return _EMOJI_BY_TOOL[toolName] ?: default
+}
+
+private fun _oneline(text: String): String {
+    return text.replace("\n", " ").replace("\r", "").trim()
+}
+
+fun buildToolPreview(
+    toolName: String,
+    args: Map<String, Any?>,
+    maxLen: Int? = null,
+): String? {
+    val limit = maxLen ?: if (_toolPreviewMaxLen > 0) _toolPreviewMaxLen else Int.MAX_VALUE
+    val primary = when (toolName) {
+        "read_file", "write_file", "patch" -> args["path"]?.toString()
+        "terminal" -> args["command"]?.toString()
+        "search_files" -> args["pattern"]?.toString()
+        "web_search" -> args["query"]?.toString()
+        else -> args.values.firstOrNull()?.toString()
+    } ?: return null
+    val one = _oneline(primary)
+    return if (one.length > limit) one.substring(0, limit) + "…" else one
+}
+
+private fun _resolvedPath(path: String): java.io.File {
+    val expanded = if (path.startsWith("~/"))
+        (System.getProperty("user.home") ?: "") + path.substring(1)
+    else path
+    return java.io.File(expanded)
+}
+
+private fun _snapshotText(path: java.io.File): String? {
+    return try { if (path.exists()) path.readText(Charsets.UTF_8) else null }
+    catch (e: Exception) { null }
+}
+
+private fun _displayDiffPath(path: java.io.File): String {
+    val home = System.getProperty("user.home") ?: ""
+    val abs = path.absolutePath
+    return if (home.isNotEmpty() && abs.startsWith(home)) "~" + abs.substring(home.length) else abs
+}
+
+private fun _resolveSkillManagePaths(args: Map<String, Any?>): List<java.io.File> {
+    val name = args["name"]?.toString() ?: return emptyList()
+    val file = args["file_path"]?.toString()
+    val skillDir = java.io.File(SKILLS_DIR, name)
+    return listOfNotNull(
+        if (file != null) java.io.File(skillDir, file) else null,
+        java.io.File(skillDir, "SKILL.md"),
+    )
+}
+
+private fun _resolveLocalEditPaths(
+    toolName: String,
+    functionArgs: Map<String, Any?>?,
+): List<java.io.File> {
+    if (functionArgs == null) return emptyList()
+    return when (toolName) {
+        "write_file", "patch", "read_file" ->
+            listOfNotNull((functionArgs["path"] as? String)?.let { _resolvedPath(it) })
+        "skill_manage" -> _resolveSkillManagePaths(functionArgs)
+        else -> emptyList()
+    }
+}
+
+fun captureLocalEditSnapshot(
+    toolName: String,
+    functionArgs: Map<String, Any?>?,
+): LocalEditSnapshot? {
+    val paths = _resolveLocalEditPaths(toolName, functionArgs)
+    if (paths.isEmpty()) return null
+    val snap = LocalEditSnapshot()
+    for (p in paths) {
+        snap.paths += p.absolutePath
+        snap.before[p.absolutePath] = _snapshotText(p)
+    }
+    return snap
+}
+
+private fun _resultSucceeded(result: String?): Boolean {
+    if (result.isNullOrEmpty()) return true
+    val lower = result.lowercase()
+    return !(lower.contains("\"error\"") || lower.startsWith("error"))
+}
+
+private fun _diffFromSnapshot(snapshot: LocalEditSnapshot?): String? {
+    if (snapshot == null) return null
+    val lines = mutableListOf<String>()
+    for (path in snapshot.paths) {
+        val before = snapshot.before[path]
+        val after = try { java.io.File(path).readText(Charsets.UTF_8) } catch (e: Exception) { null }
+        if (before == after) continue
+        lines += "--- $path"
+        lines += "+++ $path"
+    }
+    return if (lines.isEmpty()) null else lines.joinToString("\n")
+}
+
+fun extractEditDiff(
+    toolName: String,
+    functionArgs: Map<String, Any?>?,
+    result: String?,
+    snapshot: LocalEditSnapshot? = null,
+): String? {
+    if (!_resultSucceeded(result)) return null
+    return _diffFromSnapshot(snapshot)
+}
+
+private fun _emitInlineDiff(diffText: String, printFn: (String) -> Unit): Boolean {
+    if (diffText.isEmpty()) return false
+    printFn(diffText)
+    return true
+}
+
+private fun _renderInlineUnifiedDiff(diff: String): List<String> {
+    return diff.split("\n")
+}
+
+private fun _splitUnifiedDiffSections(diff: String): List<String> {
+    val sections = mutableListOf<String>()
+    var current = StringBuilder()
+    for (line in diff.split("\n")) {
+        if (line.startsWith("--- ") && current.isNotEmpty()) {
+            sections += current.toString()
+            current = StringBuilder()
+        }
+        current.appendLine(line)
+    }
+    if (current.isNotEmpty()) sections += current.toString()
+    return sections
+}
+
+private fun _summarizeRenderedDiffSections(
+    sections: List<String>,
+    maxFiles: Int = _MAX_INLINE_DIFF_FILES,
+    maxLines: Int = _MAX_INLINE_DIFF_LINES,
+): String {
+    if (sections.size > maxFiles) {
+        return sections.take(maxFiles).joinToString("\n") +
+            "\n... (+${sections.size - maxFiles} more files)"
+    }
+    val joined = sections.joinToString("\n")
+    val lines = joined.split("\n")
+    return if (lines.size > maxLines)
+        lines.take(maxLines).joinToString("\n") + "\n... (+${lines.size - maxLines} more lines)"
+    else joined
+}
+
+fun renderEditDiffWithDelta(
+    toolName: String,
+    functionArgs: Map<String, Any?>?,
+    result: String?,
+    snapshot: LocalEditSnapshot? = null,
+): String? {
+    val diff = extractEditDiff(toolName, functionArgs, result, snapshot) ?: return null
+    val sections = _splitUnifiedDiffSections(diff)
+    return _summarizeRenderedDiffSections(sections)
+}
+
+private fun _detectToolFailure(toolName: String, result: String?): Pair<Boolean, String> {
+    if (result.isNullOrEmpty()) return Pair(false, "")
+    val lower = result.lowercase()
+    if (lower.contains("\"error\"") || lower.startsWith("error")) {
+        return Pair(true, result.take(120))
+    }
+    return Pair(false, "")
+}
+
+fun getCuteToolMessage(
+    toolName: String,
+    args: Map<String, Any?> = emptyMap(),
+    verb: String = "running",
+): String {
+    val preview = buildToolPreview(toolName, args) ?: ""
+    val emoji = getToolEmoji(toolName)
+    return if (preview.isNotEmpty()) "$emoji $verb $toolName($preview)" else "$emoji $verb $toolName"
+}
+
+private val SKILLS_DIR: java.io.File get() = java.io.File(
+    com.xiaomo.hermes.hermes.getHermesHome(), "skills"
+)
