@@ -74,8 +74,8 @@ class GatewayRunner(
     /** Display config registry. */
     val displayConfigRegistry = DisplayConfigRegistry()
 
-    /** Pairing manager. */
-    val pairingManager = PairingManager()
+    /** Pairing store. */
+    val pairingStore = PairingStore()
 
     /** All platform adapters (lazily created). */
     private val _adapters: ConcurrentHashMap<String, BasePlatformAdapter> = ConcurrentHashMap()
