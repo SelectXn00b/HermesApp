@@ -3,7 +3,6 @@ package com.xiaomo.hermes.hermes
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.xiaomo.hermes.hermes.tools.FileTools
-import com.xiaomo.hermes.hermes.tools.WebTools
 import com.xiaomo.hermes.hermes.tools.TerminalTool
 import com.xiaomo.hermes.hermes.tools.ProcessRegistry
 import com.xiaomo.hermes.hermes.tools.MemoryTool
@@ -419,7 +418,7 @@ fun registerDefaultTools() {
             modelToolsGson.toJson(mapOf("error" to "web_search requires API key configuration. Use web_extract to fetch specific URLs instead."))
         })
 
-    // web_extract — 委托 WebTools.fetch
+    // web_extract — 委托 webExtractTool（Android 无 Firecrawl/Tavily backend，返回 error）
     ToolRegistry.register(
         name = "web_extract",
         description = "Fetch and extract content from a URL.",
@@ -431,10 +430,7 @@ fun registerDefaultTools() {
                 "max_chars" to mapOf("type" to "integer", "description" to "Max characters to return (default 50000)")),
             "required" to listOf("url")),
         handler = { args ->
-            val url = args["url"] as? String ?: ""
-            val mode = args["extract_mode"] as? String ?: "markdown"
-            val maxChars = (args["max_chars"] as? Number)?.toInt() ?: 50000
-            WebTools.fetch(url, mode, maxChars)
+            modelToolsGson.toJson(mapOf("error" to "web_extract requires Firecrawl/Tavily backend configuration (not available on Android)."))
         })
 
     // ── 记忆 ──────────────────────────────────────────────────────────
