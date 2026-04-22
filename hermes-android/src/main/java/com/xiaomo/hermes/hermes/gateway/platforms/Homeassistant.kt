@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class Homeassistant(
+class HomeAssistantAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.HOMEASSISTANT) {
     companion object {

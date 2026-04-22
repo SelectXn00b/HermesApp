@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Bluebubbles(
+class BlueBubblesAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.BLUEBUBBLES) {
     companion object { private const val _TAG = "Bluebubbles" }

@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class WeComCallback(
+class WecomCallbackAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WECOM_CALLBACK) {
     companion object { private const val _TAG = "WeComCallback" }

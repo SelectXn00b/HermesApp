@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class ApiServer(
+class APIServerAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.API_SERVER) {
     companion object { private const val _TAG = "ApiServer" }

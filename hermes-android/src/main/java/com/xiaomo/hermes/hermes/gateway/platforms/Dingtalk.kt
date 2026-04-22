@@ -21,7 +21,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class Dingtalk(
+class DingTalkAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.DINGTALK) {
     companion object { private const val _TAG = "Dingtalk" }
