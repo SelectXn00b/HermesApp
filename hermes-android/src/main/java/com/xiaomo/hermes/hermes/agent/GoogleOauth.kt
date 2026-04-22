@@ -56,8 +56,34 @@ const val REDIRECT_HOST = "127.0.0.1"
 const val CALLBACK_PATH = "/oauth2callback"
 
 const val REFRESH_SKEW_SECONDS = 60
+const val TOKEN_REQUEST_TIMEOUT_SECONDS = 20.0
+const val CALLBACK_WAIT_SECONDS = 300
+const val LOCK_TIMEOUT_SECONDS = 30.0
+
+// Convenience millisecond forms for Java HTTP / latch APIs.
 const val TOKEN_REQUEST_TIMEOUT_MS = 20_000
 const val LOCK_TIMEOUT_MS = 30_000L
+
+// Gemini CLI OAuth JS scrape patterns (used by _scrapeClientCredentials).
+val _CLIENT_ID_PATTERN: Regex = Regex(
+    """OAUTH_CLIENT_ID\s*=\s*['"]([0-9]{8,}-[a-z0-9]{20,}\.apps\.googleusercontent\.com)['"]"""
+)
+val _CLIENT_SECRET_PATTERN: Regex = Regex(
+    """OAUTH_CLIENT_SECRET\s*=\s*['"](GOCSPX-[A-Za-z0-9_-]{20,})['"]"""
+)
+val _CLIENT_ID_SHAPE: Regex = Regex(
+    """([0-9]{8,}-[a-z0-9]{20,}\.apps\.googleusercontent\.com)"""
+)
+val _CLIENT_SECRET_SHAPE: Regex = Regex("""(GOCSPX-[A-Za-z0-9_-]{20,})""")
+
+val _HEADLESS_ENV_VARS: List<String> = listOf("SSH_CONNECTION", "SSH_CLIENT", "SSH_TTY", "HERMES_HEADLESS")
+
+const val _SUCCESS_PAGE: String = """<!doctype html>
+<html><body><h1>Hermes login complete</h1>
+<p>You can close this window and return to the terminal.</p></body></html>"""
+
+const val _ERROR_PAGE: String = """<!doctype html>
+<html><body><h1>Hermes login failed</h1><p>{message}</p></body></html>"""
 
 // =============================================================================
 // Error type
@@ -80,7 +106,9 @@ private fun _credentialsPath(): File {
     return File(hermesHome, "auth/google_oauth.json")
 }
 
-private val _credentialsLock = ReentrantLock()
+// Rename private val to avoid collision with module-level `_credentialsLock()`
+// function (1:1 with Python). Call sites use the underlying ReentrantLock.
+private val _credentialsLockInstance = ReentrantLock()
 
 // =============================================================================
 // Client ID resolution
@@ -235,7 +263,7 @@ fun loadGoogleCredentials(): GoogleCredentials? {
     val path = _credentialsPath()
     if (!path.exists()) return null
     return try {
-        _credentialsLock.withLock {
+        _credentialsLockInstance.withLock {
             val raw = path.readText(Charsets.UTF_8)
             val jo = JSONObject(raw)
             val data = mutableMapOf<String, Any>()
@@ -259,7 +287,7 @@ fun saveCredentials(creds: GoogleCredentials): File {
     val path = _credentialsPath()
     path.parentFile?.mkdirs()
     val payload = JSONObject(creds.toMap()).toString(2) + "\n"
-    _credentialsLock.withLock {
+    _credentialsLockInstance.withLock {
         val tmpFile = File(path.parent, "google_oauth.tmp.${android.os.Process.myPid()}")
         try {
             tmpFile.writeText(payload, Charsets.UTF_8)
@@ -275,7 +303,7 @@ fun saveCredentials(creds: GoogleCredentials): File {
 
 fun clearCredentials() {
     val path = _credentialsPath()
-    _credentialsLock.withLock {
+    _credentialsLockInstance.withLock {
         try {
             path.delete()
         } catch (e: Exception) {
@@ -605,4 +633,102 @@ class _OAuthCallbackHandler {
     fun _respondHtml(status: Int, body: String) {
         // Android: no HTTP server; handled by app module
     }
+}
+
+
+// =============================================================================
+// Android stubs for bash / http.server-backed Python flows
+// =============================================================================
+//
+// On Android there is no bundled gemini-cli JS file to scrape, no SSH
+// environment, no loopback HTTP server, and no TTY paste prompt. The Python
+// module exposes these as module-level functions so callers can feature-detect.
+// We keep the names 1:1 and return safe fallbacks; the actual OAuth UX lives
+// in the app module (CustomTabs + deep-link callback).
+
+/** Path of the credentials lock file (Python uses a sibling .lock file). */
+fun _lockPath(): File {
+    val credPath = _credentialsPath()
+    return File(credPath.parentFile, credPath.name + ".lock")
+}
+
+/**
+ * File-lock context manager (Python). Android fallback uses the in-memory
+ * ReentrantLock — file locks across processes aren't meaningful here since
+ * a single app holds the credentials file.
+ */
+fun _credentialsLock(timeoutSeconds: Double = LOCK_TIMEOUT_SECONDS): ReentrantLock {
+    return _credentialsLockInstance
+}
+
+/** Locate a bundled google-gemini-cli oauth.js (desktop Python only). */
+fun _locateGeminiCliOauthJs(): File? = null
+
+/**
+ * Scrape client_id/client_secret from a bundled gemini-cli oauth.js file.
+ * Android: no bundle → returns empty pair, callers fall back to env vars /
+ * compile-time defaults.
+ */
+fun _scrapeClientCredentials(): Pair<String, String> = Pair("", "")
+
+/**
+ * Bind a loopback callback server on [preferredPort] (Python http.server).
+ * Android: no raw socket binding in app sandbox; returns (null, 0).
+ */
+fun _bindCallbackServer(preferredPort: Int = DEFAULT_REDIRECT_PORT): Pair<Any?, Int> =
+    Pair(null, 0)
+
+/** Python checks SSH_* env vars to detect headless sessions. */
+fun _isHeadless(): Boolean =
+    _HEADLESS_ENV_VARS.any { !System.getenv(it).isNullOrEmpty() }
+
+/**
+ * Python's top-level OAuth launch: open the browser, bind a callback server,
+ * wait for redirect. On Android the host app drives this via CustomTabs +
+ * deep-link callback, so we throw to signal "not applicable here" and point
+ * callers at [buildAuthorizationUrl] + [completeOAuthFlow].
+ */
+fun startOauthFlow(
+    clientId: String? = null,
+    clientSecret: String? = null,
+    redirectPort: Int = DEFAULT_REDIRECT_PORT,
+    callbackWaitSeconds: Double = CALLBACK_WAIT_SECONDS.toDouble(),
+): GoogleCredentials {
+    throw GoogleOAuthError(
+        "startOauthFlow() is not supported on Android. " +
+            "Use buildAuthorizationUrl() + completeOAuthFlow() driven by the app module.",
+        code = "google_oauth_browser_flow_unsupported",
+    )
+}
+
+/**
+ * Headless "paste the code here" fallback. Android has no TTY prompt;
+ * returns null so callers fall back to UI-driven flow.
+ */
+fun _pasteModeLogin(
+    clientId: String? = null,
+    clientSecret: String? = null,
+): GoogleCredentials? = null
+
+/** Prompt the user to paste an authorization code. No TTY on Android. */
+fun _promptPasteFallback(): String? = null
+
+/**
+ * Composite "run the whole login" entry point (Python). Android routes
+ * through startOauthFlow() which in turn throws — the app module must drive
+ * the browser-based flow manually.
+ */
+fun runGeminiOauthLoginPure(): Map<String, Any> {
+    val creds = try {
+        startOauthFlow()
+    } catch (e: GoogleOAuthError) {
+        throw e
+    }
+    return mapOf(
+        "access_token" to creds.accessToken,
+        "refresh_token" to creds.refreshToken,
+        "expires" to creds.expiresMs,
+        "email" to creds.email,
+        "project_id" to creds.projectId,
+    )
 }
