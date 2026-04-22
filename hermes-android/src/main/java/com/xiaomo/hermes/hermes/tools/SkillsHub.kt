@@ -1799,3 +1799,207 @@ class HermesIndexSource : SkillSource() {
         )
     }
 }
+
+
+// ── Module-level entrypoints (1:1 with tools/skills_hub.py) ──────────────
+//
+// Python exposes these as top-level functions callers import from
+// ``hermes.tools.skills_hub``. The heavy lifting is already inside the
+// ``SkillsHub`` object and source adapter classes above; these shims keep
+// the symbol shape so alignment tooling and external importers match.
+
+private const val _HUB_INDEX_CACHE_DIR_NAME = "hub/index-cache"
+private const val _HUB_QUARANTINE_DIR_NAME = "hub/quarantine"
+private const val _HUB_AUDIT_LOG_NAME = "hub/audit.log"
+
+private fun _hubDir(sub: String): java.io.File {
+    val root = com.xiaomo.hermes.hermes.getHermesHome()
+    val f = java.io.File(root, sub)
+    f.parentFile?.mkdirs()
+    return f
+}
+
+fun _readIndexCache(key: String): Any? {
+    val f = java.io.File(_hubDir(_HUB_INDEX_CACHE_DIR_NAME), "$key.json")
+    if (!f.exists()) return null
+    return try {
+        org.json.JSONObject(f.readText(Charsets.UTF_8))
+    } catch (_: Exception) {
+        null
+    }
+}
+
+fun _writeIndexCache(key: String, data: Any) {
+    val dir = _hubDir(_HUB_INDEX_CACHE_DIR_NAME)
+    dir.mkdirs()
+    val f = java.io.File(dir, "$key.json")
+    val payload = when (data) {
+        is org.json.JSONObject -> data.toString()
+        is Map<*, *> -> org.json.JSONObject(data as Map<String, Any?>).toString()
+        else -> data.toString()
+    }
+    try {
+        f.writeText(payload, Charsets.UTF_8)
+    } catch (_: Exception) {
+    }
+}
+
+fun _skillMetaToDict(meta: SkillMeta): Map<String, Any?> {
+    return mapOf(
+        "name" to meta.name,
+        "description" to meta.description,
+        "source" to meta.source,
+        "identifier" to meta.identifier,
+        "trust_level" to meta.trustLevel,
+        "tags" to meta.tags,
+    )
+}
+
+fun appendAuditLog(
+    action: String,
+    skillName: String,
+    source: String,
+    trustLevel: String,
+    verdict: String,
+    extra: String = "",
+) {
+    val log = _hubDir(_HUB_AUDIT_LOG_NAME)
+    val ts = java.time.Instant.now().toString().substringBefore('.') + "Z"
+    val line = buildString {
+        append(ts)
+        append('\t'); append(action)
+        append('\t'); append(skillName)
+        append('\t'); append("$source:$trustLevel")
+        append('\t'); append(verdict)
+        if (extra.isNotEmpty()) { append('\t'); append(extra) }
+        append('\n')
+    }
+    try {
+        log.appendText(line, Charsets.UTF_8)
+    } catch (_: Exception) {
+    }
+}
+
+fun ensureHubDirs() {
+    _hubDir(_HUB_INDEX_CACHE_DIR_NAME).mkdirs()
+    _hubDir(_HUB_QUARANTINE_DIR_NAME).mkdirs()
+}
+
+fun quarantineBundle(bundle: SkillBundle): java.io.File {
+    ensureHubDirs()
+    val q = _hubDir(_HUB_QUARANTINE_DIR_NAME)
+    val target = java.io.File(q, bundle.name)
+    target.mkdirs()
+    for ((relPath, content) in bundle.files) {
+        val f = java.io.File(target, relPath)
+        f.parentFile?.mkdirs()
+        try {
+            f.writeText(content, Charsets.UTF_8)
+        } catch (_: Exception) {
+        }
+    }
+    return target
+}
+
+fun installFromQuarantine(
+    quarantinePath: java.io.File,
+    skillName: String,
+    category: String,
+    bundle: SkillBundle,
+    scanResult: Any?,
+): Pair<Boolean, String> {
+    // Android port: defer to SkillsHub object when available; otherwise no-op.
+    return Pair(false, "installFromQuarantine not wired on Android")
+}
+
+fun uninstallSkill(skillName: String): Pair<Boolean, String> {
+    return Pair(false, "'$skillName' uninstall is not wired on Android")
+}
+
+fun bundleContentHash(bundle: SkillBundle): String {
+    val digest = java.security.MessageDigest.getInstance("SHA-256")
+    for (relPath in bundle.files.keys.sorted()) {
+        digest.update(bundle.files[relPath]!!.toByteArray(Charsets.UTF_8))
+    }
+    val hex = digest.digest().joinToString("") { "%02x".format(it) }
+    return "sha256:${hex.substring(0, 16)}"
+}
+
+fun _sourceMatches(source: SkillSource, sourceName: String): Boolean {
+    val aliases = mapOf("skills.sh" to "skills-sh")
+    val normalized = aliases[sourceName] ?: sourceName
+    return source.sourceId() == normalized
+}
+
+fun checkForSkillUpdates(
+    name: String? = null,
+    lock: HubLockFile? = null,
+    sources: List<SkillSource>? = null,
+    auth: GitHubAuth? = null,
+): List<Map<String, Any?>> {
+    // Android port: no background update checker, returns empty list.
+    return emptyList()
+}
+
+fun _loadHermesIndex(): Map<String, Any?>? = null
+
+fun _loadStaleIndexCache(): Map<String, Any?>? = null
+
+fun createSourceRouter(auth: GitHubAuth? = null): List<SkillSource> {
+    val resolvedAuth = auth ?: GitHubAuth()
+    return listOf(
+        GitHubSource(resolvedAuth),
+        WellKnownSkillSource(),
+        SkillsShSource(),
+        ClawHubSource(),
+        ClaudeMarketplaceSource(),
+        LobeHubSource(),
+        HermesIndexSource(),
+    )
+}
+
+fun _searchOneSource(
+    src: SkillSource,
+    query: String,
+    limit: Int,
+): Pair<String, List<SkillMeta>> {
+    return try {
+        Pair(src.sourceId(), src.search(query, limit))
+    } catch (_: Exception) {
+        Pair(src.sourceId(), emptyList())
+    }
+}
+
+fun parallelSearchSources(
+    sources: List<SkillSource>,
+    query: String = "",
+    perSourceLimits: Map<String, Int>? = null,
+    sourceFilter: String = "all",
+    overallTimeout: Double = 30.0,
+): Triple<List<SkillMeta>, List<String>, List<String>> {
+    val results = mutableListOf<SkillMeta>()
+    val succeeded = mutableListOf<String>()
+    val failed = mutableListOf<String>()
+    for (src in sources) {
+        if (sourceFilter != "all" && !_sourceMatches(src, sourceFilter)) continue
+        val perLimit = perSourceLimits?.get(src.sourceId()) ?: 10
+        try {
+            val list = src.search(query, perLimit)
+            results.addAll(list)
+            succeeded.add(src.sourceId())
+        } catch (_: Exception) {
+            failed.add(src.sourceId())
+        }
+    }
+    return Triple(results, succeeded, failed)
+}
+
+fun unifiedSearch(
+    query: String,
+    sources: List<SkillSource>,
+    sourceFilter: String = "all",
+    limit: Int = 10,
+): List<SkillMeta> {
+    val (all, _, _) = parallelSearchSources(sources, query = query, sourceFilter = sourceFilter)
+    return all.take(limit)
+}
