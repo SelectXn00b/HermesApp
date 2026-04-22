@@ -325,13 +325,10 @@ class ShellFileOperations(
     }
 
     override fun patchV4a(patchContent: String): PatchResult {
-        val (operations, error) = PatchParser.parseV4aPatch(patchContent)
+        val (operations, error) = parseV4aPatch(patchContent)
         if (error != null) return PatchResult(error = error)
         val baseDir = File(cwd)
-        return PatchParser.applyV4aOperations(operations, baseDir).let {
-            PatchResult(success = it.success, diff = it.diff, filesModified = it.filesModified,
-                filesCreated = it.filesCreated, filesDeleted = it.filesDeleted, error = it.error)
-        }
+        return applyV4aOperations(operations, baseDir)
     }
 
     override fun deleteFile(path: String): WriteResult {
