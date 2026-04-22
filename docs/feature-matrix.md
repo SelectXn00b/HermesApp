@@ -37,10 +37,10 @@
 | ✅ | MiMo v2 Pro 公网 config 已注入 datastore | `adb shell run-as … cat files/datastore/model_configs.preferences_pb` 显示 `{"id":"default","name":"MiMo v2.1 Pro Core","apiEndpoint":"http://mimorouter.llmcore.ai.srv/","modelName":"mimo-v2.1-pro-core-15000step","apiProviderType":"OPENAI_GENERIC","enableToolCall":true}` |
 | ✅ | 启动 app 不 crash | 安装 4/22 17:35 APK (sha=sessione) 后 `adb shell am start` 成功，pid=22832，activity in stack (`dumpsys activity activities` 显示 Task #5464)，logcat 无 FATAL/AndroidRuntime |
 | ✅ | 发一条无工具消息：assistant 文本正常流出 | 模拟器 emulator-5554 18:19:42 向 mimorouter.llmcore.ai.srv 发 "你好，请用一句话回复我，不要调用任何工具"；200 OK；33 chunks；响应 "你好，我在这里，随时准备为您提供帮助。" + `<status type="complete">`；input=5390 / output=64 tokens；流经 runViaHermes → OperitChatCompletionServer → AIService |
-| ⬜ | 发一条触发 `<tool>` 的消息：tool dispatch + result 正确渲染 | |
-| ⬜ | 多轮工具调用：第 2 轮 tool result 正确反馈给模型 | |
+| ✅ | 发一条触发 `<tool>` 的消息：tool dispatch + result 正确渲染 | 模拟器 18:22:22 响应含 `<tool_dTJD name="query_memory">`；18:22:22.205 `FloatingChatService: InputProcessingState$ExecutingTool(toolName=query_memory)` 渲染；18:22:22.243 `HermesAgentLoop: [0b4a718c…] turn 1: 1 tools, total=3.4s` |
+| ✅ | 多轮工具调用：第 2 轮 tool result 正确反馈给模型 | 同一会话 turn 1 完成后 turn 2 再次 query_memory：18:22:24.199 `<tool_xKyG name="query_memory">` + 18:22:24.233 `HermesAgentLoop: turn 2: 1 tools, total=2.0s`；turn 2 请求体 messages 含前一轮 `"name": "query_memory"` 的 tool_result — 证实 tool result round-trip 回模型 |
 | ✅ | `<status type="complete">` 触发 `handleTaskCompletion` | 同 §3.1 的同一次调用响应里带 `<status type="complete"></status>`；18:19:45.404 `FloatingChatService: 输入处理状态已更新: InputProcessingState$Completed@97ee7d` — 证实 `handleTaskCompletion` L1289 的 `_inputProcessingState.value = InputProcessingState.Completed` 已执行 |
-| ⬜ | `<status type="wait_for_user_need">` 触发 `handleWaitForUserNeed` | |
+| ✅ | `<status type="wait_for_user_need">` 触发 `handleWaitForUserNeed` | "帮我做那个事情" 模糊 prompt 经 2 轮 query_memory 后，turn 3 响应含 `<status type="wait_for_user_need"></status>`；18:22:30.186 `EnhancedAIService: Wait for user need - skipping problem library analysis`（对应 L1344 `handleWaitForUserNeed` 内唯一日志标记） |
 | ⬜ | 超长消息触发 `onTokenLimitExceeded` | |
 
 ## 4. 回归检查
