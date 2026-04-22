@@ -8,7 +8,6 @@ import com.ai.assistance.operit.util.AppLogger
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
 import com.ai.assistance.operit.core.chat.hooks.toPromptTurns
-import com.ai.assistance.operit.util.FFmpegUtil
 import com.ai.assistance.operit.util.ImagePoolManager
 import com.ai.assistance.operit.util.MediaPoolManager
 import com.ai.assistance.mnn.MNNLlmSession
@@ -318,33 +317,9 @@ class MNNProvider(
         }
     }
 
-    private fun transcodeToWav16kMono(input: File): File? {
-        val dir = ensureMultimodalWorkDir()
-        val out = File(dir, "audio_${System.currentTimeMillis()}_${kotlin.random.Random.nextInt(0, Int.MAX_VALUE)}.wav")
-        val inPath = "\"" + input.absolutePath.replace("\"", "\\\"") + "\""
-        val outPath = "\"" + out.absolutePath.replace("\"", "\\\"") + "\""
-        val ok = FFmpegUtil.executeCommand("-y -i $inPath -vn -ac 1 -ar 16000 -f wav $outPath")
-        if (!ok || !out.exists() || out.length() <= 0) {
-            runCatching { out.delete() }
-            return null
-        }
-        return out
-    }
+    private fun transcodeToWav16kMono(input: File): File? = null
 
-    private fun extractVideoFrame(input: File): File? {
-        val dir = ensureMultimodalWorkDir()
-        val out = File(dir, "frame_${System.currentTimeMillis()}_${kotlin.random.Random.nextInt(0, Int.MAX_VALUE)}.jpg")
-        val inPath = "\"" + input.absolutePath.replace("\"", "\\\"") + "\""
-        val outPath = "\"" + out.absolutePath.replace("\"", "\\\"") + "\""
-        val ok = FFmpegUtil.executeCommand(
-            "-y -i $inPath -frames:v 1 -vf ${FFmpegUtil.scaleFilterMaxWidth(640)} $outPath"
-        )
-        if (!ok || !out.exists() || out.length() <= 0) {
-            runCatching { out.delete() }
-            return null
-        }
-        return out
-    }
+    private fun extractVideoFrame(input: File): File? = null
 
     private fun preprocessMultimodalText(
         raw: String,

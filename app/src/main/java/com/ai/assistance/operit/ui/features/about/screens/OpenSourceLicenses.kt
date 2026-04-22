@@ -72,7 +72,6 @@ private fun getOpenSourceLibraries(): List<OpenSourceLibrary> {
 
         // Multimedia
         OpenSourceLibrary("ExoPlayer", "Extensible media player for Android", "Apache-2.0", "https://exoplayer.dev/"),
-        OpenSourceLibrary("FFmpegKit", "FFmpeg toolkit for mobile platforms", "LGPL-3.0", "https://github.com/arthenica/ffmpeg-kit"),
 
         // AI & Machine Learning
         OpenSourceLibrary("ML Kit", "Google's machine learning toolkit for mobile", "Apache-2.0", "https://developers.google.com/ml-kit"),

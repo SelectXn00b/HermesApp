@@ -13,63 +13,13 @@ object MediaPoolManager {
 
     private const val MAX_INPUT_BYTES = 20 * 1024 * 1024
 
-    private fun q(path: String): String = "\"" + path.replace("\"", "\\\"") + "\""
-
     private data class TranscodedMedia(
         val file: File,
         val mimeType: String
     )
 
     private fun transcodeToFit(source: File, mimeType: String, targetBytes: Long): TranscodedMedia? {
-        val baseDir = cacheDir ?: return null
-        val dir = File(baseDir, "media_pool_transcoded")
-        runCatching { if (!dir.exists()) dir.mkdirs() }
-
-        fun ok(out: File): Boolean = out.exists() && out.isFile && out.length() in 1..targetBytes
-
-        if (mimeType.startsWith("audio/", ignoreCase = true)) {
-            val out = File(dir, "${UUID.randomUUID()}.mp3")
-            val inPath = q(source.absolutePath)
-            val outPath = q(out.absolutePath)
-
-            val commands = listOf(
-                "-y -i $inPath -vn -ac 1 -ar 16000 -b:a 64k $outPath",
-                "-y -i $inPath -vn -ac 1 -ar 16000 -b:a 32k $outPath"
-            )
-
-            for (cmd in commands) {
-                runCatching { out.delete() }
-                if (FFmpegUtil.executeCommand(cmd) && ok(out)) {
-                    return TranscodedMedia(out, "audio/mpeg")
-                }
-            }
-            runCatching { out.delete() }
-            return null
-        }
-
-        if (mimeType.startsWith("video/", ignoreCase = true)) {
-            val out = File(dir, "${UUID.randomUUID()}.mp4")
-            val inPath = q(source.absolutePath)
-            val outPath = q(out.absolutePath)
-            val scale640 = FFmpegUtil.scaleFilterMaxWidth(640)
-            val scale480 = FFmpegUtil.scaleFilterMaxWidth(480)
-
-            val commands = listOf(
-                "-y -i $inPath -vf $scale640 -c:v h264 -preset veryfast -crf 32 -c:a aac -b:a 64k -movflags +faststart $outPath",
-                "-y -i $inPath -vf $scale640 -c:v mpeg4 -q:v 8 -c:a aac -b:a 64k -movflags +faststart $outPath",
-                "-y -i $inPath -vf $scale480 -c:v mpeg4 -q:v 12 -c:a aac -b:a 48k -movflags +faststart $outPath"
-            )
-
-            for (cmd in commands) {
-                runCatching { out.delete() }
-                if (FFmpegUtil.executeCommand(cmd) && ok(out)) {
-                    return TranscodedMedia(out, "video/mp4")
-                }
-            }
-            runCatching { out.delete() }
-            return null
-        }
-
+        // FFmpeg has been removed; oversized media is rejected without transcode fallback.
         return null
     }
 

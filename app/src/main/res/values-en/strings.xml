@@ -1793,11 +1793,7 @@
     <string name="control_info">Control Info</string>
     <string name="current_activity_title">Current Activity</string>
     <string name="dimensions">Dimensions: %1$d×%2$dpx</string>
-    <string name="ffmpeg_command">FFmpeg Command</string>
     <string name="common_command_templates">Common Command Templates</string>
-    <string name="ffmpeg_template_note">Note: When using templates, please replace input.mp4 and output.mp4 with actual file paths</string>
-    <string name="ffmpeg_help">FFmpeg Help</string>
-    <string name="ffmpeg_description">FFmpeg is a powerful audio/video processing tool. In this interface, you can execute FFmpeg commands directly.</string>
 
     <!-- Status and Error Messages -->
     <string name="check_video_size_error">Error checking video size</string>
@@ -1943,8 +1939,6 @@
     <string name="ui_debugger_description">Tap the button in the bottom right corner to launch the floating window for UI debugging</string>
     <string name="ui_debugger_launch_floating">Launch Floating Window</string>
     <string name="ui_debugger_start_float">Start Float</string>
-    <string name="tool_ffmpeg_toolbox">FFmpeg Toolbox</string>
-    <string name="tool_ffmpeg_toolbox_desc">Powerful audio/video processing tool supporting conversion, cropping, merging and more</string>
     <string name="tool_stream_markdown_demo">Streaming Markdown Demo</string>
     <string name="tool_stream_markdown_demo_desc">High-performance streaming Markdown rendering demo with real-time character flow effects</string>
     <string name="tool_shell_executor">Command Executor</string>
@@ -2399,36 +2393,6 @@
         <string name="terminal_auto_config_applying">Applying configuration...</string>
     
     <!-- FFmpeg Toolbox -->
-    <string name="ffmpeg_toolbox_title">FFmpeg Toolbox</string>
-    <string name="ffmpeg_input_file">Input file</string>
-    <string name="ffmpeg_output_file">Output file</string>
-    <string name="ffmpeg_select_input">Select input file</string>
-    <string name="ffmpeg_select_output">Select output path</string>
-    <string name="ffmpeg_conversion_type">Conversion type</string>
-    <string name="ffmpeg_video_conversion">Video conversion</string>
-    <string name="ffmpeg_audio_conversion">Audio conversion</string>
-    <string name="ffmpeg_image_conversion">Image conversion</string>
-    <string name="ffmpeg_start_conversion">Start conversion</string>
-    <string name="ffmpeg_conversion_progress">Conversion progress</string>
-    <string name="ffmpeg_conversion_completed">Conversion completed</string>
-    <string name="ffmpeg_conversion_failed">Conversion failed</string>
-    <string name="ffmpeg_quality_settings">Quality settings</string>
-    <string name="ffmpeg_bitrate">Bitrate</string>
-    <string name="ffmpeg_resolution">Resolution</string>
-    <string name="ffmpeg_frame_rate">Frame rate</string>
-    <string name="ffmpeg_codec">Codec</string>
-    <string name="ffmpeg_advanced_options">Advanced options</string>
-    <string name="ffmpeg_custom_parameters">Custom parameters</string>
-    <string name="ffmpeg_preview">Preview</string>
-    <string name="ffmpeg_file_info">File info</string>
-    <string name="ffmpeg_duration">Duration</string>
-    <string name="ffmpeg_file_size">File size</string>
-    <string name="ffmpeg_format">Format</string>
-    <string name="ffmpeg_processing">Processing...</string>
-    <string name="ffmpeg_cancel">Cancel</string>
-    <string name="ffmpeg_no_file_selected">No file selected</string>
-    <string name="ffmpeg_invalid_file">Invalid file format</string>
-    <string name="ffmpeg_permission_error">Permission error, cannot access file</string>
     
     <!-- Log Viewer (Logcat) -->
     <string name="logcat_title">Log Viewer</string>
@@ -2862,24 +2826,6 @@
     <string name="ai_tools_availability_test">AI Tools Availability Test</string>
     <string name="ai_tools_grouped_desc">AI tools grouped by category</string>
     <string name="batch_testing_in_progress">Batch testing in progress</string>
-    <string name="ffmpeg_common_parameters">FFmpeg Common Parameters</string>
-    <string name="ffmpeg_create_gif">Create GIF</string>
-    <string name="ffmpeg_create_gif_desc">Convert video to animated GIF</string>
-    <string name="ffmpeg_executing_command">Executing FFmpeg command</string>
-    <string name="ffmpeg_extract_audio">Extract Audio</string>
-    <string name="ffmpeg_extract_audio_desc">Extract audio track from video</string>
-    <string name="ffmpeg_get_info_failed">Failed to get video information</string>
-    <string name="ffmpeg_input_placeholder">Input file path or URL</string>
-    <string name="ffmpeg_video_compression">Video Compression</string>
-    <string name="ffmpeg_video_compression_desc">Compress video to reduce file size</string>
-    <string name="ffmpeg_video_info">Video Information</string>
-    <string name="ffmpeg_video_info_desc">Get detailed video file information</string>
-    <string name="ffmpeg_video_output_placeholder">Output file path (optional)</string>
-    <string name="ffmpeg_video_transcode">Video Transcoding</string>
-    <string name="ffmpeg_video_conversion_desc">Convert video to different format</string>
-    <string name="ffmpeg_video_trim">Video Trimming</string>
-    <string name="ffmpeg_video_trim_desc">Trim video to specific duration</string>
-    <string name="ffmpeg_view_more_info">View More Information</string>
     <string name="start_comprehensive_test">Start Comprehensive Test</string>
     <string name="terminal_no_n">No (N)</string>
     <string name="terminal_send_custom_input">Send Custom Input</string>
@@ -3060,7 +3006,6 @@
     <string name="import_key_suffix">Import key %1$s</string>
     <string name="custom_parameters">Custom Parameters</string>
     <string name="filediff_tool_result">Tool execution result</string>
-    <string name="ffmpeg_use_template">Use this template</string>
     <string name="filelist_go_back">Go back to parent directory</string>
 
     <!-- Chat Components -->
@@ -3949,7 +3894,6 @@
     <string name="screen_title_ui_debugger">UI Debugger</string>
     <string name="screen_title_shell_executor">Shell Executor</string>
     <string name="screen_title_logcat">Log Viewer</string>
-    <string name="screen_title_ffmpeg_toolbox">FFmpeg Toolbox</string>
     <string name="screen_title_markdown_demo">Streaming Markdown Demo</string>
     <string name="screen_title_tool_tester">Tool Testing Center</string>
     <string name="screen_title_text_to_speech">Text to Speech</string>
@@ -5161,18 +5105,6 @@
     <string name="default_assist_expand">Expand</string>
 
     <!-- FFmpeg Toolbox -->
-    <string name="ffmpeg_param_input">-i: Input file</string>
-    <string name="ffmpeg_param_video_codec">-c:v: Video codec</string>
-    <string name="ffmpeg_param_audio_codec">-c:a: Audio codec</string>
-    <string name="ffmpeg_param_video_bitrate">-b:v: Video bitrate</string>
-    <string name="ffmpeg_param_audio_bitrate">-b:a: Audio bitrate</string>
-    <string name="ffmpeg_param_resolution">-s: Resolution</string>
-    <string name="ffmpeg_param_framerate">-r: Frame rate</string>
-    <string name="ffmpeg_command_success">Command executed successfully</string>
-    <string name="ffmpeg_command_failed">Command execution failed</string>
-    <string name="ffmpeg_command_label">Command: %1$s</string>
-    <string name="ffmpeg_return_code">Return code: %1$s</string>
-    <string name="ffmpeg_processing_time">Processing time: %1$sms</string>
 
     <!-- UI Debugger -->
     <string name="uidebugger_current_interface">Current analysis interface</string>
@@ -5390,9 +5322,6 @@
     <string name="toolreg_set_input_text_desc">Set input text: %1$s</string>
     <string name="toolreg_press_key_desc">Press key: %1$s</string>
     <string name="toolreg_swipe_desc">Swipe: (%1$s,%2$s) -&gt; (%3$s,%4$s)</string>
-    <string name="toolreg_ffmpeg_execute_desc">Execute FFmpeg command: %1$s</string>
-    <string name="toolreg_ffmpeg_info_desc">Get FFmpeg info</string>
-    <string name="toolreg_ffmpeg_convert_desc">Convert video: %1$s → %2$s</string>
 
     <!-- AutoGLM One-Click Configuration -->
     <string name="autoglm_config_name">AutoGLM Configuration</string>

@@ -149,33 +149,6 @@ object ToolGetter {
     }
 
     /**
-     * 获取FFmpeg工具执行器
-     * @param context 应用上下文
-     * @return FFmpeg工具执行器实现（只有标准版本）
-     */
-    fun getFFmpegToolExecutor(context: Context): StandardFFmpegToolExecutor {
-        return StandardFFmpegToolExecutor(context)
-    }
-
-
-    /**
-     * 获取FFmpeg信息工具执行器
-     * @return FFmpeg信息工具执行器实现（只有标准版本）
-     */
-    fun getFFmpegInfoToolExecutor(): StandardFFmpegInfoToolExecutor {
-        return StandardFFmpegInfoToolExecutor()
-    }
-
-    /**
-     * 获取FFmpeg转换工具执行器
-     * @param context 应用上下文
-     * @return FFmpeg转换工具执行器实现（只有标准版本）
-     */
-    fun getFFmpegConvertToolExecutor(context: Context): StandardFFmpegConvertToolExecutor {
-        return StandardFFmpegConvertToolExecutor(context)
-    }
-
-    /**
      * 获取计算器
      * @return 计算器实现（只有标准版本）
      */

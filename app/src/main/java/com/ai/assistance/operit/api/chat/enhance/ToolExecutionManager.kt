@@ -468,7 +468,7 @@ object ToolExecutionManager {
         // 3. 按并行/串行对工具进行分组
         val parallelizableToolNames = setOf(
             "list_files", "read_file", "read_file_part", "read_file_full", "file_exists",
-            "find_files", "file_info", "grep_code", "calculate", "ffmpeg_info",
+            "find_files", "file_info", "grep_code", "calculate",
             "visit_web", "download_file"
         )
         val (parallelInvocations, serialInvocations) = injectedInvocations.partition {

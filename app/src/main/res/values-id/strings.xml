@@ -1669,25 +1669,7 @@
     <string name="control_info">Informasi Kontrol</string>
     <string name="current_activity_title">Aktivitas Saat Ini</string>
     <string name="dimensions">Dimensi: %1$d×%2$dpx</string>
-    <string name="ffmpeg_command">Perintah FFmpeg</string>
     <string name="common_command_templates">Template Perintah Umum</string>
-    <string name="ffmpeg_template_note">Catatan: Saat menggunakan template, ganti input.mp4 dan output.mp4 dengan jalur file sebenarnya</string>
-    <string name="ffmpeg_help">Bantuan FFmpeg</string>
-    <string name="ffmpeg_description">FFmpeg adalah alat pemrosesan audio dan video yang kuat. Di antarmuka ini, Anda dapat langsung menjalankan perintah FFmpeg.</string>
-    <string name="ffmpeg_video_conversion_desc">Konversi video ke format MP4</string>
-    <string name="ffmpeg_video_compression">Kompresi Video</string>
-    <string name="ffmpeg_video_compression_desc">Kompres ukuran file video</string>
-    <string name="ffmpeg_video_trim">Pemotongan Video</string>
-    <string name="ffmpeg_video_trim_desc">Potong segmen spesifik dari video</string>
-    <string name="ffmpeg_extract_audio">Ekstrak Audio</string>
-    <string name="ffmpeg_extract_audio_desc">Ekstrak audio dari video</string>
-    <string name="ffmpeg_create_gif">Pembuatan GIF</string>
-    <string name="ffmpeg_create_gif_desc">Konversi video ke GIF</string>
-    <string name="ffmpeg_input_placeholder">Masukkan perintah FFmpeg, tidak perlu menyertakan awalan \'ffmpeg\'</string>
-    <string name="ffmpeg_common_parameters">Parameter Umum</string>
-    <string name="ffmpeg_get_info_failed">Gagal mendapatkan informasi</string>
-    <string name="ffmpeg_view_more_info">Lihat informasi lebih lanjut</string>
-    <string name="ffmpeg_executing_command">Menjalankan perintah, harap tunggu...</string>
 
     <string name="workspace_description">Menyediakan lingkungan file khusus untuk proyek AI Anda</string>
     <string name="workspace_select_language_type_title">Pilih Jenis Bahasa</string>
@@ -1813,8 +1795,6 @@
     <string name="theme_appbar_content_color_title">Warna Konten Bilah Atas</string>
 
     <string name="ui_debugger_start_float">Mulai Jendela Mengambang</string>
-    <string name="tool_ffmpeg_toolbox">Kotak Peralatan FFmpeg</string>
-    <string name="tool_ffmpeg_toolbox_desc">Alat pemrosesan audio dan video yang kuat, mendukung konversi, pemotongan, penggabungan, dan fungsi lainnya</string>
     <string name="tool_stream_markdown_demo">Demo Markdown Streaming</string>
     <string name="tool_stream_markdown_demo_desc">Demo rendering Markdown streaming berkinerja tinggi, mendukung efek aliran karakter real-time</string>
     <string name="tool_shell_executor">Eksekutor Perintah</string>
@@ -2244,37 +2224,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="terminal_auto_config_failed">Konfigurasi gagal</string>
     <string name="terminal_auto_config_detecting">Sedang mendeteksi lingkungan...</string>
     <string name="terminal_auto_config_applying">Sedang menerapkan konfigurasi...</string>
-    <string name="ffmpeg_toolbox_title">Kotak Peralatan FFmpeg</string>
-    <string name="ffmpeg_input_file">File masukan</string>
-    <string name="ffmpeg_output_file">File keluaran</string>
-    <string name="ffmpeg_select_input">Pilih file masukan</string>
-    <string name="ffmpeg_select_output">Pilih jalur keluaran</string>
-    <string name="ffmpeg_conversion_type">Jenis konversi</string>
-    <string name="ffmpeg_video_conversion">Konversi video</string>
-    <string name="ffmpeg_audio_conversion">Konversi audio</string>
-    <string name="ffmpeg_image_conversion">Konversi gambar</string>
-    <string name="ffmpeg_start_conversion">Mulai konversi</string>
-    <string name="ffmpeg_conversion_progress">Progres konversi</string>
-    <string name="ffmpeg_conversion_completed">Konversi selesai</string>
-    <string name="ffmpeg_conversion_failed">Konversi gagal</string>
-    <string name="ffmpeg_quality_settings">Pengaturan kualitas</string>
-    <string name="ffmpeg_bitrate">Bitrate</string>
-    <string name="ffmpeg_resolution">Resolusi</string>
-    <string name="ffmpeg_frame_rate">Frame rate</string>
-    <string name="ffmpeg_codec">Codec</string>
-    <string name="ffmpeg_advanced_options">Opsi lanjutan</string>
-    <string name="ffmpeg_custom_parameters">Parameter kustom</string>
-    <string name="ffmpeg_preview">Pratinjau</string>
-    <string name="ffmpeg_file_info">Info file</string>
-    <string name="ffmpeg_duration">Durasi</string>
 
-    <string name="ffmpeg_file_size">Ukuran Berkas</string>
-    <string name="ffmpeg_format">Format</string>
-    <string name="ffmpeg_processing">Sedang memproses...</string>
-    <string name="ffmpeg_cancel">Batal</string>
-    <string name="ffmpeg_no_file_selected">Tidak ada berkas yang dipilih</string>
-    <string name="ffmpeg_invalid_file">Format berkas tidak valid</string>
-    <string name="ffmpeg_permission_error">Kesalahan izin, tidak dapat mengakses berkas</string>
     <string name="logcat_title">Penampil Log</string>
     <string name="logcat_start">Mulai Log</string>
     <string name="logcat_stop">Hentikan Log</string>
@@ -2525,10 +2475,6 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="tsinghua_source_error">Kesalahan konfigurasi sumber Tsinghua</string>
     <string name="tsinghua_source_failed">Konfigurasi sumber Tsinghua gagal</string>
     <string name="tsinghua_source_success">Konfigurasi sumber Tsinghua berhasil</string>
-    <string name="ffmpeg_video_info">Informasi video</string>
-    <string name="ffmpeg_video_info_desc">Mendapatkan informasi detail file video</string>
-    <string name="ffmpeg_video_output_placeholder">Jalur file keluaran (opsional)</string>
-    <string name="ffmpeg_video_transcode">Transkode video</string>
     <string name="loading_app_state">Memuat status aplikasi...</string>
     <string name="setup_wizard">Panduan pengaturan</string>
     <string name="setup_wizard_icon_desc">Ikon panduan pengaturan</string>
@@ -3360,7 +3306,6 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="screen_title_ui_debugger">Alat Debug UI</string>
     <string name="screen_title_shell_executor">Eksekutor Perintah</string>
     <string name="screen_title_logcat">Penampil Log</string>
-    <string name="screen_title_ffmpeg_toolbox">Kotak Alat FFmpeg</string>
     <string name="screen_title_markdown_demo">Demo Markdown Streaming</string>
     <string name="screen_title_tool_tester">Pusat Pengujian Alat</string>
     <string name="screen_title_text_to_speech">Teks ke Ucapan</string>
@@ -4694,18 +4639,6 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
 
     <string name="default_assist_collapse">Tutup</string>
     <string name="default_assist_expand">Buka</string>
-    <string name="ffmpeg_param_input">-i: File input</string>
-    <string name="ffmpeg_param_video_codec">-c:v: Codec video</string>
-    <string name="ffmpeg_param_audio_codec">-c:a: Codec audio</string>
-    <string name="ffmpeg_param_video_bitrate">-b:v: Bitrate video</string>
-    <string name="ffmpeg_param_audio_bitrate">-b:a: Bitrate audio</string>
-    <string name="ffmpeg_param_resolution">-s: Resolusi</string>
-    <string name="ffmpeg_param_framerate">-r: Frame rate</string>
-    <string name="ffmpeg_command_success">Perintah berhasil dieksekusi</string>
-    <string name="ffmpeg_command_failed">Perintah gagal dieksekusi</string>
-    <string name="ffmpeg_command_label">Perintah: %1$s</string>
-    <string name="ffmpeg_return_code">Kode kembali: %1$s</string>
-    <string name="ffmpeg_processing_time">Waktu pemrosesan: %1$sms</string>
     <string name="uidebugger_current_interface">Antarmuka analisis saat ini</string>
     <string name="uidebugger_package_name">Nama paket: %1$s</string>
     <string name="uidebugger_close_ui_analysis">Tutup analisis UI</string>
@@ -5124,9 +5057,6 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="toolreg_set_input_text_desc">Atur teks input: %1$s</string>
     <string name="toolreg_press_key_desc">Tekan tombol: %1$s</string>
     <string name="toolreg_swipe_desc">Geser: (%1$s,%2$s) -&gt; (%3$s,%4$s)</string>
-    <string name="toolreg_ffmpeg_execute_desc">Jalankan perintah FFmpeg: %1$s</string>
-    <string name="toolreg_ffmpeg_info_desc">Dapatkan informasi FFmpeg</string>
-    <string name="toolreg_ffmpeg_convert_desc">Konversi video: %1$s → %2$s</string>
     <string name="screen_ocr_capture_failed">Gagal mengambil tangkapan layar</string>
     <string name="screen_ocr_load_failed">Tidak dapat memuat tangkapan layar</string>
     <string name="screen_ocr_selection_too_small">Area pilihan terlalu kecil</string>
@@ -5631,7 +5561,6 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="import_key_suffix">Impor kunci %1$s</string>
     <string name="custom_parameters">Parameter kustom</string>
     <string name="filediff_tool_result">Hasil eksekusi alat</string>
-    <string name="ffmpeg_use_template">Gunakan templat ini</string>
     <string name="filelist_go_back">Kembali ke direktori atas</string>
     <string name="shell_cmd_test">Uji perintah</string>
 

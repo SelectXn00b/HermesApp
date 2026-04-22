@@ -612,8 +612,6 @@
     <string name="tool_terminal_auto_config_desc">Instalar y configurar automáticamente Python, PIP y otras herramientas de desarrollo</string>
     <string name="tool_ui_debugger">Herramienta de depuración de UI</string>
     <string name="tool_ui_debugger_desc">Depurar y analizar elementos de interfaz con búsqueda de elementos y soporte de interacción</string>
-    <string name="tool_ffmpeg_toolbox">Caja de herramientas FFmpeg</string>
-    <string name="tool_ffmpeg_toolbox_desc">Herramienta potente de procesamiento de audio/video con soporte para conversión, recorte, fusión y más</string>
     <string name="tool_stream_markdown_demo">Demo de Markdown en streaming</string>
     <string name="tool_stream_markdown_demo_desc">Demo de renderizado de Markdown en streaming de alto rendimiento con efectos de flujo de caracteres en tiempo real</string>
     <string name="tool_shell_executor">Ejecutor de comandos</string>

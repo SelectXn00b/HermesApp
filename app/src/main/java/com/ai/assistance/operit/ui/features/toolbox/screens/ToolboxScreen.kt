@@ -37,7 +37,6 @@ import com.ai.assistance.operit.plugins.toolbox.ToolboxScriptDefinition
 import com.ai.assistance.operit.plugins.toolbox.ToolboxScriptHookParams
 import com.ai.assistance.operit.plugins.toolbox.ToolboxScriptPluginRegistry
 import com.ai.assistance.operit.ui.features.toolbox.screens.apppermissions.AppPermissionsScreen
-import com.ai.assistance.operit.ui.features.toolbox.screens.ffmpegtoolbox.FFmpegToolboxScreen
 import com.ai.assistance.operit.ui.features.toolbox.screens.filemanager.FileManagerScreen
 import com.ai.assistance.operit.ui.features.toolbox.screens.logcat.LogcatScreen
 import com.ai.assistance.operit.ui.features.toolbox.screens.shellexecutor.ShellExecutorScreen
@@ -88,7 +87,6 @@ fun ToolboxScreen(
         onTerminalSelected: () -> Unit,
         onAppPermissionsSelected: () -> Unit,
         onUIDebuggerSelected: () -> Unit,
-        onFFmpegToolboxSelected: () -> Unit,
         onShellExecutorSelected: () -> Unit,
         onLogcatSelected: () -> Unit,
         onTextToSpeechSelected: () -> Unit,
@@ -190,13 +188,6 @@ fun ToolboxScreen(
                                 description = stringResource(R.string.tool_ui_debugger_desc),
                                 category = ToolCategory.DEVELOPMENT,
                                 onClick = onUIDebuggerSelected
-                        ),
-                        Tool(
-                                name = stringResource(R.string.tool_ffmpeg_toolbox),
-                                icon = Icons.Default.VideoSettings,
-                                description = stringResource(R.string.tool_ffmpeg_toolbox_desc),
-                                category = ToolCategory.DEVELOPMENT,
-                                onClick = onFFmpegToolboxSelected
                         ),
                         Tool(
                                 name = stringResource(R.string.tool_shell_executor),
@@ -582,16 +573,6 @@ fun UIDebuggerToolScreen(navController: NavController) {
         }
 }
 
-/** 显示FFmpeg工具箱屏幕 */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FFmpegToolboxToolScreen(navController: NavController) {
-        CustomScaffold() { paddingValues ->
-                Box(modifier = Modifier.padding(paddingValues)) {
-                        FFmpegToolboxScreen(navController = navController)
-                }
-        }
-}
 
 /** 显示Shell命令执行器屏幕 */
 @OptIn(ExperimentalMaterial3Api::class)

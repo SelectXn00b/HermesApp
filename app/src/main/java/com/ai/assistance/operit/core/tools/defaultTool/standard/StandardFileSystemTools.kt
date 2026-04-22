@@ -45,7 +45,6 @@ import com.ai.assistance.operit.util.PathMapper
 import com.ai.assistance.operit.util.ImagePoolManager
 import com.ai.assistance.operit.util.MediaPoolManager
 import com.ai.assistance.operit.util.HttpMultiPartDownloader
-import com.ai.assistance.operit.util.FFmpegUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -1645,22 +1644,11 @@ open class StandardFileSystemTools(protected val context: Context) {
                 }
 
                 val file = File(path)
-                val mediaInfo = FFmpegUtil.getMediaInfo(path)
                 val infoText = buildString {
                     appendLine("Audio file info:")
                     appendLine("- path: $path")
                     appendLine("- size_bytes: ${file.length()}")
                     appendLine("- extension: $fileExt")
-                    if (mediaInfo != null) {
-                        appendLine("- format: ${mediaInfo.format}")
-                        appendLine("- duration: ${mediaInfo.duration}")
-                        appendLine("- bitrate: ${mediaInfo.bitrate}")
-                        val streams = mediaInfo.streams
-                        if (!streams.isNullOrEmpty()) {
-                            val audioStreams = streams.filter { it.type.equals("audio", ignoreCase = true) }
-                            appendLine("- audio_streams: ${audioStreams.size}")
-                        }
-                    }
                 }.trim()
 
                 ToolResult(
@@ -1731,24 +1719,11 @@ open class StandardFileSystemTools(protected val context: Context) {
                 }
 
                 val file = File(path)
-                val mediaInfo = FFmpegUtil.getMediaInfo(path)
                 val infoText = buildString {
                     appendLine("Video file info:")
                     appendLine("- path: $path")
                     appendLine("- size_bytes: ${file.length()}")
                     appendLine("- extension: $fileExt")
-                    if (mediaInfo != null) {
-                        appendLine("- format: ${mediaInfo.format}")
-                        appendLine("- duration: ${mediaInfo.duration}")
-                        appendLine("- bitrate: ${mediaInfo.bitrate}")
-                        val streams = mediaInfo.streams
-                        if (!streams.isNullOrEmpty()) {
-                            val videoStreams = streams.filter { it.type.equals("video", ignoreCase = true) }
-                            val audioStreams = streams.filter { it.type.equals("audio", ignoreCase = true) }
-                            appendLine("- video_streams: ${videoStreams.size}")
-                            appendLine("- audio_streams: ${audioStreams.size}")
-                        }
-                    }
                 }.trim()
 
                 ToolResult(

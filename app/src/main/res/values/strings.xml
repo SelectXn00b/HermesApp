@@ -1840,27 +1840,9 @@
     <string name="control_info">控件信息</string>
     <string name="current_activity_title">当前Activity</string>
     <string name="dimensions">尺寸: %1$d×%2$dpx</string>
-    <string name="ffmpeg_command">FFmpeg命令</string>
     <string name="common_command_templates">常用命令模板</string>
-    <string name="ffmpeg_template_note">注意: 使用模板时，请将input.mp4和output.mp4替换为实际文件路径</string>
-    <string name="ffmpeg_help">FFmpeg帮助</string>
-    <string name="ffmpeg_description">FFmpeg是一个强大的音视频处理工具。在此界面，您可以直接执行FFmpeg命令。</string>
     
     <!-- FFmpeg Command Templates -->
-    <string name="ffmpeg_video_conversion_desc">将视频转换为MP4格式</string>
-    <string name="ffmpeg_video_compression">视频压缩</string>
-    <string name="ffmpeg_video_compression_desc">压缩视频文件大小</string>
-    <string name="ffmpeg_video_trim">视频裁剪</string>
-    <string name="ffmpeg_video_trim_desc">裁剪视频的特定片段</string>
-    <string name="ffmpeg_extract_audio">提取音频</string>
-    <string name="ffmpeg_extract_audio_desc">从视频中提取音频</string>
-    <string name="ffmpeg_create_gif">GIF制作</string>
-        <string name="ffmpeg_create_gif_desc">将视频转换为GIF</string>
-    <string name="ffmpeg_input_placeholder">输入FFmpeg命令，不需要包含\'ffmpeg\'前缀</string>
-    <string name="ffmpeg_common_parameters">常用参数</string>
-    <string name="ffmpeg_get_info_failed">获取信息失败</string>
-    <string name="ffmpeg_view_more_info">查看更多信息</string>
-    <string name="ffmpeg_executing_command">正在执行命令，请稍候...</string>
     
     <!-- Tool Tester Screen -->
     <string name="ai_tools_availability_test">AI工具可用性测试</string>
@@ -2001,8 +1983,6 @@
     <string name="ui_debugger_description">点击右下角的按钮启动悬浮窗进行UI调试</string>
     <string name="ui_debugger_launch_floating">启动悬浮窗</string>
     <string name="ui_debugger_start_float">启动悬浮窗</string>
-    <string name="tool_ffmpeg_toolbox">FFmpeg工具箱</string>
-    <string name="tool_ffmpeg_toolbox_desc">强大的音视频处理工具，支持转换、裁剪、合并等功能</string>
     <string name="tool_stream_markdown_demo">流式Markdown演示</string>
     <string name="tool_stream_markdown_demo_desc">高性能流式Markdown渲染演示，支持实时字符流动效果</string>
     <string name="tool_shell_executor">命令执行器</string>
@@ -2422,36 +2402,6 @@
     <string name="terminal_auto_config_applying">正在应用配置...</string>
     
     <!-- FFmpeg Toolbox -->
-    <string name="ffmpeg_toolbox_title">FFmpeg工具箱</string>
-    <string name="ffmpeg_input_file">输入文件</string>
-    <string name="ffmpeg_output_file">输出文件</string>
-    <string name="ffmpeg_select_input">选择输入文件</string>
-    <string name="ffmpeg_select_output">选择输出路径</string>
-    <string name="ffmpeg_conversion_type">转换类型</string>
-    <string name="ffmpeg_video_conversion">视频转换</string>
-    <string name="ffmpeg_audio_conversion">音频转换</string>
-    <string name="ffmpeg_image_conversion">图片转换</string>
-    <string name="ffmpeg_start_conversion">开始转换</string>
-    <string name="ffmpeg_conversion_progress">转换进度</string>
-    <string name="ffmpeg_conversion_completed">转换完成</string>
-    <string name="ffmpeg_conversion_failed">转换失败</string>
-    <string name="ffmpeg_quality_settings">质量设置</string>
-    <string name="ffmpeg_bitrate">比特率</string>
-    <string name="ffmpeg_resolution">分辨率</string>
-    <string name="ffmpeg_frame_rate">帧率</string>
-    <string name="ffmpeg_codec">编解码器</string>
-    <string name="ffmpeg_advanced_options">高级选项</string>
-    <string name="ffmpeg_custom_parameters">自定义参数</string>
-    <string name="ffmpeg_preview">预览</string>
-    <string name="ffmpeg_file_info">文件信息</string>
-    <string name="ffmpeg_duration">时长</string>
-    <string name="ffmpeg_file_size">文件大小</string>
-    <string name="ffmpeg_format">格式</string>
-    <string name="ffmpeg_processing">正在处理...</string>
-    <string name="ffmpeg_cancel">取消</string>
-    <string name="ffmpeg_no_file_selected">未选择文件</string>
-    <string name="ffmpeg_invalid_file">无效的文件格式</string>
-    <string name="ffmpeg_permission_error">权限错误，无法访问文件</string>
     
     <!-- Log Viewer (Logcat) -->
     <string name="logcat_title">日志查看器</string>
@@ -2905,10 +2855,6 @@
     <string name="tsinghua_source_error">清华源配置错误</string>
     <string name="tsinghua_source_failed">清华源配置失败</string>
     <string name="tsinghua_source_success">清华源配置成功</string>
-    <string name="ffmpeg_video_info">视频信息</string>
-    <string name="ffmpeg_video_info_desc">获取详细的视频文件信息</string>
-    <string name="ffmpeg_video_output_placeholder">输出文件路径(可选)</string>
-    <string name="ffmpeg_video_transcode">视频转码</string>
     
     <!-- ShizukuDemoScreen 字符串 -->
     <string name="loading_app_state">正在加载应用状态...</string>
@@ -3836,7 +3782,6 @@
     <string name="screen_title_ui_debugger">UI调试工具</string>
     <string name="screen_title_shell_executor">命令执行器</string>
     <string name="screen_title_logcat">日志查看器</string>
-    <string name="screen_title_ffmpeg_toolbox">FFmpeg工具箱</string>
     <string name="screen_title_markdown_demo">流式Markdown演示</string>
     <string name="screen_title_tool_tester">工具测试中心</string>
     <string name="screen_title_text_to_speech">文本转语音</string>
@@ -5252,18 +5197,6 @@
     <string name="default_assist_expand">展开</string>
 
     <!-- FFmpeg Toolbox -->
-    <string name="ffmpeg_param_input">-i: 输入文件</string>
-    <string name="ffmpeg_param_video_codec">-c:v: 视频编码器</string>
-    <string name="ffmpeg_param_audio_codec">-c:a: 音频编码器</string>
-    <string name="ffmpeg_param_video_bitrate">-b:v: 视频比特率</string>
-    <string name="ffmpeg_param_audio_bitrate">-b:a: 音频比特率</string>
-    <string name="ffmpeg_param_resolution">-s: 分辨率</string>
-    <string name="ffmpeg_param_framerate">-r: 帧率</string>
-    <string name="ffmpeg_command_success">命令执行成功</string>
-    <string name="ffmpeg_command_failed">命令执行失败</string>
-    <string name="ffmpeg_command_label">命令: %1$s</string>
-    <string name="ffmpeg_return_code">返回码: %1$s</string>
-    <string name="ffmpeg_processing_time">处理时间: %1$sms</string>
 
     <!-- UI Debugger -->
     <string name="uidebugger_current_interface">当前分析界面</string>
@@ -5536,9 +5469,6 @@
     <string name="toolreg_set_input_text_desc">设置输入文本: %1$s</string>
     <string name="toolreg_press_key_desc">按下按键: %1$s</string>
     <string name="toolreg_swipe_desc">滑动: (%1$s,%2$s) -&gt; (%3$s,%4$s)</string>
-    <string name="toolreg_ffmpeg_execute_desc">执行FFmpeg命令: %1$s</string>
-    <string name="toolreg_ffmpeg_info_desc">获取FFmpeg信息</string>
-    <string name="toolreg_ffmpeg_convert_desc">转换视频: %1$s → %2$s</string>
 
     <string name="screen_ocr_capture_failed">截图失败</string>
     <string name="screen_ocr_load_failed">无法加载截图</string>
@@ -6096,7 +6026,6 @@
     <string name="import_key_suffix">导入密钥 %1$s</string>
     <string name="custom_parameters">自定义参数</string>
     <string name="filediff_tool_result">工具执行结果</string>
-    <string name="ffmpeg_use_template">使用此模板</string>
     <string name="filelist_go_back">返回上级目录</string>
 
     <!-- Shell Executor Preset Commands -->

@@ -943,26 +943,7 @@ fun getJsToolsDefinition(): String {
             },
             // 计算功能
             calc: (expression) => toolCall("calculate", { expression }),
-            
-            // FFmpeg工具
-            FFmpeg: {
-                // 执行自定义FFmpeg命令
-                execute: (command) => toolCall("ffmpeg_execute", { command }),
-                
-                // 获取FFmpeg系统信息
-                info: () => toolCall("ffmpeg_info"),
-                
-                // 转换视频文件
-                convert: (inputPath, outputPath, options = {}) => {
-                    const params = {
-                        input_path: inputPath,
-                        output_path: outputPath,
-                        ...options
-                    };
-                    return toolCall("ffmpeg_convert", params);
-                }
-            },
-            
+
             // 工作流工具
             Workflow: {
                 // 获取所有工作流
