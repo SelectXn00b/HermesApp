@@ -435,3 +435,107 @@ class BatchRunner(
     }
 
 }
+
+// ── Module-level aligned with Python batch_runner.py ──────────────────────
+
+/** Per-worker config captured on worker init.  Android-stub: unused. */
+val _WORKER_CONFIG: MutableMap<String, Any?> = mutableMapOf()
+
+/** Set of all tool names that the batch runner currently supports. */
+val ALL_POSSIBLE_TOOLS: Set<String> = emptySet()
+
+/** Default counter shape used when initialising per-tool stats rows. */
+val DEFAULT_TOOL_STATS: Map<String, Int> = mapOf(
+    "count" to 0,
+    "success" to 0,
+    "failure" to 0
+)
+
+/**
+ * Normalise a tool_stats dict so every row has count/success/failure keys.
+ * Missing keys are filled with 0; extra keys are preserved.
+ */
+fun _normalizeToolStats(
+    toolStats: Map<String, Map<String, Int>>?
+): Map<String, Map<String, Int>> {
+    if (toolStats.isNullOrEmpty()) return emptyMap()
+    val out = mutableMapOf<String, Map<String, Int>>()
+    for ((tool, row) in toolStats) {
+        val merged = mutableMapOf<String, Int>()
+        for ((k, v) in DEFAULT_TOOL_STATS) merged[k] = v
+        for ((k, v) in row) merged[k] = v
+        out[tool] = merged
+    }
+    return out
+}
+
+/** Normalise a tool_error_counts dict — replaces null with 0 and drops empties. */
+fun _normalizeToolErrorCounts(toolErrorCounts: Map<String, Int?>?): Map<String, Int> {
+    if (toolErrorCounts.isNullOrEmpty()) return emptyMap()
+    val out = mutableMapOf<String, Int>()
+    for ((tool, count) in toolErrorCounts) {
+        out[tool] = count ?: 0
+    }
+    return out
+}
+
+/**
+ * Walk a conversation and build a per-tool stats table
+ * (count/success/failure per tool name).  Android-stub returns empty map.
+ */
+fun _extractToolStats(
+    messages: List<Map<String, Any?>>
+): Map<String, Map<String, Int>> {
+    return emptyMap()
+}
+
+/**
+ * Summarise reasoning coverage for an assistant turn trace.
+ * Returns counts for totalAssistantTurns / turnsWithReasoning / turnsWithoutReasoning.
+ */
+fun _extractReasoningStats(
+    messages: List<Map<String, Any?>>
+): Map<String, Int> {
+    var total = 0
+    var withReasoning = 0
+    for (msg in messages) {
+        if (msg["role"] != "assistant") continue
+        total++
+        val content = msg["content"] as? String ?: ""
+        val hasScratchpad = "<REASONING_SCRATCHPAD>" in content
+        val hasNative = (msg["reasoning"] as? String)?.isNotEmpty() == true
+        if (hasScratchpad || hasNative) withReasoning++
+    }
+    return mapOf(
+        "totalAssistantTurns" to total,
+        "turnsWithReasoning" to withReasoning,
+        "turnsWithoutReasoning" to (total - withReasoning)
+    )
+}
+
+/**
+ * Process a single prompt through the agent loop.  Android-stub returns null;
+ * the real batch runner calls into an HTTP agent in the worker thread.
+ */
+fun _processSinglePrompt(
+    promptIndex: Int,
+    promptData: Map<String, Any?>,
+    batchNum: Int,
+    config: Map<String, Any?>
+): List<Map<String, Any?>>? = null
+
+/**
+ * Multiprocessing worker entry point — Python top-level callable so it can
+ * be pickled into a child process.  Android has no multiprocessing: stub.
+ */
+fun _processBatchWorker(args: List<Any?>): Map<String, Any?> = emptyMap()
+
+/** CLI main — Android keeps the symbol only so Python alignment matches. */
+fun main(
+    datasetFile: String = "",
+    batchSize: Int = 1,
+    runName: String = "run",
+    numWorkers: Int = 1
+) {
+    batchRunnerLogger.info("batch_runner.main: Android stub — use BatchRunner class directly")
+}
