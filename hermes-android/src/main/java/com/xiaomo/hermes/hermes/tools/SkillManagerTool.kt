@@ -11,10 +11,8 @@ package com.xiaomo.hermes.hermes.tools
 
 import java.io.File
 
-val SKILLS_DIR: File = File("")  // get_hermes_home() / "skills" — resolved elsewhere on Android
+private val SKILL_MANAGER_SKILLS_DIR: File = File("")  // get_hermes_home() / "skills" — resolved elsewhere on Android
 
-const val MAX_NAME_LENGTH: Int = 64
-const val MAX_DESCRIPTION_LENGTH: Int = 1024
 const val MAX_SKILL_CONTENT_CHARS: Int = 100_000
 const val MAX_SKILL_FILE_BYTES: Int = 1_048_576
 
@@ -39,7 +37,7 @@ private fun _validateContentSize(content: String, label: String = "SKILL.md"): S
     if (content.length <= MAX_SKILL_CONTENT_CHARS) null
     else "$label exceeds $MAX_SKILL_CONTENT_CHARS chars"
 
-private fun _resolveSkillDir(name: String, category: String? = null): File = File(SKILLS_DIR, name)
+private fun _resolveSkillDir(name: String, category: String? = null): File = File(SKILL_MANAGER_SKILLS_DIR, name)
 
 private fun _findSkill(name: String): Map<String, Any>? = null
 
