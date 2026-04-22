@@ -61,13 +61,12 @@ private fun _heredocMarker(content: String): String {
     return "HERMES_PERSIST_${UUID.randomUUID().toString().replace("-", "").substring(0, 8)}"
 }
 
-private fun _shlexQuote(s: String): String = "'" + s.replace("'", "'\"'\"'") + "'"
-
 private fun _writeToSandbox(content: String, remotePath: String, env: BaseEnvironment): Boolean {
     val marker = _heredocMarker(content)
     val storageDir = java.io.File(remotePath).parent ?: "/"
+    val quote = { s: String -> "'" + s.replace("'", "'\"'\"'") + "'" }
     val cmd = (
-        "mkdir -p ${_shlexQuote(storageDir)} && cat > ${_shlexQuote(remotePath)} << '$marker'\n" +
+        "mkdir -p ${quote(storageDir)} && cat > ${quote(remotePath)} << '$marker'\n" +
         "$content\n" +
         marker
     )
