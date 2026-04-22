@@ -1,51 +1,45 @@
 package com.xiaomo.hermes.hermes.tools
 
 /**
- * Binary file extensions that should not be read as text.
+ * Binary file extensions to skip for text-based operations.
  * Ported from binary_extensions.py
+ *
+ * These files can't be meaningfully compared as text and are often large.
  */
-object BinaryExtensions {
 
-    val BINARY_EXTENSIONS: Set<String> = setOf(
-        // Images
-        ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".tif", ".webp",
-        ".ico", ".svg", ".eps", ".psd", ".ai", ".raw", ".cr2", ".nef",
-        // Audio
-        ".mp3", ".wav", ".ogg", ".flac", ".aac", ".wma", ".m4a", ".opus",
-        // Video
-        ".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v",
-        ".mpg", ".mpeg", ".3gp",
-        // Archives
-        ".zip", ".tar", ".gz", ".bz2", ".xz", ".7z", ".rar", ".jar",
-        ".war", ".ear", ".deb", ".rpm", ".dmg", ".iso", ".img",
-        // Executables / compiled
-        ".exe", ".dll", ".so", ".dylib", ".o", ".a", ".lib", ".pyc",
-        ".pyo", ".class", ".wasm",
-        // Fonts
-        ".ttf", ".otf", ".woff", ".woff2", ".eot",
-        // Documents (binary formats)
-        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-        ".odt", ".ods", ".odp",
-        // Databases
-        ".db", ".sqlite", ".sqlite3", ".mdb", ".accdb",
-        // Other binary
-        ".bin", ".dat", ".data", ".sav", ".plist", ".pb", ".onnx",
-        ".ttf", ".cert", ".cer", ".der", ".p12", ".pfx", ".jks",
-        ".keystore")
+val BINARY_EXTENSIONS: Set<String> = setOf(
+    // Images
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".webp", ".tiff", ".tif",
+    // Videos
+    ".mp4", ".mov", ".avi", ".mkv", ".webm", ".wmv", ".flv", ".m4v", ".mpeg", ".mpg",
+    // Audio
+    ".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a", ".wma", ".aiff", ".opus",
+    // Archives
+    ".zip", ".tar", ".gz", ".bz2", ".7z", ".rar", ".xz", ".z", ".tgz", ".iso",
+    // Executables/binaries
+    ".exe", ".dll", ".so", ".dylib", ".bin", ".o", ".a", ".obj", ".lib",
+    ".app", ".msi", ".deb", ".rpm",
+    // Documents (exclude .pdf — text-based, agents may want to inspect)
+    ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".odt", ".ods", ".odp",
+    // Fonts
+    ".ttf", ".otf", ".woff", ".woff2", ".eot",
+    // Bytecode / VM artifacts
+    ".pyc", ".pyo", ".class", ".jar", ".war", ".ear", ".node", ".wasm", ".rlib",
+    // Database files
+    ".sqlite", ".sqlite3", ".db", ".mdb", ".idx",
+    // Design / 3D
+    ".psd", ".ai", ".eps", ".sketch", ".fig", ".xd", ".blend", ".3ds", ".max",
+    // Flash
+    ".swf", ".fla",
+    // Lock/profiling data
+    ".lockb", ".dat", ".data")
 
-    fun isBinaryExtension(filename: String): Boolean {
-        val lower = filename.lowercase()
-        return BINARY_EXTENSIONS.any { lower.endsWith(it) }
-    }
-
-    fun isBinaryContent(bytes: ByteArray): Boolean {
-        // Heuristic: check for null bytes in the first 8KB
-        val sampleSize = minOf(bytes.size, 8192)
-        for (i in 0 until sampleSize) {
-            if (bytes[i] == 0.toByte()) return true
-        }
-        return false
-    }
-
-
+/**
+ * Check if a file path has a binary extension. Pure string check, no I/O.
+ */
+fun hasBinaryExtension(path: String): Boolean {
+    val dot = path.lastIndexOf(".")
+    if (dot == -1) return false
+    return path.substring(dot).lowercase() in BINARY_EXTENSIONS
 }

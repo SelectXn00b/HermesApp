@@ -235,7 +235,7 @@ class ShellFileOperations(
         val file = File(expanded).let { if (it.isAbsolute) it else File(cwd, expanded) }
         if (!file.exists()) return _suggestSimilarFiles(path)
         if (!file.isFile) return ReadResult(error = "Not a file: $path")
-        if (BinaryExtensions.isBinaryExtension(path)) {
+        if (hasBinaryExtension(path)) {
             return ReadResult(isBinary = true, error = "File is binary: $path")
         }
 
@@ -271,7 +271,7 @@ class ShellFileOperations(
         val file = File(expanded).let { if (it.isAbsolute) it else File(cwd, expanded) }
         if (!file.exists()) return ReadResult(error = "File not found: $path")
         if (!file.isFile) return ReadResult(error = "Not a file: $path")
-        if (BinaryExtensions.isBinaryExtension(path)) return ReadResult(isBinary = true, error = "File is binary: $path")
+        if (hasBinaryExtension(path)) return ReadResult(isBinary = true, error = "File is binary: $path")
 
         return try {
             val content = file.readText(Charsets.UTF_8)
@@ -394,7 +394,7 @@ class ShellFileOperations(
             else baseDir.walkTopDown()
                 .filter { it.isFile }
                 .filter { f -> globRegex == null || f.name.matches(globRegex) }
-                .filter { !BinaryExtensions.isBinaryExtension(it.name) }
+                .filter { !hasBinaryExtension(it.name) }
                 .take(1000)
                 .toList()
 
@@ -468,7 +468,7 @@ class ShellFileOperations(
     /** Check if a file is likely binary. */
     fun _isLikelyBinary(path: String, contentSample: String? = null): Boolean {
         val ext = "." + File(path).extension.lowercase()
-        if (BinaryExtensions.isBinaryExtension(path)) return true
+        if (hasBinaryExtension(path)) return true
         if (contentSample != null) {
             val sample = contentSample.take(1000)
             val nonPrintable = sample.count { it.code < 32 && it !in "\n\r\t" }
