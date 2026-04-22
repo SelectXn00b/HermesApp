@@ -276,7 +276,90 @@ class TelegramAdapter(
         if (_dedup.isDuplicate(messageId)) return
 
         // Determine message type and text
-        val (text, messageType, mediaUrls, mediaTypes) = _parseTelegramMessage(message)
+        var text: String
+        var messageType: MessageType
+        var mediaUrls: List<String> = emptyList()
+        var mediaTypes: List<String> = emptyList()
+        when {
+            message.has("text") -> {
+                text = message.getString("text")
+                messageType = if (text.startsWith("/")) MessageType.COMMAND else MessageType.TEXT
+            }
+            message.has("photo") -> {
+                val photos = message.getJSONArray("photo")
+                val largest = photos.getJSONObject(photos.length() - 1)
+                val fileId = largest.getString("file_id")
+                text = message.optString("caption", "")
+                messageType = MessageType.PHOTO
+                mediaUrls = listOf(fileId)
+                mediaTypes = listOf("image/jpeg")
+            }
+            message.has("document") -> {
+                val doc = message.getJSONObject("document")
+                val fileId = doc.getString("file_id")
+                val mimeType = doc.optString("mime_type", "application/octet-stream")
+                text = message.optString("caption", "")
+                messageType = MessageType.DOCUMENT
+                mediaUrls = listOf(fileId)
+                mediaTypes = listOf(mimeType)
+            }
+            message.has("audio") -> {
+                val audio = message.getJSONObject("audio")
+                val fileId = audio.getString("file_id")
+                text = message.optString("caption", "")
+                messageType = MessageType.AUDIO
+                mediaUrls = listOf(fileId)
+                mediaTypes = listOf("audio/mpeg")
+            }
+            message.has("voice") -> {
+                val voice = message.getJSONObject("voice")
+                val fileId = voice.getString("file_id")
+                text = ""
+                messageType = MessageType.AUDIO
+                mediaUrls = listOf(fileId)
+                mediaTypes = listOf("audio/ogg")
+            }
+            message.has("video") -> {
+                val video = message.getJSONObject("video")
+                val fileId = video.getString("file_id")
+                text = message.optString("caption", "")
+                messageType = MessageType.VIDEO
+                mediaUrls = listOf(fileId)
+                mediaTypes = listOf("video/mp4")
+            }
+            message.has("sticker") -> {
+                val sticker = message.getJSONObject("sticker")
+                val fileId = sticker.getString("file_id")
+                text = sticker.optString("emoji", "")
+                messageType = MessageType.STICKER
+                mediaUrls = listOf(fileId)
+                mediaTypes = listOf("image/webp")
+            }
+            message.has("location") -> {
+                val loc = message.getJSONObject("location")
+                val lat = loc.getDouble("latitude")
+                val lon = loc.getDouble("longitude")
+                text = "Location: $lat, $lon"
+                messageType = MessageType.LOCATION
+            }
+            message.has("contact") -> {
+                val contact = message.getJSONObject("contact")
+                val name = contact.getString("first_name")
+                val phone = contact.getString("phone_number")
+                text = "Contact: $name ($phone)"
+                messageType = MessageType.CONTACT
+            }
+            message.has("poll") -> {
+                val poll = message.getJSONObject("poll")
+                val question = poll.getString("question")
+                text = "Poll: $question"
+                messageType = MessageType.POLL
+            }
+            else -> {
+                text = "[Unsupported message]"
+                messageType = MessageType.UNKNOWN
+            }
+        }
 
         // Build source
         val source = buildSource(
@@ -309,82 +392,6 @@ class TelegramAdapter(
             contactPhone = message.optJSONObject("contact")?.optString("phone_number"))
 
         _queueForProcessing(chatId, event)
-    }
-
-    /**
-     * Parse a Telegram message into text, type, and media.
-     */
-    private fun _parseTelegramMessage(message: JSONObject): Quadruple<String, MessageType, List<String>, List<String>> {
-        return when {
-            message.has("text") -> {
-                val text = message.getString("text")
-                if (text.startsWith("/")) {
-                    Quadruple(text, MessageType.COMMAND, emptyList(), emptyList())
-                } else {
-                    Quadruple(text, MessageType.TEXT, emptyList(), emptyList())
-                }
-            }
-            message.has("photo") -> {
-                val photos = message.getJSONArray("photo")
-                val largest = photos.getJSONObject(photos.length() - 1)
-                val fileId = largest.getString("file_id")
-                val caption = message.optString("caption", "")
-                Quadruple(caption, MessageType.PHOTO, listOf(fileId), listOf("image/jpeg"))
-            }
-            message.has("document") -> {
-                val doc = message.getJSONObject("document")
-                val fileId = doc.getString("file_id")
-                val fileName = doc.optString("file_name", "document")
-                val mimeType = doc.optString("mime_type", "application/octet-stream")
-                val caption = message.optString("caption", "")
-                Quadruple(caption, MessageType.DOCUMENT, listOf(fileId), listOf(mimeType))
-            }
-            message.has("audio") -> {
-                val audio = message.getJSONObject("audio")
-                val fileId = audio.getString("file_id")
-                val caption = message.optString("caption", "")
-                Quadruple(caption, MessageType.AUDIO, listOf(fileId), listOf("audio/mpeg"))
-            }
-            message.has("voice") -> {
-                val voice = message.getJSONObject("voice")
-                val fileId = voice.getString("file_id")
-                Quadruple("", MessageType.AUDIO, listOf(fileId), listOf("audio/ogg"))
-            }
-            message.has("video") -> {
-                val video = message.getJSONObject("video")
-                val fileId = video.getString("file_id")
-                val caption = message.optString("caption", "")
-                Quadruple(caption, MessageType.VIDEO, listOf(fileId), listOf("video/mp4"))
-            }
-            message.has("sticker") -> {
-                val sticker = message.getJSONObject("sticker")
-                val emoji = sticker.optString("emoji", "")
-                val fileId = sticker.getString("file_id")
-                Quadruple(emoji, MessageType.STICKER, listOf(fileId), listOf("image/webp"))
-            }
-            message.has("location") -> {
-                val loc = message.getJSONObject("location")
-                val lat = loc.getDouble("latitude")
-                val lon = loc.getDouble("longitude")
-                Quadruple("Location: $lat, $lon", MessageType.LOCATION, emptyList(), emptyList())
-            }
-            message.has("contact") -> {
-                val contact = message.getJSONObject("contact")
-                val name = contact.getString("first_name")
-                val phone = contact.getString("phone_number")
-                Quadruple("Contact: $name ($phone)", MessageType.CONTACT, emptyList(), emptyList())
-            }
-            message.has("poll") -> {
-                val poll = message.getJSONObject("poll")
-                val question = poll.getString("question")
-                val options = poll.getJSONArray("options")
-                val optionTexts = (0 until options.length()).map { options.getJSONObject(it).getString("text") }
-                Quadruple("Poll: $question", MessageType.POLL, emptyList(), emptyList())
-            }
-            else -> {
-                Quadruple("[Unsupported message]", MessageType.UNKNOWN, emptyList(), emptyList())
-            }
-        }
     }
 
     /**
@@ -715,12 +722,3 @@ class TelegramAdapter(
      */
     val botUserId: Long get() = _botUserId
 }
-
-/**
- * Helper data class for returning four values.
- */
-private data class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D)
