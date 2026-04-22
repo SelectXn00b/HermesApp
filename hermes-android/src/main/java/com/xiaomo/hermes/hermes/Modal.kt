@@ -1,6 +1,8 @@
 package com.xiaomo.hermes.hermes
 
 import android.util.Log
+import com.xiaomo.hermes.hermes.tools.environments._loadJsonStore
+import com.xiaomo.hermes.hermes.tools.environments._saveJsonStore
 
 /**
  * Modal - Ported from ../hermes-agent/tools/environments/modal.py
@@ -130,3 +132,85 @@ class ModalEnvironment(
         Log.d(_TAG, "cleanup: terminating Modal sandbox (server-side stub)")
     }
 }
+
+// ── Module-level aligned with Python tools/environments/modal.py ──────────
+
+/** Path to persistent snapshot store under HERMES_HOME. */
+val _SNAPSHOT_STORE: java.io.File by lazy {
+    val envVal = (System.getenv("HERMES_HOME") ?: "").trim()
+    val home = if (envVal.isNotEmpty()) java.io.File(envVal)
+    else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+    java.io.File(home, "modal_snapshots.json")
+}
+
+/** Namespace tag used to distinguish direct-mode snapshots from legacy rows. */
+const val _DIRECT_SNAPSHOT_NAMESPACE: String = "direct"
+
+/** Load the persisted snapshot map from disk (mutable for editors). */
+@Suppress("UNCHECKED_CAST")
+fun _loadSnapshots(): MutableMap<String, Any?> {
+    return _loadJsonStore(_SNAPSHOT_STORE)
+}
+
+/** Persist the snapshot map back to disk. */
+fun _saveSnapshots(data: Map<String, Any?>) {
+    _saveJsonStore(_SNAPSHOT_STORE, data)
+}
+
+/** Namespaced snapshot key: `direct:<task_id>`. */
+fun _directSnapshotKey(taskId: String): String = "${_DIRECT_SNAPSHOT_NAMESPACE}:$taskId"
+
+/**
+ * Return (snapshotId, isLegacy) if a restorable snapshot exists for [taskId].
+ * Checks the namespaced key first, then falls back to the legacy bare key.
+ */
+fun _getSnapshotRestoreCandidate(taskId: String): Pair<String?, Boolean> {
+    val snapshots = _loadSnapshots()
+    val key = _directSnapshotKey(taskId)
+    val snapshotId = snapshots[key]
+    if (snapshotId is String && snapshotId.isNotEmpty()) {
+        return Pair(snapshotId, false)
+    }
+    val legacy = snapshots[taskId]
+    if (legacy is String && legacy.isNotEmpty()) {
+        return Pair(legacy, true)
+    }
+    return Pair(null, false)
+}
+
+/**
+ * Record a freshly-taken direct-mode snapshot under the namespaced key,
+ * dropping any legacy entry for the same task id.
+ */
+fun _storeDirectSnapshot(taskId: String, snapshotId: String) {
+    val snapshots = _loadSnapshots()
+    snapshots[_directSnapshotKey(taskId)] = snapshotId
+    snapshots.remove(taskId)
+    _saveSnapshots(snapshots)
+}
+
+/**
+ * Remove snapshot rows for [taskId] (both namespaced and legacy keys).
+ * When [snapshotId] is non-null, only entries whose value matches it
+ * are removed; otherwise all matching rows are deleted.
+ */
+fun _deleteDirectSnapshot(taskId: String, snapshotId: String? = null) {
+    val snapshots = _loadSnapshots()
+    var updated = false
+    for (key in listOf(_directSnapshotKey(taskId), taskId)) {
+        val value = snapshots[key] ?: continue
+        if (snapshotId == null || value == snapshotId) {
+            snapshots.remove(key)
+            updated = true
+        }
+    }
+    if (updated) _saveSnapshots(snapshots)
+}
+
+/**
+ * Convert an image reference or snapshot id into a Modal image descriptor.
+ *
+ * Android-stub: Modal SDK is not available at runtime, so this is a
+ * surface-matching no-op that returns the input unchanged.
+ */
+fun _resolveModalImage(imageSpec: Any?): Any? = imageSpec
