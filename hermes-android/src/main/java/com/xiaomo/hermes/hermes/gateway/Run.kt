@@ -65,9 +65,6 @@ class GatewayRunner(
     /** Mirror bridge. */
     val mirrorBridge = MirrorBridge()
 
-    /** Sticker cache. */
-    val stickerCache = StickerCache(context)
-
     /** Pairing store. */
     val pairingStore = PairingStore()
 
