@@ -445,15 +445,19 @@ private fun translateGeminiResponse(resp: Map<String, Any?>, model: String): Map
         "usage" to usage)
 }
 
-/** Stream chunk type; mirrors Python's `_GeminiStreamChunk`. */
-private typealias _GeminiStreamChunk = Map<String, Any?>
+/** Stream chunk type; mirrors Python's `_GeminiStreamChunk`.
+ *  Nested to avoid redeclaration conflict with GeminiCloudcodeAdapter.kt
+ *  which also ports a `_GeminiStreamChunk` from its own Python file. */
+private object _GeminiNativeTypes {
+    class _GeminiStreamChunk
+}
 
 private fun _makeStreamChunk(
     model: String,
     content: String = "",
     toolCallDelta: Map<String, Any?>? = null,
     finishReason: String? = null,
-    reasoning: String = ""): _GeminiStreamChunk {
+    reasoning: String = ""): Map<String, Any?> {
     val deltaKwargs = mutableMapOf<String, Any?>(
         "role" to "assistant",
         "content" to null,
@@ -520,12 +524,12 @@ private fun _iterSseEvents(lines: Sequence<String>): Sequence<Map<String, Any?>>
 private fun translateStreamEvent(
     event: Map<String, Any?>,
     model: String,
-    toolCallIndices: MutableMap<String, MutableMap<String, Any?>>): List<_GeminiStreamChunk> {
+    toolCallIndices: MutableMap<String, MutableMap<String, Any?>>): List<Map<String, Any?>> {
     val candidates = event["candidates"] as? List<*> ?: return emptyList()
     if (candidates.isEmpty()) return emptyList()
     val cand = (candidates[0] as? Map<String, Any?>) ?: emptyMap()
     val parts = ((cand["content"] as? Map<String, Any?>)?.get("parts") as? List<*>) ?: emptyList<Any?>()
-    val chunks = mutableListOf<_GeminiStreamChunk>()
+    val chunks = mutableListOf<Map<String, Any?>>()
 
     for ((partIndex, part) in parts.withIndex()) {
         if (part !is Map<*, *>) continue
@@ -690,6 +694,19 @@ class GeminiNativeClient(
         // TODO: close underlying HTTP client
     }
 
+    /** Advance a stream iterator with parity to Python's generator pattern. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _advanceStreamIterator(iterator: Iterator<Map<String, Any?>>): Pair<Boolean, Map<String, Any?>?> {
+        if (!iterator.hasNext()) return false to null
+        return true to iterator.next()
+    }
+
+    /** Stream a chat completion. Android: HTTP transport not yet wired. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _streamCompletion(
+        model: String,
+        request: Map<String, Any?>): Sequence<Map<String, Any?>> = emptySequence()
+
     private fun _headers(): Map<String, String> {
         val headers = mutableMapOf(
             "Content-Type" to "application/json",
@@ -838,5 +855,65 @@ private fun _stableJson(value: Any?): String {
         }
         is List<*> -> value.joinToString(",", "[", "]") { _stableJson(it) }
         else -> JSONObject.quote(value.toString())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Chat namespace facades (OpenAI-SDK shape)
+// ---------------------------------------------------------------------------
+//
+// These classes live inside a private wrapper object so they can mirror the
+// Python `_GeminiChatCompletions` / `_GeminiChatNamespace` etc. names without
+// colliding with top-level declarations of the same name in
+// `GeminiCloudcodeAdapter.kt` (same package).
+
+private object _GeminiChatFacades {
+    /** Sync `client.chat.completions.create(...)` facade. Mirrors Python's
+     *  `_GeminiChatCompletions`. */
+    class _GeminiChatCompletions(private val client: GeminiNativeClient) {
+        @Suppress("UNCHECKED_CAST")
+        fun create(kwargs: Map<String, Any?> = emptyMap()): Any {
+            return client.createChatCompletion(
+                model = (kwargs["model"] as? String) ?: "gemini-2.5-flash",
+                messages = kwargs["messages"] as? List<Map<String, Any?>>,
+                stream = (kwargs["stream"] as? Boolean) ?: false,
+                tools = kwargs["tools"],
+                toolChoice = kwargs["tool_choice"],
+                temperature = kwargs["temperature"] as? Double,
+                maxTokens = (kwargs["max_tokens"] as? Number)?.toInt(),
+                topP = kwargs["top_p"] as? Double,
+                stop = kwargs["stop"],
+                extraBody = kwargs["extra_body"] as? Map<String, Any?>,
+                timeout = kwargs["timeout"])
+        }
+    }
+
+    /** Async `client.chat.completions.create(...)` facade. */
+    class _AsyncGeminiChatCompletions(private val client: AsyncGeminiNativeClient) {
+        @Suppress("UNCHECKED_CAST")
+        suspend fun create(kwargs: Map<String, Any?> = emptyMap()): Any {
+            return client.createChatCompletion(
+                model = (kwargs["model"] as? String) ?: "gemini-2.5-flash",
+                messages = kwargs["messages"] as? List<Map<String, Any?>>,
+                stream = (kwargs["stream"] as? Boolean) ?: false,
+                tools = kwargs["tools"],
+                toolChoice = kwargs["tool_choice"],
+                temperature = kwargs["temperature"] as? Double,
+                maxTokens = (kwargs["max_tokens"] as? Number)?.toInt(),
+                topP = kwargs["top_p"] as? Double,
+                stop = kwargs["stop"],
+                extraBody = kwargs["extra_body"] as? Map<String, Any?>,
+                timeout = kwargs["timeout"])
+        }
+    }
+
+    /** `client.chat` namespace (sync). Mirrors Python's `_GeminiChatNamespace`. */
+    class _GeminiChatNamespace(client: GeminiNativeClient) {
+        val completions: _GeminiChatCompletions = _GeminiChatCompletions(client)
+    }
+
+    /** `client.chat` namespace (async). */
+    class _AsyncGeminiChatNamespace(client: AsyncGeminiNativeClient) {
+        val completions: _AsyncGeminiChatCompletions = _AsyncGeminiChatCompletions(client)
     }
 }
