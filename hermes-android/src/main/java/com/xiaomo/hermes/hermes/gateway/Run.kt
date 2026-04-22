@@ -180,17 +180,6 @@ class GatewayRunner(
         Log.i(TAG, "Gateway stopped")
     }
 
-    /**
-     * Restart the gateway.
-     *
-     * Stops and then starts the gateway.
-     */
-    suspend fun restart() {
-        stop()
-        delay(1000)
-        start()
-    }
-
     // ------------------------------------------------------------------
     // Adapter management
     // ------------------------------------------------------------------
@@ -407,50 +396,6 @@ class GatewayRunner(
     // ------------------------------------------------------------------
 
     /**
-     * Get an adapter by name.
-     */
-    fun getAdapter(name: String): BasePlatformAdapter? = _adapters[name]
-
-    /** Get the AppChat adapter if registered. */
-    fun getAppChatAdapter(): AppChat? = _adapters["app_chat"] as? AppChat
-
-    /**
-     * Start gateway with only the AppChatAdapter (local in-process mode).
-     * No external platform connections — just serves the app's chat UI.
-     */
-    suspend fun startLocal() {
-        if (isRunning.getAndSet(true)) {
-            Log.w(TAG, "Gateway already running")
-            return
-        }
-        Log.i(TAG, "Starting gateway in local-only mode...")
-        sessionStore.load()
-
-        val appChatConfig = PlatformConfig(platform = Platform.APP_CHAT, enabled = true)
-        val adapter = _createAdapter(appChatConfig)
-        if (adapter != null) {
-            _adapters[adapter.name] = adapter
-            deliveryRouter.register(adapter)
-            // Set message handler so pushMessage doesn't get dropped
-            adapter.messageHandler = { event ->
-                _scope.launch { _handleMessage(event, adapter) }
-            }
-            status.markConnected(adapter.name)
-            Log.i(TAG, "AppChatAdapter connected (local mode)")
-        }
-
-        _scope.launch {
-            hookPipeline.run(HookEvent.ON_START)
-        }
-        Log.i(TAG, "Gateway started (local-only, ${_adapters.size} adapter)")
-    }
-
-    /**
-     * Get all connected adapters.
-     */
-    fun getAdapters(): Map<String, BasePlatformAdapter> = _adapters.toMap()
-
-    /**
      * Get the number of active sessions.
      */
     val activeSessionCount: Int get() = sessionStore.size
@@ -459,90 +404,6 @@ class GatewayRunner(
      * Get the number of processing sessions.
      */
     val processingSessionCount: Int get() = sessionStore.processingCount
-
-    /**
-     * Build a human-readable status string.
-     */
-    fun formatStatus(): String = buildString {
-        appendLine("Gateway Status")
-        appendLine("  Running: ${isRunning.get()}")
-        appendLine("  Uptime: ${GatewayStatus.formatDuration(status.uptimeSeconds)}")
-        appendLine("  Connected platforms: ${_adapters.keys.joinToString(", ").ifEmpty { "none" }}")
-        appendLine("  Active sessions: ${sessionStore.size}")
-        appendLine("  Processing sessions: ${sessionStore.processingCount}")
-        if (status.platformCounters.isNotEmpty()) {
-            appendLine("  Platform counters:")
-            status.platformCounters.forEach { (name, c) ->
-                appendLine("    $name: recv=${c.messagesReceived.get()} sent=${c.messagesSent.get()} errors=${c.sendErrors.get()}")
-            }
-        }
-    }
-
-    /**
-     * Get the gateway status as JSON.
-     */
-    fun statusJson(): JSONObject = status.toJson()
-
-    /**
-     * Send a system notification to the home channel of all connected platforms.
-     */
-    suspend fun broadcastNotification(text: String) {
-        deliveryRouter.broadcast(text)
-    }
-
-    /**
-     * Send a message to a specific session.
-     */
-    suspend fun sendMessage(sessionKey: String, text: String): SendResult {
-        val session = sessionStore.get(sessionKey)
-            ?: return SendResult(success = false, error = "Session not found: $sessionKey")
-
-        val result = deliveryRouter.deliverText(
-            platform = session.platform,
-            chatId = session.chatId,
-            text = text)
-        return SendResult(success = result.success, messageId = result.messageId, error = result.error)
-    }
-
-    /**
-     * Create a new session manually.
-     */
-    fun createSession(
-        platform: String,
-        chatId: String,
-        userId: String,
-        chatName: String = "",
-        userName: String = "",
-        chatType: String = "dm"): SessionRecord {
-        val sessionKey = buildSessionKey(platform, chatId, userId)
-        return sessionStore.getOrCreate(sessionKey, platform, chatId, userId, chatName, userName, chatType)
-    }
-
-    /**
-     * Remove a session.
-     */
-    fun removeSession(sessionKey: String) {
-        sessionStore.remove(sessionKey)
-    }
-
-    /**
-     * Get all active sessions.
-     */
-    fun getSessions(): Collection<SessionRecord> = sessionStore.all
-
-    /**
-     * Register a mirror rule.
-     */
-    fun addMirrorRule(sourceKey: String, targetUrl: String, targetKey: String, label: String = "") {
-        mirrorBridge.addRule(sourceKey, MirrorRule(targetUrl, targetKey, label))
-    }
-
-    /**
-     * Remove a mirror rule.
-     */
-    fun removeMirrorRule(sourceKey: String) {
-        mirrorBridge.removeRule(sourceKey)
-    }
 
     // ── Exit handling (ported from gateway/run.py) ──────────────────
 
@@ -689,9 +550,6 @@ class GatewayRunner(
         return mapOf("provider" to config.provider).filterValues { it.isNotEmpty() }
     }
 
-    /** Load smart model routing. */
-    fun loadSmartModelRouting(): Map<String, Any?> = emptyMap()
-
 
     /** Load restart drain timeout. */
     fun loadRestartDrainTimeout(): Double = config.restartDrainTimeoutSeconds
@@ -728,12 +586,6 @@ class GatewayRunner(
     /** Approved users set. */
     private val _approvedUsers = mutableSetOf<String>()
 
-    /** Add an approved user. */
-    fun addApprovedUser(userId: String) { _approvedUsers.add(userId) }
-
-    /** Remove an approved user. */
-    fun removeApprovedUser(userId: String) { _approvedUsers.remove(userId) }
-
     /** Resolve the gateway model for a given context. */
     fun resolveGatewayModel(): String {
         return config.defaultModel.ifEmpty {
@@ -744,84 +596,10 @@ class GatewayRunner(
     // ── Command handlers (simplified for Android) ───────────────────
 
 
-    /** Convert a MessageEvent to a source map for session key lookup. */
-    private fun messageEventToSource(event: MessageEvent): Map<String, Any?> = mapOf(
-        "platform" to event.source.platform,
-        "chat_id" to event.source.chatId,
-        "user_id" to event.source.userId,
-        "chat_name" to event.source.chatName,
-        "user_name" to event.source.userName,
-        "chat_type" to event.source.chatType)
-
-    /** Handle /reset command. */
-    suspend fun handleResetCommand(event: MessageEvent) {
-        val source = messageEventToSource(event)
-        val sessionKey = sessionKeyForSource(event.source)
-        val session = sessionStore.get(sessionKey)
-        if (session != null) {
-            sessionStore.remove(sessionKey)
-            _adapters[event.source.platform]?.send(
-                event.source.chatId, "🔄 Session reset.", replyTo = event.message_id
-            )
-        } else {
-            _adapters[event.source.platform]?.send(
-                event.source.chatId, "No active session to reset.", replyTo = event.message_id
-            )
-        }
-    }
-
-    /** Handle /status command. */
-    suspend fun handleStatusCommand(event: MessageEvent) {
-        val statusText = formatStatus()
-        _adapters[event.source.platform]?.send(event.source.chatId, statusText, replyTo = event.message_id)
-    }
-
-    /** Handle /help command. */
-    suspend fun handleHelpCommand(event: MessageEvent) {
-        val help = buildString {
-            appendLine("Available commands:")
-            appendLine("/new - Start new session")
-            appendLine("/reset - Reset current session")
-            appendLine("/status - Show gateway status")
-            appendLine("/sessions - List active sessions")
-            appendLine("/model [name] - Show/set current model")
-            appendLine("/help - Show this help")
-        }
-        _adapters[event.source.platform]?.send(event.source.chatId, help, replyTo = event.message_id)
-    }
-
-    /** Handle /stop command. */
-    suspend fun handleStopCommand(event: MessageEvent) {
-        _interruptRunningAgents("User requested stop")
-        _adapters[event.source.platform]?.send(
-            event.source.chatId, "⏹ Stopped.", replyTo = event.message_id
-        )
-    }
-
     /** Interrupt running agents. */
     fun _interruptRunningAgents(reason: String) {
         sessionStore.clear()
         Log.i(TAG, "Interrupted running agents: $reason")
-    }
-
-    /** Handle /model command. */
-    suspend fun handleModelCommand(event: MessageEvent, args: String) {
-        if (args.isBlank()) {
-            val model = resolveGatewayModel()
-            _adapters[event.source.platform]?.send(
-                event.source.chatId, "Current model: $model", replyTo = event.message_id
-            )
-        } else {
-            _adapters[event.source.platform]?.send(
-                event.source.chatId, "Model override: $args (per-session)", replyTo = event.message_id
-            )
-        }
-    }
-
-    /** Handle /sessions command. */
-    suspend fun handleSessionsCommand(event: MessageEvent) {
-        val info = formatSessionInfo()
-        _adapters[event.source.platform]?.send(event.source.chatId, info, replyTo = event.message_id)
     }
 
     // ── Background tasks ────────────────────────────────────────────
@@ -831,47 +609,11 @@ class GatewayRunner(
         Log.d(TAG, "Background task $taskId: ${prompt.take(50)}")
     }
 
-    /** Monitor for interrupt on a session. */
-    fun monitorForInterrupt(sessionKey: String, timeoutMs: Long): Boolean {
-        // Simplified: check if session has been cleared
-        return sessionStore.get(sessionKey) == null
-    }
-
-    /** Track an active agent. */
-    fun trackAgent(sessionKey: String) {
-        Log.d(TAG, "Tracking agent: $sessionKey")
-    }
-
-    /** Send progress messages. */
-    suspend fun sendProgressMessages(sessionKey: String, messages: List<String>) {
-        val session = sessionStore.get(sessionKey) ?: return
-        for (msg in messages) {
-            _adapters[session.platform]?.send(session.chatId, msg)
-        }
-    }
-
     // ── Gateway lifecycle ───────────────────────────────────────────
-
-    /** Resolve prompt for the session. */
-    fun resolvePrompt(source: Map<String, Any?>): String = "You are a helpful assistant."
-
-    /** Cleanup resources. */
-    suspend fun cleanup() {
-        Log.d(TAG, "Cleaning up gateway resources")
-        for (adapter in _adapters.values) {
-            try { adapter.disconnect() } catch (_unused: Exception) {}
-        }
-        _adapters.clear()
-    }
 
     /** Get guild ID from source. */
     fun getGuildId(source: MessageSource): String? {
         return source.chatId
-    }
-
-    /** Strip ANSI codes from text. */
-    fun stripAnsi(text: String): String {
-        return text.replace(Regex("\\x1B\\[[0-9;]*[a-zA-Z]"), "")
     }
 
     /** Format gateway process notification. */
@@ -986,7 +728,20 @@ class GatewayRunner(
     }
     /** Handle /status command. */
     suspend fun _handleStatusCommand(event: MessageEvent): String {
-        return formatStatus()
+        return buildString {
+            appendLine("Gateway Status")
+            appendLine("  Running: ${isRunning.get()}")
+            appendLine("  Uptime: ${GatewayStatus.formatDuration(status.uptimeSeconds)}")
+            appendLine("  Connected platforms: ${_adapters.keys.joinToString(", ").ifEmpty { "none" }}")
+            appendLine("  Active sessions: ${sessionStore.size}")
+            appendLine("  Processing sessions: ${sessionStore.processingCount}")
+            if (status.platformCounters.isNotEmpty()) {
+                appendLine("  Platform counters:")
+                status.platformCounters.forEach { (name, c) ->
+                    appendLine("    $name: recv=${c.messagesReceived.get()} sent=${c.messagesSent.get()} errors=${c.sendErrors.get()}")
+                }
+            }
+        }
     }
     /** Handle /stop command - interrupt a running agent. */
     suspend fun _handleStopCommand(event: MessageEvent): String {
@@ -1505,7 +1260,14 @@ class GatewayRunner(
                 "You can keep chatting — the result will appear here when done."
         }
         val taskId = "bg_${System.currentTimeMillis()}"
-        runBackgroundTask(prompt, messageEventToSource(event), taskId)
+        val source = mapOf<String, Any?>(
+            "platform" to event.source.platform,
+            "chat_id" to event.source.chatId,
+            "user_id" to event.source.userId,
+            "chat_name" to event.source.chatName,
+            "user_name" to event.source.userName,
+            "chat_type" to event.source.chatType)
+        runBackgroundTask(prompt, source, taskId)
         val preview = if (prompt.length > 60) prompt.take(60) + "..." else prompt
         return "🔄 Background task started: \"$preview\"\nTask ID: $taskId\nYou can keep chatting — results will appear when done."
     }
