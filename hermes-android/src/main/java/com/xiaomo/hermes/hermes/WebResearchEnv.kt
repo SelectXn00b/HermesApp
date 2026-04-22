@@ -101,8 +101,8 @@ class WebResearchEnv {
             "at", "to", "for", "with", "and", "or", "but", "it", "its",
             "this", "that", "as", "by", "from", "be", "has", "have", "had")
 
-        fun tokenize(text: String): Set<String> {
-            return Regex("\\b\\w+\\b").findAll(text.lowercase())
+        val tokenize = { text: String ->
+            Regex("\\b\\w+\\b").findAll(text.lowercase())
                 .map { it.value }
                 .filter { it !in stopwords && it.length > 2 }
                 .toSet()
