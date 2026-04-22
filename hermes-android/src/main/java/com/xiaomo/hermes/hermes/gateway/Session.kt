@@ -110,8 +110,6 @@ data class SessionRecord(
         processingStartedAt = 0L
     }
 
-    fun label(): String = "$platform:$chatId (user=$userId)"
-
     fun toDict(): Map<String, Any?> = buildMap {
         put("session_key", sessionKey)
         put("platform", platform)
@@ -192,19 +190,6 @@ fun buildSessionRecord(
     source = SessionSource.NEW)
 
 /** Build a system-prompt fragment for a session. */
-fun buildSessionRecordPrompt(session: SessionRecord, redactPii: Boolean = false): String = buildString {
-    appendLine("# Session Context")
-    appendLine("- Platform: ${session.platform}")
-    appendLine("- Chat: ${session.chatName.ifEmpty { session.chatId }}")
-    appendLine("- User: ${session.userName.ifEmpty { session.userId }}")
-    appendLine("- Chat type: ${session.chatType}")
-    appendLine("- Messages: ${session.messageCount.get()}")
-    appendLine("- Turns: ${session.turnCount.get()}")
-    if (session.modelOverride != null) {
-        appendLine("- Model override: ${session.modelOverride}")
-    }
-}
-
 // ── SessionStore ────────────────────────────────────────────────────
 
 /**
@@ -412,41 +397,11 @@ class SessionStore(
         sessions[targetSessionKey] = newEntry
         return newEntry
     }
-    fun getSessionCount(): Int = sessions.size
-
-    /** Check if a session exists. */
-    fun hasSession(sessionKey: String): Boolean = sessions.containsKey(sessionKey)
-
     /** Get all session keys. */
     fun getSessionKeys(): List<String> = sessions.keys.toList()
 
     /** Remove a session by key. */
     fun removeSession(sessionKey: String): SessionRecord? = sessions.remove(sessionKey)
-
-    /** Remove all sessions. */
-    fun clearAllSessions() { sessions.clear() }
-
-    /** Get sessions filtered by platform. */
-    fun getSessionsByPlatform(platform: String): List<SessionRecord> {
-        return sessions.values.filter { it.platform == platform }
-    }
-
-    /** Get the last active session key. */
-    fun getLastActiveSession(): String? {
-        return sessions.entries.maxByOrNull { it.value.createdAt }?.key
-    }
-
-    /** Update the last active timestamp for a session. */
-    fun touchSession(sessionKey: String) {
-        // SessionRecord has no lastActive field; createdAt is immutable
-    }
-
-    /** Get the total message count across all sessions. */
-    fun getTotalMessageCount(): Int {
-        return sessions.size
-    }
-
-
 
     /** Remove session entries older than [maxAgeDays] days.
      *  Returns the number of entries pruned. */
@@ -827,29 +782,6 @@ class SessionManager(
     fun dialecticQuery(sessionKey: String, query: String, reasoningLevel: Any? = null, peer: String = "user"): String {
         // Python: self.honcho().dialectic_query(session_key, query, reasoning_level, peer)
         return ""
-    }
-
-    /** Fire a dialectic_query in a background thread, caching the result. */
-    fun prefetchDialectic(sessionKey: String, query: String) {
-        Thread {
-            try {
-                val level = _dynamicReasoningLevel(query)
-                val result = dialecticQuery(sessionKey, query, reasoningLevel = level)
-                setDialecticResult(sessionKey, result)
-            } catch (e: Exception) {
-                Log.w(TAG, "prefetchDialectic error: ${e.message}")
-            }
-        }.start()
-    }
-
-    /** Store a prefetched dialectic result in a thread-safe way. */
-    fun setDialecticResult(sessionKey: String, result: String) {
-        _dialecticResults[sessionKey] = result
-    }
-
-    /** Return and clear the cached dialectic result for this session. */
-    fun popDialecticResult(sessionKey: String): String {
-        return _dialecticResults.remove(sessionKey) ?: ""
     }
 
     /** Fire get_prefetch_context in a background thread, caching the result. */
