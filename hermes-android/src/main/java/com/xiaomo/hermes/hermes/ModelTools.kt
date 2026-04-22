@@ -3,7 +3,7 @@ package com.xiaomo.hermes.hermes
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.xiaomo.hermes.hermes.tools.FileTools
-import com.xiaomo.hermes.hermes.tools.TerminalTool
+import com.xiaomo.hermes.hermes.tools.terminalTool
 import com.xiaomo.hermes.hermes.tools.ProcessRegistry
 import com.xiaomo.hermes.hermes.tools.MemoryTool
 import com.xiaomo.hermes.hermes.plugins.memory.holographic.HolographicProvider
@@ -343,15 +343,8 @@ fun registerDefaultTools() {
         handler = { args ->
             val command = args["command"] as? String ?: ""
             val workingDir = args["working_dir"] as? String
-            val timeout = (args["timeout"] as? Number)?.toLong() ?: 30L
-            val result = TerminalTool.execute(command, workingDir, timeout)
-            modelToolsGson.toJson(mapOf(
-                "stdout" to result.stdout,
-                "stderr" to result.stderr,
-                "exit_code" to result.exitCode
-            ).let { base ->
-                if (result.error != null) base + ("error" to result.error) else base
-            })
+            val timeout = (args["timeout"] as? Number)?.toInt()
+            terminalTool(command = command, workdir = workingDir, timeout = timeout)
         })
 
     // process — 委托 ProcessRegistry（后台进程管理）
