@@ -1,211 +1,34 @@
+/**
+ * Token usage → pricing resolution and cost estimation.
+ *
+ * 1:1 对齐 hermes/agent/usage_pricing.py (Python 原始)
+ *
+ * Handles the full pricing pipeline:
+ * - Billing route resolution (provider + model + base_url → route)
+ * - Pricing entry lookup (official docs snapshot, provider models API, etc.)
+ * - Canonical usage normalization (Anthropic / Codex / OpenAI API shapes)
+ * - Cost estimation
+ * - Formatting helpers for duration and token counts
+ */
 package com.xiaomo.hermes.hermes.agent
 
-/**
- * Usage Pricing - 价格/费用计算
- * 1:1 对齐 hermes/agent/usage_pricing.py
- *
- * 管理各 provider/model 的 token 价格，计算 API 调用费用。
- */
+import com.xiaomo.hermes.hermes.baseUrlHostMatches
+import java.math.BigDecimal
+import java.time.Instant
 
-data class Pricing(
-    val inputPricePerMillion: Double = 0.0,   // 每百万输入 token 价格（美元）
-    val outputPricePerMillion: Double = 0.0,  // 每百万输出 token 价格（美元）
-    val cacheReadPricePerMillion: Double? = null,   // 缓存读取价格
-    val cacheWritePricePerMillion: Double? = null,  // 缓存写入价格
-)
+// ── Module-level state & constants (1:1 with Python module globals) ─────
 
-data class UsageResult(
-    val inputTokens: Int,
-    val outputTokens: Int,
-    val cacheReadTokens: Int = 0,
-    val cacheWriteTokens: Int = 0,
-    val inputCost: Double,
-    val outputCost: Double,
-    val cacheReadCost: Double = 0.0,
-    val cacheWriteCost: Double = 0.0,
-    val totalCost: Double,
-    val model: String,
-    val provider: String
-)
+val DEFAULT_PRICING: Map<String, Double> = mapOf("input" to 0.0, "output" to 0.0)
 
-class UsagePricing {
+val _ZERO: BigDecimal = BigDecimal("0")
+val _ONE_MILLION: BigDecimal = BigDecimal("1000000")
 
-    companion object {
-        // 价格数据来源：models.dev + provider 官网
-        // 格式：provider -> model_pattern -> Pricing
-        private val PRICING_TABLE: Map<String, Map<String, Pricing>> = mapOf(
-            "anthropic" to mapOf(
-                "claude-opus-4-6" to Pricing(15.0, 75.0, 1.5, 18.75),
-                "claude-sonnet-4-6" to Pricing(3.0, 15.0, 0.3, 3.75),
-                "claude-sonnet-4" to Pricing(3.0, 15.0, 0.3, 3.75),
-                "claude-haiku-3.5" to Pricing(0.8, 4.0, 0.08, 1.0),
-                "claude-haiku-3" to Pricing(0.25, 1.25, 0.03, 0.3),
-                "claude" to Pricing(3.0, 15.0, 0.3, 3.75),  // fallback
-            ),
-            "openai" to mapOf(
-                "gpt-5.1-codex-max" to Pricing(2.5, 10.0),
-                "gpt-5" to Pricing(2.5, 10.0),
-                "gpt-4.1" to Pricing(2.0, 8.0, 0.5, 2.0),
-                "gpt-4o" to Pricing(2.5, 10.0, 1.25, 2.5),
-                "gpt-4o-mini" to Pricing(0.15, 0.6, 0.075, 0.15),
-                "o1" to Pricing(15.0, 60.0),
-                "o1-mini" to Pricing(3.0, 12.0),
-                "o1-pro" to Pricing(150.0, 600.0),
-                "o3-mini" to Pricing(1.1, 4.4),
-                "o3" to Pricing(2.0, 8.0),
-                "o4-mini" to Pricing(1.1, 4.4),
-                "gpt-4" to Pricing(30.0, 60.0)),
-            "openrouter" to mapOf(
-                // OpenRouter 加价 5-10%，这里用上游价格近似
-                "anthropic/claude-opus-4-6" to Pricing(15.0, 75.0),
-                "anthropic/claude-sonnet-4-6" to Pricing(3.0, 15.0),
-                "anthropic/claude-sonnet-4" to Pricing(3.0, 15.0),
-                "anthropic/claude-haiku-3.5" to Pricing(0.8, 4.0),
-                "openai/gpt-4o" to Pricing(2.5, 10.0),
-                "openai/gpt-4o-mini" to Pricing(0.15, 0.6),
-                "google/gemini-2.5-pro" to Pricing(1.25, 10.0),
-                "google/gemini-2.5-flash" to Pricing(0.15, 0.6),
-                "deepseek/deepseek-chat" to Pricing(0.14, 0.28),
-                "deepseek/deepseek-reasoner" to Pricing(0.55, 2.19),
-                // fallback
-                "" to Pricing(0.0, 0.0)),
-            "google" to mapOf(
-                "gemini-2.5-pro" to Pricing(1.25, 10.0),
-                "gemini-2.5-flash" to Pricing(0.15, 0.6),
-                "gemini-2.0-flash" to Pricing(0.1, 0.4),
-                "gemini" to Pricing(1.25, 10.0),  // fallback
-            ),
-            "deepseek" to mapOf(
-                "deepseek-chat" to Pricing(0.14, 0.28),
-                "deepseek-reasoner" to Pricing(0.55, 2.19),
-                "deepseek" to Pricing(0.14, 0.28),  // fallback
-            ),
-            "xai" to mapOf(
-                "grok-4" to Pricing(3.0, 15.0),
-                "grok-3" to Pricing(3.0, 15.0),
-                "grok-3-mini" to Pricing(0.3, 0.5),
-                "grok" to Pricing(3.0, 15.0)),
-            "minimax" to mapOf(
-                "minimax" to Pricing(0.0, 0.0),  // 免费额度
-            ))
+// CostStatus literal: "actual" | "estimated" | "included" | "unknown"
+// CostSource literal: "provider_cost_api" | "provider_generation_api" |
+//   "provider_models_api" | "official_docs_snapshot" | "user_override" |
+//   "custom_contract" | "none"
 
-        // OpenRouter 模型到上游的映射
-        private val OPENROUTER_UPSTREAM: Map<String, Pair<String, String>> = mapOf(
-            "anthropic/claude-opus-4-6" to ("anthropic" to "claude-opus-4-6"),
-            "anthropic/claude-sonnet-4-6" to ("anthropic" to "claude-sonnet-4-6"),
-            "anthropic/claude-sonnet-4" to ("anthropic" to "claude-sonnet-4"),
-            "openai/gpt-4o" to ("openai" to "gpt-4o"),
-            "openai/gpt-4o-mini" to ("openai" to "gpt-4o-mini"),
-            "google/gemini-2.5-pro" to ("google" to "gemini-2.5-pro"))
-    }
-
-    /**
-     * 获取模型的定价信息
-     *
-     * @param provider provider 名称
-     * @param model 模型 ID
-     * @return 定价信息，未找到返回 null
-     */
-    fun getPricing(provider: String, model: String): Pricing? {
-        val providerKey = provider.lowercase().trim()
-        val modelLower = model.lowercase().trim()
-
-        // 直接查找
-        val providerPricing = PRICING_TABLE[providerKey] ?: return null
-
-        // 精确匹配
-        providerPricing[modelLower]?.let { return it }
-
-        // 模糊匹配（最长前缀匹配）
-        val matched = providerPricing.entries
-            .filter { (pattern, _) -> pattern.isNotEmpty() && modelLower.contains(pattern) }
-            .maxByOrNull { it.key.length }
-
-        return matched?.value
-    }
-
-    /**
-     * 计算 API 调用费用
-     *
-     * @param provider provider 名称
-     * @param model 模型 ID
-     * @param inputTokens 输入 token 数
-     * @param outputTokens 输出 token 数
-     * @param cacheReadTokens 缓存读取 token 数
-     * @param cacheWriteTokens 缓存写入 token 数
-     * @return 费用计算结果
-     */
-    fun calculateCost(
-        provider: String,
-        model: String,
-        inputTokens: Int,
-        outputTokens: Int,
-        cacheReadTokens: Int = 0,
-        cacheWriteTokens: Int = 0
-    ): UsageResult {
-        val pricing = getPricing(provider, model) ?: Pricing(0.0, 0.0)
-
-        val inputCost = inputTokens * pricing.inputPricePerMillion / 1_000_000
-        val outputCost = outputTokens * pricing.outputPricePerMillion / 1_000_000
-        val cacheReadCost = cacheReadTokens * (pricing.cacheReadPricePerMillion ?: pricing.inputPricePerMillion) / 1_000_000
-        val cacheWriteCost = cacheWriteTokens * (pricing.cacheWritePricePerMillion ?: pricing.inputPricePerMillion) / 1_000_000
-
-        return UsageResult(
-            inputTokens = inputTokens,
-            outputTokens = outputTokens,
-            cacheReadTokens = cacheReadTokens,
-            cacheWriteTokens = cacheWriteTokens,
-            inputCost = inputCost,
-            outputCost = outputCost,
-            cacheReadCost = cacheReadCost,
-            cacheWriteCost = cacheWriteCost,
-            totalCost = inputCost + outputCost + cacheReadCost + cacheWriteCost,
-            model = model,
-            provider = provider
-        )
-    }
-
-    /**
-     * 格式化费用为人类可读字符串
-     *
-     * @param cost 费用（美元）
-     * @return 格式化字符串
-     */
-    fun formatCost(cost: Double): String {
-        return when {
-            cost < 0.0001 -> "$0.00"
-            cost < 0.01 -> String.format("$%.4f", cost)
-            cost < 1.0 -> String.format("$%.3f", cost)
-            else -> String.format("$%.2f", cost)
-        }
-    }
-
-    /**
-     * 获取所有已知 provider 列表
-     */
-    fun getKnownProviders(): List<String> {
-        return PRICING_TABLE.keys.toList()
-    }
-
-    /**
-     * 获取指定 provider 的所有已知模型
-     */
-    fun getKnownModels(provider: String): List<String> {
-        return PRICING_TABLE[provider.lowercase()]?.keys?.filter { it.isNotEmpty() }?.toList() ?: emptyList()
-    
-    /** Get total token count from UsageResult. */
-    fun UsageResult.totalTokens(): Int = inputTokens + outputTokens
-}
-
-
-    fun promptTokens(): Int {
-        return 0
-    }
-    fun totalTokens(): Int {
-        return 0
-    }
-
-}
+// ── Data classes ──────────────────────────────────────────────────────────
 
 data class CanonicalUsage(
     val inputTokens: Int = 0,
@@ -214,37 +37,661 @@ data class CanonicalUsage(
     val cacheWriteTokens: Int = 0,
     val reasoningTokens: Int = 0,
     val requestCount: Int = 1,
-    val rawUsage: Map<String, Any>? = null
+    val rawUsage: Map<String, Any?>? = null,
 ) {
     val promptTokens: Int get() = inputTokens + cacheReadTokens + cacheWriteTokens
     val totalTokens: Int get() = promptTokens + outputTokens
 }
 
+
 data class BillingRoute(
     val provider: String,
     val model: String,
     val baseUrl: String = "",
-    val billingMode: String = "unknown"
+    val billingMode: String = "unknown",
 )
 
+
 data class PricingEntry(
-    val inputCostPerMillion: Double? = null,
-    val outputCostPerMillion: Double? = null,
-    val cacheReadCostPerMillion: Double? = null,
-    val cacheWriteCostPerMillion: Double? = null,
-    val requestCost: Double? = null,
+    val inputCostPerMillion: BigDecimal? = null,
+    val outputCostPerMillion: BigDecimal? = null,
+    val cacheReadCostPerMillion: BigDecimal? = null,
+    val cacheWriteCostPerMillion: BigDecimal? = null,
+    val requestCost: BigDecimal? = null,
     val source: String = "none",
     val sourceUrl: String? = null,
     val pricingVersion: String? = null,
-    val fetchedAt: Long? = null
+    val fetchedAt: Instant? = null,
 )
 
+
 data class CostResult(
-    val amountUsd: Double?,
+    val amountUsd: BigDecimal?,
     val status: String,
     val source: String,
     val label: String,
-    val fetchedAt: Long? = null,
+    val fetchedAt: Instant? = null,
     val pricingVersion: String? = null,
-    val notes: List<String> = emptyList()
+    val notes: List<String> = emptyList(),
 )
+
+
+private fun _utcNow(): Instant = Instant.now()
+
+
+// Official docs snapshot entries. Models whose published pricing and cache
+// semantics are stable enough to encode exactly.
+val _OFFICIAL_DOCS_PRICING: Map<Pair<String, String>, PricingEntry> = mapOf(
+    Pair("anthropic", "claude-opus-4-20250514") to PricingEntry(
+        inputCostPerMillion = BigDecimal("15.00"),
+        outputCostPerMillion = BigDecimal("75.00"),
+        cacheReadCostPerMillion = BigDecimal("1.50"),
+        cacheWriteCostPerMillion = BigDecimal("18.75"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        pricingVersion = "anthropic-prompt-caching-2026-03-16",
+    ),
+    Pair("anthropic", "claude-sonnet-4-20250514") to PricingEntry(
+        inputCostPerMillion = BigDecimal("3.00"),
+        outputCostPerMillion = BigDecimal("15.00"),
+        cacheReadCostPerMillion = BigDecimal("0.30"),
+        cacheWriteCostPerMillion = BigDecimal("3.75"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        pricingVersion = "anthropic-prompt-caching-2026-03-16",
+    ),
+    Pair("openai", "gpt-4o") to PricingEntry(
+        inputCostPerMillion = BigDecimal("2.50"),
+        outputCostPerMillion = BigDecimal("10.00"),
+        cacheReadCostPerMillion = BigDecimal("1.25"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("openai", "gpt-4o-mini") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.15"),
+        outputCostPerMillion = BigDecimal("0.60"),
+        cacheReadCostPerMillion = BigDecimal("0.075"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("openai", "gpt-4.1") to PricingEntry(
+        inputCostPerMillion = BigDecimal("2.00"),
+        outputCostPerMillion = BigDecimal("8.00"),
+        cacheReadCostPerMillion = BigDecimal("0.50"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("openai", "gpt-4.1-mini") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.40"),
+        outputCostPerMillion = BigDecimal("1.60"),
+        cacheReadCostPerMillion = BigDecimal("0.10"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("openai", "gpt-4.1-nano") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.10"),
+        outputCostPerMillion = BigDecimal("0.40"),
+        cacheReadCostPerMillion = BigDecimal("0.025"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("openai", "o3") to PricingEntry(
+        inputCostPerMillion = BigDecimal("10.00"),
+        outputCostPerMillion = BigDecimal("40.00"),
+        cacheReadCostPerMillion = BigDecimal("2.50"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("openai", "o3-mini") to PricingEntry(
+        inputCostPerMillion = BigDecimal("1.10"),
+        outputCostPerMillion = BigDecimal("4.40"),
+        cacheReadCostPerMillion = BigDecimal("0.55"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://openai.com/api/pricing/",
+        pricingVersion = "openai-pricing-2026-03-16",
+    ),
+    Pair("anthropic", "claude-3-5-sonnet-20241022") to PricingEntry(
+        inputCostPerMillion = BigDecimal("3.00"),
+        outputCostPerMillion = BigDecimal("15.00"),
+        cacheReadCostPerMillion = BigDecimal("0.30"),
+        cacheWriteCostPerMillion = BigDecimal("3.75"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        pricingVersion = "anthropic-pricing-2026-03-16",
+    ),
+    Pair("anthropic", "claude-3-5-haiku-20241022") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.80"),
+        outputCostPerMillion = BigDecimal("4.00"),
+        cacheReadCostPerMillion = BigDecimal("0.08"),
+        cacheWriteCostPerMillion = BigDecimal("1.00"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        pricingVersion = "anthropic-pricing-2026-03-16",
+    ),
+    Pair("anthropic", "claude-3-opus-20240229") to PricingEntry(
+        inputCostPerMillion = BigDecimal("15.00"),
+        outputCostPerMillion = BigDecimal("75.00"),
+        cacheReadCostPerMillion = BigDecimal("1.50"),
+        cacheWriteCostPerMillion = BigDecimal("18.75"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        pricingVersion = "anthropic-pricing-2026-03-16",
+    ),
+    Pair("anthropic", "claude-3-haiku-20240307") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.25"),
+        outputCostPerMillion = BigDecimal("1.25"),
+        cacheReadCostPerMillion = BigDecimal("0.03"),
+        cacheWriteCostPerMillion = BigDecimal("0.30"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        pricingVersion = "anthropic-pricing-2026-03-16",
+    ),
+    Pair("deepseek", "deepseek-chat") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.14"),
+        outputCostPerMillion = BigDecimal("0.28"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://api-docs.deepseek.com/quick_start/pricing",
+        pricingVersion = "deepseek-pricing-2026-03-16",
+    ),
+    Pair("deepseek", "deepseek-reasoner") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.55"),
+        outputCostPerMillion = BigDecimal("2.19"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://api-docs.deepseek.com/quick_start/pricing",
+        pricingVersion = "deepseek-pricing-2026-03-16",
+    ),
+    Pair("google", "gemini-2.5-pro") to PricingEntry(
+        inputCostPerMillion = BigDecimal("1.25"),
+        outputCostPerMillion = BigDecimal("10.00"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://ai.google.dev/pricing",
+        pricingVersion = "google-pricing-2026-03-16",
+    ),
+    Pair("google", "gemini-2.5-flash") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.15"),
+        outputCostPerMillion = BigDecimal("0.60"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://ai.google.dev/pricing",
+        pricingVersion = "google-pricing-2026-03-16",
+    ),
+    Pair("google", "gemini-2.0-flash") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.10"),
+        outputCostPerMillion = BigDecimal("0.40"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://ai.google.dev/pricing",
+        pricingVersion = "google-pricing-2026-03-16",
+    ),
+    Pair("bedrock", "anthropic.claude-opus-4-6") to PricingEntry(
+        inputCostPerMillion = BigDecimal("15.00"),
+        outputCostPerMillion = BigDecimal("75.00"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+    Pair("bedrock", "anthropic.claude-sonnet-4-6") to PricingEntry(
+        inputCostPerMillion = BigDecimal("3.00"),
+        outputCostPerMillion = BigDecimal("15.00"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+    Pair("bedrock", "anthropic.claude-sonnet-4-5") to PricingEntry(
+        inputCostPerMillion = BigDecimal("3.00"),
+        outputCostPerMillion = BigDecimal("15.00"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+    Pair("bedrock", "anthropic.claude-haiku-4-5") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.80"),
+        outputCostPerMillion = BigDecimal("4.00"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+    Pair("bedrock", "amazon.nova-pro") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.80"),
+        outputCostPerMillion = BigDecimal("3.20"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+    Pair("bedrock", "amazon.nova-lite") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.06"),
+        outputCostPerMillion = BigDecimal("0.24"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+    Pair("bedrock", "amazon.nova-micro") to PricingEntry(
+        inputCostPerMillion = BigDecimal("0.035"),
+        outputCostPerMillion = BigDecimal("0.14"),
+        source = "official_docs_snapshot",
+        sourceUrl = "https://aws.amazon.com/bedrock/pricing/",
+        pricingVersion = "bedrock-pricing-2026-04",
+    ),
+)
+
+
+fun _toDecimal(value: Any?): BigDecimal? {
+    if (value == null) return null
+    return try {
+        BigDecimal(value.toString())
+    } catch (_: Exception) {
+        null
+    }
+}
+
+
+fun _toInt(value: Any?): Int {
+    return try {
+        when (value) {
+            null -> 0
+            is Number -> value.toInt()
+            is String -> if (value.isEmpty()) 0 else value.toInt()
+            else -> 0
+        }
+    } catch (_: Exception) {
+        0
+    }
+}
+
+
+fun resolveBillingRoute(
+    modelName: String,
+    provider: String? = null,
+    baseUrl: String? = null,
+): BillingRoute {
+    var providerName = (provider ?: "").trim().lowercase()
+    val base = (baseUrl ?: "").trim().lowercase()
+    var model = (modelName).trim()
+    if (providerName.isEmpty() && "/" in model) {
+        val parts = model.split("/", limit = 2)
+        val inferredProvider = parts[0]
+        val bareModel = parts[1]
+        if (inferredProvider in setOf("anthropic", "openai", "google")) {
+            providerName = inferredProvider
+            model = bareModel
+        }
+    }
+
+    if (providerName == "openai-codex") {
+        return BillingRoute(
+            provider = "openai-codex",
+            model = model,
+            baseUrl = baseUrl ?: "",
+            billingMode = "subscription_included",
+        )
+    }
+    if (providerName == "openrouter" || baseUrlHostMatches(baseUrl ?: "", "openrouter.ai")) {
+        return BillingRoute(
+            provider = "openrouter",
+            model = model,
+            baseUrl = baseUrl ?: "",
+            billingMode = "official_models_api",
+        )
+    }
+    if (providerName == "anthropic") {
+        return BillingRoute(
+            provider = "anthropic",
+            model = model.split("/").last(),
+            baseUrl = baseUrl ?: "",
+            billingMode = "official_docs_snapshot",
+        )
+    }
+    if (providerName == "openai") {
+        return BillingRoute(
+            provider = "openai",
+            model = model.split("/").last(),
+            baseUrl = baseUrl ?: "",
+            billingMode = "official_docs_snapshot",
+        )
+    }
+    if (providerName in setOf("custom", "local") || (base.isNotEmpty() && "localhost" in base)) {
+        return BillingRoute(
+            provider = providerName.ifEmpty { "custom" },
+            model = model,
+            baseUrl = baseUrl ?: "",
+            billingMode = "unknown",
+        )
+    }
+    return BillingRoute(
+        provider = providerName.ifEmpty { "unknown" },
+        model = if (model.isNotEmpty()) model.split("/").last() else "",
+        baseUrl = baseUrl ?: "",
+        billingMode = "unknown",
+    )
+}
+
+
+fun _lookupOfficialDocsPricing(route: BillingRoute): PricingEntry? {
+    return _OFFICIAL_DOCS_PRICING[Pair(route.provider, route.model.lowercase())]
+}
+
+
+fun _openrouterPricingEntry(route: BillingRoute): PricingEntry? {
+    return _pricingEntryFromMetadata(
+        fetchModelMetadata(),
+        route.model,
+        sourceUrl = "https://openrouter.ai/docs/api/api-reference/models/get-models",
+        pricingVersion = "openrouter-models-api",
+    )
+}
+
+
+fun _pricingEntryFromMetadata(
+    metadata: Map<String, Map<String, Any?>>,
+    modelId: String,
+    sourceUrl: String,
+    pricingVersion: String,
+): PricingEntry? {
+    val entry = metadata[modelId] ?: return null
+    val pricing = (entry["pricing"] as? Map<*, *>) ?: emptyMap<Any?, Any?>()
+    val prompt = _toDecimal(pricing["prompt"])
+    val completion = _toDecimal(pricing["completion"])
+    val request = _toDecimal(pricing["request"])
+    val cacheRead = _toDecimal(
+        pricing["cache_read"]
+            ?: pricing["cached_prompt"]
+            ?: pricing["input_cache_read"]
+    )
+    val cacheWrite = _toDecimal(
+        pricing["cache_write"]
+            ?: pricing["cache_creation"]
+            ?: pricing["input_cache_write"]
+    )
+    if (prompt == null && completion == null && request == null) return null
+
+    fun perTokenToPerMillion(value: BigDecimal?): BigDecimal? {
+        if (value == null) return null
+        return value.multiply(_ONE_MILLION)
+    }
+
+    return PricingEntry(
+        inputCostPerMillion = perTokenToPerMillion(prompt),
+        outputCostPerMillion = perTokenToPerMillion(completion),
+        cacheReadCostPerMillion = perTokenToPerMillion(cacheRead),
+        cacheWriteCostPerMillion = perTokenToPerMillion(cacheWrite),
+        requestCost = request,
+        source = "provider_models_api",
+        sourceUrl = sourceUrl,
+        pricingVersion = pricingVersion,
+        fetchedAt = _utcNow(),
+    )
+}
+
+
+fun getPricingEntry(
+    modelName: String,
+    provider: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+): PricingEntry? {
+    val route = resolveBillingRoute(modelName, provider = provider, baseUrl = baseUrl)
+    if (route.billingMode == "subscription_included") {
+        return PricingEntry(
+            inputCostPerMillion = _ZERO,
+            outputCostPerMillion = _ZERO,
+            cacheReadCostPerMillion = _ZERO,
+            cacheWriteCostPerMillion = _ZERO,
+            source = "none",
+            pricingVersion = "included-route",
+        )
+    }
+    if (route.provider == "openrouter") {
+        return _openrouterPricingEntry(route)
+    }
+    if (route.baseUrl.isNotEmpty()) {
+        val entry = _pricingEntryFromMetadata(
+            fetchEndpointModelMetadata(route.baseUrl, apiKey = apiKey ?: ""),
+            route.model,
+            sourceUrl = "${route.baseUrl.trimEnd('/')}/models",
+            pricingVersion = "openai-compatible-models-api",
+        )
+        if (entry != null) return entry
+    }
+    return _lookupOfficialDocsPricing(route)
+}
+
+
+/**
+ * Normalize raw API response usage into canonical token buckets.
+ *
+ * Handles three API shapes: Anthropic (input_tokens/output_tokens plus
+ * cache_read_input_tokens / cache_creation_input_tokens), Codex Responses
+ * (input_tokens includes cache tokens; input_tokens_details.cached_tokens
+ * separates them), and OpenAI Chat Completions (prompt_tokens includes cache
+ * tokens; prompt_tokens_details.cached_tokens separates them).
+ *
+ * In Codex and OpenAI modes, input_tokens is derived by subtracting cache
+ * tokens from the total — the API contract is that input/prompt totals
+ * include cached tokens and the details object breaks them out.
+ */
+fun normalizeUsage(
+    responseUsage: Any?,
+    provider: String? = null,
+    apiMode: String? = null,
+): CanonicalUsage {
+    if (responseUsage == null) return CanonicalUsage()
+
+    val providerName = (provider ?: "").trim().lowercase()
+    val mode = (apiMode ?: "").trim().lowercase()
+
+    fun attr(name: String): Any? {
+        if (responseUsage is Map<*, *>) return responseUsage[name]
+        return try {
+            val f = responseUsage.javaClass.getField(name)
+            f.get(responseUsage)
+        } catch (_: Exception) {
+            try {
+                val m = responseUsage.javaClass.methods.firstOrNull { it.name == name }
+                m?.invoke(responseUsage)
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
+    val inputTokens: Int
+    val outputTokens: Int
+    val cacheReadTokens: Int
+    val cacheWriteTokens: Int
+
+    if (mode == "anthropic_messages" || providerName == "anthropic") {
+        inputTokens = _toInt(attr("input_tokens"))
+        outputTokens = _toInt(attr("output_tokens"))
+        cacheReadTokens = _toInt(attr("cache_read_input_tokens"))
+        cacheWriteTokens = _toInt(attr("cache_creation_input_tokens"))
+    } else if (mode == "codex_responses") {
+        val inputTotal = _toInt(attr("input_tokens"))
+        outputTokens = _toInt(attr("output_tokens"))
+        val details = attr("input_tokens_details")
+        cacheReadTokens = _toInt(if (details != null) _attr(details, "cached_tokens") else 0)
+        cacheWriteTokens = _toInt(if (details != null) _attr(details, "cache_creation_tokens") else 0)
+        inputTokens = maxOf(0, inputTotal - cacheReadTokens - cacheWriteTokens)
+    } else {
+        val promptTotal = _toInt(attr("prompt_tokens"))
+        outputTokens = _toInt(attr("completion_tokens"))
+        val details = attr("prompt_tokens_details")
+        cacheReadTokens = _toInt(if (details != null) _attr(details, "cached_tokens") else 0)
+        cacheWriteTokens = _toInt(if (details != null) _attr(details, "cache_write_tokens") else 0)
+        inputTokens = maxOf(0, promptTotal - cacheReadTokens - cacheWriteTokens)
+    }
+
+    var reasoningTokens = 0
+    val outputDetails = attr("output_tokens_details")
+    if (outputDetails != null) {
+        reasoningTokens = _toInt(_attr(outputDetails, "reasoning_tokens"))
+    }
+
+    return CanonicalUsage(
+        inputTokens = inputTokens,
+        outputTokens = outputTokens,
+        cacheReadTokens = cacheReadTokens,
+        cacheWriteTokens = cacheWriteTokens,
+        reasoningTokens = reasoningTokens,
+    )
+}
+
+
+private fun _attr(obj: Any, name: String): Any? {
+    if (obj is Map<*, *>) return obj[name]
+    return try {
+        val f = obj.javaClass.getField(name)
+        f.get(obj)
+    } catch (_: Exception) {
+        null
+    }
+}
+
+
+fun estimateUsageCost(
+    modelName: String,
+    usage: CanonicalUsage,
+    provider: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+): CostResult {
+    val route = resolveBillingRoute(modelName, provider = provider, baseUrl = baseUrl)
+    if (route.billingMode == "subscription_included") {
+        return CostResult(
+            amountUsd = _ZERO,
+            status = "included",
+            source = "none",
+            label = "included",
+            pricingVersion = "included-route",
+        )
+    }
+
+    val entry = getPricingEntry(modelName, provider = provider, baseUrl = baseUrl, apiKey = apiKey)
+        ?: return CostResult(amountUsd = null, status = "unknown", source = "none", label = "n/a")
+
+    val notes = mutableListOf<String>()
+    var amount = _ZERO
+
+    if (usage.inputTokens != 0 && entry.inputCostPerMillion == null) {
+        return CostResult(amountUsd = null, status = "unknown", source = entry.source, label = "n/a")
+    }
+    if (usage.outputTokens != 0 && entry.outputCostPerMillion == null) {
+        return CostResult(amountUsd = null, status = "unknown", source = entry.source, label = "n/a")
+    }
+    if (usage.cacheReadTokens != 0 && entry.cacheReadCostPerMillion == null) {
+        return CostResult(
+            amountUsd = null,
+            status = "unknown",
+            source = entry.source,
+            label = "n/a",
+            notes = listOf("cache-read pricing unavailable for route"),
+        )
+    }
+    if (usage.cacheWriteTokens != 0 && entry.cacheWriteCostPerMillion == null) {
+        return CostResult(
+            amountUsd = null,
+            status = "unknown",
+            source = entry.source,
+            label = "n/a",
+            notes = listOf("cache-write pricing unavailable for route"),
+        )
+    }
+
+    if (entry.inputCostPerMillion != null) {
+        amount = amount.add(BigDecimal(usage.inputTokens).multiply(entry.inputCostPerMillion).divide(_ONE_MILLION))
+    }
+    if (entry.outputCostPerMillion != null) {
+        amount = amount.add(BigDecimal(usage.outputTokens).multiply(entry.outputCostPerMillion).divide(_ONE_MILLION))
+    }
+    if (entry.cacheReadCostPerMillion != null) {
+        amount = amount.add(BigDecimal(usage.cacheReadTokens).multiply(entry.cacheReadCostPerMillion).divide(_ONE_MILLION))
+    }
+    if (entry.cacheWriteCostPerMillion != null) {
+        amount = amount.add(BigDecimal(usage.cacheWriteTokens).multiply(entry.cacheWriteCostPerMillion).divide(_ONE_MILLION))
+    }
+    if (entry.requestCost != null && usage.requestCount != 0) {
+        amount = amount.add(BigDecimal(usage.requestCount).multiply(entry.requestCost))
+    }
+
+    var status = "estimated"
+    var label = "~$" + String.format("%.2f", amount.toDouble())
+    if (entry.source == "none" && amount == _ZERO) {
+        status = "included"
+        label = "included"
+    }
+
+    if (route.provider == "openrouter") {
+        notes.add("OpenRouter cost is estimated from the models API until reconciled.")
+    }
+
+    return CostResult(
+        amountUsd = amount,
+        status = status,
+        source = entry.source,
+        label = label,
+        fetchedAt = entry.fetchedAt,
+        pricingVersion = entry.pricingVersion,
+        notes = notes.toList(),
+    )
+}
+
+
+/**
+ * Check whether we have pricing data for this model+route.
+ *
+ * Uses direct lookup instead of routing through the full estimation
+ * pipeline — avoids creating dummy usage objects just to check status.
+ */
+fun hasKnownPricing(
+    modelName: String,
+    provider: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+): Boolean {
+    val route = resolveBillingRoute(modelName, provider = provider, baseUrl = baseUrl)
+    if (route.billingMode == "subscription_included") return true
+    return getPricingEntry(modelName, provider = provider, baseUrl = baseUrl, apiKey = apiKey) != null
+}
+
+
+fun formatDurationCompact(seconds: Double): String {
+    if (seconds < 60) return "${seconds.toInt()}s"
+    val minutes = seconds / 60
+    if (minutes < 60) return "${minutes.toInt()}m"
+    val hours = minutes / 60
+    if (hours < 24) {
+        val remainingMin = (minutes % 60).toInt()
+        return if (remainingMin != 0) "${hours.toInt()}h ${remainingMin}m" else "${hours.toInt()}h"
+    }
+    val days = hours / 24
+    return String.format("%.1fd", days)
+}
+
+
+fun formatTokenCountCompact(value: Int): String {
+    val absValue = kotlin.math.abs(value)
+    if (absValue < 1_000) return value.toString()
+
+    val sign = if (value < 0) "-" else ""
+    val units = listOf(
+        1_000_000_000L to "B",
+        1_000_000L to "M",
+        1_000L to "K",
+    )
+    for ((threshold, suffix) in units) {
+        if (absValue >= threshold) {
+            val scaled = absValue.toDouble() / threshold
+            var text = when {
+                scaled < 10 -> String.format("%.2f", scaled)
+                scaled < 100 -> String.format("%.1f", scaled)
+                else -> String.format("%.0f", scaled)
+            }
+            if ("." in text) text = text.trimEnd('0').trimEnd('.')
+            return "$sign$text$suffix"
+        }
+    }
+    return String.format("%,d", value)
+}
