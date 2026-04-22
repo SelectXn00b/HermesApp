@@ -22,11 +22,8 @@ object SkillsGuard {
         skillName: String? = null,
         path: String? = null): GuardResult {
         // Check path security
-        if (path != null) {
-            val pathError = PathSecurity.validatePath(path)
-            if (pathError != null) {
-                return GuardResult(false, "Path security: $pathError")
-            }
+        if (path != null && hasTraversalComponent(path)) {
+            return GuardResult(false, "Path security: Path contains directory traversal ('..') which is not allowed")
         }
 
         // Check write denial
