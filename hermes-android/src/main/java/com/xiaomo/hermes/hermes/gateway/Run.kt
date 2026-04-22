@@ -1398,7 +1398,7 @@ class GatewayRunner(
 
     /** Set session context variables for the current task.
      *  On Android, we don't use contextvars — session context is passed explicitly. */
-    fun _setSessionEnv(context: SessionRecord): List<Any?> {
+    fun _setSessionEnv(context: SessionEntry): List<Any?> {
         // Android does not use contextvars; context is passed through method params
         return emptyList()
     }

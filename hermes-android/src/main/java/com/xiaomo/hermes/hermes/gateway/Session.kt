@@ -72,7 +72,7 @@ data class SessionSource(
 /**
  * A single session record.
  */
-data class SessionRecord(
+data class SessionEntry(
     val sessionKey: String,
     val platform: String,
     val chatId: String,
@@ -113,7 +113,7 @@ data class SessionRecord(
     }
 
     companion object {
-        fun fromDict(data: Map<String, Any?>): SessionRecord = SessionRecord(
+        fun fromDict(data: Map<String, Any?>): SessionEntry = SessionEntry(
             sessionKey = data["session_key"] as? String ?: "",
             platform = data["platform"] as? String ?: "",
             chatId = data["chat_id"] as? String ?: "",
@@ -151,7 +151,7 @@ fun buildSessionKey(platform: String, chatId: String, userId: String): String =
  */
 class SessionStore(
     private val persistDir: File? = null) {
-    private val sessions: ConcurrentHashMap<String, SessionRecord> = ConcurrentHashMap()
+    private val sessions: ConcurrentHashMap<String, SessionEntry> = ConcurrentHashMap()
 
     /** Get or create a session. */
     fun getOrCreate(
@@ -161,8 +161,8 @@ class SessionStore(
         userId: String,
         chatName: String = "",
         userName: String = "",
-        chatType: String = "dm"): SessionRecord = sessions.getOrPut(sessionKey) {
-        SessionRecord(
+        chatType: String = "dm"): SessionEntry = sessions.getOrPut(sessionKey) {
+        SessionEntry(
             sessionKey = sessionKey,
             platform = platform,
             chatId = chatId,
@@ -173,7 +173,7 @@ class SessionStore(
     }
 
     /** Get or create session from a source map (Python-compatible). */
-    fun getOrCreateSession(source: Map<String, Any?>, forceNew: Boolean = false): SessionRecord {
+    fun getOrCreateSession(source: Map<String, Any?>, forceNew: Boolean = false): SessionEntry {
         val platform = source["platform"] as? String ?: "unknown"
         val chatId = source["chat_id"] as? String ?: ""
         val userId = source["user_id"] as? String ?: ""
@@ -189,9 +189,9 @@ class SessionStore(
         return getOrCreate(sessionKey, platform, chatId, userId, chatName, userName, chatType)
     }
 
-    fun get(sessionKey: String): SessionRecord? = sessions[sessionKey]
+    fun get(sessionKey: String): SessionEntry? = sessions[sessionKey]
     val keys: Set<String> get() = sessions.keys.toSet()
-    val all: Collection<SessionRecord> get() = sessions.values
+    val all: Collection<SessionEntry> get() = sessions.values
     val size: Int get() = sessions.size
     val processingCount: Int get() = sessions.values.count { it.isProcessing }
     val hasAnySessions: Boolean get() = sessions.isNotEmpty()
@@ -199,14 +199,14 @@ class SessionStore(
     fun clear() { sessions.clear() }
 
     /** Check if a session is expired (idle timeout). */
-    fun isSessionExpired(entry: SessionRecord, idleMinutes: Int = 1440): Boolean {
+    fun isSessionExpired(entry: SessionEntry, idleMinutes: Int = 1440): Boolean {
         val last = Instant.parse(entry.lastMessageAt)
         val elapsed = java.time.Duration.between(last, Instant.now())
         return elapsed.toMinutes() > idleMinutes
     }
 
     /** Check if session should be reset (daily boundary or idle). */
-    fun shouldReset(entry: SessionRecord, resetHour: Int = 4): String? {
+    fun shouldReset(entry: SessionEntry, resetHour: Int = 4): String? {
         // Daily reset check
         val now = java.time.ZonedDateTime.now()
         val lastMsg = java.time.ZonedDateTime.parse(entry.lastMessageAt)
@@ -250,9 +250,9 @@ class SessionStore(
     }
 
     /** Reset a session (clear conversation state). */
-    fun resetSession(sessionKey: String): SessionRecord? {
+    fun resetSession(sessionKey: String): SessionEntry? {
         val old = sessions[sessionKey] ?: return null
-        val newEntry = SessionRecord(
+        val newEntry = SessionEntry(
             sessionKey = old.sessionKey,
             platform = old.platform,
             chatId = old.chatId,
@@ -265,7 +265,7 @@ class SessionStore(
     }
 
     /** List sessions, optionally filtered by activity. */
-    fun listSessions(activeMinutes: Int? = null): List<SessionRecord> {
+    fun listSessions(activeMinutes: Int? = null): List<SessionEntry> {
         val all = sessions.values.toList()
         if (activeMinutes == null) return all
         val cutoff = Instant.now().minus(java.time.Duration.ofMinutes(activeMinutes.toLong()))
@@ -335,7 +335,7 @@ class SessionStore(
                 val obj = json.getJSONObject(i)
                 val map = mutableMapOf<String, Any?>()
                 obj.keys().forEach { key -> map[key] = obj.opt(key) }
-                val session = SessionRecord.fromDict(map)
+                val session = SessionEntry.fromDict(map)
                 sessions[session.sessionKey] = session
             }
             Log.i(_TAG, "Loaded ${sessions.size} sessions from ${file.absolutePath}")
@@ -345,11 +345,11 @@ class SessionStore(
     }
 
     /** Switch a session key to point at a different session (for /resume). */
-    fun switchSession(sessionKey: String, targetSessionKey: String): SessionRecord? {
+    fun switchSession(sessionKey: String, targetSessionKey: String): SessionEntry? {
         val old = sessions[sessionKey] ?: return null
         if (sessionKey == targetSessionKey) return old
 
-        val newEntry = SessionRecord(
+        val newEntry = SessionEntry(
             sessionKey = targetSessionKey,
             platform = old.platform,
             chatId = old.chatId,
@@ -361,7 +361,7 @@ class SessionStore(
         return newEntry
     }
     /** Remove a session by key. */
-    fun removeSession(sessionKey: String): SessionRecord? = sessions.remove(sessionKey)
+    fun removeSession(sessionKey: String): SessionEntry? = sessions.remove(sessionKey)
 
     /** Remove session entries older than [maxAgeDays] days.
      *  Returns the number of entries pruned. */
@@ -911,11 +911,3 @@ class SessionManager(
     }
 
 }
-
-/** Lightweight session entry for store index persistence. */
-class SessionEntry(
-    val sessionKey: String = "",
-    val sessionId: String = "",
-    var suspended: Boolean = false,
-    var memoryFlushed: Boolean = false
-)
