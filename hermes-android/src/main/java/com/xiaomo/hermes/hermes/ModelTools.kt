@@ -9,7 +9,8 @@ import com.xiaomo.hermes.hermes.tools.searchTool
 import com.xiaomo.hermes.hermes.tools.writeFileTool
 import com.xiaomo.hermes.hermes.tools.terminalTool
 import com.xiaomo.hermes.hermes.tools.ProcessRegistry
-import com.xiaomo.hermes.hermes.tools.MemoryTool
+import com.xiaomo.hermes.hermes.tools.MemoryStore
+import com.xiaomo.hermes.hermes.tools.memoryTool
 import com.xiaomo.hermes.hermes.plugins.memory.holographic.HolographicProvider
 import com.xiaomo.hermes.hermes.plugins.memory.honcho.HonchoClient
 import com.xiaomo.hermes.hermes.plugins.memory.honcho.HonchoClientConfig
@@ -30,6 +31,7 @@ import java.io.File
 
 private val modelToolsLogger = getLogger("model_tools")
 private val modelToolsGson = Gson()
+private val _modelToolsMemoryStore = MemoryStore()
 
 // ── Tool Schema ────────────────────────────────────────────────────────────
 
@@ -432,46 +434,24 @@ fun registerDefaultTools() {
 
     // ── 记忆 ──────────────────────────────────────────────────────────
 
-    // memory — 委托 MemoryTool（store/search/delete）
+    // memory — 委托 memoryTool（add/replace/remove with target=memory|user）
     ToolRegistry.register(
         name = "memory",
-        description = "Persistent memory: store observations, search past memories, or delete entries.",
+        description = "Persistent memory: add, replace, or remove entries in the agent's memory store.",
         parameters = mapOf(
             "type" to "object",
             "properties" to mapOf(
-                "action" to mapOf("type" to "string", "description" to "store / search / delete / list"),
-                "content" to mapOf("type" to "string", "description" to "Content to store (for store action)"),
-                "query" to mapOf("type" to "string", "description" to "Search query (for search action)"),
-                "id" to mapOf("type" to "string", "description" to "Memory ID (for delete action)"),
-                "tags" to mapOf("type" to "array", "items" to mapOf("type" to "string"), "description" to "Tags for categorization")),
-            "required" to listOf("action")),
+                "action" to mapOf("type" to "string", "description" to "add / replace / remove"),
+                "target" to mapOf("type" to "string", "description" to "memory (agent notes) or user (user profile)"),
+                "content" to mapOf("type" to "string", "description" to "Entry content (for add/replace)"),
+                "old_text" to mapOf("type" to "string", "description" to "Substring identifying the entry to replace/remove")),
+            "required" to listOf("action", "target")),
         handler = { args ->
-            val action = args["action"] as? String ?: "search"
-            when (action) {
-                "store" -> {
-                    val content = args["content"] as? String ?: ""
-                    @Suppress("UNCHECKED_CAST")
-                    val tags = (args["tags"] as? List<String>) ?: emptyList()
-                    val entry = MemoryTool.store(content, tags)
-                    modelToolsGson.toJson(mapOf("stored" to true, "id" to entry.id, "content" to entry.content))
-                }
-                "search" -> {
-                    val query = args["query"] as? String ?: ""
-                    val limit = (args["limit"] as? Number)?.toInt() ?: 10
-                    val results = MemoryTool.search(query, limit)
-                    modelToolsGson.toJson(mapOf("results" to results.map { mapOf("id" to it.id, "content" to it.content, "tags" to it.tags) }))
-                }
-                "delete" -> {
-                    val id = args["id"] as? String ?: ""
-                    val deleted = MemoryTool.delete(id)
-                    modelToolsGson.toJson(mapOf("deleted" to deleted))
-                }
-                "list" -> {
-                    val all = MemoryTool.getAll()
-                    modelToolsGson.toJson(mapOf("count" to all.size, "entries" to all.map { mapOf("id" to it.id, "content" to it.content, "tags" to it.tags) }))
-                }
-                else -> modelToolsGson.toJson(mapOf("error" to "Unknown memory action: $action"))
-            }
+            val action = args["action"] as? String ?: "add"
+            val target = args["target"] as? String ?: "memory"
+            val content = args["content"] as? String
+            val oldText = args["old_text"] as? String
+            memoryTool(action, target, content, oldText, _modelToolsMemoryStore)
         })
 
     // ── TTS ───────────────────────────────────────────────────────────

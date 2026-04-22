@@ -19,124 +19,81 @@ import java.util.UUID
  * Entries are delimited by § (section sign).
  * Character limits enforced per store.
  */
-object MemoryTool {
 
-    private const val _TAG = "MemoryTool"
-    private val gson = Gson()
+private const val _TAG_MEMORY_TOOL = "MemoryTool"
+private val _memoryGson = Gson()
 
-    private const val ENTRY_DELIMITER = "\n§\n"
-    private const val DEFAULT_MEMORY_CHAR_LIMIT = 2200
-    private const val DEFAULT_USER_CHAR_LIMIT = 1375
+const val ENTRY_DELIMITER = "\n§\n"
+const val DEFAULT_MEMORY_CHAR_LIMIT = 2200
+const val DEFAULT_USER_CHAR_LIMIT = 1375
 
-    // Threat patterns for content scanning
-    private val MEMORY_THREAT_PATTERNS = listOf(
-        Regex("""ignore\s+(previous|all|above|prior)\s+instructions""", RegexOption.IGNORE_CASE) to "prompt_injection",
-        Regex("""you\s+are\s+now\s+""", RegexOption.IGNORE_CASE) to "role_hijack",
-        Regex("""do\s+not\s+tell\s+the\s+user""", RegexOption.IGNORE_CASE) to "deception_hide",
-        Regex("""system\s+prompt\s+override""", RegexOption.IGNORE_CASE) to "sys_prompt_override",
-        Regex("""disregard\s+(your|all|any)\s+(instructions|rules|guidelines)""", RegexOption.IGNORE_CASE) to "disregard_rules",
-        Regex("""curl\s+[^\n]*\$\{?\w*(KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|API)""", RegexOption.IGNORE_CASE) to "exfil_curl",
-        Regex("""wget\s+[^\n]*\$\{?\w*(KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|API)""", RegexOption.IGNORE_CASE) to "exfil_wget",
-        Regex("""cat\s+[^\n]*(\.env|credentials|\.netrc|\.pgpass|\.npmrc|\.pypirc)""", RegexOption.IGNORE_CASE) to "read_secrets")
+private val _MEMORY_THREAT_PATTERNS: List<Pair<Regex, String>> = listOf(
+    Regex("""ignore\s+(previous|all|above|prior)\s+instructions""", RegexOption.IGNORE_CASE) to "prompt_injection",
+    Regex("""you\s+are\s+now\s+""", RegexOption.IGNORE_CASE) to "role_hijack",
+    Regex("""do\s+not\s+tell\s+the\s+user""", RegexOption.IGNORE_CASE) to "deception_hide",
+    Regex("""system\s+prompt\s+override""", RegexOption.IGNORE_CASE) to "sys_prompt_override",
+    Regex("""disregard\s+(your|all|any)\s+(instructions|rules|guidelines)""", RegexOption.IGNORE_CASE) to "disregard_rules",
+    Regex("""curl\s+[^\n]*\$\{?\w*(KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|API)""", RegexOption.IGNORE_CASE) to "exfil_curl",
+    Regex("""wget\s+[^\n]*\$\{?\w*(KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|API)""", RegexOption.IGNORE_CASE) to "exfil_wget",
+    Regex("""cat\s+[^\n]*(\.env|credentials|\.netrc|\.pgpass|\.npmrc|\.pypirc)""", RegexOption.IGNORE_CASE) to "read_secrets")
 
-    private val INVISIBLE_CHARS = setOf(
-        '\u200b', '\u200c', '\u200d', '\u2060', '\ufeff',
-        '\u202a', '\u202b', '\u202c', '\u202d', '\u202e')
+private val _INVISIBLE_CHARS: Set<Char> = setOf(
+    '\u200b', '\u200c', '\u200d', '\u2060', '\ufeff',
+    '\u202a', '\u202b', '\u202c', '\u202d', '\u202e')
 
-    data class MemoryEntry(
-        val id: String,
-        val content: String,
-        val tags: List<String> = emptyList(),
-        val timestamp: Long = System.currentTimeMillis())
+private var _memoryDir: File? = null
 
-    private val _memories = mutableListOf<MemoryEntry>()
+fun setMemoryDir(dir: File) {
+    _memoryDir = dir
+}
 
-    // --- In-memory entry lists (mirrors Python MemoryStore) ---
-    private var memoryEntries: MutableList<String> = mutableListOf()
-    private var userEntries: MutableList<String> = mutableListOf()
-    private var memoryCharLimit: Int = DEFAULT_MEMORY_CHAR_LIMIT
-    private var userCharLimit: Int = DEFAULT_USER_CHAR_LIMIT
-    private var systemPromptSnapshot: Map<String, String> = mapOf("memory" to "", "user" to "")
+fun getMemoryDir(): File {
+    return _memoryDir ?: File("/data/local/tmp/hermes/memories")
+}
 
-    // Memory directory
-    private var memoryDir: File? = null
-
-    fun setMemoryDir(dir: File) {
-        memoryDir = dir
+private fun _scanMemoryContent(content: String): String? {
+    for (char in _INVISIBLE_CHARS) {
+        if (char in content) {
+            return "Blocked: content contains invisible unicode character U+${char.code.toString(16).padStart(4, '0')} (possible injection)."
+        }
     }
-
-    // === Simple memory API (backward compat) ===
-
-    fun store(content: String, tags: List<String> = emptyList()): MemoryEntry {
-        val entry = MemoryEntry(
-            id = UUID.randomUUID().toString(),
-            content = content,
-            tags = tags)
-        _memories.add(entry)
-        return entry
+    for ((pattern, pid) in _MEMORY_THREAT_PATTERNS) {
+        if (pattern.containsMatchIn(content)) {
+            return "Blocked: content matches threat pattern '$pid'. Memory entries are injected into the system prompt and must not contain injection or exfiltration payloads."
+        }
     }
+    return null
+}
 
-    fun search(query: String, limit: Int = 10): List<MemoryEntry> {
-        return _memories
-            .filter { entry ->
-                entry.content.contains(query, ignoreCase = true) ||
-                entry.tags.any { it.contains(query, ignoreCase = true) }
-            }
-            .sortedByDescending { it.timestamp }
-            .take(limit)
-    }
+/**
+ * Bounded curated memory with file persistence. One instance per AIAgent.
+ * Ported from MemoryStore in memory_tool.py.
+ *
+ * Maintains two parallel states:
+ *   - _systemPromptSnapshot: frozen at load time, used for system prompt injection.
+ *     Never mutated mid-session. Keeps prefix cache stable.
+ *   - memoryEntries / userEntries: live state, mutated by tool calls, persisted to disk.
+ *     Tool responses always reflect this live state.
+ */
+class MemoryStore(
+    val memoryCharLimit: Int = DEFAULT_MEMORY_CHAR_LIMIT,
+    val userCharLimit: Int = DEFAULT_USER_CHAR_LIMIT
+) {
+    var memoryEntries: MutableList<String> = mutableListOf()
+    var userEntries: MutableList<String> = mutableListOf()
+    private var _systemPromptSnapshot: Map<String, String> = mapOf("memory" to "", "user" to "")
 
-    fun getAll(): List<MemoryEntry> = _memories.toList()
-
-    fun getById(id: String): MemoryEntry? = _memories.find { it.id == id }
-
-    fun delete(id: String): Boolean {
-        val sizeBefore = _memories.size
-        _memories.removeAll { it.id == id }
-        return _memories.size < sizeBefore
-    }
-
-    fun clear() = _memories.clear()
-
-    fun save(file: File) {
-        file.parentFile?.mkdirs()
-        file.writeText(gson.toJson(_memories), Charsets.UTF_8)
-    }
-
-    fun load(file: File) {
-        if (!file.exists()) return
-        try {
-            val type = com.google.gson.reflect.TypeToken.getParameterized(
-                List::class.java, MemoryEntry::class.java
-            ).type
-            val loaded = gson.fromJson<List<MemoryEntry>>(file.readText(Charsets.UTF_8), type)
-            _memories.clear()
-            _memories.addAll(loaded)
-        } catch (_: Exception) {}
-    }
-
-    // === Full MemoryStore API (ported from memory_tool.py) ===
-
-    fun loadFromDisk(): Unit? {
-        val dir = memoryDir ?: return null
+    fun loadFromDisk() {
+        val dir = getMemoryDir()
         dir.mkdirs()
-
-        memoryEntries = readFile(File(dir, "MEMORY.md")).toMutableList()
-        userEntries = readFile(File(dir, "USER.md")).toMutableList()
-
-        // Deduplicate
-        memoryEntries = LinkedHashSet(memoryEntries).toMutableList()
-        userEntries = LinkedHashSet(userEntries).toMutableList()
-
-        // Capture frozen snapshot for system prompt
-        systemPromptSnapshot = mapOf(
-            "memory" to renderBlock("memory", memoryEntries),
-            "user" to renderBlock("user", userEntries))
-        return null
+        memoryEntries = LinkedHashSet(_readFile(File(dir, "MEMORY.md"))).toMutableList()
+        userEntries = LinkedHashSet(_readFile(File(dir, "USER.md"))).toMutableList()
+        _systemPromptSnapshot = mapOf(
+            "memory" to _renderBlock("memory", memoryEntries),
+            "user" to _renderBlock("user", userEntries))
     }
 
-    fun fileLock(path: File): AutoCloseable {
-        // Uses a separate .lock file for read-modify-write safety
+    private fun _fileLock(path: File): AutoCloseable {
         val lockFile = File(path.absolutePath + ".lock")
         lockFile.parentFile?.mkdirs()
         val raf = RandomAccessFile(lockFile, "rw")
@@ -149,41 +106,39 @@ object MemoryTool {
         }
     }
 
-    fun pathFor(target: String): File {
-        val dir = memoryDir ?: File("/data/local/tmp/hermes/memories")
+    private fun _pathFor(target: String): File {
+        val dir = getMemoryDir()
         return if (target == "user") File(dir, "USER.md") else File(dir, "MEMORY.md")
     }
 
-    fun reloadTarget(target: String): Unit? {
-        val fresh = readFile(pathFor(target)).toMutableList()
+    private fun _reloadTarget(target: String) {
+        val fresh = _readFile(_pathFor(target))
         val deduped = LinkedHashSet(fresh).toMutableList()
-        setEntries(target, deduped)
-        return null
+        _setEntries(target, deduped)
     }
 
-    fun saveToDisk(target: String): Unit? {
-        val dir = memoryDir ?: return null
+    fun saveToDisk(target: String) {
+        val dir = getMemoryDir()
         dir.mkdirs()
-        writeFile(pathFor(target), entriesFor(target))
-        return null
+        _writeFile(_pathFor(target), _entriesFor(target))
     }
 
-    fun entriesFor(target: String): List<String> {
+    private fun _entriesFor(target: String): MutableList<String> {
         return if (target == "user") userEntries else memoryEntries
     }
 
-    fun setEntries(target: String, entries: List<String>) {
+    private fun _setEntries(target: String, entries: List<String>) {
         if (target == "user") userEntries = entries.toMutableList()
         else memoryEntries = entries.toMutableList()
     }
 
-    fun charCount(target: String): Int {
-        val entries = entriesFor(target)
+    private fun _charCount(target: String): Int {
+        val entries = _entriesFor(target)
         if (entries.isEmpty()) return 0
         return entries.joinToString(ENTRY_DELIMITER).length
     }
 
-    fun charLimit(target: String): Int {
+    private fun _charLimit(target: String): Int {
         return if (target == "user") userCharLimit else memoryCharLimit
     }
 
@@ -193,29 +148,26 @@ object MemoryTool {
             return mapOf("success" to false, "error" to "Content cannot be empty.")
         }
 
-        // Scan for injection/exfiltration
-        val scanError = scanMemoryContent(trimmed)
+        val scanError = _scanMemoryContent(trimmed)
         if (scanError != null) {
             return mapOf("success" to false, "error" to scanError)
         }
 
-        val lock = fileLock(pathFor(target))
+        val lock = _fileLock(_pathFor(target))
         return try {
-            reloadTarget(target)
-            val entries = entriesFor(target).toMutableList()
-            val limit = charLimit(target)
+            _reloadTarget(target)
+            val entries = _entriesFor(target).toMutableList()
+            val limit = _charLimit(target)
 
-            // Reject exact duplicates
             if (trimmed in entries) {
-                return successResponse(target, "Entry already exists (no duplicate added).")
+                return _successResponse(target, "Entry already exists (no duplicate added).")
             }
 
-            // Check char limit
             val newEntries = entries + trimmed
             val newTotal = newEntries.joinToString(ENTRY_DELIMITER).length
 
             if (newTotal > limit) {
-                val current = charCount(target)
+                val current = _charCount(target)
                 return mapOf(
                     "success" to false,
                     "error" to "Memory at $current/$limit chars. Adding this entry (${trimmed.length} chars) would exceed the limit. Replace or remove existing entries first.",
@@ -224,9 +176,9 @@ object MemoryTool {
             }
 
             entries.add(trimmed)
-            setEntries(target, entries)
+            _setEntries(target, entries)
             saveToDisk(target)
-            successResponse(target, "Entry added.")
+            _successResponse(target, "Entry added.")
         } finally {
             lock.close()
         }
@@ -238,14 +190,13 @@ object MemoryTool {
         if (trimmedOld.isEmpty()) return mapOf("success" to false, "error" to "old_text cannot be empty.")
         if (trimmedNew.isEmpty()) return mapOf("success" to false, "error" to "new_content cannot be empty. Use 'remove' to delete entries.")
 
-        // Scan replacement content
-        val scanError = scanMemoryContent(trimmedNew)
+        val scanError = _scanMemoryContent(trimmedNew)
         if (scanError != null) return mapOf("success" to false, "error" to scanError)
 
-        val lock = fileLock(pathFor(target))
+        val lock = _fileLock(_pathFor(target))
         return try {
-            reloadTarget(target)
-            val entries = entriesFor(target).toMutableList()
+            _reloadTarget(target)
+            val entries = _entriesFor(target).toMutableList()
             val matches = entries.mapIndexedNotNull { i, e -> if (trimmedOld in e) Pair(i, e) else null }
 
             if (matches.isEmpty()) {
@@ -263,13 +214,11 @@ object MemoryTool {
                         "error" to "Multiple entries matched '$trimmedOld'. Be more specific.",
                         "matches" to previews)
                 }
-                // All identical — safe to replace just the first
             }
 
             val idx = matches[0].first
-            val limit = charLimit(target)
+            val limit = _charLimit(target)
 
-            // Check replacement doesn't exceed limit
             val testEntries = entries.toMutableList()
             testEntries[idx] = trimmedNew
             val newTotal = testEntries.joinToString(ENTRY_DELIMITER).length
@@ -281,9 +230,9 @@ object MemoryTool {
             }
 
             entries[idx] = trimmedNew
-            setEntries(target, entries)
+            _setEntries(target, entries)
             saveToDisk(target)
-            successResponse(target, "Entry replaced.")
+            _successResponse(target, "Entry replaced.")
         } finally {
             lock.close()
         }
@@ -293,10 +242,10 @@ object MemoryTool {
         val trimmedOld = oldText.trim()
         if (trimmedOld.isEmpty()) return mapOf("success" to false, "error" to "old_text cannot be empty.")
 
-        val lock = fileLock(pathFor(target))
+        val lock = _fileLock(_pathFor(target))
         return try {
-            reloadTarget(target)
-            val entries = entriesFor(target).toMutableList()
+            _reloadTarget(target)
+            val entries = _entriesFor(target).toMutableList()
             val matches = entries.mapIndexedNotNull { i, e -> if (trimmedOld in e) Pair(i, e) else null }
 
             if (matches.isEmpty()) {
@@ -314,44 +263,43 @@ object MemoryTool {
                         "error" to "Multiple entries matched '$trimmedOld'. Be more specific.",
                         "matches" to previews)
                 }
-                // All identical — safe to remove just the first
             }
 
             val idx = matches[0].first
             entries.removeAt(idx)
-            setEntries(target, entries)
+            _setEntries(target, entries)
             saveToDisk(target)
-            successResponse(target, "Entry removed.")
+            _successResponse(target, "Entry removed.")
         } finally {
             lock.close()
         }
     }
 
     fun formatForSystemPrompt(target: String): String? {
-        val block = systemPromptSnapshot[target] ?: return null
+        val block = _systemPromptSnapshot[target] ?: return null
         return block.ifEmpty { null }
     }
 
-    fun successResponse(target: String, message: String?): Map<String, Any> {
-        val entries = entriesFor(target)
-        val current = charCount(target)
-        val limit = charLimit(target)
+    private fun _successResponse(target: String, message: String? = null): Map<String, Any> {
+        val entries = _entriesFor(target)
+        val current = _charCount(target)
+        val limit = _charLimit(target)
         val pct = if (limit > 0) minOf(100, (current * 100) / limit) else 0
 
         val resp = mutableMapOf<String, Any>(
             "success" to true,
             "target" to target,
-            "entries" to entries,
+            "entries" to entries.toList(),
             "usage" to "$pct% — $current/$limit chars",
             "entry_count" to entries.size)
         if (message != null) resp["message"] = message
         return resp
     }
 
-    fun renderBlock(target: String, entries: List<String>): String {
+    private fun _renderBlock(target: String, entries: List<String>): String {
         if (entries.isEmpty()) return ""
 
-        val limit = charLimit(target)
+        val limit = _charLimit(target)
         val content = entries.joinToString(ENTRY_DELIMITER)
         val current = content.length
         val pct = if (limit > 0) minOf(100, (current * 100) / limit) else 0
@@ -366,7 +314,7 @@ object MemoryTool {
         return "$separator\n$header\n$separator\n$content"
     }
 
-    fun readFile(path: File): List<String> {
+    private fun _readFile(path: File): List<String> {
         if (!path.exists()) return emptyList()
         val raw = try {
             path.readText(Charsets.UTF_8)
@@ -374,81 +322,66 @@ object MemoryTool {
             return emptyList()
         }
         if (raw.isBlank()) return emptyList()
-
         return raw.split(ENTRY_DELIMITER).map { it.trim() }.filter { it.isNotEmpty() }
     }
 
-    fun writeFile(path: File, entries: List<String>): Unit? {
+    private fun _writeFile(path: File, entries: List<String>) {
         val content = if (entries.isNotEmpty()) entries.joinToString(ENTRY_DELIMITER) else ""
         val tmpFile = File(path.parent, ".mem_${UUID.randomUUID().toString().replace("-", "").take(8)}.tmp")
         try {
             tmpFile.parentFile?.mkdirs()
             tmpFile.writeText(content, Charsets.UTF_8)
-            // Atomic rename on same filesystem
             if (path.exists()) path.delete()
             tmpFile.renameTo(path)
         } catch (e: Exception) {
-            // Clean up temp file on failure
             try { tmpFile.delete() } catch (_: Exception) {}
             throw RuntimeException("Failed to write memory file $path: ${e.message}")
         }
-        return null
-    }
-
-    // --- Content scanning ---
-
-    private fun scanMemoryContent(content: String): String? {
-        // Check invisible unicode
-        for (char in INVISIBLE_CHARS) {
-            if (char in content) {
-                return "Blocked: content contains invisible unicode character U+${char.code.toString(16).padStart(4, '0')} (possible injection)."
-            }
-        }
-        // Check threat patterns
-        for ((pattern, pid) in MEMORY_THREAT_PATTERNS) {
-            if (pattern.containsMatchIn(content)) {
-                return "Blocked: content matches threat pattern '$pid'. Memory entries are injected into the system prompt and must not contain injection or exfiltration payloads."
-            }
-        }
-        return null
     }
 }
 
 /**
- * Bounded curated memory with file persistence. One instance per AIAgent.
- * Ported from MemoryStore in memory_tool.py.
- *
- * Maintains two parallel states:
- *   - _systemPromptSnapshot: frozen at load time, used for system prompt injection.
- *     Never mutated mid-session. Keeps prefix cache stable.
- *   - memoryEntries / userEntries: live state, mutated by tool calls, persisted to disk.
- *     Tool responses always reflect this live state.
+ * Single entry point for the memory tool. Dispatches to MemoryStore methods.
+ * Ported from memory_tool.py :: memory_tool.
  */
-class MemoryStore(
-    val memoryCharLimit: Int = 2200,
-    val userCharLimit: Int = 1375
-) {
-    var memoryEntries: MutableList<String> = mutableListOf()
-    var userEntries: MutableList<String> = mutableListOf()
-    private var _systemPromptSnapshot: Map<String, String> = mapOf("memory" to "", "user" to "")
-
-    fun loadFromDisk() {
-        MemoryTool.loadFromDisk()
+fun memoryTool(
+    action: String,
+    target: String = "memory",
+    content: String? = null,
+    oldText: String? = null,
+    store: MemoryStore? = null): String {
+    if (store == null) {
+        return _memoryGson.toJson(mapOf("success" to false, "error" to "Memory is not available. It may be disabled in config or this environment."))
+    }
+    if (target !in listOf("memory", "user")) {
+        return _memoryGson.toJson(mapOf("success" to false, "error" to "Invalid target '$target'. Use 'memory' or 'user'."))
     }
 
-    fun formatForSystemPrompt(target: String): String? {
-        return MemoryTool.formatForSystemPrompt(target)
+    val result: Map<String, Any> = when (action) {
+        "add" -> {
+            if (content.isNullOrBlank()) {
+                return _memoryGson.toJson(mapOf("success" to false, "error" to "Content is required for 'add' action."))
+            }
+            store.add(target, content)
+        }
+        "replace" -> {
+            if (oldText.isNullOrBlank()) {
+                return _memoryGson.toJson(mapOf("success" to false, "error" to "old_text is required for 'replace' action."))
+            }
+            if (content.isNullOrBlank()) {
+                return _memoryGson.toJson(mapOf("success" to false, "error" to "content is required for 'replace' action."))
+            }
+            store.replace(target, oldText, content)
+        }
+        "remove" -> {
+            if (oldText.isNullOrBlank()) {
+                return _memoryGson.toJson(mapOf("success" to false, "error" to "old_text is required for 'remove' action."))
+            }
+            store.remove(target, oldText)
+        }
+        else -> return _memoryGson.toJson(mapOf("success" to false, "error" to "Unknown action '$action'. Use: add, replace, remove"))
     }
-
-    fun add(target: String, content: String): Map<String, Any> {
-        return MemoryTool.add(target, content)
-    }
-
-    fun replace(target: String, oldText: String, newContent: String): Map<String, Any> {
-        return MemoryTool.replace(target, oldText, newContent)
-    }
-
-    fun remove(target: String, oldText: String): Map<String, Any> {
-        return MemoryTool.remove(target, oldText)
-    }
+    return _memoryGson.toJson(result)
 }
+
+fun checkMemoryRequirements(): Boolean = true
