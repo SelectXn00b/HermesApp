@@ -39,78 +39,6 @@ data class CompressorConfig(
     val dropOldToolResults: Boolean = true  // 是否先删除旧的工具结果
 )
 
-// ── Token Estimation ─────────────────────────────────────────────────────
-
-/**
- * 粗略估算 token 数（~4 字符/token）
- */
-fun estimateTokensRough(text: String): Int {
-    if (text.isEmpty()) return 0
-    return (text.length + 3) / 4
-}
-
-/**
- * 估算消息列表的 token 数
- */
-fun estimateMessagesTokensRough(messages: List<Map<String, Any>>): Int {
-    var total = 0
-    for (msg in messages) {
-        val content = msg["content"]
-        when (content) {
-            is String -> total += estimateTokensRough(content)
-            is List<*> -> {
-                for (item in content) {
-                    if (item is Map<*, *>) {
-                        @Suppress("UNCHECKED_CAST")
-                        val block = item as Map<String, Any>
-                        when (block["type"]) {
-                            "text" -> total += estimateTokensRough(block["text"] as? String ?: "")
-                            "tool_use" -> total += estimateTokensRough(
-                                com.google.gson.Gson().toJson(block["input"])
-                            )
-                            "tool_result" -> {
-                                val resultContent = block["content"]
-                                when (resultContent) {
-                                    is String -> total += estimateTokensRough(resultContent)
-                                    is List<*> -> {
-                                        for (rc in resultContent) {
-                                            if (rc is Map<*, *>) {
-                                                total += estimateTokensRough(
-                                                    (rc as Map<*, *>)["text"] as? String ?: ""
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // 角色和结构开销
-        total += 10
-    }
-    return total
-}
-
-/**
- * 估算完整请求的 token 数（包含 system prompt 和 tools）
- */
-fun estimateRequestTokensRough(
-    messages: List<Map<String, Any>>,
-    systemPrompt: String = "",
-    tools: List<Map<String, Any>> = emptyList()
-): Int {
-    var total = 0
-    if (systemPrompt.isNotEmpty()) total += estimateTokensRough(systemPrompt)
-    total += estimateMessagesTokensRough(messages)
-    if (tools.isNotEmpty()) {
-        total += estimateTokensRough(com.google.gson.Gson().toJson(tools))
-    }
-    return total
-}
-
 // ── Main Compressor Class ────────────────────────────────────────────────
 
 class ContextCompressor(
@@ -365,27 +293,7 @@ class ContextCompressor(
         return result
     }
 
-    /**
-     * 从错误消息中解析 context length 限制
-     *
-     * @param errorMsg API 错误消息
-     * @return 解析到的 context length，未找到返回 null
-     */
-    fun parseContextLimitFromError(errorMsg: String): Int? {
-        // 解析 "context length of X tokens" 或 "maximum context length is X"
-        val patterns = listOf(
-            Regex("""context length of (\d+) tokens"""),
-            Regex("""maximum context length is (\d+)"""),
-            Regex("""max_tokens.*?(\d+)"""),
-            Regex("""context_window.*?(\d+)"""))
-        for (pattern in patterns) {
-            val match = pattern.find(errorMsg)
-            if (match != null) {
-                return match.groupValues[1].toIntOrNull()
-            }
-        }
-        return null
-    }
+
 
 
 

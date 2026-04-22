@@ -260,3 +260,35 @@ fun File.extension(): String {
 fun File.stem(): String {
     return this.nameWithoutExtension
 }
+
+
+/**
+ * Return the lowercased hostname for a base URL, or "" if absent.
+ *
+ * 1:1 对齐 utils.py#base_url_hostname
+ */
+fun baseUrlHostname(baseUrl: String?): String {
+    val raw = (baseUrl ?: "").trim()
+    if (raw.isEmpty()) return ""
+    val withScheme = if ("://" in raw) raw else "//$raw"
+    return try {
+        val uri = java.net.URI(withScheme)
+        (uri.host ?: "").lowercase().trimEnd('.')
+    } catch (_: Exception) {
+        ""
+    }
+}
+
+
+/**
+ * Return True when the base URL's hostname is `domain` or a subdomain.
+ *
+ * 1:1 对齐 utils.py#base_url_host_matches
+ */
+fun baseUrlHostMatches(baseUrl: String?, domain: String?): Boolean {
+    val hostname = baseUrlHostname(baseUrl)
+    if (hostname.isEmpty()) return false
+    val normalized = (domain ?: "").trim().lowercase().trimEnd('.')
+    if (normalized.isEmpty()) return false
+    return hostname == normalized || hostname.endsWith(".$normalized")
+}
