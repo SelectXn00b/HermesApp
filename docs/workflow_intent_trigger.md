@@ -1,6 +1,6 @@
 # Workflow Intent 触发（自定义 Action）
 
-本文档说明如何通过 **Intent 广播**触发 Operit 的工作流（Workflow）。
+本文档说明如何通过 **Intent 广播**触发 墨思 的工作流（Workflow）。
 
 当前实现支持：
 
@@ -29,11 +29,11 @@
 
 Android 对隐式广播有各种限制（尤其是后台、Android 8+ 等）。
 
-为了确保广播能稳定投递给 Operit，推荐使用：
+为了确保广播能稳定投递给 墨思，推荐使用：
 
 - **显式广播**：指定 `component`（包名 + Receiver 类名）
 
-这样即使 action 是自定义的，也能确保发给 Operit 的 `WorkflowTaskerReceiver`。
+这样即使 action 是自定义的，也能确保发给 墨思 的 `WorkflowTaskerReceiver`。
 
 ---
 
@@ -72,7 +72,7 @@ adb shell am broadcast \
   --es request_id "req-1001"
 ```
 
-- `-n` 指定 component，确保发给 Operit。
+- `-n` 指定 component，确保发给 墨思。
 - `-a` 为你在工作流 Trigger 里配置的 action。
 - `--es/--ez/--ei/...` 为 extras，会被工作流 TriggerNode 收集并输出。
 
@@ -86,7 +86,7 @@ adb shell am broadcast \
   --es message "hello"
 ```
 
-但这取决于系统版本、ROM 策略以及 Operit 是否能在后台接收该隐式广播。
+但这取决于系统版本、ROM 策略以及 墨思 是否能在后台接收该隐式广播。
 
 ### 4.3 方式 C：使用内置默认 action（兼容用法）
 

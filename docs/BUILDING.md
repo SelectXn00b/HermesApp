@@ -1,10 +1,10 @@
-# **Android 项目 Operit 编译指南（Linux/Ubuntu）**
+# **Android 项目 墨思 编译指南（Linux/Ubuntu）**
 
-本指南详细介绍了在 Linux 环境下（推荐 Ubuntu/Debian）编译 Android 项目 **Operit** 所需的全部环境配置和步骤。
+本指南详细介绍了在 Linux 环境下（推荐 Ubuntu/Debian）编译 Android 项目 **墨思** 所需的全部环境配置和步骤。
 
-## **关于 Operit**
+## **关于 墨思**
 
-**Operit AI** 是移动端首个功能完备的 AI 智能助手应用，它**完全独立运行**于您的 Android 设备上，拥有强大的**工具调用能力**。本项目旨在为开发者提供一个可深度定制和扩展的 AI 助手框架。
+**墨思** 是移动端首个功能完备的 AI 智能助手应用，它**完全独立运行**于您的 Android 设备上，拥有强大的**工具调用能力**。本项目旨在为开发者提供一个可深度定制和扩展的 AI 助手框架。
 
 在开始编译之前，请确保您已了解本项目的功能和目标。更多信息请参考项目主页的 [README.md](../README.md)。
 
@@ -114,7 +114,7 @@ yes | sdkmanager --licenses
 ```
 
 2. 安装平台工具、SDK 平台和构建工具:  
-Operit 项目依赖于 android-34 平台和 34.0.0 构建工具。  
+墨思 项目依赖于 android-34 平台和 34.0.0 构建工具。  
 ```bash
 sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 ```
@@ -148,8 +148,8 @@ org.gradle.parallel=true
    - 访问你的 GitHub 开发者设置页面：[**GitHub Developer Settings**](https://github.com/settings/developers)
    - 点击 **"New OAuth App"**。
    - 填写以下信息：
-     - **Application name**: `Operit Dev` (或任何你喜欢的名字)
-     - **Homepage URL**: `https://github.com/<你的 GitHub 用户名>/Operit` (使用你 Fork 后的仓库地址)
+     - **Application name**: `墨思 Dev` (或任何你喜欢的名字)
+     - **Homepage URL**: `https://github.com/<你的 GitHub 用户名>/墨思` (使用你 Fork 后的仓库地址)
      - **Authorization callback URL**: `operit://github-oauth-callback` (**必须完全匹配！**)
 
 2. **获取 Client ID:**  
@@ -177,8 +177,8 @@ org.gradle.parallel=true
 在 GitHub 打开上游仓库并点击 Fork： [AAswordman/Operit](https://github.com/AAswordman/Operit)  
 克隆你的 Fork（注意使用 --recurse-submodules）：
 ```bash
-git clone --recurse-submodules https://github.com/<你的 GitHub 用户名>/Operit.git
-cd Operit
+git clone --recurse-submodules https://github.com/<你的 GitHub 用户名>/墨思.git
+cd 墨思
 ```  
 （可选）添加上游仓库以便同步更新：  
 ```bash
@@ -188,7 +188,7 @@ git remote add upstream https://github.com/AAswordman/Operit.git
 **备选：不 Fork，直接克隆上游仓库（只读）**  
 ```bash
 git clone --recurse-submodules https://github.com/AAswordman/Operit.git
-cd Operit
+cd 墨思
 ```  
 
 如果你已克隆但忘记带 --recurse-submodules，可在仓库目录中执行：  

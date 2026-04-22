@@ -2,7 +2,7 @@
 
 ## 1. 简介
 
-**ToolPkg** 是 Operit 项目中用于打包和分发工具包的标准格式。它允许开发者将多个相关的工具脚本、资源文件和 UI 模块打包成一个单一的、易于分发和管理的文件。
+**ToolPkg** 是 墨思 项目中用于打包和分发工具包的标准格式。它允许开发者将多个相关的工具脚本、资源文件和 UI 模块打包成一个单一的、易于分发和管理的文件。
 
 ### 1.1 什么是 ToolPkg？
 
@@ -89,8 +89,8 @@ windows_control.toolpkg (ZIP 压缩包)
         "en": "Windows Control"
       },
       "description": {
-        "zh": "通过 Operit PC Agent 控制 Windows",
-        "en": "Control Windows via Operit PC Agent"
+        "zh": "通过 墨思 PC Agent 控制 Windows",
+        "en": "Control Windows via 墨思 PC Agent"
       }
     }
   ],
@@ -159,8 +159,8 @@ windows_control.toolpkg (ZIP 压缩包)
     "en": "Windows Control"
   },
   "description": {
-    "zh": "通过 Operit PC Agent 控制 Windows",
-    "en": "Control Windows via Operit PC Agent"
+    "zh": "通过 墨思 PC Agent 控制 Windows",
+    "en": "Control Windows via 墨思 PC Agent"
   }
 }
 ```
@@ -418,16 +418,16 @@ python sync_example_packages.py --delete-extra
 {
     "name": "windows_control",
     "description": {
-        "zh": "通过 HTTP 调用 Operit PC Agent 控制 Windows 电脑",
-        "en": "Control a Windows PC through Operit PC Agent over HTTP"
+        "zh": "通过 HTTP 调用 墨思 PC Agent 控制 Windows 电脑",
+        "en": "Control a Windows PC through 墨思 PC Agent over HTTP"
     },
     "enabledByDefault": false,
     "env": [
         {
             "name": "WINDOWS_AGENT_BASE_URL",
             "description": {
-                "zh": "Operit PC Agent 地址",
-                "en": "Operit PC Agent URL"
+                "zh": "墨思 PC Agent 地址",
+                "en": "墨思 PC Agent URL"
             },
             "required": true
         }
@@ -959,7 +959,7 @@ adb logcat -d -s JsEngine:* ToolPkg:* PackageManager:*
 
 #### 10.3.4 注意事项
 
-- 这个脚本依赖手机上的 Operit 已包含 `ToolPkgDebugInstallReceiver` 调试广播入口；如果手机装的是旧版本 App，广播不会生效。
+- 这个脚本依赖手机上的 墨思 已包含 `ToolPkgDebugInstallReceiver` 调试广播入口；如果手机装的是旧版本 App，广播不会生效。
 - 脚本会根据 `toolpkg_id` 处理同名外部 ToolPkg 的覆盖安装；调试时应保持 `toolpkg_id` 稳定，不要频繁改名。
 - 如果你调试的是 hook 行为，优先使用这套安装脚本，不要试图把 `toolpkg` 当普通 `.js` 包去跑。
 

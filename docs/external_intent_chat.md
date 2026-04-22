@@ -1,6 +1,6 @@
 # External Intent API: `EXTERNAL_CHAT`
 
-本文档描述一个**独立于工作流系统**的外部交互接口：外部应用通过发送广播 Intent（`com.ai.assistance.operit.EXTERNAL_CHAT`）向 Operit 发起一次“发送消息给 AI”的请求，并通过另一个广播接收执行结果。
+本文档描述一个**独立于工作流系统**的外部交互接口：外部应用通过发送广播 Intent（`com.ai.assistance.operit.EXTERNAL_CHAT`）向 墨思 发起一次“发送消息给 AI”的请求，并通过另一个广播接收执行结果。
 
 如果你希望通过局域网 HTTP 调用，而不是广播 Intent，请查看：
 
@@ -49,7 +49,7 @@ Manifest 注册：
 
 ## 3. 回传参数（Intent extras）
 
-Operit 在处理完成后会发送一条广播（action 为 `reply_action` 或默认 action），携带如下 extras：
+墨思 在处理完成后会发送一条广播（action 为 `reply_action` 或默认 action），携带如下 extras：
 
 | extra key | 类型 | 说明 |
 |---|---:|---|
@@ -126,7 +126,7 @@ adb shell am broadcast \
 
 ## 6. 发送完毕后的回传如何接收
 
-Operit 会在处理完成后发送广播回传：
+墨思 会在处理完成后发送广播回传：
 
 - 默认 action：`com.ai.assistance.operit.EXTERNAL_CHAT_RESULT`
 - 或者你在请求中指定的 `reply_action`
@@ -139,7 +139,7 @@ Operit 会在处理完成后发送广播回传：
 
 - `reply_package = 你的包名`
 
-这样 Operit 在回传时会对广播设置 `intent.setPackage(reply_package)`。
+这样 墨思 在回传时会对广播设置 `intent.setPackage(reply_package)`。
 
 ### 6.1 写一个最小接收 App / Receiver（用于调试/集成）
 

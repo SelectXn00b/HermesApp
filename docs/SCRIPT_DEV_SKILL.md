@@ -1,6 +1,6 @@
 ---
 name: SandboxPackage_DEV
-description: 用于 Operit Sandbox Package 开发。
+description: 用于 墨思 Sandbox Package 开发。
 ---
 
 # SandboxPackage_DEV

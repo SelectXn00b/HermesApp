@@ -1,6 +1,6 @@
 # External HTTP Chat API
 
-本文档描述 Operit 新增的局域网 HTTP 聊天接口。它与现有 `EXTERNAL_CHAT` Intent 接口语义一致，只是入口从广播改成了 HTTP。
+本文档描述 墨思 新增的局域网 HTTP 聊天接口。它与现有 `EXTERNAL_CHAT` Intent 接口语义一致，只是入口从广播改成了 HTTP。
 
 ## 1. 启用方式
 
@@ -196,7 +196,7 @@ curl -X POST "http://DEVICE_IP:8094/api/external-chat" \
 }
 ```
 
-AI 完成后，Operit 会向 `callback_url` 发送一次 `POST application/json` 回调，请求体仍然是：
+AI 完成后，墨思 会向 `callback_url` 发送一次 `POST application/json` 回调，请求体仍然是：
 
 ```json
 {
