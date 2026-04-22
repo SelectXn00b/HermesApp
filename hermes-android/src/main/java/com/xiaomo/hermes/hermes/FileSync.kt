@@ -229,3 +229,59 @@ class FileSyncManager(
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 }
+
+// ── Module-level aligned with Python tools/environments/file_sync.py ──────
+
+const val _SYNC_INTERVAL_SECONDS: Double = 5.0
+
+const val _FORCE_SYNC_ENV: String = "HERMES_FORCE_FILE_SYNC"
+
+const val _SYNC_BACK_MAX_RETRIES: Int = 3
+
+/** Seconds to wait between sync-back retry attempts. */
+val _SYNC_BACK_BACKOFF: List<Int> = listOf(2, 4, 8)
+
+/** Refuse to extract sync-back tars larger than 2 GiB. */
+const val _SYNC_BACK_MAX_BYTES: Long = 2L * 1024 * 1024 * 1024
+
+/**
+ * Enumerate all files that should be synced to a remote environment.
+ *
+ * Android surface-stub: Hermes-Android does not yet ship the
+ * `credential_files` helpers (`get_credential_file_mounts`,
+ * `iter_skills_files`, `iter_cache_files`), so this returns an
+ * empty list. Backends call it through [GetFilesFn], which can be
+ * substituted when the sync surface is finally wired up.
+ */
+fun iterSyncFiles(containerBase: String = "/root/.hermes"): List<Pair<String, String>> {
+    return emptyList()
+}
+
+/** Build a shell `rm -f` command for a batch of remote paths. */
+fun quotedRmCommand(remotePaths: List<String>): String {
+    return "rm -f " + remotePaths.joinToString(" ") { _shlexQuote(it) }
+}
+
+/** Build a shell `mkdir -p` command for a batch of directories. */
+fun quotedMkdirCommand(dirs: List<String>): String {
+    return "mkdir -p " + dirs.joinToString(" ") { _shlexQuote(it) }
+}
+
+/** Extract sorted unique parent directories from (host, remote) pairs. */
+fun uniqueParentDirs(files: List<Pair<String, String>>): List<String> {
+    val set = mutableSetOf<String>()
+    for ((_, remote) in files) {
+        val parent = java.io.File(remote).parent ?: ""
+        set.add(parent.ifEmpty { "." })
+    }
+    return set.sorted()
+}
+
+/** Minimal shell-safe quoter matching Python `shlex.quote`. */
+private fun _shlexQuote(s: String): String {
+    if (s.isEmpty()) return "''"
+    // Safe chars: alphanumerics plus [%+,-./:=@_]
+    val safe = Regex("^[A-Za-z0-9%+,\\-./:=@_]+$")
+    if (safe.matches(s)) return s
+    return "'" + s.replace("'", "'\"'\"'") + "'"
+}
