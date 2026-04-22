@@ -184,3 +184,177 @@ data class RateLimitState(
     val hasData: Boolean get() = capturedAt > 0
     val ageSeconds: Double get() = if (!hasData) Double.MAX_VALUE else System.currentTimeMillis() / 1000.0 - capturedAt
 }
+
+// ── Module-level aligned with Python agent/rate_limit_tracker.py ─────────
+
+/** Safe integer coercion with default fallback. */
+fun _safeInt(value: Any?, default: Int = 0): Int {
+    if (value == null) return default
+    return try {
+        when (value) {
+            is Number -> value.toInt()
+            is String -> value.toDouble().toInt()
+            else -> default
+        }
+    } catch (_: Exception) {
+        default
+    }
+}
+
+/** Safe float coercion with default fallback. */
+fun _safeFloat(value: Any?, default: Double = 0.0): Double {
+    if (value == null) return default
+    return try {
+        when (value) {
+            is Number -> value.toDouble()
+            is String -> value.toDouble()
+            else -> default
+        }
+    } catch (_: Exception) {
+        default
+    }
+}
+
+/**
+ * Parse `x-ratelimit-*` headers into a RateLimitState. Returns null if the
+ * headers contain no `x-ratelimit-*` keys at all.
+ */
+fun parseRateLimitHeaders(
+    headers: Map<String, String>,
+    provider: String = ""
+): RateLimitState? {
+    val lowered = headers.mapKeys { it.key.lowercase() }
+    val hasAny = lowered.keys.any { it.startsWith("x-ratelimit-") }
+    if (!hasAny) return null
+
+    val now = System.currentTimeMillis() / 1000.0
+
+    fun bucket(resource: String, suffix: String = ""): RateLimitBucket {
+        val tag = resource + suffix
+        return RateLimitBucket(
+            limit = _safeInt(lowered["x-ratelimit-limit-$tag"]),
+            remaining = _safeInt(lowered["x-ratelimit-remaining-$tag"]),
+            resetSeconds = _safeFloat(lowered["x-ratelimit-reset-$tag"]),
+            capturedAt = now
+        )
+    }
+
+    return RateLimitState(
+        requestsMin = bucket("requests"),
+        requestsHour = bucket("requests", "-1h"),
+        tokensMin = bucket("tokens"),
+        tokensHour = bucket("tokens", "-1h"),
+        capturedAt = now,
+        provider = provider
+    )
+}
+
+/** Human-friendly count: 7999856 → "8.0M", 33599 → "33.6K", 799 → "799". */
+fun _fmtCount(n: Int): String {
+    if (n >= 1_000_000) return "%.1fM".format(n / 1_000_000.0)
+    if (n >= 10_000) return "%.1fK".format(n / 1_000.0)
+    if (n >= 1_000) return "%.1fK".format(n / 1_000.0)
+    return n.toString()
+}
+
+/** Seconds → human duration: "58s", "2m 14s", "1h 2m". */
+fun _fmtSeconds(seconds: Double): String {
+    val s = maxOf(0, seconds.toInt())
+    if (s < 60) return "${s}s"
+    if (s < 3600) {
+        val m = s / 60
+        val sec = s % 60
+        return if (sec != 0) "${m}m ${sec}s" else "${m}m"
+    }
+    val h = s / 3600
+    val m = (s % 3600) / 60
+    return if (m != 0) "${h}h ${m}m" else "${h}h"
+}
+
+/** ASCII progress bar: `[████████░░░░░░░░░░░░]`. */
+fun _bar(pct: Double, width: Int = 20): String {
+    val filled = (pct / 100.0 * width).toInt().coerceIn(0, width)
+    val empty = width - filled
+    val b = StringBuilder("[")
+    repeat(filled) { b.append('█') }
+    repeat(empty) { b.append('░') }
+    b.append(']')
+    return b.toString()
+}
+
+/** Format one bucket as a single line (label + bar + counts + reset ETA). */
+fun _bucketLine(label: String, bucket: RateLimitBucket, labelWidth: Int = 14): String {
+    if (bucket.limit <= 0) {
+        return "  ${label.padEnd(labelWidth)}  (no data)"
+    }
+    val pct = bucket.usagePct
+    val used = _fmtCount(bucket.used)
+    val limit = _fmtCount(bucket.limit)
+    val remaining = _fmtCount(bucket.remaining)
+    val reset = _fmtSeconds(bucket.remainingSecondsNow)
+    val bar = _bar(pct)
+    return "  ${label.padEnd(labelWidth)} $bar %5.1f%%  $used/$limit used  ($remaining left, resets in $reset)".format(pct)
+}
+
+/** Format rate-limit state for terminal/chat display. */
+fun formatRateLimitDisplay(state: RateLimitState): String {
+    if (!state.hasData) {
+        return "No rate limit data yet — make an API request first."
+    }
+
+    val age = state.ageSeconds
+    val freshness = when {
+        age < 5 -> "just now"
+        age < 60 -> "${age.toInt()}s ago"
+        else -> "${_fmtSeconds(age)} ago"
+    }
+
+    val providerLabel = if (state.provider.isNotEmpty())
+        state.provider.replaceFirstChar { it.uppercase() }
+    else "Provider"
+
+    val lines = mutableListOf(
+        "$providerLabel Rate Limits (captured $freshness):",
+        "",
+        _bucketLine("Requests/min", state.requestsMin),
+        _bucketLine("Requests/hr", state.requestsHour),
+        "",
+        _bucketLine("Tokens/min", state.tokensMin),
+        _bucketLine("Tokens/hr", state.tokensHour)
+    )
+
+    val warnings = mutableListOf<String>()
+    for ((label, bucket) in listOf(
+        "requests/min" to state.requestsMin,
+        "requests/hr" to state.requestsHour,
+        "tokens/min" to state.tokensMin,
+        "tokens/hr" to state.tokensHour
+    )) {
+        if (bucket.limit > 0 && bucket.usagePct >= 80) {
+            val reset = _fmtSeconds(bucket.remainingSecondsNow)
+            warnings.add("  ⚠ $label at %.0f%% — resets in $reset".format(bucket.usagePct))
+        }
+    }
+    if (warnings.isNotEmpty()) {
+        lines.add("")
+        lines.addAll(warnings)
+    }
+    return lines.joinToString("\n")
+}
+
+/** One-line compact summary for status bars / gateway messages. */
+fun formatRateLimitCompact(state: RateLimitState): String {
+    if (!state.hasData) return "No rate limit data."
+
+    val rm = state.requestsMin
+    val tm = state.tokensMin
+    val rh = state.requestsHour
+    val th = state.tokensHour
+
+    val parts = mutableListOf<String>()
+    if (rm.limit > 0) parts.add("RPM: ${rm.remaining}/${rm.limit}")
+    if (rh.limit > 0) parts.add("RPH: ${_fmtCount(rh.remaining)}/${_fmtCount(rh.limit)} (resets ${_fmtSeconds(rh.remainingSecondsNow)})")
+    if (tm.limit > 0) parts.add("TPM: ${_fmtCount(tm.remaining)}/${_fmtCount(tm.limit)}")
+    if (th.limit > 0) parts.add("TPH: ${_fmtCount(th.remaining)}/${_fmtCount(th.limit)} (resets ${_fmtSeconds(th.remainingSecondsNow)})")
+    return parts.joinToString(" | ")
+}
