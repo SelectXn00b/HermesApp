@@ -1,65 +1,75 @@
+/**
+ * Clarify Tool Module - Interactive Clarifying Questions
+ *
+ * Allows the agent to present structured multiple-choice questions or
+ * open-ended prompts to the user. The actual user-interaction logic lives in
+ * the platform layer; this module defines the schema, validation, and a thin
+ * dispatcher that delegates to a platform-provided callback.
+ *
+ * Ported from tools/clarify_tool.py
+ */
 package com.xiaomo.hermes.hermes.tools
 
-import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
+import org.json.JSONArray
+import org.json.JSONObject
+
+// Maximum number of predefined choices the agent can offer.
+// A 5th "Other (type your answer)" option is always appended by the UI.
+const val MAX_CHOICES: Int = 4
 
 /**
- * Clarify Tool — interactive clarifying questions.
- * Ported from clarify_tool.py
+ * Ask the user a question, optionally with multiple-choice options.
  */
-object ClarifyTool {
+fun clarifyTool(
+    question: String,
+    choices: List<String>? = null,
+    callback: ((String, List<String>?) -> String)? = null,
+): String {
+    if (question.isBlank()) return toolError("Question text is required.")
 
-    const val MAX_CHOICES = 4
+    val trimmedQuestion = question.trim()
 
-    data class ClarifyResult(
-        @SerializedName("question") val question: String,
-        @SerializedName("choices_offered") val choicesOffered: List<String>?,
-        @SerializedName("user_response") val userResponse: String)
-
-    data class ClarifyError(
-        @SerializedName("error") val error: String)
-
-    /**
-     * Callback interface for platform-provided UI interaction.
-     */
-    fun interface ClarifyCallback {
-        fun ask(question: String, choices: List<String>?): String
+    var validated: List<String>? = choices?.let { raw ->
+        val trimmed = raw.map { it.trim() }.filter { it.isNotEmpty() }
+        when {
+            trimmed.isEmpty() -> null
+            trimmed.size > MAX_CHOICES -> trimmed.take(MAX_CHOICES)
+            else -> trimmed
+        }
     }
 
-    private val gson = Gson()
+    if (callback == null) {
+        return JSONObject(mapOf("error" to "Clarify tool is not available in this execution context.")).toString()
+    }
 
-    /**
-     * Ask the user a question, optionally with multiple-choice options.
-     */
-    fun clarifyTool(
-        question: String,
-        choices: List<String>? = null,
-        callback: ClarifyCallback? = null): String {
-        if (question.isBlank()) {
-            return gson.toJson(ClarifyError("Question text is required."))
-        }
-
-        val trimmedQuestion = question.trim()
-
-        // Validate and trim choices
-        val validatedChoices = choices?.let {
-            val trimmed = it.map { c -> c.trim() }.filter { c -> c.isNotEmpty() }
-            if (trimmed.isEmpty()) null
-            else trimmed.take(MAX_CHOICES)
-        }
-
-        if (callback == null) {
-            return gson.toJson(ClarifyError("Clarify tool is not available in this execution context."))
-        }
-
-        return try {
-            val userResponse = callback.ask(trimmedQuestion, validatedChoices)
-            gson.toJson(ClarifyResult(
-                question = trimmedQuestion,
-                choicesOffered = validatedChoices,
-                userResponse = userResponse.trim()))
-        } catch (e: Exception) {
-            gson.toJson(ClarifyError("Failed to get user input: ${e.message}"))
-        }
+    return try {
+        val userResponse = callback(trimmedQuestion, validated)
+        val obj = JSONObject()
+        obj.put("question", trimmedQuestion)
+        obj.put("choices_offered", validated?.let { JSONArray(it) } ?: JSONObject.NULL)
+        obj.put("user_response", userResponse.trim())
+        obj.toString()
+    } catch (e: Exception) {
+        JSONObject(mapOf("error" to "Failed to get user input: ${e.message}")).toString()
     }
 }
+
+/** Clarify tool has no external requirements — always available. */
+fun checkClarifyRequirements(): Boolean = true
+
+val CLARIFY_SCHEMA: Map<String, Any> = mapOf(
+    "name" to "clarify",
+    "description" to "Ask the user a question when you need clarification, feedback, or a decision before proceeding.",
+    "parameters" to mapOf(
+        "type" to "object",
+        "properties" to mapOf(
+            "question" to mapOf("type" to "string", "description" to "The question to present to the user."),
+            "choices" to mapOf(
+                "type" to "array",
+                "items" to mapOf("type" to "string"),
+                "maxItems" to MAX_CHOICES,
+                "description" to "Up to 4 answer choices. Omit to ask an open-ended question."),
+        ),
+        "required" to listOf("question"),
+    ),
+)
