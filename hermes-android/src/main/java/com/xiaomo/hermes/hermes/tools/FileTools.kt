@@ -1,7 +1,6 @@
 package com.xiaomo.hermes.hermes.tools
 
 import com.google.gson.Gson
-import java.io.File
 
 /**
  * File Tools — read, write, and patch files.
@@ -91,34 +90,4 @@ fun searchTool(
     val fileOps = ops ?: ShellFileOperations()
     val result = fileOps.search(pattern, path, fileGlob = fileGlob, limit = limit)
     return _fileToolsGson.toJson(result.toDict())
-}
-
-/**
- * 列出目录内容（Android 端 list_dir 工具，Python 侧没有对应函数）。
- */
-fun listDir(path: String, maxDepth: Int = 2, showHidden: Boolean = false): String {
-    val dir = File(path)
-    if (!dir.exists()) return _fileToolsGson.toJson(mapOf("error" to "Directory not found: $path"))
-    if (!dir.isDirectory) return _fileToolsGson.toJson(mapOf("error" to "Not a directory: $path"))
-
-    val entries = mutableListOf<Map<String, Any>>()
-    fun walk(file: File, depth: Int) {
-        if (depth > maxDepth) return
-        val children = file.listFiles()?.sortedBy { it.name } ?: return
-        for (child in children) {
-            if (!showHidden && child.name.startsWith(".")) continue
-            val entry = mutableMapOf<String, Any>(
-                "name" to child.name,
-                "path" to child.absolutePath,
-                "type" to if (child.isDirectory) "directory" else "file"
-            )
-            if (child.isFile) entry["size"] = child.length()
-            entries.add(entry)
-            if (child.isDirectory && depth < maxDepth) {
-                walk(child, depth + 1)
-            }
-        }
-    }
-    walk(dir, 1)
-    return _fileToolsGson.toJson(mapOf("path" to dir.absolutePath, "entries" to entries, "count" to entries.size))
 }
