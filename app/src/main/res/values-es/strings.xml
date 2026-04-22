@@ -83,13 +83,13 @@
     <string name="termux_wizard_title">Asistente de configuración de Termux</string>
 
     <!-- About Screen -->
-    <string name="about_title">Acerca de Operit AI</string>
+    <string name="about_title">Acerca de Hermes</string>
     <string name="about_version">Versión: %1$s</string>
-    <string name="about_description">Operit AI es una aplicación de asistente inteligente que ayuda a los usuarios a utilizar sus dispositivos de manera más eficiente, proporcionando funciones como análisis de interfaz y chat.</string>
+    <string name="about_description">Hermes es una aplicación de asistente inteligente que ayuda a los usuarios a utilizar sus dispositivos de manera más eficiente, proporcionando funciones como análisis de interfaz y chat.</string>
     <string name="about_developer">Desarrollador: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Contáctenos: aaswordsman@foxmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
-    <string name="about_copyright">© 2025 - 2026 Operit. Todos los derechos reservados.</string>
+    <string name="about_copyright">© 2025 - 2026 Hermes. Todos los derechos reservados.</string>
 
     <!-- AI Chat Screen -->
     <string name="configure_ai">Configurar interfaz AI</string>
@@ -476,10 +476,10 @@
     <!-- Agreement Screen -->
     <string name="agreement_subtitle">Por favor lea cuidadosamente y acepte los siguientes términos antes de usar.</string>
     <string name="agreement_human_readable_title">Acuerdo en lenguaje simple (versión no legal)</string>
-    <string name="agreement_human_readable_content">Al igual que usted, no nos gustan los acuerdos largos y aburridos. En pocas palabras:\n\nOperitAI es un software gratuito y de código abierto. Sus funciones de automatización y otras son muy potentes, por favor úselo solo para aprendizaje personal y asistencia diaria, no para ningún uso comercial o irregular.\n\nUsted es responsable de todas sus acciones. No somos responsables de las extensiones que agregue o modificaciones al software.\n\nEn cuanto a la privacidad: Su procesamiento de voz se completa localmente en su teléfono, es muy seguro. Los datos de chat de IA se envían directamente a las empresas de IA, nosotros no los manejamos.</string>
+    <string name="agreement_human_readable_content">Al igual que usted, no nos gustan los acuerdos largos y aburridos. En pocas palabras:\n\nHermesAI es un software gratuito y de código abierto. Sus funciones de automatización y otras son muy potentes, por favor úselo solo para aprendizaje personal y asistencia diaria, no para ningún uso comercial o irregular.\n\nUsted es responsable de todas sus acciones. No somos responsables de las extensiones que agregue o modificaciones al software.\n\nEn cuanto a la privacidad: Su procesamiento de voz se completa localmente en su teléfono, es muy seguro. Los datos de chat de IA se envían directamente a las empresas de IA, nosotros no los manejamos.</string>
     <string name="agreement_serious_title">Acuerdo legal riguroso</string>
     <string name="agreement_serious_content"><![CDATA[
-        <p>Bienvenido a OperitAI. Este software se modifica y distribuye bajo los términos de la Licencia Pública General Menor de GNU versión 3 (LGPLv3).</p>
+        <p>Bienvenido a HermesAI. Este software se modifica y distribuye bajo los términos de la Licencia Pública General Menor de GNU versión 3 (LGPLv3).</p>
         <p><b>1. Exención de garantía</b><br>Este software se proporciona "tal como está", sin garantías de ningún tipo, expresas o implícitas, incluyendo pero no limitándose a garantías de comerciabilidad, idoneidad para un propósito particular o no infracción. Todos los riesgos relacionados con la calidad y rendimiento del software son asumidos por usted.</p>
         <p><b>2. Limitación de responsabilidad</b><br>En ninguna circunstancia, excepto cuando lo requiera la ley aplicable o acordado por escrito, ningún contribuyente será responsable de daños directos, indirectos, incidentales, especiales, punitivos o consecuenciales causados por el uso o la incapacidad de usar este software (incluyendo pero no limitándose a la adquisición de bienes o servicios sustitutos, pérdida de datos o ganancias, o interrupción de negocios). <b>Además, el equipo de desarrollo no es responsable de las consecuencias de cualquier paquete de extensión (como MCP) instalado por el usuario o modificaciones realizadas a este software.</b></p>
         <p><b>3. Responsabilidad del usuario y limitaciones de uso</b><br>Usted es completamente responsable de cualquier operación realizada a través de este software y todas sus consecuencias. Se compromete a usar este software para uso personal legal y apropiado, y acepta:<br>

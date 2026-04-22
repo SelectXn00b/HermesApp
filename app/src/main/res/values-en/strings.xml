@@ -576,13 +576,13 @@
     <string name="termux_setup_guide">Termux Setup Guide</string>
     
     <!-- About Screen -->
-    <string name="about_title">About Operit AI</string>
+    <string name="about_title">About Hermes</string>
     <string name="about_version">Version: %1$s</string>
-    <string name="about_description">Operit AI is an intelligent assistant application that helps users use their devices more efficiently, providing interface analysis, chat conversations, and more.</string>
+    <string name="about_description">Hermes is an intelligent assistant application that helps users use their devices more efficiently, providing interface analysis, chat conversations, and more.</string>
     <string name="about_developer">Developer: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Contact Us: aaswordsman@foxmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
-    <string name="about_copyright">© 2025 - 2026 Operit. All Rights Reserved.</string>
+    <string name="about_copyright">© 2025 - 2026 Hermes. All Rights Reserved.</string>
     <string name="star_on_github">Star on GitHub</string>
     <string name="update_log">Update Log</string>
     <string name="app_logo_description">App Logo</string>
@@ -604,7 +604,7 @@
     <string name="network_status_label">Network Status</string>
 
     <!-- Configuration Screen -->
-    <string name="config_title">Operit AI Assistant</string>
+    <string name="config_title">Hermes Assistant</string>
     <string name="config_description">We use DeepSeek API by default. For alternatives, click the custom option below</string>
     <string name="config_api_key_label">API Key</string>
     <string name="config_api_key_placeholder">DeepSeek API Key</string>
@@ -705,7 +705,7 @@
     <string name="permission_guide_intro_2_title">A Powerful Toolbox for Geeks and Developers</string>
     <string name="permission_guide_intro_2_desc">With over 40 built-in professional tools for file management, web requests, script execution, and system control. Combined with a robust plugin system, you can automate tasks, and take deep control of your device.</string>
     <string name="permission_guide_intro_3_title">Unleash Creativity, Always on Standby</string>
-    <string name="permission_guide_intro_3_desc">Whether designing web pages, processing media files, or accessing the AI via its floating window, Operit provides a powerful, flexible, and secure environment for creation and assistance. Your data, your control.</string>
+    <string name="permission_guide_intro_3_desc">Whether designing web pages, processing media files, or accessing the AI via its floating window, Hermes provides a powerful, flexible, and secure environment for creation and assistance. Your data, your control.</string>
     <string name="permission_guide_intro_page_indicator">Feature Tour %1$d/%2$d</string>
 
     <!-- Context Menu -->
@@ -1069,10 +1069,10 @@
     <string name="agreement_title">User Agreement and Privacy Policy</string>
     <string name="agreement_subtitle">Please read and agree to the following terms before use.</string>
     <string name="agreement_human_readable_title">Plain Language Version (Not a legal document)</string>
-    <string name="agreement_human_readable_content">Like you, we don\'t like long and tedious agreements. Simply put:\n\nOperitAI is a free and open-source software. Its automation features are powerful, so please use them only for personal learning and daily assistance, not for any commercial or prohibited purposes.\n\nYou are responsible for all your actions. We are not responsible for any extensions you add or modifications you make to the software.\n\nRegarding privacy: Your voice processing is done locally on your device, which is secure. AI chat data is sent directly to the AI service provider, and we do not handle it.</string>
+    <string name="agreement_human_readable_content">Like you, we don\'t like long and tedious agreements. Simply put:\n\nHermesAI is a free and open-source software. Its automation features are powerful, so please use them only for personal learning and daily assistance, not for any commercial or prohibited purposes.\n\nYou are responsible for all your actions. We are not responsible for any extensions you add or modifications you make to the software.\n\nRegarding privacy: Your voice processing is done locally on your device, which is secure. AI chat data is sent directly to the AI service provider, and we do not handle it.</string>
     <string name="agreement_serious_title">Formal Legal Agreement</string>
     <string name="agreement_serious_content"><![CDATA[
-        <p>Welcome to OperitAI. This software is modified and distributed under the terms of the GNU Lesser General Public License, version 3 (LGPLv3).</p>
+        <p>Welcome to HermesAI. This software is modified and distributed under the terms of the GNU Lesser General Public License, version 3 (LGPLv3).</p>
         <p><b>1. No Warranty</b><br>This software is provided "as is" without any warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. The entire risk as to the quality and performance of the software is with you.</p>
         <p><b>2. Limitation of Liability</b><br>In no event unless required by applicable law or agreed to in writing will any contributor be liable to you for damages, including any general, special, incidental, or consequential damages arising out of the use or inability to use the software. <b>Furthermore, the development team is not responsible for any consequences arising from user-installed extension packages (such as MCPs) or from modifications made to this software.</b></p>
         <p><b>3. User Responsibility and Usage Restrictions</b><br>You are fully responsible for any operations conducted through this software and for all their consequences. You agree to use this software for lawful and proper personal purposes and agree that:<br>
@@ -1316,7 +1316,7 @@
     <string name="overlay_permission">Overlay Permission</string>
     <string name="battery_optimization">Battery Optimization Exemption</string>
     <string name="location_permission">Location Permission</string>
-    <string name="operit_terminal">Operit Terminal</string>
+    <string name="operit_terminal">Hermes Terminal</string>
     
     <!-- Permission Level Descriptions -->
     <string name="permission_level_standard">Standard Permission</string>
@@ -1524,7 +1524,7 @@
     <string name="accessibility_wizard_install_provider">Install Provider App</string>
     <string name="accessibility_wizard_enable_message">Now, enable the accessibility service in your device settings. This allows the provider app to analyze screen content.</string>
     <string name="accessibility_wizard_enable_note">Important Note:</string>
-    <string name="accessibility_wizard_enable_note_details">You must select and enable \"Operit Accessibility Provider\" from the list of services.</string>
+    <string name="accessibility_wizard_enable_note_details">You must select and enable \"Hermes Accessibility Provider\" from the list of services.</string>
     <string name="accessibility_wizard_open_settings">Open Accessibility Settings</string>
     <string name="accessibility_wizard_success_message">Accessibility service is properly configured and ready to use!</string>
 
@@ -1761,7 +1761,7 @@
     <string name="external_http_chat_health_example">Health Check Example</string>
     <string name="external_http_chat_intent_title">Intent Calling Guide</string>
     <string name="external_http_chat_intent_desc">The broadcast entry is still available for local app integration, Tasker, or adb debugging</string>
-    <string name="external_http_chat_intent_overview">HTTP and Intent share the same parameter semantics. Only the entry method is different.\n\nRequest action: %1$s\nDefault result action: %2$s\n\nCommon extras: message, request_id, group, create_new_chat, chat_id, create_if_none, show_floating, return_tool_status, initial_mode, auto_exit_after_ms, stop_after, reply_action, reply_package\n\nAfter completion, Operit returns success, chat_id, ai_response, and error by broadcast. If the result should only be delivered to one app, set reply_package.</string>
+    <string name="external_http_chat_intent_overview">HTTP and Intent share the same parameter semantics. Only the entry method is different.\n\nRequest action: %1$s\nDefault result action: %2$s\n\nCommon extras: message, request_id, group, create_new_chat, chat_id, create_if_none, show_floating, return_tool_status, initial_mode, auto_exit_after_ms, stop_after, reply_action, reply_package\n\nAfter completion, Hermes returns success, chat_id, ai_response, and error by broadcast. If the result should only be delivered to one app, set reply_package.</string>
     <string name="external_http_chat_copy_example">Copy Example</string>
     <string name="external_http_chat_example_copied">Example command copied</string>
     <string name="external_http_chat_service_enabled">Service enabled</string>
@@ -1931,7 +1931,7 @@
     <string name="tool_user_agreement">User Agreement</string>
     <string name="tool_user_agreement_desc">View the application\'s user agreement and privacy policy</string>
     <string name="tool_default_assistant_guide">Default Assistant Setup</string>
-    <string name="tool_default_assistant_guide_desc">Set Operit voice floating as system default assistant</string>
+    <string name="tool_default_assistant_guide_desc">Set Hermes voice floating as system default assistant</string>
     <string name="tool_terminal">Command Terminal</string>
     <string name="tool_terminal_desc">Powerful command-line terminal for executing system commands</string>
     <string name="tool_terminal_auto_config">Terminal Auto Configuration</string>
@@ -4374,7 +4374,7 @@
     <string name="mcp_issue_body_title_tech_info">## Technical Info</string>
     <string name="mcp_issue_body_tech_platform">- **Platform:** Operit MCP Market</string>
     <string name="mcp_issue_body_tech_publish_time">- **Published at:** %1$s</string>
-    <string name="mcp_issue_body_footer_note">*This Issue was generated automatically by Operit*</string>
+    <string name="mcp_issue_body_footer_note">*This Issue was generated automatically by Hermes*</string>
 
     <string name="mcp_publish_body_section_plugin_info">## 📋 Plugin Info</string>
     <string name="mcp_publish_body_label_description">**Description:** %1$s</string>
@@ -4498,7 +4498,7 @@
     <string name="custom">Custom</string>
 
     <!-- Voice Assistant Widget -->
-    <string name="voice_assistant_widget_description">Quick launch Operit voice assistant</string>
+    <string name="voice_assistant_widget_description">Quick launch Hermes voice assistant</string>
     <string name="voice_assistant_widget_title">Voice Assistant</string>
 
     <!-- Persona Card Generation Screen -->
@@ -4573,15 +4573,15 @@
 
     <!-- Default Assistant Setup Guide -->
     <string name="default_assistant_guide_title">Set Default Voice Assistant</string>
-    <string name="default_assistant_guide_subtitle">Make Operit Your Smart Assistant</string>
-    <string name="default_assistant_guide_intro">After setting Operit as the default system assistant, you can quickly launch the Operit voice assistant by long-pressing the Home button or using voice wake-up, providing a more convenient AI interaction experience.</string>
+    <string name="default_assistant_guide_subtitle">Make Hermes Your Smart Assistant</string>
+    <string name="default_assistant_guide_intro">After setting Hermes as the default system assistant, you can quickly launch the Hermes voice assistant by long-pressing the Home button or using voice wake-up, providing a more convenient AI interaction experience.</string>
     <string name="default_assistant_guide_steps_title">Setup Steps</string>
     
     <!-- Step 1 -->
     <string name="default_assistant_guide_step1_title">Open System Settings</string>
     <string name="default_assistant_guide_step1_desc">First, you need to enter the Android system settings interface</string>
     <string name="default_assistant_guide_step1_detail1">• Open System Settings → Apps → Default apps → Digital assistant app</string>
-    <string name="default_assistant_guide_step1_detail2">• Find and select "Operit AI" in the assistant app list</string>
+    <string name="default_assistant_guide_step1_detail2">• Find and select "Hermes" in the assistant app list</string>
     <string name="default_assistant_guide_step1_detail_android12">Android 12+: Settings → Apps → Default apps → Digital assistant app → Default digital assistant app</string>
     <string name="default_assistant_guide_open_settings">Open Settings</string>
     
@@ -4596,24 +4596,24 @@
     <string name="default_assistant_guide_step2_detail_android12">Android 12+: Settings → Apps → Default apps → Digital assistant app → Default digital assistant app</string>
     
     <!-- Step 3 -->
-    <string name="default_assistant_guide_step3_title">Select Operit</string>
-    <string name="default_assistant_guide_step3_desc">Choose Operit AI from the assistant app list</string>
-    <string name="default_assistant_guide_step3_detail1">• Find \"Operit AI\" in the available assistant apps list</string>
-    <string name="default_assistant_guide_step3_detail2">• Tap to select, and the system will set Operit as the default assistant</string>
+    <string name="default_assistant_guide_step3_title">Select Hermes</string>
+    <string name="default_assistant_guide_step3_desc">Choose Hermes from the assistant app list</string>
+    <string name="default_assistant_guide_step3_detail1">• Find \"Hermes\" in the available assistant apps list</string>
+    <string name="default_assistant_guide_step3_detail2">• Tap to select, and the system will set Hermes as the default assistant</string>
     <string name="default_assistant_guide_step3_detail3">• You can try speaking or typing to interact with the assistant</string>
     
     <!-- Step 4 -->
     <string name="default_assistant_guide_step4_title">Test Voice Assistant</string>
     <string name="default_assistant_guide_step4_desc">After setup, test if it can be launched normally</string>
-    <string name="default_assistant_guide_step4_detail1">• Long-press the Home button (home screen button) should invoke Operit voice assistant</string>
-    <string name="default_assistant_guide_step4_detail2">• If voice wake-up is supported, saying \"Hey Google\" or your device\'s designated wake word may also trigger Operit</string>
+    <string name="default_assistant_guide_step4_detail1">• Long-press the Home button (home screen button) should invoke Hermes voice assistant</string>
+    <string name="default_assistant_guide_step4_detail2">• If voice wake-up is supported, saying \"Hey Google\" or your device\'s designated wake word may also trigger Hermes</string>
     
     <!-- Troubleshooting -->
     <string name="default_assistant_guide_troubleshooting_title">Having Problems?</string>
-    <string name="default_assistant_guide_troubleshooting_content">If you can\'t find Operit in the list, please ensure:\n\n• The app is properly installed and not disabled\n• Necessary permissions have been granted (microphone, overlay, etc.)\n• Try restarting the device and setting it up again\n\nSome custom systems may restrict third-party apps from being set as default assistants. If you encounter this situation, you can still use Operit through the in-app floating window feature.</string>
+    <string name="default_assistant_guide_troubleshooting_content">If you can\'t find Hermes in the list, please ensure:\n\n• The app is properly installed and not disabled\n• Necessary permissions have been granted (microphone, overlay, etc.)\n• Try restarting the device and setting it up again\n\nSome custom systems may restrict third-party apps from being set as default assistants. If you encounter this situation, you can still use Hermes through the in-app floating window feature.</string>
 
     <!-- Voice Interaction Service -->
-    <string name="voice_interaction_service_name">Operit AI Assistant</string>
+    <string name="voice_interaction_service_name">Hermes Assistant</string>
     <string name="voice_interaction_service_summary">Intelligent voice assistant service</string>
 
     <!-- Tool Permission Settings -->
@@ -4959,7 +4959,7 @@
     <string name="backup_memory_link_count">Memory Links</string>
     
     <string name="backup_files_statistics">Backup Files Statistics</string>
-    <string name="backup_files_statistics_subtitle">Backup files in Operit export directory</string>
+    <string name="backup_files_statistics_subtitle">Backup files in Hermes export directory</string>
     <string name="backup_refresh">Refresh</string>
     <string name="backup_scanning">Scanning</string>
     <string name="backup_chat_files">Chat History</string>
@@ -5064,7 +5064,7 @@
     <string name="backup_select_export_format">Select Export Format</string>
     <string name="backup_select_format_hint">Please select the chat history format to export:</string>
     <string name="backup_format_json">JSON (Recommended)</string>
-    <string name="backup_format_json_desc">Operit native format, preserves variants and all other data</string>
+    <string name="backup_format_json_desc">Hermes native format, preserves variants and all other data</string>
     <string name="backup_format_markdown">Markdown</string>
     <string name="backup_format_markdown_desc">Lightweight markup format, easy to read and edit</string>
     <string name="backup_format_html">HTML</string>
@@ -5075,7 +5075,7 @@
     <!-- Import Format Selection -->
     <string name="backup_select_import_format">Select Import Format</string>
     <string name="backup_import_format_hint">Please select the chat history format to import:</string>
-    <string name="backup_format_operit">Operit JSON (Recommended)</string>
+    <string name="backup_format_operit">Hermes JSON (Recommended)</string>
     <string name="backup_format_operit_desc">Native format of this app, preserves variants and all other data</string>
     <string name="backup_format_chatgpt">ChatGPT</string>
     <string name="backup_format_chatgpt_desc">OpenAI ChatGPT conversations.json export format</string>
@@ -5237,7 +5237,7 @@
 
     <!-- Logcat -->
     <string name="logcat_no_logs_to_save">No logs to save</string>
-    <string name="logcat_header">=== Operit Logs ===</string>
+    <string name="logcat_header">=== Hermes Logs ===</string>
     <string name="logcat_date">Date: %1$s</string>
     <string name="logcat_total_count">Total count: %1$d</string>
     <string name="logcat_save_failed">Save failed: %1$s</string>
@@ -5754,7 +5754,7 @@
     <string name="skill_publish_body_section_repo_info">## 🔗 Repository Info</string>
     <string name="skill_publish_body_label_repo_url">**Repository URL:** %1$s</string>
     <string name="skill_publish_body_section_install_method">## 📦 Installation</string>
-    <string name="skill_publish_body_install_step1">1. Open Operit → Package Manager → Skills</string>
+    <string name="skill_publish_body_install_step1">1. Open Hermes → Package Manager → Skills</string>
     <string name="skill_publish_body_install_step2">2. Tap "Import Skill" → "Import from Repository"</string>
     <string name="skill_publish_body_install_step3">3. Enter repository URL: `%1$s`</string>
     <string name="skill_publish_body_install_step4">4. Confirm import</string>
@@ -6643,15 +6643,15 @@
     <string name="chat_summarize_generation_failed">Summary generation failed: %1$s</string>
 
     <!-- AIForegroundService (新增) -->
-    <string name="service_operit_running">Operit is running</string>
+    <string name="service_operit_running">Hermes is running</string>
     <string name="service_chat_complete_reminder">Chat completion reminder</string>
     <string name="service_chat_complete_reminder_sound">Chat completion reminder (sound)</string>
     <string name="service_chat_complete_reminder_vibration">Chat completion reminder (vibration)</string>
     <string name="service_chat_complete_reminder_sound_vibration">Chat completion reminder (sound and vibration)</string>
-    <string name="service_keep_background">Keep Operit running in the background.</string>
+    <string name="service_keep_background">Keep Hermes running in the background.</string>
     <string name="service_notify_when_complete">Notify you when the conversation is complete.</string>
-    <string name="service_running_wake_pause">Operit is running (wake paused)</string>
-    <string name="service_running_wake_listening">Operit is running (wake listening)</string>
+    <string name="service_running_wake_pause">Hermes is running (wake paused)</string>
+    <string name="service_running_wake_listening">Hermes is running (wake listening)</string>
     <string name="service_running_stats">Conversations %1$d · Tools %2$d</string>
     <string name="service_running_http_listening">External HTTP listening on port %1$d</string>
     <string name="service_running_with_http">%1$s · HTTP %2$d</string>
@@ -6698,7 +6698,7 @@
     <string name="html_export_updated">Updated</string>
     <string name="html_export_group">Group</string>
     <string name="html_export_message_count">Message Count</string>
-    <string name="html_export_footer">Exported from Operit AI Assistant</string>
+    <string name="html_export_footer">Exported from Hermes Assistant</string>
 
     <!-- MnnModelDownloadManager -->
     <string name="mnn_no_cache_data">No cache data</string>

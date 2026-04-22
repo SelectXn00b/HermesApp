@@ -572,13 +572,13 @@
     <string name="termux_setup_guide">Termux 设置向导</string>
     
     <!-- About Screen -->
-    <string name="about_title">关于 Operit AI</string>
+    <string name="about_title">关于 墨思</string>
     <string name="about_version">版本: %1$s</string>
-    <string name="about_description">Operit AI是一个智能助手应用，能够帮助用户更高效地使用设备，提供界面分析、聊天对话等功能。</string>
+    <string name="about_description">墨思是一个智能助手应用，能够帮助用户更高效地使用设备，提供界面分析、聊天对话等功能。</string>
     <string name="about_developer">开发者: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">联系我们: aaswordsman@foxmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
-    <string name="about_copyright">© 2025 - 2026 Operit. 保留所有权利。</string>
+    <string name="about_copyright">© 2025 - 2026 墨思. 保留所有权利。</string>
     <string name="star_on_github">在 GitHub 点个 Star</string>
     <string name="update_log">更新日志</string>
     <string name="app_logo_description">应用图标</string>
@@ -597,7 +597,7 @@
     <string name="network_status_label">网络状态</string>
 
     <!-- Configuration Screen -->
-    <string name="config_title">Operit AI 助手</string>
+    <string name="config_title">墨思 助手</string>
     <string name="config_description">我们默认使用DeepSeek API，如需更换请点击下方自定义选项</string>
     <string name="config_api_key_label">API密钥</string>
     <string name="config_api_key_placeholder">DeepSeek API密钥</string>
@@ -1037,10 +1037,10 @@
     <string name="agreement_title">用户协议与隐私政策</string>
     <string name="agreement_subtitle">请在使用前仔细阅读并同意以下条款。</string>
     <string name="agreement_human_readable_title">人话版协议（非法律版本）</string>
-    <string name="agreement_human_readable_content">我们和你一样，不喜欢冗长乏味的协议。简单来说：\n\nOperitAI是一款免费的开源软件。它的自动化等功能很强大，请务必仅用于个人学习和日常辅助，不要用于任何商业或违规用途。\n\n您需要对自己的所有行为负责。对于您自行添加的扩展或修改的软件，我们也不承担责任。\n\n隐私方面：您的语音处理都在手机本地完成，很安全。AI聊天数据会直接发给AI公司，我们不经手。</string>
+    <string name="agreement_human_readable_content">我们和你一样，不喜欢冗长乏味的协议。简单来说：\n\n墨思AI是一款免费的开源软件。它的自动化等功能很强大，请务必仅用于个人学习和日常辅助，不要用于任何商业或违规用途。\n\n您需要对自己的所有行为负责。对于您自行添加的扩展或修改的软件，我们也不承担责任。\n\n隐私方面：您的语音处理都在手机本地完成，很安全。AI聊天数据会直接发给AI公司，我们不经手。</string>
     <string name="agreement_serious_title">严谨版法律协议</string>
     <string name="agreement_serious_content"><![CDATA[
-        <p>欢迎使用 OperitAI。本软件是根据 GNU 宽通用公共许可证第三版（LGPLv3）的条款进行修改和分发的。</p>
+        <p>欢迎使用 墨思AI。本软件是根据 GNU 宽通用公共许可证第三版（LGPLv3）的条款进行修改和分发的。</p>
         <p><b>1. 无担保声明</b><br>本软件按"原样"提供，不附带任何形式的明示或暗示的保证，包括但不限于对适销性、特定用途适用性或不侵权的保证。所有与软件质量和性能相关的风险均由您承担。</p>
         <p><b>2. 责任限制</b><br>在任何情况下，除非适用法律要求或书面同意，否则任何贡献者均不对因使用或无法使用本软件而造成的任何直接、间接、偶然、特殊、惩戒性或后果性损害（包括但不限于采购替代商品或服务、数据或利润损失、或业务中断）承担责任。<b>此外，开发团队不对用户自行安装的任何扩展包（如MCP）或对本软件进行修改后产生的任何后果负责。</b></p>
         <p><b>3. 用户责任与使用限制</b><br>您对通过本软件进行的任何操作及所有后果负全部责任。您承诺将本软件用于合法且正当的个人用途，并同意：<br>
@@ -1288,7 +1288,7 @@
     <string name="overlay_permission">悬浮窗权限</string>
     <string name="battery_optimization">电池优化豁免</string>
     <string name="location_permission">位置权限</string>
-    <string name="operit_terminal">Operit终端</string>
+    <string name="operit_terminal">墨思终端</string>
     
     <!-- 权限级别描述 -->
     <string name="permission_level_standard">标准权限</string>
@@ -1596,7 +1596,7 @@
     <string name="permission_guide_intro_2_title">为极客与开发者打造的强大工具箱</string>
     <string name="permission_guide_intro_2_desc">内置超过40种专业工具，涵盖文件管理、网络请求、脚本执行和系统控制。结合强大的插件系统，您可以自动化任务，深度掌控您的设备。</string>
     <string name="permission_guide_intro_3_title">释放创造力，随时待命</string>
-    <string name="permission_guide_intro_3_desc">无论是设计网页、处理媒体文件，还是通过悬浮窗随时唤醒AI，Operit都为您提供强大、灵活且安全的创作与辅助环境。您的数据，由您掌控。</string>
+    <string name="permission_guide_intro_3_desc">无论是设计网页、处理媒体文件，还是通过悬浮窗随时唤醒AI，墨思都为您提供强大、灵活且安全的创作与辅助环境。您的数据，由您掌控。</string>
     <string name="permission_guide_intro_page_indicator">功能介绍 %1$d/%2$d</string>
 
     <!-- 调试模式 -->
@@ -1989,7 +1989,7 @@
     <string name="tool_user_agreement">用户协议</string>
     <string name="tool_user_agreement_desc">查看应用的用户协议与隐私政策</string>
     <string name="tool_default_assistant_guide">默认助手设置</string>
-    <string name="tool_default_assistant_guide_desc">设置Operit语音悬浮为系统默认助手</string>
+    <string name="tool_default_assistant_guide_desc">设置墨思语音悬浮为系统默认助手</string>
     <string name="tool_terminal">命令终端</string>
     <string name="tool_terminal_desc">功能强大的命令行终端，执行系统指令</string>
     <string name="tool_terminal_auto_config">终端自动配置</string>
@@ -4246,7 +4246,7 @@
     <string name="retry_market_registration">重试市场登记</string>
     <string name="update_to_market">更新到市场</string>
     <string name="create_operit_forge_title">创建 OperitForge？</string>
-    <string name="create_operit_forge_message">这是你第一次直连发布。Operit 需要先在你的 GitHub 账号下创建公开仓库 `OperitForge`。</string>
+    <string name="create_operit_forge_message">这是你第一次直连发布。墨思 需要先在你的 GitHub 账号下创建公开仓库 `OperitForge`。</string>
     <string name="confirm_create_public_forge_title">确认创建公开仓库</string>
     <string name="confirm_create_public_forge_message">请再次确认，现在创建公开仓库 `OperitForge`。后续发布都会复用这个仓库。</string>
     <string name="create_and_publish">创建并发布</string>
@@ -4399,7 +4399,7 @@
     <string name="mcp_issue_body_title_tech_info">## 技术信息</string>
     <string name="mcp_issue_body_tech_platform">- **发布平台:** Operit MCP 市场</string>
     <string name="mcp_issue_body_tech_publish_time">- **发布时间:** %1$s</string>
-    <string name="mcp_issue_body_footer_note">*此Issue由 Operit 自动生成*</string>
+    <string name="mcp_issue_body_footer_note">*此Issue由 墨思 自动生成*</string>
 
     <string name="mcp_publish_body_section_plugin_info">## 📋 插件信息</string>
     <string name="mcp_publish_body_label_description">**描述:** %1$s</string>
@@ -4567,7 +4567,7 @@
     <string name="custom">自定义</string>
 
     <!-- Voice Assistant Widget -->
-    <string name="voice_assistant_widget_description">快速启动 Operit 语音助手</string>
+    <string name="voice_assistant_widget_description">快速启动 墨思 语音助手</string>
     <string name="voice_assistant_widget_title">语音助手</string>
 
     <!-- MNN Model Download -->
@@ -4707,22 +4707,22 @@
 
     <!-- 默认助手设置引导 -->
     <string name="default_assistant_guide_title">设置默认语音助手</string>
-    <string name="default_assistant_guide_subtitle">让Operit成为您的智能助手</string>
-    <string name="default_assistant_guide_intro">将Operit设置为系统默认助手后，您可以通过长按Home键或使用语音唤醒快速启动Operit语音助手，获得更便捷的AI交互体验。</string>
+    <string name="default_assistant_guide_subtitle">让墨思成为您的智能助手</string>
+    <string name="default_assistant_guide_intro">将墨思设置为系统默认助手后，您可以通过长按Home键或使用语音唤醒快速启动墨思语音助手，获得更便捷的AI交互体验。</string>
     <string name="default_assistant_guide_steps_title">设置步骤</string>
     
     <!-- 步骤1: 设置为默认助理 -->
     <string name="default_assistant_guide_step1_title">设置为默认助理</string>
-    <string name="default_assistant_guide_step1_desc">将 Operit 设置为系统的默认数字助理应用</string>
+    <string name="default_assistant_guide_step1_desc">将 墨思 设置为系统的默认数字助理应用</string>
     <string name="default_assistant_guide_step1_detail1">• 打开系统设置 → 应用 → 默认应用 → 数字助理应用</string>
-    <string name="default_assistant_guide_step1_detail2">• 在助手应用列表中找到并选择"Operit AI"</string>
+    <string name="default_assistant_guide_step1_detail2">• 在助手应用列表中找到并选择"墨思"</string>
     <string name="default_assistant_guide_step1_detail_android12">Android 12+: 设置 → 应用 → 默认应用 → 数字助理应用 → 默认数字助理应用</string>
     <string name="default_assistant_guide_open_settings">打开助理设置</string>
     
     <!-- 步骤2: 配置启动手势 -->
     <string name="default_assistant_guide_open_gesture_settings">打开手势设置</string>
     <string name="default_assistant_guide_step2_title">配置启动手势</string>
-    <string name="default_assistant_guide_step2_desc">设置如何快速唤起 Operit 助手</string>
+    <string name="default_assistant_guide_step2_desc">设置如何快速唤起 墨思 助手</string>
     <string name="default_assistant_guide_step2_detail1">• 长按Home键：最常用的方式，在大部分设备上都可用</string>
     <string name="default_assistant_guide_step2_detail2">• 从屏幕底部向上滑动：部分支持全面屏手势的设备</string>
     <string name="default_assistant_guide_step2_detail_android12">Android 12+: 设置 → 应用 → 默认应用 → 数字助理应用 → 默认数字助理应用</string>
@@ -4732,22 +4732,22 @@
     <!-- 步骤4: 测试语音助手 -->
     <string name="default_assistant_guide_step4_title">测试语音助手</string>
     <string name="default_assistant_guide_step4_desc">设置完成后，测试是否能正常启动</string>
-    <string name="default_assistant_guide_step4_detail1">• 长按Home键（主屏幕按钮）应该会调起 Operit 语音助手</string>
-    <string name="default_assistant_guide_step4_detail2">• 如果设备支持语音唤醒，说"Hey Google"或设备指定的唤醒词也可能触发 Operit</string>
+    <string name="default_assistant_guide_step4_detail1">• 长按Home键（主屏幕按钮）应该会调起 墨思 语音助手</string>
+    <string name="default_assistant_guide_step4_detail2">• 如果设备支持语音唤醒，说"Hey Google"或设备指定的唤醒词也可能触发 墨思</string>
     
     <!-- 步骤3: 测试助手功能 -->
     <string name="default_assistant_guide_step3_title">测试助手功能</string>
-    <string name="default_assistant_guide_step3_desc">完成设置后，测试 Operit 是否能正常唤起</string>
+    <string name="default_assistant_guide_step3_desc">完成设置后，测试 墨思 是否能正常唤起</string>
     <string name="default_assistant_guide_step3_detail1">• 使用您设置的手势（如长按Home键）唤起助手</string>
-    <string name="default_assistant_guide_step3_detail2">• 如果成功，应该会看到 Operit 的语音助手界面</string>
+    <string name="default_assistant_guide_step3_detail2">• 如果成功，应该会看到 墨思 的语音助手界面</string>
     <string name="default_assistant_guide_step3_detail3">• 可以尝试说话或输入文字与助手交互</string>
     
     <!-- 疑难解答 -->
     <string name="default_assistant_guide_troubleshooting_title">遇到问题？</string>
-    <string name="default_assistant_guide_troubleshooting_content">如果在列表中找不到Operit，请确保：\n\n• 应用已正确安装且未被禁用\n• 已授予必要的权限（麦克风、悬浮窗等）\n• 尝试重启设备后再次设置\n\n部分定制系统可能限制第三方应用作为默认助手，如遇此情况，您仍可通过应用内的悬浮窗功能使用Operit。</string>
+    <string name="default_assistant_guide_troubleshooting_content">如果在列表中找不到墨思，请确保：\n\n• 应用已正确安装且未被禁用\n• 已授予必要的权限（麦克风、悬浮窗等）\n• 尝试重启设备后再次设置\n\n部分定制系统可能限制第三方应用作为默认助手，如遇此情况，您仍可通过应用内的悬浮窗功能使用墨思。</string>
     
     <!-- Voice Interaction Service -->
-    <string name="voice_interaction_service_name">Operit AI 助手</string>
+    <string name="voice_interaction_service_name">墨思 助手</string>
     <string name="voice_interaction_service_summary">智能语音助手服务</string>
 
     <!-- Tool Permission Settings -->
@@ -5106,7 +5106,7 @@
     <string name="backup_memory_count">记忆条目</string>
     <string name="backup_memory_link_count">记忆关联</string>
     <string name="backup_files_statistics">备份文件统计</string>
-    <string name="backup_files_statistics_subtitle">Operit 导出目录中的备份文件</string>
+    <string name="backup_files_statistics_subtitle">墨思 导出目录中的备份文件</string>
     <string name="backup_refresh">刷新</string>
     <string name="backup_scanning">扫描中</string>
     <string name="backup_chat_files">聊天记录</string>
@@ -5208,7 +5208,7 @@
     <string name="backup_select_export_format">选择导出格式</string>
     <string name="backup_select_format_hint">请选择要导出的聊天记录格式：</string>
     <string name="backup_format_json">JSON（推荐）</string>
-    <string name="backup_format_json_desc">Operit 原生格式，完整保留消息切换等所有数据</string>
+    <string name="backup_format_json_desc">墨思 原生格式，完整保留消息切换等所有数据</string>
     <string name="backup_format_markdown">Markdown</string>
     <string name="backup_format_markdown_desc">轻量级标记格式，便于阅读和编辑</string>
     <string name="backup_format_html">HTML</string>
@@ -5219,7 +5219,7 @@
     <!-- 导入格式选择 -->
     <string name="backup_select_import_format">选择导入格式</string>
     <string name="backup_import_format_hint">请选择要导入的聊天记录格式：</string>
-    <string name="backup_format_operit">Operit JSON（推荐）</string>
+    <string name="backup_format_operit">墨思 JSON（推荐）</string>
     <string name="backup_format_operit_desc">本应用的原生格式，完整保留消息切换等所有数据</string>
     <string name="backup_format_chatgpt">ChatGPT</string>
     <string name="backup_format_chatgpt_desc">OpenAI ChatGPT conversations.json 导出格式</string>
@@ -5329,7 +5329,7 @@
 
     <!-- Logcat -->
     <string name="logcat_no_logs_to_save">没有日志可保存</string>
-    <string name="logcat_header">=== Operit 日志 ===</string>
+    <string name="logcat_header">=== 墨思 日志 ===</string>
     <string name="logcat_date">日期: %1$s</string>
     <string name="logcat_total_count">总条数: %1$d</string>
     <string name="logcat_save_failed">保存失败：%1$s</string>
@@ -5775,7 +5775,7 @@
     <string name="skill_publish_body_section_repo_info">## 🔗 仓库信息</string>
     <string name="skill_publish_body_label_repo_url">**仓库地址:** %1$s</string>
     <string name="skill_publish_body_section_install_method">## 📦 安装方式</string>
-    <string name="skill_publish_body_install_step1">1. 打开 Operit → 包管理 → Skills</string>
+    <string name="skill_publish_body_install_step1">1. 打开 墨思 → 包管理 → Skills</string>
     <string name="skill_publish_body_install_step2">2. 点击「导入 Skill」→ 「从仓库导入」</string>
     <string name="skill_publish_body_install_step3">3. 输入仓库地址：`%1$s`</string>
     <string name="skill_publish_body_install_step4">4. 确认导入</string>
@@ -6817,15 +6817,15 @@
     <string name="chat_summarize_generation_failed">总结生成失败: %1$s</string>
 
     <!-- AIForegroundService (新增) -->
-    <string name="service_operit_running">Operit 正在运行</string>
+    <string name="service_operit_running">墨思 正在运行</string>
     <string name="service_chat_complete_reminder">对话完成提醒</string>
     <string name="service_chat_complete_reminder_sound">对话完成提醒（提示音）</string>
     <string name="service_chat_complete_reminder_vibration">对话完成提醒（震动）</string>
     <string name="service_chat_complete_reminder_sound_vibration">对话完成提醒（提示音和震动）</string>
-    <string name="service_keep_background">保持 Operit 在后台运行。</string>
+    <string name="service_keep_background">保持 墨思 在后台运行。</string>
     <string name="service_notify_when_complete">对话完成后提醒你。</string>
-    <string name="service_running_wake_pause">Operit 正在运行（唤醒暂停）</string>
-    <string name="service_running_wake_listening">Operit 正在运行（唤醒监听中）</string>
+    <string name="service_running_wake_pause">墨思 正在运行（唤醒暂停）</string>
+    <string name="service_running_wake_listening">墨思 正在运行（唤醒监听中）</string>
     <string name="service_running_stats">运行对话 %1$d · 调用工具 %2$d</string>
     <string name="service_running_http_listening">外部 HTTP 正在监听端口 %1$d</string>
     <string name="service_running_with_http">%1$s · 外部 HTTP %2$d</string>
@@ -6872,7 +6872,7 @@
     <string name="html_export_updated">更新</string>
     <string name="html_export_group">分组</string>
     <string name="html_export_message_count">消息数</string>
-    <string name="html_export_footer">导出自 Operit AI Assistant</string>
+    <string name="html_export_footer">导出自 墨思 Assistant</string>
 
     <!-- MnnModelDownloadManager (新增) -->
     <string name="mnn_no_cache_data">无缓存数据</string>

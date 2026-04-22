@@ -521,13 +521,13 @@
     <string name="install_termux_failed">A instalação do Termux falhou</string>
     <string name="open_termux">Abra o Termux</string>
     <string name="termux_setup_guide">Assistente de configuração Termux</string>
-    <string name="about_title">Sobre a Operit AI</string>
+    <string name="about_title">Sobre a Hermes</string>
     <string name="about_version">Versão: %1$s</string>
-    <string name="about_description">Operit AI é um aplicativo assistente inteligente que pode ajudar os usuários a usar os dispositivos com mais eficiência, fornecendo análise de interface, diálogo de chat e outras funções.</string>
+    <string name="about_description">Hermes é um aplicativo assistente inteligente que pode ajudar os usuários a usar os dispositivos com mais eficiência, fornecendo análise de interface, diálogo de chat e outras funções.</string>
     <string name="about_developer">Desenvolvedor: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Contate-nos: aaswordsman@foxmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
-    <string name="about_copyright">© 2025 - 2026 Operit. Todos os direitos reservados.</string>
+    <string name="about_copyright">© 2025 - 2026 Hermes. Todos os direitos reservados.</string>
     <string name="star_on_github">Clique em uma estrela no GitHub</string>
     <string name="update_log">Registro de alterações</string>
     <string name="app_logo_description">ícone do aplicativo</string>
@@ -940,7 +940,7 @@
     <string name="agreement_title">Contrato do Usuário e Política de Privacidade</string>
     <string name="agreement_subtitle">Leia atentamente e concorde com os seguintes termos antes de usar.</string>
     <string name="agreement_human_readable_title">Versão humana do acordo (versão não legal)</string>
-    <string name="agreement_human_readable_content">Assim como você, não gostamos de acordos longos e enfadonhos. Simplificando:\n\nOperitAI é um software gratuito e de código aberto. Sua automação e outras funções são muito poderosas, certifique-se de usá-la apenas para aprendizado pessoal e assistência diária, e não para fins comerciais ou ilegais. \n\nVocê é responsável por todas as suas ações. Também não somos responsáveis ​​por extensões ou modificações no software que você mesmo adiciona. \n\nPrivacidade: seu processamento de voz é concluído localmente em seu telefone, o que é muito seguro. Os dados do chat de IA serão enviados diretamente para a empresa de IA e não iremos lidar com isso.</string>
+    <string name="agreement_human_readable_content">Assim como você, não gostamos de acordos longos e enfadonhos. Simplificando:\n\nHermesAI é um software gratuito e de código aberto. Sua automação e outras funções são muito poderosas, certifique-se de usá-la apenas para aprendizado pessoal e assistência diária, e não para fins comerciais ou ilegais. \n\nVocê é responsável por todas as suas ações. Também não somos responsáveis ​​por extensões ou modificações no software que você mesmo adiciona. \n\nPrivacidade: seu processamento de voz é concluído localmente em seu telefone, o que é muito seguro. Os dados do chat de IA serão enviados diretamente para a empresa de IA e não iremos lidar com isso.</string>
     <string name="agreement_serious_title">Versão estrita do acordo legal</string>
     <string name="agreement_serious_content">&lt;p&gt;Bem-vindo à OperatAI. Este software é modificado e distribuído sob os termos da Licença Pública Geral Menor GNU, versão 3 (LGPLv3). &lt;/p&gt;
         &lt;p&gt;&lt;b&gt;1. Nenhuma declaração de garantia&lt;/b&gt;&lt;br&gt;Este software é fornecido "no estado em que se encontra", sem garantia de qualquer tipo, expressa ou implícita, incluindo, entre outras, garantias de comercialização, adequação a uma finalidade específica ou não violação. TODOS OS RISCOS RELATIVOS À QUALIDADE E DESEMPENHO DO SOFTWARE ESTÃO COM VOCÊ. &lt;/p&gt;
@@ -1432,7 +1432,7 @@
     <string name="permission_guide_intro_2_title">Uma caixa de ferramentas poderosa para geeks e desenvolvedores</string>
     <string name="permission_guide_intro_2_desc">Mais de 40 ferramentas profissionais integradas, abrangendo gerenciamento de arquivos, solicitações de rede, execução de scripts e controle de sistema. Combinado com um poderoso sistema de plug-ins, você pode automatizar tarefas e obter controle profundo sobre seu dispositivo.</string>
     <string name="permission_guide_intro_3_title">Liberte a sua criatividade e esteja pronto quando precisar</string>
-    <string name="permission_guide_intro_3_desc">Esteja você projetando páginas da web, processando arquivos de mídia ou despertando a IA a qualquer momento por meio de uma janela flutuante, o Operit oferece um ambiente criativo e de assistência poderoso, flexível e seguro. Seus dados são seus para controlar.</string>
+    <string name="permission_guide_intro_3_desc">Esteja você projetando páginas da web, processando arquivos de mídia ou despertando a IA a qualquer momento por meio de uma janela flutuante, o Hermes oferece um ambiente criativo e de assistência poderoso, flexível e seguro. Seus dados são seus para controlar.</string>
     <string name="permission_guide_intro_page_indicator">Introdução à função %1$d/%2$d</string>
     <string name="debugger_accessibility_fallback_title">Programa de Aceleração de Acessibilidade (Alto Risco)</string>
     <string name="debugger_accessibility_fallback_description">O modo de depuração executa operações de UI por meio do Shell por padrão. A ativação de serviços de acessibilidade pode acelerar bastante a automação da IU, mas aumentará significativamente o risco de ser detectado por alguns aplicativos e resultar no banimento da conta. A menos que você esteja buscando a velocidade operacional máxima, não é recomendável ligá-lo.</string>
@@ -1793,7 +1793,7 @@
     <string name="tool_user_agreement">Contrato do usuário</string>
     <string name="tool_user_agreement_desc">Veja o contrato do usuário e a política de privacidade do aplicativo</string>
     <string name="tool_default_assistant_guide">Configurações padrão do assistente</string>
-    <string name="tool_default_assistant_guide_desc">Defina a suspensão de voz do Operit como assistente padrão do sistema</string>
+    <string name="tool_default_assistant_guide_desc">Defina a suspensão de voz do Hermes como assistente padrão do sistema</string>
     <string name="tool_terminal">terminal de comando</string>
     <string name="tool_terminal_desc">Terminal de linha de comando poderoso para executar instruções do sistema</string>
     <string name="tool_terminal_auto_config">Configuração automática do terminal</string>
@@ -3833,7 +3833,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="mcp_issue_body_title_tech_info">## Informações Técnicas</string>
     <string name="mcp_issue_body_tech_platform">- **Plataforma de publicação:** Operit MCP Market</string>
     <string name="mcp_issue_body_tech_publish_time">- **Tempo de lançamento:** %1$s</string>
-    <string name="mcp_issue_body_footer_note">*Este Issue é gerado automaticamente pela Operit*</string>
+    <string name="mcp_issue_body_footer_note">*Este Issue é gerado automaticamente pela Hermes*</string>
     <string name="mcp_publish_body_section_plugin_info">## 📋 Informações do plug-in</string>
     <string name="mcp_publish_body_label_description">**Descrição:** %1$s</string>
     <string name="mcp_publish_body_section_repo_info">## 🔗 Informações do armazém</string>
@@ -3982,7 +3982,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="emoji_preview">Pré-visualização da expressão</string>
     <string name="create_group">Criar grupo</string>
     <string name="custom">Personalizar</string>
-    <string name="voice_assistant_widget_description">Inicie rapidamente o assistente de voz Operit</string>
+    <string name="voice_assistant_widget_description">Inicie rapidamente o assistente de voz Hermes</string>
     <string name="voice_assistant_widget_title">assistente de voz</string>
     <string name="screen_title_mnn_model_download">Download do modelo MNN</string>
     <string name="mnn_model_download">Baixe o modelo MNN</string>
@@ -4094,18 +4094,18 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="time_hours_ago">%1$d horas atrás</string>
     <string name="time_days_ago">%1$d dias atrás</string>
     <string name="default_assistant_guide_title">Defina seu assistente de voz padrão</string>
-    <string name="default_assistant_guide_subtitle">Deixe Operit ser seu assistente inteligente</string>
-    <string name="default_assistant_guide_intro">Depois de definir o Operit como o assistente padrão do sistema, você pode iniciar rapidamente o assistente de voz Operit pressionando longamente o botão Home ou usando a ativação por voz para uma experiência de interação de IA mais conveniente.</string>
+    <string name="default_assistant_guide_subtitle">Deixe Hermes ser seu assistente inteligente</string>
+    <string name="default_assistant_guide_intro">Depois de definir o Hermes como o assistente padrão do sistema, você pode iniciar rapidamente o assistente de voz Hermes pressionando longamente o botão Home ou usando a ativação por voz para uma experiência de interação de IA mais conveniente.</string>
     <string name="default_assistant_guide_steps_title">Etapas de configuração</string>
     <string name="default_assistant_guide_step1_title">Definir como assistente padrão</string>
-    <string name="default_assistant_guide_step1_desc">Defina o Operit como o aplicativo de assistente digital padrão do seu sistema</string>
+    <string name="default_assistant_guide_step1_desc">Defina o Hermes como o aplicativo de assistente digital padrão do seu sistema</string>
     <string name="default_assistant_guide_step1_detail1">• Abra Configurações do sistema → Aplicativos → Aplicativos padrão → Aplicativo Assistente Digital</string>
-    <string name="default_assistant_guide_step1_detail2">• Encontre e selecione "Operit AI" na lista de aplicativos assistentes</string>
+    <string name="default_assistant_guide_step1_detail2">• Encontre e selecione "Hermes" na lista de aplicativos assistentes</string>
     <string name="default_assistant_guide_step1_detail_android12">Android 12+: Configurações → Aplicativos → Aplicativos padrão → Aplicativo Digital Assistant → Aplicativo Digital Assistant padrão</string>
     <string name="default_assistant_guide_open_settings">Abra as configurações do assistente</string>
     <string name="default_assistant_guide_open_gesture_settings">Abrir configurações de gestos</string>
     <string name="default_assistant_guide_step2_title">Configurar gestos de inicialização</string>
-    <string name="default_assistant_guide_step2_desc">Defina como ativar rapidamente o Operit Assistant</string>
+    <string name="default_assistant_guide_step2_desc">Defina como ativar rapidamente o Hermes Assistant</string>
     <string name="default_assistant_guide_step2_detail1">• Pressionar longamente o botão Início: o método mais comum, disponível na maioria dos dispositivos</string>
     <string name="default_assistant_guide_step2_detail2">• Deslize de baixo para cima na tela: alguns dispositivos suportam gestos em tela cheia</string>
     <string name="default_assistant_guide_step2_detail_android12">Android 12+: Configurações → Aplicativos → Aplicativos padrão → Aplicativo Digital Assistant → Aplicativo Digital Assistant padrão</string>
@@ -4113,15 +4113,15 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="default_assistant_guide_step2_note">Nota: As configurações de gestos podem variar entre diferentes marcas de celulares, verifique as opções disponíveis nas configurações do sistema</string>
     <string name="default_assistant_guide_step4_title">Teste seu assistente de voz</string>
     <string name="default_assistant_guide_step4_desc">Depois que a configuração for concluída, teste se ele pode iniciar normalmente</string>
-    <string name="default_assistant_guide_step4_detail1">• Um toque longo no botão Home deve abrir o assistente de voz Operit</string>
-    <string name="default_assistant_guide_step4_detail2">• Se o dispositivo suportar ativação por voz, dizer "Ok Google" ou a palavra de ativação especificada pelo dispositivo também poderá acionar o Operit</string>
+    <string name="default_assistant_guide_step4_detail1">• Um toque longo no botão Home deve abrir o assistente de voz Hermes</string>
+    <string name="default_assistant_guide_step4_detail2">• Se o dispositivo suportar ativação por voz, dizer "Ok Google" ou a palavra de ativação especificada pelo dispositivo também poderá acionar o Hermes</string>
     <string name="default_assistant_guide_step3_title">Funcionalidade do assistente de teste</string>
-    <string name="default_assistant_guide_step3_desc">Depois de concluir a configuração, teste se o Operit pode ser despertado normalmente</string>
+    <string name="default_assistant_guide_step3_desc">Depois de concluir a configuração, teste se o Hermes pode ser despertado normalmente</string>
     <string name="default_assistant_guide_step3_detail1">• Use um gesto que você definir (como um toque longo no botão Início) para invocar o Assistente</string>
-    <string name="default_assistant_guide_step3_detail2">• Se for bem-sucedido, você deverá ver a interface do assistente de voz do Operit</string>
+    <string name="default_assistant_guide_step3_detail2">• Se for bem-sucedido, você deverá ver a interface do assistente de voz do Hermes</string>
     <string name="default_assistant_guide_step3_detail3">• Você pode tentar falar ou digitar para interagir com o assistente</string>
     <string name="default_assistant_guide_troubleshooting_title">Está com algum problema?</string>
-    <string name="default_assistant_guide_troubleshooting_content">Se você não encontrar o Operit na lista, verifique se:\n\n• O aplicativo está instalado corretamente e não foi desativado\n• As permissões necessárias (microfone, janela flutuante etc.) foram concedidas\n• Tente reiniciar o dispositivo e configurá-lo novamente\n\n Alguns sistemas de personalização podem restringir aplicativos de terceiros como assistente padrão. Nesse caso, você ainda pode usar o Operit por meio da função de janela flutuante dentro do aplicativo.</string>
+    <string name="default_assistant_guide_troubleshooting_content">Se você não encontrar o Hermes na lista, verifique se:\n\n• O aplicativo está instalado corretamente e não foi desativado\n• As permissões necessárias (microfone, janela flutuante etc.) foram concedidas\n• Tente reiniciar o dispositivo e configurá-lo novamente\n\n Alguns sistemas de personalização podem restringir aplicativos de terceiros como assistente padrão. Nesse caso, você ainda pode usar o Hermes por meio da função de janela flutuante dentro do aplicativo.</string>
     <string name="voice_interaction_service_name">Assistente Operat AI</string>
     <string name="voice_interaction_service_summary">Serviço de assistente de voz inteligente</string>
     <string name="tool_permissions_title">Permissões de ferramentas</string>
@@ -4428,7 +4428,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="backup_memory_count">entrada de memória</string>
     <string name="backup_memory_link_count">associação de memória</string>
     <string name="backup_files_statistics">Estatísticas de arquivo de backup</string>
-    <string name="backup_files_statistics_subtitle">Arquivos de backup no diretório de exportação do Operit</string>
+    <string name="backup_files_statistics_subtitle">Arquivos de backup no diretório de exportação do Hermes</string>
     <string name="backup_refresh">atualizar</string>
     <string name="backup_scanning">Digitalizando</string>
     <string name="backup_chat_files">Histórico de bate-papo</string>
@@ -5033,14 +5033,14 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="skill_publish_body_section_repo_info">## 🔗 Informações do armazém</string>
     <string name="skill_publish_body_label_repo_url">**Endereço do armazém:** %1$s</string>
     <string name="skill_publish_body_section_install_method">## 📦 Método de instalação</string>
-    <string name="skill_publish_body_install_step1">1. Abra Operit → Gerenciamento de Pacotes → Habilidades</string>
+    <string name="skill_publish_body_install_step1">1. Abra Hermes → Gerenciamento de Pacotes → Habilidades</string>
     <string name="skill_publish_body_install_step2">2. Clique em "Importar Habilidade" → "Importar do Armazém"</string>
     <string name="skill_publish_body_install_step3">3. Insira o endereço do armazém: `%1$s`</string>
     <string name="skill_publish_body_install_step4">4. Confirme a importação</string>
     <string name="skill_publish_body_section_tech_info">## 🛠️Informações Técnicas</string>
     <string name="skill_publish_body_table_header">| item | valor |</string>
     <string name="skill_publish_body_table_separator" />
-    <string name="skill_publish_body_table_row_platform">| Plataforma de publicação | Mercado de habilidades Operit |</string>
+    <string name="skill_publish_body_table_row_platform">| Plataforma de publicação | Mercado de habilidades Hermes |</string>
     <string name="skill_publish_body_table_row_parser_version">| Versão de análise | 1,0 |</string>
     <string name="skill_publish_body_table_row_publish_time">| Tempo de lançamento | %1$s |</string>
     <string name="model_param_max_tokens">Número máximo de tokens gerados</string>
@@ -5960,10 +5960,10 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="service_chat_complete_reminder_sound">Lembrete de conclusão de conversa (som de bipe)</string>
     <string name="service_chat_complete_reminder_vibration">Lembrete de conclusão de conversa (vibração)</string>
     <string name="service_chat_complete_reminder_sound_vibration">Lembrete de conclusão de conversa (bipe e vibração)</string>
-    <string name="service_keep_background">Mantenha o Operit rodando em segundo plano.</string>
+    <string name="service_keep_background">Mantenha o Hermes rodando em segundo plano.</string>
     <string name="service_notify_when_complete">Lembrá-lo quando a conversa for concluída.</string>
-    <string name="service_running_wake_pause">Operit está em execução (pausa de ativação)</string>
-    <string name="service_running_wake_listening">Operit está rodando (acordando e ouvindo)</string>
+    <string name="service_running_wake_pause">Hermes está em execução (pausa de ativação)</string>
+    <string name="service_running_wake_listening">Hermes está rodando (acordando e ouvindo)</string>
     <string name="service_running_stats">Executar sessão %1$d · Invocar ferramenta %2$d</string>
     <string name="service_running_http_listening">Escuta HTTP externa na porta %1$d</string>
     <string name="service_running_with_http">%1$s · HTTP externo %2$d</string>
@@ -6004,7 +6004,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="html_export_updated">renovar</string>
     <string name="html_export_group">Grupo</string>
     <string name="html_export_message_count">Número de mensagens</string>
-    <string name="html_export_footer">Exportado do Operit AI Assistant</string>
+    <string name="html_export_footer">Exportado do Hermes Assistant</string>
     <string name="mnn_no_cache_data">Nenhum dado em cache</string>
     <string name="mnn_response_empty">O corpo da resposta está vazio</string>
     <string name="mnn_fetch_repo_files_failed">Falha ao obter a lista de arquivos do warehouse: %1$s</string>

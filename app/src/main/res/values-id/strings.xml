@@ -494,13 +494,13 @@
 
     <string name="open_termux">Buka Termux</string>
     <string name="termux_setup_guide">Panduan Pengaturan Termux</string>
-    <string name="about_title">Tentang Operit AI</string>
+    <string name="about_title">Tentang Hermes</string>
     <string name="about_version">Versi: %1$s</string>
-    <string name="about_description">Operit AI adalah aplikasi asisten cerdas yang membantu pengguna menggunakan perangkat dengan lebih efisien, menyediakan analisis antarmuka, percakapan obrolan, dan fungsi lainnya.</string>
+    <string name="about_description">Hermes adalah aplikasi asisten cerdas yang membantu pengguna menggunakan perangkat dengan lebih efisien, menyediakan analisis antarmuka, percakapan obrolan, dan fungsi lainnya.</string>
     <string name="about_developer">Pengembang: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Hubungi kami: aaswordsman@foxmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
-    <string name="about_copyright">© 2025 - 2026 Operit. Hak cipta dilindungi undang-undang.</string>
+    <string name="about_copyright">© 2025 - 2026 Hermes. Hak cipta dilindungi undang-undang.</string>
     <string name="star_on_github">Beri Bintang di GitHub</string>
     <string name="update_log">Catatan Pembaruan</string>
     <string name="app_logo_description">Ikon Aplikasi</string>
@@ -515,7 +515,7 @@
     <string name="network_unavailable">Koneksi jaringan tidak tersedia, periksa pengaturan jaringan Anda</string>
     <string name="network_status">Status jaringan: %1$s</string>
     <string name="network_status_label">Status Jaringan</string>
-    <string name="config_title">Asisten Operit AI</string>
+    <string name="config_title">Asisten Hermes</string>
     <string name="config_description">Kami menggunakan API DeepSeek secara default. Jika ingin mengganti, klik opsi kustom di bawah</string>
     <string name="config_api_key_label">Kunci API</string>
     <string name="config_api_key_placeholder">Kunci API DeepSeek</string>
@@ -1014,7 +1014,7 @@
     <string name="overlay_permission">Izin Overlay</string>
     <string name="battery_optimization">Pengecualian Optimasi Baterai</string>
     <string name="location_permission">Izin Lokasi</string>
-    <string name="operit_terminal">Terminal Operit</string>
+    <string name="operit_terminal">Terminal Hermes</string>
     <string name="permission_level_standard">Izin Standar</string>
     <string name="permission_level_accessibility">Izin Aksesibilitas</string>
     <string name="permission_level_admin">Izin Administrator</string>
@@ -1454,10 +1454,10 @@
     <string name="agreement_title">Perjanjian Pengguna &amp; Kebijakan Privasi</string>
     <string name="agreement_subtitle">Harap baca dan setujui ketentuan berikut sebelum menggunakan.</string>
     <string name="agreement_human_readable_title">Versi Perjanjian Mudah Dipahami (Bukan Versi Hukum)</string>
-    <string name="agreement_human_readable_content">Kami sama seperti Anda, tidak suka perjanjian yang panjang dan membosankan. Singkatnya:\n\nOperitAI adalah perangkat lunak sumber terbuka gratis. Fitur otomatisasinya sangat kuat, harap gunakan hanya untuk pembelajaran pribadi dan bantuan sehari-hari, jangan untuk tujuan komersial atau melanggar aturan apa pun.\n\nAnda bertanggung jawab penuh atas semua tindakan Anda. Kami juga tidak bertanggung jawab atas ekstensi yang Anda tambahkan sendiri atau modifikasi perangkat lunak yang Anda lakukan.\n\nMengenai privasi: Pemrosesan suara Anda dilakukan sepenuhnya di perangkat lokal ponsel, sangat aman. Data obrolan AI akan dikirim langsung ke perusahaan AI, kami tidak menanganinya.</string>
+    <string name="agreement_human_readable_content">Kami sama seperti Anda, tidak suka perjanjian yang panjang dan membosankan. Singkatnya:\n\nHermesAI adalah perangkat lunak sumber terbuka gratis. Fitur otomatisasinya sangat kuat, harap gunakan hanya untuk pembelajaran pribadi dan bantuan sehari-hari, jangan untuk tujuan komersial atau melanggar aturan apa pun.\n\nAnda bertanggung jawab penuh atas semua tindakan Anda. Kami juga tidak bertanggung jawab atas ekstensi yang Anda tambahkan sendiri atau modifikasi perangkat lunak yang Anda lakukan.\n\nMengenai privasi: Pemrosesan suara Anda dilakukan sepenuhnya di perangkat lokal ponsel, sangat aman. Data obrolan AI akan dikirim langsung ke perusahaan AI, kami tidak menanganinya.</string>
     <string name="agreement_serious_title">Perjanjian Hukum Versi Ketat</string>
     <string name="agreement_serious_content">
-        &lt;p&gt;Selamat menggunakan OperitAI. Perangkat lunak ini dimodifikasi dan didistribusikan sesuai dengan ketentuan Lisensi Publik Umum GNU Versi 3 (LGPLv3).&lt;/p&gt;
+        &lt;p&gt;Selamat menggunakan HermesAI. Perangkat lunak ini dimodifikasi dan didistribusikan sesuai dengan ketentuan Lisensi Publik Umum GNU Versi 3 (LGPLv3).&lt;/p&gt;
         &lt;p&gt;&lt;b&gt;1. Pernyataan Tanpa Jaminan&lt;/b&gt;&lt;br&gt;Perangkat lunak ini disediakan "sebagaimana adanya", tanpa jaminan apa pun, baik tersurat maupun tersirat, termasuk namun tidak terbatas pada jaminan kelayakan jual, kesesuaian untuk tujuan tertentu, atau tidak melanggar hak. Semua risiko terkait kualitas dan kinerja perangkat lunak menjadi tanggung jawab Anda.&lt;/p&gt;
         &lt;p&gt;&lt;b&gt;2. Batasan Tanggung Jawab&lt;/b&gt;&lt;br&gt;Dalam keadaan apa pun, kecuali diwajibkan oleh hukum yang berlaku atau disetujui secara tertulis, tidak ada kontributor yang bertanggung jawab atas kerusakan langsung, tidak langsung, insidental, khusus, hukuman, atau konsekuensial (termasuk namun tidak terbatas pada pengadaan barang atau layanan pengganti, kehilangan data atau keuntungan, atau gangguan bisnis) yang timbul dari penggunaan atau ketidakmampuan menggunakan perangkat lunak ini.&lt;b&gt;Selain itu, tim pengembang tidak bertanggung jawab atas konsekuensi apa pun yang timbul dari paket ekstensi (seperti MCP) yang diinstal sendiri oleh pengguna atau modifikasi apa pun pada perangkat lunak ini.&lt;/b&gt;&lt;/p&gt;
         &lt;p&gt;&lt;b&gt;3. Tanggung Jawab Pengguna &amp; Batasan Penggunaan&lt;/b&gt;&lt;br&gt;Anda bertanggung jawab penuh atas semua tindakan yang dilakukan melalui perangkat lunak ini dan semua konsekuensinya. Anda berjanji untuk menggunakan perangkat lunak ini untuk tujuan pribadi yang sah dan benar, dan setuju:&lt;br&gt;
@@ -1799,7 +1799,7 @@
     <string name="permission_guide_intro_2_title">Kotak Peralatan Kuat untuk Geek dan Pengembang</string>
     <string name="permission_guide_intro_2_desc">Dilengkapi lebih dari 40 alat profesional, mencakup manajemen file, permintaan jaringan, eksekusi skrip, dan kontrol sistem. Dikombinasikan dengan sistem plugin yang kuat, Anda dapat mengotomatisasi tugas dan mengendalikan perangkat Anda secara mendalam.</string>
     <string name="permission_guide_intro_3_title">Lepaskan Kreativitas, Siap Kapan Saja</string>
-    <string name="permission_guide_intro_3_desc">Baik merancang halaman web, memproses file media, atau membangunkan AI kapan saja melalui jendela mengambang, Operit menyediakan lingkungan kreasi dan bantuan yang kuat, fleksibel, dan aman. Data Anda, di bawah kendali Anda.</string>
+    <string name="permission_guide_intro_3_desc">Baik merancang halaman web, memproses file media, atau membangunkan AI kapan saja melalui jendela mengambang, Hermes menyediakan lingkungan kreasi dan bantuan yang kuat, fleksibel, dan aman. Data Anda, di bawah kendali Anda.</string>
     <string name="permission_guide_intro_page_indicator">Fitur %1$d/%2$d</string>
     <string name="debugger_accessibility_fallback_title">Skema Akselerasi Aksesibilitas (Risiko Tinggi)</string>
     <string name="debugger_accessibility_fallback_description">Mode debug secara default menjalankan operasi UI melalui Shell. Mengaktifkan layanan aksesibilitas dapat mempercepat otomatisasi UI secara signifikan, tetapi akan meningkatkan risiko terdeteksi oleh beberapa aplikasi dan menyebabkan pemblokiran akun. Kecuali Anda mengejar kecepatan operasi tertinggi, tidak disarankan untuk mengaktifkannya.</string>
@@ -1882,7 +1882,7 @@
     <string name="tool_user_agreement">Perjanjian Pengguna</string>
     <string name="tool_user_agreement_desc">Lihat perjanjian pengguna dan kebijakan privasi aplikasi</string>
     <string name="tool_default_assistant_guide">Pengaturan Asisten Bawaan</string>
-    <string name="tool_default_assistant_guide_desc">Atur Operit Voice Floating sebagai asisten bawaan sistem</string>
+    <string name="tool_default_assistant_guide_desc">Atur Hermes Voice Floating sebagai asisten bawaan sistem</string>
     <string name="tool_terminal">Terminal Perintah</string>
     <string name="tool_terminal_desc">Terminal baris perintah yang kuat, jalankan instruksi sistem</string>
     <string name="tool_terminal_auto_config">Konfigurasi Otomatis Terminal</string>
@@ -3946,7 +3946,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="retry_market_registration">Coba lagi pendaftaran pasar</string>
     <string name="update_to_market">Perbarui ke pasar</string>
     <string name="create_operit_forge_title">Buat OperitForge?</string>
-    <string name="create_operit_forge_message">Ini adalah pertama kalinya Anda menerbitkan langsung. Operit perlu membuat repositori publik `OperitForge` di akun GitHub Anda terlebih dahulu.</string>
+    <string name="create_operit_forge_message">Ini adalah pertama kalinya Anda menerbitkan langsung. Hermes perlu membuat repositori publik `OperitForge` di akun GitHub Anda terlebih dahulu.</string>
     <string name="confirm_create_public_forge_title">Konfirmasi pembuatan repositori publik</string>
 
     <string name="update_failed_with_error">Pembaruan gagal: %1$s</string>
@@ -4159,7 +4159,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="mcp_issue_body_title_tech_info">## Informasi Teknis</string>
     <string name="mcp_issue_body_tech_platform">- **Platform Rilis:** Pasar Operit MCP</string>
     <string name="mcp_issue_body_tech_publish_time">- **Waktu Rilis:** %1$s</string>
-    <string name="mcp_issue_body_footer_note">*Issue ini dibuat otomatis oleh Operit*</string>
+    <string name="mcp_issue_body_footer_note">*Issue ini dibuat otomatis oleh Hermes*</string>
     <string name="mcp_publish_body_section_plugin_info">## 📋 Informasi Plugin</string>
     <string name="mcp_publish_body_label_description">**Deskripsi:** %1$s</string>
     <string name="mcp_publish_body_section_repo_info">## 🔗 Informasi Repositori</string>
@@ -4234,7 +4234,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="emoji_preview">Pratinjau Emoji</string>
     <string name="create_group">Buat Grup</string>
     <string name="custom">Kustom</string>
-    <string name="voice_assistant_widget_description">Luncurkan cepat asisten suara Operit</string>
+    <string name="voice_assistant_widget_description">Luncurkan cepat asisten suara Hermes</string>
 
     <string name="global_permission_switch_description">Pengaturan ini berfungsi sebagai kontrol utama dan dapat menggantikan izin alat individual.</string>
     <string name="permission_level_allow">Izinkan</string>
@@ -4535,18 +4535,18 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="time_hours_ago">%1$d jam yang lalu</string>
     <string name="time_days_ago">%1$d hari yang lalu</string>
     <string name="default_assistant_guide_title">Atur Asisten Suara Default</string>
-    <string name="default_assistant_guide_subtitle">Jadikan Operit sebagai asisten pintar Anda</string>
-    <string name="default_assistant_guide_intro">Setelah mengatur Operit sebagai asisten default sistem, Anda dapat meluncurkan asisten suara Operit dengan cepat dengan menekan lama tombol Home atau menggunakan pemicu suara, untuk mendapatkan pengalaman interaksi AI yang lebih nyaman.</string>
+    <string name="default_assistant_guide_subtitle">Jadikan Hermes sebagai asisten pintar Anda</string>
+    <string name="default_assistant_guide_intro">Setelah mengatur Hermes sebagai asisten default sistem, Anda dapat meluncurkan asisten suara Hermes dengan cepat dengan menekan lama tombol Home atau menggunakan pemicu suara, untuk mendapatkan pengalaman interaksi AI yang lebih nyaman.</string>
     <string name="default_assistant_guide_steps_title">Langkah Pengaturan</string>
     <string name="default_assistant_guide_step1_title">Atur sebagai Asisten Default</string>
-    <string name="default_assistant_guide_step1_desc">Atur Operit sebagai aplikasi asisten digital default sistem</string>
+    <string name="default_assistant_guide_step1_desc">Atur Hermes sebagai aplikasi asisten digital default sistem</string>
     <string name="default_assistant_guide_step1_detail1">• Buka Pengaturan sistem → Aplikasi → Aplikasi default → Aplikasi asisten digital</string>
-    <string name="default_assistant_guide_step1_detail2">• Temukan dan pilih "Operit AI" dalam daftar aplikasi asisten</string>
+    <string name="default_assistant_guide_step1_detail2">• Temukan dan pilih "Hermes" dalam daftar aplikasi asisten</string>
     <string name="default_assistant_guide_step1_detail_android12">Android 12+: Pengaturan → Aplikasi → Aplikasi default → Aplikasi asisten digital → Aplikasi asisten digital default</string>
     <string name="default_assistant_guide_open_settings">Buka pengaturan asisten</string>
     <string name="default_assistant_guide_open_gesture_settings">Buka pengaturan gestur</string>
     <string name="default_assistant_guide_step2_title">Konfigurasi Gestur Peluncuran</string>
-    <string name="default_assistant_guide_step2_desc">Atur cara memanggil asisten Operit dengan cepat</string>
+    <string name="default_assistant_guide_step2_desc">Atur cara memanggil asisten Hermes dengan cepat</string>
     <string name="default_assistant_guide_step2_detail1">• Tekan lama tombol Home: Cara paling umum, tersedia di sebagian besar perangkat</string>
     <string name="default_assistant_guide_step2_detail2">• Geser ke atas dari bagian bawah layar: Untuk beberapa perangkat yang mendukung gestur layar penuh</string>
     <string name="default_assistant_guide_step2_detail_android12">Android 12+: Pengaturan → Aplikasi → Aplikasi default → Aplikasi asisten digital → Aplikasi asisten digital default</string>
@@ -4554,16 +4554,16 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="default_assistant_guide_step2_note">Catatan: Pengaturan gestur dapat berbeda di ponsel merek yang berbeda, periksa opsi yang tersedia di pengaturan sistem</string>
     <string name="default_assistant_guide_step4_title">Uji Asisten Suara</string>
     <string name="default_assistant_guide_step4_desc">Setelah pengaturan selesai, uji apakah dapat diluncurkan dengan normal</string>
-    <string name="default_assistant_guide_step4_detail1">• Menekan lama tombol Home (tombol layar utama) seharusnya memunculkan asisten suara Operit</string>
-    <string name="default_assistant_guide_step4_detail2">• Jika perangkat mendukung pemicu suara, mengucapkan "Hey Google" atau kata pemicu yang ditentukan perangkat juga dapat memicu Operit</string>
+    <string name="default_assistant_guide_step4_detail1">• Menekan lama tombol Home (tombol layar utama) seharusnya memunculkan asisten suara Hermes</string>
+    <string name="default_assistant_guide_step4_detail2">• Jika perangkat mendukung pemicu suara, mengucapkan "Hey Google" atau kata pemicu yang ditentukan perangkat juga dapat memicu Hermes</string>
     <string name="default_assistant_guide_step3_title">Uji Fungsi Asisten</string>
-    <string name="default_assistant_guide_step3_desc">Setelah pengaturan selesai, uji apakah Operit dapat dipanggil dengan normal</string>
+    <string name="default_assistant_guide_step3_desc">Setelah pengaturan selesai, uji apakah Hermes dapat dipanggil dengan normal</string>
     <string name="default_assistant_guide_step3_detail1">• Gunakan gestur yang Anda atur (seperti menekan lama tombol Home) untuk memanggil asisten</string>
-    <string name="default_assistant_guide_step3_detail2">• Jika berhasil, Anda akan melihat antarmuka asisten suara Operit</string>
+    <string name="default_assistant_guide_step3_detail2">• Jika berhasil, Anda akan melihat antarmuka asisten suara Hermes</string>
     <string name="default_assistant_guide_step3_detail3">• Anda dapat mencoba berbicara atau mengetik teks untuk berinteraksi dengan asisten</string>
     <string name="default_assistant_guide_troubleshooting_title">Mengalami masalah?</string>
-    <string name="default_assistant_guide_troubleshooting_content">Jika tidak dapat menemukan Operit dalam daftar, pastikan:\n\n• Aplikasi telah diinstal dengan benar dan tidak dinonaktifkan\n• Izin yang diperlukan telah diberikan (mikrofon, jendela mengambang, dll.)\n• Coba restart perangkat dan atur ulang\n\nBeberapa sistem kustom mungkin membatasi aplikasi pihak ketiga sebagai asisten default. Jika mengalami hal ini, Anda masih dapat menggunakan Operit melalui fungsi jendela mengambang dalam aplikasi.</string>
-    <string name="voice_interaction_service_name">Asisten Operit AI</string>
+    <string name="default_assistant_guide_troubleshooting_content">Jika tidak dapat menemukan Hermes dalam daftar, pastikan:\n\n• Aplikasi telah diinstal dengan benar dan tidak dinonaktifkan\n• Izin yang diperlukan telah diberikan (mikrofon, jendela mengambang, dll.)\n• Coba restart perangkat dan atur ulang\n\nBeberapa sistem kustom mungkin membatasi aplikasi pihak ketiga sebagai asisten default. Jika mengalami hal ini, Anda masih dapat menggunakan Hermes melalui fungsi jendela mengambang dalam aplikasi.</string>
+    <string name="voice_interaction_service_name">Asisten Hermes</string>
     <string name="voice_interaction_service_summary">Layanan asisten suara pintar</string>
     <string name="tool_permissions_title">Izin Alat</string>
     <string name="tool_permissions_description">Secara default, semua alat memerlukan "permintaan" dari Anda. Anda dapat menambahkan pengecualian di bawah ini.</string>
@@ -4686,7 +4686,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="backup_memory_count">Entri Memori</string>
     <string name="backup_memory_link_count">Asosiasi Memori</string>
     <string name="backup_files_statistics">Statistik File Cadangan</string>
-    <string name="backup_files_statistics_subtitle">File cadangan di direktori ekspor Operit</string>
+    <string name="backup_files_statistics_subtitle">File cadangan di direktori ekspor Hermes</string>
     <string name="backup_refresh">Segarkan</string>
     <string name="backup_scanning">Memindai</string>
     <string name="backup_chat_files">Catatan Percakapan</string>
@@ -4765,7 +4765,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="uidebugger_element_info_package_name">Nama paket: %1$s</string>
     <string name="uidebugger_element_info_size_px">Ukuran: %1$d×%2$dpx</string>
     <string name="logcat_no_logs_to_save">Tidak ada log yang dapat disimpan</string>
-    <string name="logcat_header">=== Log Operit ===</string>
+    <string name="logcat_header">=== Log Hermes ===</string>
     <string name="logcat_date">Tanggal: %1$s</string>
     <string name="logcat_total_count">Jumlah total: %1$d</string>
     <string name="logcat_save_failed">Gagal menyimpan: %1$s</string>
@@ -4865,7 +4865,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="backup_select_export_format">Pilih format ekspor</string>
     <string name="backup_select_format_hint">Silakan pilih format riwayat percakapan yang akan diekspor:</string>
     <string name="backup_format_json">JSON (Direkomendasikan)</string>
-    <string name="backup_format_json_desc">Format asli Operit, mempertahankan semua data secara lengkap</string>
+    <string name="backup_format_json_desc">Format asli Hermes, mempertahankan semua data secara lengkap</string>
     <string name="backup_format_markdown">Markdown</string>
     <string name="backup_format_markdown_desc">Format markup ringan, mudah dibaca dan diedit</string>
     <string name="backup_format_html">HTML</string>
@@ -4874,7 +4874,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="backup_format_txt_desc">Format teks sederhana, mudah dibagikan</string>
     <string name="backup_select_import_format">Pilih format impor</string>
     <string name="backup_import_format_hint">Silakan pilih format riwayat percakapan yang akan diimpor:</string>
-    <string name="backup_format_operit">Operit JSON (Direkomendasikan)</string>
+    <string name="backup_format_operit">Hermes JSON (Direkomendasikan)</string>
     <string name="backup_format_operit_desc">Format asli aplikasi ini, mempertahankan semua data secara lengkap</string>
     <string name="backup_format_chatgpt">ChatGPT</string>
     <string name="backup_format_chatgpt_desc">Format ekspor conversations.json OpenAI ChatGPT</string>
@@ -5389,7 +5389,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="memory_embedding_error_empty_data">Data respons vektor kosong: %1$s</string>
     <string name="memory_embedding_error_invalid_first_item">Respons vektor data[0] bukan objek: %1$s</string>
 
-    <string name="skill_publish_body_install_step1">1. Buka Operit → Manajemen Paket → Skills</string>
+    <string name="skill_publish_body_install_step1">1. Buka Hermes → Manajemen Paket → Skills</string>
     <string name="skill_publish_body_install_step2">2. Ketuk "Impor Skill" → "Impor dari Repositori"</string>
     <string name="skill_publish_body_install_step3">3. Masukkan alamat repositori: `%1$s`</string>
     <string name="skill_publish_body_install_step4">4. Konfirmasi impor</string>
@@ -6293,15 +6293,15 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
 
     <string name="chat_summarize_failed_no_valid_summary">Ringkasan gagal: Tidak dapat menghasilkan ringkasan yang valid</string>
     <string name="chat_summarize_generation_failed">Pembuatan ringkasan gagal: %1$s</string>
-    <string name="service_operit_running">Operit sedang berjalan</string>
+    <string name="service_operit_running">Hermes sedang berjalan</string>
     <string name="service_chat_complete_reminder">Pengingat percakapan selesai</string>
     <string name="service_chat_complete_reminder_sound">Pengingat percakapan selesai (suara)</string>
     <string name="service_chat_complete_reminder_vibration">Pengingat percakapan selesai (getaran)</string>
     <string name="service_chat_complete_reminder_sound_vibration">Pengingat percakapan selesai (suara dan getaran)</string>
-    <string name="service_keep_background">Jaga Operit tetap berjalan di latar belakang.</string>
+    <string name="service_keep_background">Jaga Hermes tetap berjalan di latar belakang.</string>
     <string name="service_notify_when_complete">Ingatkan Anda setelah percakapan selesai.</string>
-    <string name="service_running_wake_pause">Operit sedang berjalan (bangun dijeda)</string>
-    <string name="service_running_wake_listening">Operit sedang berjalan (bangun sedang mendengarkan)</string>
+    <string name="service_running_wake_pause">Hermes sedang berjalan (bangun dijeda)</string>
+    <string name="service_running_wake_listening">Hermes sedang berjalan (bangun sedang mendengarkan)</string>
     <string name="service_running_stats">Percakapan berjalan %1$d · Alat dipanggil %2$d</string>
     <string name="service_running_http_listening">HTTP eksternal sedang mendengarkan port %1$d</string>
     <string name="service_running_with_http">%1$s · HTTP eksternal %2$d</string>
@@ -6343,7 +6343,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="html_export_updated">Diperbarui</string>
     <string name="html_export_group">Grup</string>
     <string name="html_export_message_count">Jumlah Pesan</string>
-    <string name="html_export_footer">Diekspor dari Operit AI Assistant</string>
+    <string name="html_export_footer">Diekspor dari Hermes Assistant</string>
     <string name="mnn_no_cache_data">Tidak ada data cache</string>
     <string name="mnn_response_empty">Bodi respons kosong</string>
     <string name="mnn_fetch_repo_files_failed">Gagal mengambil daftar file repositori: %1$s</string>
