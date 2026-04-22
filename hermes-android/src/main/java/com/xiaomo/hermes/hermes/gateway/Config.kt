@@ -306,13 +306,28 @@ data class GatewayConfig(
 
 // ── Config loading ──────────────────────────────────────────────────
 
+/** Recursive JSONObject → Any? converter used when loading config. */
+private val _jsonValueToKotlin: (Any?) -> Any? = { value ->
+    when (value) {
+        is JSONObject -> {
+            val map = mutableMapOf<String, Any?>()
+            value.keys().forEach { key -> map[key] = _jsonValueToKotlin(value.get(key)) }
+            map
+        }
+        is JSONArray -> (0 until value.length()).map { _jsonValueToKotlin(value.get(it)) }
+        JSONObject.NULL -> null
+        else -> value
+    }
+}
+
 /** Load gateway configuration from the default location. */
 fun loadGatewayConfig(hermesHome: String): GatewayConfig {
     val configFile = File(hermesHome, "config.json")
     val config = if (configFile.exists()) {
         try {
             val json = JSONObject(configFile.readText(Charsets.UTF_8))
-            GatewayConfig.fromDict(jsonToMap(json))
+            @Suppress("UNCHECKED_CAST")
+            GatewayConfig.fromDict(_jsonValueToKotlin(json) as Map<String, Any?>)
         } catch (e: Exception) {
             Log.e(_TAG, "Failed to load config from ${configFile.path}: ${e.message}")
             GatewayConfig(hermesHome = hermesHome)
@@ -342,33 +357,7 @@ fun loadGatewayConfig(hermesHome: String): GatewayConfig {
     return overridden.copy(platforms = platformsWithTokens)
 }
 
-// ── JSON helpers ────────────────────────────────────────────────────
-
-/** Convert JSONObject to Map<String, Any?>. */
-internal fun jsonToMap(json: JSONObject): Map<String, Any?> {
-    val map = mutableMapOf<String, Any?>()
-    json.keys().forEach { key ->
-        map[key] = when (val value = json.get(key)) {
-            is JSONObject -> jsonToMap(value)
-            is JSONArray -> jsonToArray(value)
-            JSONObject.NULL -> null
-            else -> value
-        }
-    }
-    return map
-}
-
-/** Convert JSONArray to List<Any?>. */
-internal fun jsonToArray(json: JSONArray): List<Any?> {
-    return (0 until json.length()).map { i ->
-        when (val value = json.get(i)) {
-            is JSONObject -> jsonToMap(value)
-            is JSONArray -> jsonToArray(value)
-            JSONObject.NULL -> null
-            else -> value
-        }
-    }
-}
+// ── Env overrides / validation ──────────────────────────────────────
 
 /** Apply environment variable overrides to config. */
 fun applyEnvOverrides(config: GatewayConfig) {
