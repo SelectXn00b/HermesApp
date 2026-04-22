@@ -61,24 +61,24 @@ class MessageDeduplicator(
  */
 class TextBatchAggregator(
     private val scope: CoroutineScope,
-    private val handler: suspend (Any?) -> Unit,
+    private val handler: suspend (MessageEvent) -> Unit,
     private val batchDelay: Double = 0.6,
     private val splitDelay: Double = 2.0,
     private val splitThreshold: Int = 4000,
 ) {
-    private val _pending: ConcurrentHashMap<String, Any?> = ConcurrentHashMap()
+    private val _pending: ConcurrentHashMap<String, MessageEvent> = ConcurrentHashMap()
     private val _pendingTasks: ConcurrentHashMap<String, Job> = ConcurrentHashMap()
     private val _lastChunkLen: ConcurrentHashMap<String, Int> = ConcurrentHashMap()
 
     fun isEnabled(): Boolean = batchDelay > 0
 
-    fun enqueue(event: Any?, key: String) {
-        val chunkLen = _eventTextLength(event)
+    fun enqueue(event: MessageEvent, key: String) {
+        val chunkLen = event.text.length
         val existing = _pending[key]
         if (existing == null) {
             _pending[key] = event
         } else {
-            _mergeEvent(existing, event)
+            _pending[key] = existing.copy(text = "${existing.text}\n${event.text}")
         }
         _lastChunkLen[key] = chunkLen
 
@@ -109,29 +109,6 @@ class TextBatchAggregator(
         _pendingTasks.clear()
         _pending.clear()
         _lastChunkLen.clear()
-    }
-
-    private fun _eventTextLength(event: Any?): Int {
-        // Fallback: attempt reflective access to `text` field if present
-        val textField = try {
-            event?.javaClass?.getDeclaredField("text")?.apply { isAccessible = true }
-        } catch (_: Exception) {
-            null
-        }
-        return (textField?.get(event) as? String)?.length ?: 0
-    }
-
-    private fun _mergeEvent(existing: Any?, incoming: Any?) {
-        // Best-effort merge of `text` field
-        try {
-            val eField = existing?.javaClass?.getDeclaredField("text")?.apply { isAccessible = true }
-            val iField = incoming?.javaClass?.getDeclaredField("text")?.apply { isAccessible = true }
-            val a = eField?.get(existing) as? String ?: ""
-            val b = iField?.get(incoming) as? String ?: ""
-            eField?.set(existing, "$a\n$b")
-        } catch (_: Exception) {
-            // No text field — nothing to merge
-        }
     }
 }
 
