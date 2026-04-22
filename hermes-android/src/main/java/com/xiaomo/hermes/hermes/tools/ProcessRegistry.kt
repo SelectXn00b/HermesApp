@@ -126,7 +126,7 @@ object ProcessRegistry {
 
         if (matchedLines.isEmpty()) return
 
-        val now = currentTimeSeconds()
+        val now = (System.currentTimeMillis() / 1000.0)
         session.lock.withLock {
             if (now - session.watchWindowStart >= WATCH_WINDOW_SECONDS) {
                 session.watchWindowHits = 0
@@ -238,7 +238,7 @@ object ProcessRegistry {
             taskId = taskId,
             sessionKey = sessionKey,
             cwd = workDir,
-            startedAt = currentTimeSeconds())
+            startedAt = (System.currentTimeMillis() / 1000.0))
 
         if (usePty) {
             Log.w(_TAG, "PTY mode not supported on Android, falling back to pipe mode")
@@ -300,7 +300,7 @@ object ProcessRegistry {
             taskId = taskId,
             sessionKey = sessionKey,
             cwd = cwd,
-            startedAt = currentTimeSeconds(),
+            startedAt = (System.currentTimeMillis() / 1000.0),
             pidScope = "sandbox")
 
         val tempDir = envTempDir()
@@ -308,11 +308,12 @@ object ProcessRegistry {
         val pidPath = "$tempDir/hermes_bg_${sessionId}.pid"
         val exitPath = "$tempDir/hermes_bg_${sessionId}.exit"
 
-        val quotedCommand = shellQuote(command)
-        val quotedTempDir = shellQuote(tempDir)
-        val quotedLogPath = shellQuote(logPath)
-        val quotedPidPath = shellQuote(pidPath)
-        val quotedExitPath = shellQuote(exitPath)
+        val shQ: (String) -> String = { s -> "'${s.replace("'", "'\\''")}'" }
+        val quotedCommand = shQ(command)
+        val quotedTempDir = shQ(tempDir)
+        val quotedLogPath = shQ(logPath)
+        val quotedPidPath = shQ(pidPath)
+        val quotedExitPath = shQ(exitPath)
 
         val bgCommand = "mkdir -p $quotedTempDir && " +
             "( nohup bash -lc $quotedCommand > $quotedLogPath 2>&1; " +
@@ -484,13 +485,13 @@ object ProcessRegistry {
         return sessionId in _completionConsumed
     }
 
-    fun getSession(sessionId: String): ProcessSession? {
+    fun get(sessionId: String): ProcessSession? {
         val session = _running[sessionId] ?: _finished[sessionId]
         return refreshDetachedSession(session)
     }
 
     fun poll(sessionId: String): Map<String, Any> {
-        val session = getSession(sessionId)
+        val session = get(sessionId)
             ?: return mapOf("status" to "not_found", "error" to "No process with ID $sessionId")
 
         val outputPreview = session.lock.withLock {
@@ -502,7 +503,7 @@ object ProcessRegistry {
             "command" to session.command,
             "status" to if (session.exited) "exited" else "running",
             "pid" to (session.pid ?: 0),
-            "uptime_seconds" to (currentTimeSeconds() - session.startedAt).toInt(),
+            "uptime_seconds" to ((System.currentTimeMillis() / 1000.0) - session.startedAt).toInt(),
             "output_preview" to outputPreview)
         if (session.exited) {
             result["exit_code"] = session.exitCode ?: -1
@@ -516,7 +517,7 @@ object ProcessRegistry {
     }
 
     fun readLog(sessionId: String, offset: Int = 0, limit: Int = 200): Map<String, Any> {
-        val session = getSession(sessionId)
+        val session = get(sessionId)
             ?: return mapOf("status" to "not_found", "error" to "No process with ID $sessionId")
 
         val fullOutput = session.lock.withLock { session.outputBuffer }
@@ -553,7 +554,7 @@ object ProcessRegistry {
             timeout ?: maxTimeout
         }
 
-        var session = getSession(sessionId)
+        var session = get(sessionId)
             ?: return mapOf("status" to "not_found", "error" to "No process with ID $sessionId")
 
         val deadline = System.nanoTime() + effectiveTimeout * 1_000_000_000L
@@ -580,7 +581,7 @@ object ProcessRegistry {
     }
 
     fun killProcess(sessionId: String): Map<String, Any> {
-        val session = getSession(sessionId)
+        val session = get(sessionId)
             ?: return mapOf("status" to "not_found", "error" to "No process with ID $sessionId")
 
         if (session.exited) {
@@ -624,7 +625,7 @@ object ProcessRegistry {
     }
 
     fun writeStdin(sessionId: String, data: String): Map<String, Any> {
-        val session = getSession(sessionId)
+        val session = get(sessionId)
             ?: return mapOf("status" to "not_found", "error" to "No process with ID $sessionId")
         if (session.exited) return mapOf("status" to "already_exited", "error" to "Process has already finished")
 
@@ -647,7 +648,7 @@ object ProcessRegistry {
     }
 
     fun closeStdin(sessionId: String): Map<String, Any> {
-        val session = getSession(sessionId)
+        val session = get(sessionId)
             ?: return mapOf("status" to "not_found", "error" to "No process with ID $sessionId")
         if (session.exited) return mapOf("status" to "already_exited", "error" to "Process has already finished")
 
@@ -679,8 +680,8 @@ object ProcessRegistry {
                 "command" to s.command.take(200),
                 "cwd" to (s.cwd ?: ""),
                 "pid" to (s.pid ?: 0),
-                "started_at" to formatTimestamp(s.startedAt),
-                "uptime_seconds" to (currentTimeSeconds() - s.startedAt).toInt(),
+                "started_at" to java.time.Instant.ofEpochSecond(s.startedAt.toLong()).toString(),
+                "uptime_seconds" to ((System.currentTimeMillis() / 1000.0) - s.startedAt).toInt(),
                 "status" to if (s.exited) "exited" else "running",
                 "output_preview" to s.outputBuffer.takeLast(200))
             if (s.exited) entry["exit_code"] = s.exitCode ?: -1
@@ -725,7 +726,7 @@ object ProcessRegistry {
 
     fun pruneIfNeeded() {
         // Prune expired finished sessions
-        val now = currentTimeSeconds()
+        val now = (System.currentTimeMillis() / 1000.0)
         val expired = _finished.filter { (_, s) ->
             (now - s.startedAt) > FINISHED_TTL_SECONDS
         }.keys
@@ -803,7 +804,7 @@ object ProcessRegistry {
                     pid = pid,
                     pidScope = pidScope,
                     cwd = entry.optString("cwd", null),
-                    startedAt = entry.optDouble("started_at", currentTimeSeconds()),
+                    startedAt = entry.optDouble("started_at", (System.currentTimeMillis() / 1000.0)),
                     detached = true,
                     watcherPlatform = entry.optString("watcher_platform", ""),
                     watcherChatId = entry.optString("watcher_chat_id", ""),
@@ -840,18 +841,6 @@ object ProcessRegistry {
     }
 
     // --- Utility ---
-
-    private fun currentTimeSeconds(): Double = System.currentTimeMillis() / 1000.0
-
-    private fun formatTimestamp(epochSeconds: Double): String {
-        val instant = java.time.Instant.ofEpochSecond(epochSeconds.toLong())
-        return instant.toString()
-    }
-
-    private fun shellQuote(s: String): String {
-        // Simple shell quoting: single-quote and escape embedded single quotes
-        return "'${s.replace("'", "'\\''")}'"
-    }
 
     // Helper to get Process.outputWriter (OutputStreamWriter for stdin)
     private val Process.outputWriter: OutputStreamWriter?
