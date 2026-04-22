@@ -58,14 +58,14 @@ class TermuxAudioRecorder {
     private var _recordingPath: String? = null
     private var _currentRms = 0
 
-    val isRecording: Boolean get() = _recording
+    fun isRecording(): Boolean = _recording
 
-    val elapsedSeconds: Double get() {
+    fun elapsedSeconds(): Double {
         if (!_recording) return 0.0
         return (System.nanoTime() / 1_000_000_000.0) - _startTime
     }
 
-    val currentRms: Int get() = _currentRms
+    fun currentRms(): Int = _currentRms
 
     fun start(onSilenceStop: (() -> Unit)? = null) {
         synchronized(_lock) {
@@ -145,13 +145,16 @@ class TermuxAudioRecorder {
 
 class AudioRecorder {
     val supportsSilenceAutostop: Boolean = false
-    val isRecording: Boolean get() = false
-    val elapsedSeconds: Double get() = 0.0
-    val currentRms: Int get() = 0
+    fun isRecording(): Boolean = false
+    fun elapsedSeconds(): Double = 0.0
+    fun currentRms(): Int = 0
     fun start(onSilenceStop: (() -> Unit)? = null): Unit = Unit
     fun stop(): String? = null
     fun cancel(): Unit = Unit
     fun shutdown(): Unit = Unit
+    private fun _ensureStream(): Unit = Unit
+    private fun _closeStreamWithTimeout(timeout: Double = 1.0): Unit = Unit
+    private fun _writeWav(path: String, frames: List<Any?>): Unit = Unit
 }
 
 fun createAudioRecorder(): Any =
