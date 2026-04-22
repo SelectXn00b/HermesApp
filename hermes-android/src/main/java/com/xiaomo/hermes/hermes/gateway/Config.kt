@@ -224,15 +224,6 @@ data class GatewayConfig(
     val unauthorizedDmBehavior: String = "pair",
     val enablePairing: Boolean = true,
     val extra: Map<String, Any> = emptyMap()) {
-    /** Get platform config by enum. */
-    fun platformConfig(platform: Platform): PlatformConfig? = platforms[platform]
-
-    /** Get platform config by name string. */
-    fun platformConfigByName(name: String): PlatformConfig? {
-        val platform = Platform.fromKey(name) ?: return null
-        return platforms[platform]
-    }
-
     /** All enabled platforms. */
     val enabledPlatforms: List<PlatformConfig>
         get() = platforms.values.filter { it.enabled }
@@ -326,24 +317,6 @@ data class GatewayConfig(
         }
     }
 }
-
-// ── Managed system helpers ──────────────────────────────────────────
-
-private val MANAGED_TRUE_VALUES = setOf("1", "true", "yes", "on")
-private val MANAGED_SYSTEM_NAMES = setOf("termux", "nix", "docker", "heroku")
-
-/** Detect if running in a managed environment. */
-fun getManagedSystem(): String? {
-    val envVal = System.getenv("HERMES_MANAGED")?.trim()?.lowercase()
-    if (envVal != null && envVal in MANAGED_TRUE_VALUES) return "custom"
-    for (name in MANAGED_SYSTEM_NAMES) {
-        if (System.getenv("HERMES_MANAGED_$name")?.trim()?.lowercase() in MANAGED_TRUE_VALUES) return name
-    }
-    return null
-}
-
-/** Check if running in any managed environment. */
-fun isManaged(): Boolean = getManagedSystem() != null
 
 // ── Config loading ──────────────────────────────────────────────────
 
