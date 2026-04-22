@@ -65,8 +65,8 @@
 
 | 状态 | 项目 | 证据 |
 |---|---|---|
-| ⬜ | AIToolHandler 注册的工具全部导出为 OpenAI JSON schema | |
-| ⬜ | `validToolNames` 从 schema 自动派生 | |
+| ✅ | AIToolHandler 注册的工具全部导出为 OpenAI JSON schema | `app/src/main/java/com/ai/assistance/operit/hermes/OpenAiToolSchema.kt` — `toolPromptsToOpenAiSchemas()`；在 `EnhancedAIService.kt` L1132 注入 `toolSchemas`；`:app:compileDebugKotlin` 通过 |
+| ✅ | `validToolNames` 从 schema 自动派生 | `EnhancedAIService.kt` L1134 改为 `extractToolNames(openAiToolSchemas)`，schema 是唯一真值源 |
 
 ---
 
