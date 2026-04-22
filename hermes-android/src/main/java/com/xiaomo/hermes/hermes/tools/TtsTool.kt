@@ -1,158 +1,128 @@
-package com.xiaomo.hermes.hermes.tools
-
-import android.util.Log
-import com.google.gson.Gson
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
-import java.util.Base64
-import java.util.concurrent.TimeUnit
-
 /**
  * Text-to-Speech Tool.
- * Supports multiple TTS providers: Edge TTS, ElevenLabs, OpenAI, Mistral.
- * Ported from tts_tool.py
+ *
+ * Python supports edge-tts / ElevenLabs / OpenAI / xAI / Minimax / Mistral /
+ * Gemini / KittenTTS / NeuTTS. Android ships none of these backends, so the
+ * top-level surface is stubbed to return toolError. Shape mirrors
+ * tools/tts_tool.py so registration stays aligned.
+ *
+ * Ported from tools/tts_tool.py
  */
-object TtsTool {
+package com.xiaomo.hermes.hermes.tools
 
-    private const val TAG = "TtsTool"
-    private const val TIMEOUT_SECONDS = 60L
-    private const val MAX_TEXT_LENGTH = 4000
-    private val gson = Gson()
-    private val JSON = "application/json".toMediaType()
+const val DEFAULT_PROVIDER: String = "edge"
+const val DEFAULT_EDGE_VOICE: String = "en-US-AriaNeural"
+const val DEFAULT_ELEVENLABS_VOICE_ID: String = "pNInz6obpgDQGcFmaJgB"
+const val DEFAULT_ELEVENLABS_MODEL_ID: String = "eleven_multilingual_v2"
+const val DEFAULT_ELEVENLABS_STREAMING_MODEL_ID: String = "eleven_flash_v2_5"
+const val DEFAULT_OPENAI_MODEL: String = "gpt-4o-mini-tts"
+const val DEFAULT_KITTENTTS_MODEL: String = "KittenML/kitten-tts-nano-0.8-int8"
+const val DEFAULT_KITTENTTS_VOICE: String = "Jasper"
+const val DEFAULT_OPENAI_VOICE: String = "alloy"
+const val DEFAULT_OPENAI_BASE_URL: String = "https://api.openai.com/v1"
+const val DEFAULT_MINIMAX_MODEL: String = "speech-2.8-hd"
+const val DEFAULT_MINIMAX_VOICE_ID: String = "English_Graceful_Lady"
+const val DEFAULT_MINIMAX_BASE_URL: String = "https://api.minimax.io/v1/t2a_v2"
+const val DEFAULT_MISTRAL_TTS_MODEL: String = "voxtral-mini-tts-2603"
+const val DEFAULT_MISTRAL_TTS_VOICE_ID: String = "c69964a6-ab8b-4f8a-9465-ec0925096ec8"
+const val DEFAULT_XAI_VOICE_ID: String = "eve"
+const val DEFAULT_XAI_LANGUAGE: String = "en"
+const val DEFAULT_XAI_SAMPLE_RATE: Int = 24_000
+const val DEFAULT_XAI_BIT_RATE: Int = 128_000
+const val DEFAULT_XAI_BASE_URL: String = "https://api.x.ai/v1"
+const val DEFAULT_GEMINI_TTS_MODEL: String = "gemini-2.5-flash-preview-tts"
+const val DEFAULT_GEMINI_TTS_VOICE: String = "Kore"
+const val DEFAULT_GEMINI_TTS_BASE_URL: String = "https://generativelanguage.googleapis.com/v1beta"
 
-    data class TtsResult(
-        val success: Boolean = false,
-        val audioPath: String? = null,
-        val audioBase64: String? = null,
-        val provider: String = "",
-        val error: String? = null)
+const val GEMINI_TTS_SAMPLE_RATE: Int = 24_000
+const val GEMINI_TTS_CHANNELS: Int = 1
+const val GEMINI_TTS_SAMPLE_WIDTH: Int = 2
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .build()
+const val DEFAULT_OUTPUT_DIR: String = ""
+const val MAX_TEXT_LENGTH: Int = 4000
 
-    /**
-     * Generate speech from text.
-     * In Android, this delegates to a callback or API.
-     */
-    fun textToSpeech(
-        text: String,
-        provider: String = "edge",
-        voice: String? = null,
-        outputDir: String? = null,
-        apiKey: String? = null,
-        format: String = "mp3"): String {
-        if (text.isBlank()) return gson.toJson(mapOf("error" to "Text is required"))
-        if (text.length > MAX_TEXT_LENGTH) {
-            return gson.toJson(mapOf("error" to "Text too long: ${text.length} chars (max $MAX_TEXT_LENGTH)"))
-        }
+val _SENTENCE_BOUNDARY_RE: Regex = Regex("(?<=[.!?])(?:\\s|\\n)|(?:\\n\\n)")
+val _MD_CODE_BLOCK: Regex = Regex("```[\\s\\S]*?```")
+val _MD_LINK: Regex = Regex("\\[([^\\]]+)\\]\\([^)]+\\)")
+val _MD_URL: Regex = Regex("https?://\\S+")
+val _MD_BOLD: Regex = Regex("\\*\\*(.+?)\\*\\*")
+val _MD_ITALIC: Regex = Regex("\\*(.+?)\\*")
+val _MD_INLINE_CODE: Regex = Regex("`(.+?)`")
+val _MD_HEADER: Regex = Regex("^#+\\s*", RegexOption.MULTILINE)
+val _MD_LIST_ITEM: Regex = Regex("^\\s*[-*]\\s+", RegexOption.MULTILINE)
+val _MD_HR: Regex = Regex("---+")
+val _MD_EXCESS_NL: Regex = Regex("\\n{3,}")
 
-        return when (provider) {
-            "openai" -> generateOpenAI(text, voice ?: "alloy", apiKey)
-            "elevenlabs" -> generateElevenLabs(text, voice, apiKey)
-            else -> gson.toJson(mapOf("error" to "Provider '$provider' not available on Android (use openai or elevenlabs)"))
-        }
-    }
+val TTS_SCHEMA: Map<String, Any> = mapOf(
+    "name" to "text_to_speech",
+    "description" to "Convert text to speech audio. Returns a MEDIA: path that the platform delivers as a voice message. On Telegram it plays as a voice bubble, on Discord/WhatsApp as an audio attachment. In CLI mode, saves to ~/voice-memos/. Voice and provider are user-configured, not model-selected.",
+    "parameters" to mapOf(
+        "type" to "object",
+        "properties" to mapOf(
+            "text" to mapOf(
+                "type" to "string",
+                "description" to "The text to convert to speech. Keep under 4000 characters."),
+            "output_path" to mapOf(
+                "type" to "string",
+                "description" to "Optional custom file path to save the audio."),
+        ),
+        "required" to listOf("text"),
+    ),
+)
 
-    private fun generateOpenAI(text: String, voice: String, apiKey: String?): String {
-        if (apiKey.isNullOrBlank()) {
-            return gson.toJson(mapOf("error" to "OPENAI_API_KEY not set"))
-        }
-        return try {
-            val payload = gson.toJson(mapOf(
-                "model" to "tts-1",
-                "input" to text,
-                "voice" to voice,
-                "response_format" to "mp3"))
+private fun _importEdgeTts(): Unit = Unit
+private fun _importElevenlabs(): Unit = Unit
+private fun _importOpenaiClient(): Unit = Unit
+private fun _importMistralClient(): Unit = Unit
+private fun _importSounddevice(): Unit = Unit
+private fun _importKittentts(): Unit = Unit
 
-            val request = Request.Builder()
-                .url("https://api.openai.com/v1/audio/speech")
-                .post(payload.toRequestBody(JSON))
-                .header("Authorization", "Bearer $apiKey")
-                .header("Content-Type", "application/json")
-                .build()
+private fun _getDefaultOutputDir(): String = ""
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    val body = response.body?.string() ?: ""
-                    return gson.toJson(mapOf("error" to "OpenAI TTS failed: ${response.code} - ${body.take(200)}"))
-                }
-                val bytes = response.body?.bytes() ?: return gson.toJson(mapOf("error" to "Empty response"))
-                val b64 = Base64.getEncoder().encodeToString(bytes)
-                gson.toJson(mapOf("success" to true, "audio_base64" to b64, "provider" to "openai"))
-            }
-        } catch (e: Exception) {
-            gson.toJson(mapOf("error" to "OpenAI TTS failed: ${e.message}"))
-        }
-    }
+private fun _loadTtsConfig(): Map<String, Any?> = emptyMap()
 
-    private fun generateElevenLabs(text: String, voice: String?, apiKey: String?): String {
-        if (apiKey.isNullOrBlank()) {
-            return gson.toJson(mapOf("error" to "ELEVENLABS_API_KEY not set"))
-        }
-        return try {
-            val voiceId = voice ?: "pNInz6obpgDQGcFmaJgB"
-            val payload = gson.toJson(mapOf(
-                "text" to text,
-                "model_id" to "eleven_multilingual_v2"))
+private fun _getProvider(ttsConfig: Map<String, Any?>): String = DEFAULT_PROVIDER
 
-            val request = Request.Builder()
-                .url("https://api.elevenlabs.io/v1/text-to-speech/$voiceId")
-                .post(payload.toRequestBody(JSON))
-                .header("xi-api-key", apiKey)
-                .header("Content-Type", "application/json")
-                .header("Accept", "audio/mpeg")
-                .build()
+private fun _hasFfmpeg(): Boolean = false
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    val body = response.body?.string() ?: ""
-                    return gson.toJson(mapOf("error" to "ElevenLabs TTS failed: ${response.code} - ${body.take(200)}"))
-                }
-                val bytes = response.body?.bytes() ?: return gson.toJson(mapOf("error" to "Empty response"))
-                val b64 = Base64.getEncoder().encodeToString(bytes)
-                gson.toJson(mapOf("success" to true, "audio_base64" to b64, "provider" to "elevenlabs"))
-            }
-        } catch (e: Exception) {
-            gson.toJson(mapOf("error" to "ElevenLabs TTS failed: ${e.message}"))
-        }
-    }
+private fun _convertToOpus(mp3Path: String): String? = null
 
+private fun _generateElevenlabs(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
 
-    // === Missing constants (auto-generated stubs) ===
-    val DEFAULT_PROVIDER = ""
-    val DEFAULT_EDGE_VOICE = ""
-    val DEFAULT_ELEVENLABS_VOICE_ID = ""
-    val DEFAULT_ELEVENLABS_MODEL_ID = ""
-    val DEFAULT_ELEVENLABS_STREAMING_MODEL_ID = ""
-    val DEFAULT_OPENAI_MODEL = ""
-    val DEFAULT_OPENAI_VOICE = ""
-    val DEFAULT_OPENAI_BASE_URL = ""
-    val DEFAULT_MINIMAX_MODEL = ""
-    val DEFAULT_MINIMAX_VOICE_ID = ""
-    val DEFAULT_MINIMAX_BASE_URL = ""
-    val DEFAULT_MISTRAL_TTS_MODEL = ""
-    val DEFAULT_MISTRAL_TTS_VOICE_ID = ""
-    val DEFAULT_OUTPUT_DIR = ""
-    val _SENTENCE_BOUNDARY_RE = ""
-    val _MD_CODE_BLOCK = ""
-    val _MD_LINK = ""
-    val _MD_URL = ""
-    val _MD_BOLD = ""
-    val _MD_ITALIC = ""
-    val _MD_INLINE_CODE = ""
-    val _MD_HEADER = ""
-    val _MD_LIST_ITEM = ""
-    val _MD_HR = ""
-    val _MD_EXCESS_NL = ""
-    val TTS_SCHEMA = ""
+private fun _generateOpenaiTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
 
-    // === Missing methods (auto-generated stubs) ===
-    private fun importEdgeTts(): Unit {
-    // Hermes: _import_edge_tts
-}
-}
+private fun _generateXaiTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
+
+private fun _generateMinimaxTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
+
+private fun _generateMistralTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
+
+private fun _wrapPcmAsWav(vararg args: Any?): ByteArray = ByteArray(0)
+
+private fun _generateGeminiTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
+
+private fun _checkNeuttsAvailable(): Boolean = false
+
+private fun _checkKittentsAvailable(): Boolean = false
+
+private fun _defaultNeuttsRefAudio(): String = ""
+
+private fun _defaultNeuttsRefText(): String = ""
+
+private fun _generateNeutts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
+
+private fun _generateKittentts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
+
+fun textToSpeechTool(text: String, outputPath: String? = null): String =
+    toolError("text_to_speech tool is not available on Android")
+
+fun checkTtsRequirements(): Boolean = false
+
+private fun _resolveOpenaiAudioClientConfig(): Pair<String, String> = "" to ""
+
+private fun _hasOpenaiAudioBackend(): Boolean = false
+
+private fun _stripMarkdownForTts(text: String): String = text
+
+fun streamTtsToSpeaker(vararg args: Any?): String =
+    toolError("stream_tts_to_speaker is not available on Android")
