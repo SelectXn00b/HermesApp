@@ -7,7 +7,6 @@ package com.xiaomo.hermes.hermes.gateway
  * Ported from gateway/hooks.py
  */
 
-import android.util.Log
 import org.json.JSONObject
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -165,91 +164,3 @@ class HookPipeline {
         userId = userId))
 }
 
-/** Well-known built-in hook names. */
-object BuiltinHookNames {
-    const val BOOT_MD = "boot_md"
-    const val RATE_LIMIT = "rate_limit"
-    const val ALLOWLIST = "allowlist"
-    const val PROFANITY_FILTER = "profanity_filter"
-    const val COMMAND_INTERCEPT = "command_intercept"
-}
-
-/**
- * Hook registry — discovers, loads, and fires event hooks.
- * Ported from HookRegistry in gateway/hooks.py
- */
-class HookRegistry {
-    companion object {
-        private const val _TAG = "HookRegistry"
-    }
-
-    /** event_type → [handler_fn, ...] */
-    private val _handlers: java.util.concurrent.ConcurrentHashMap<String, MutableList<suspend (String, Map<String, Any?>) -> Unit>> = java.util.concurrent.ConcurrentHashMap()
-    /** metadata for listing */
-    private val _loadedHooks: MutableList<Map<String, Any?>> = java.util.concurrent.CopyOnWriteArrayList()
-
-    /** Return metadata about all loaded hooks. */
-    fun loadedHooks(): List<Map<String, Any?>> = _loadedHooks.toList()
-
-    /** Register built-in hooks that are always active. */
-    private fun registerBuiltinHooks() {
-        // boot-md hook would be registered here on desktop; Android skips
-    }
-
-    /** Discover and load hooks from the hooks directory. */
-    fun discoverAndLoad(hooksDir: java.io.File? = null) {
-        registerBuiltinHooks()
-        val dir = hooksDir ?: return
-        if (!dir.exists() || !dir.isDirectory) return
-        for (hookDir in dir.listFiles()?.sorted() ?: emptyList()) {
-            if (!hookDir.isDirectory) continue
-            val manifestPath = java.io.File(hookDir, "HOOK.yaml")
-            val handlerPath = java.io.File(hookDir, "handler.py")
-            if (!manifestPath.exists() || !handlerPath.exists()) continue
-            try {
-                // Parse YAML metadata (simplified)
-                val text = manifestPath.readText()
-                val name = Regex("""name:\s*(.+)""").find(text)?.groupValues?.get(1)?.trim() ?: hookDir.name
-                val events = Regex("""events:\s*\[(.+)]""").find(text)?.groupValues?.get(1)
-                    ?.split(",")?.map { it.trim().trim('"') } ?: continue
-                _loadedHooks.add(mapOf("name" to name, "events" to events, "path" to hookDir.absolutePath))
-            } catch (_unused: Exception) {}
-        }
-    }
-
-    /** Fire all handlers registered for an event. */
-    suspend fun emit(eventType: String, context: Map<String, Any?> = emptyMap()) {
-        val handlers = mutableListOf<suspend (String, Map<String, Any?>) -> Unit>()
-        handlers.addAll(_handlers[eventType] ?: emptyList())
-        // Check for wildcard patterns (e.g., "command:*" matches "command:reset")
-        if (":" in eventType) {
-            val base = eventType.substringBefore(":")
-            handlers.addAll(_handlers["$base:*"] ?: emptyList())
-        }
-        for (fn in handlers) {
-            try { fn(eventType, context) } catch (_unused: Exception) {}
-        }
-    }
-
-    /** Register a handler for an event. */
-    fun handle(event: String, handler: suspend (String, Map<String, Any?>) -> Unit) {
-        _handlers.getOrPut(event) { mutableListOf() }.add(handler)
-    }
-
-    /** Register built-in hooks that are always active. */
-    fun _registerBuiltinHooks() {
-        // Pre-agent: sanitize input, check rate limits
-        handle("pre_agent") { sessionKey, data ->
-            val text = data["text"] as? String ?: ""
-            if (text.isBlank()) {
-                Log.w(_TAG, "Empty message in pre-agent hook")
-            }
-        }
-        // Post-agent: format output, log usage
-        handle("post_agent") { sessionKey, data ->
-            val response = data["text"] as? String ?: ""
-            Log.d(_TAG, "Post-agent response length: ${response.length}")
-        }
-    }
-
-}
