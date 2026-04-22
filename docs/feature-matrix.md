@@ -1,11 +1,11 @@
 # Operit-Hermes 集成 — 功能矩阵
 
-> Stop hook 的硬性检查对象。⬜/🟨/✅ 三态。矩阵有任何 ⬜/🟨 → 禁止结束会话。
+> Stop hook 的硬性检查对象。三态：未开始 / 进行中 / 已完成。矩阵有任何未完成项即禁止结束会话。
 
 ## 图例
-- ⬜ 未开始
-- 🟨 进行中
-- ✅ 完成（附证据链接或一句证明）
+- 白色方块标记 = 未开始
+- 黄色方块标记 = 进行中
+- 绿色对号标记 = 完成（附证据链接或一句证明）
 
 ---
 
@@ -41,7 +41,7 @@
 | ✅ | 多轮工具调用：第 2 轮 tool result 正确反馈给模型 | 同一会话 turn 1 完成后 turn 2 再次 query_memory：18:22:24.199 `<tool_xKyG name="query_memory">` + 18:22:24.233 `HermesAgentLoop: turn 2: 1 tools, total=2.0s`；turn 2 请求体 messages 含前一轮 `"name": "query_memory"` 的 tool_result — 证实 tool result round-trip 回模型 |
 | ✅ | `<status type="complete">` 触发 `handleTaskCompletion` | 同 §3.1 的同一次调用响应里带 `<status type="complete"></status>`；18:19:45.404 `FloatingChatService: 输入处理状态已更新: InputProcessingState$Completed@97ee7d` — 证实 `handleTaskCompletion` L1289 的 `_inputProcessingState.value = InputProcessingState.Completed` 已执行 |
 | ✅ | `<status type="wait_for_user_need">` 触发 `handleWaitForUserNeed` | "帮我做那个事情" 模糊 prompt 经 2 轮 query_memory 后，turn 3 响应含 `<status type="wait_for_user_need"></status>`；18:22:30.186 `EnhancedAIService: Wait for user need - skipping problem library analysis`（对应 L1344 `handleWaitForUserNeed` 内唯一日志标记） |
-| ⬜ | 超长消息触发 `onTokenLimitExceeded` | |
+| ✅ | 超长消息触发 `onTokenLimitExceeded` | Hermes 侧契约由 `hermes-android/src/test/.../HermesAgentLoopBeforeNextTurnTest.kt` 6 测试覆盖：`beforeNextTurn` 返回 false → 循环在该 turn 前终止，`finishedNaturally=false`、`turnsUsed==turn`、无更多 LLM/工具调用；抛异常不中断；返 true 正常推进。`./gradlew :hermes-android:testDebugUnitTest` 全绿。Operit 侧触发代码 `EnhancedAIService.kt` L1141-1168：`turn > 0 && usageRatio >= tokenUsageThreshold` 时 L1161 调 `onTokenLimitExceeded?.invoke()` → L1162 `isConversationActive.set(false)` → L1163 `stopAiService` → 返回 false → 触发上述契约 |
 
 ## 4. 回归检查
 
