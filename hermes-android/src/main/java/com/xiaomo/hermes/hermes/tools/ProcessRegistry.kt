@@ -34,15 +34,6 @@ object ProcessRegistry {
         "cannot set terminal process group",
         "tcsetattr: Inappropriate ioctl for device")
 
-    data class ProcessInfo(
-        val id: String,
-        val command: String,
-        val process: Process,
-        val logFile: String? = null)
-
-    /**
-     * Tracked background process with output buffering.
-     */
     data class ProcessSession(
         val id: String,
         val command: String,
@@ -95,21 +86,6 @@ object ProcessRegistry {
     // Watcher side-channel
     val pendingWatchers: MutableList<Map<String, Any>> = mutableListOf()
 
-    // --- Registration (backward compat) ---
-
-    fun register(id: String, command: String, process: Process, logFile: String? = null): ProcessInfo {
-        val info = ProcessInfo(id, command, process, logFile)
-        return info
-    }
-
-    fun get(id: String): ProcessInfo? = null  // Use getSession instead
-
-    fun unregister(id: String): ProcessInfo? = null
-
-    fun getAll(): Map<String, ProcessInfo> = emptyMap()
-
-    fun getActive(): List<ProcessInfo> = emptyList()
-
     fun killAll() {
         _lock.withLock {
             for ((id, session) in _running) {
@@ -121,11 +97,6 @@ object ProcessRegistry {
             }
         }
         _running.clear()
-    }
-
-    fun cleanup() {
-        val dead = _finished.filter { it.value.exited }.map { it.key }
-        dead.forEach { _finished.remove(it) }
     }
 
     // --- Helper methods ---
