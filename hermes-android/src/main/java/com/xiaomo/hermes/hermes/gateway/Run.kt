@@ -62,17 +62,11 @@ class GatewayRunner(
     /** Gateway status. */
     val status = GatewayStatus()
 
-    /** Channel directory. */
-    val channelDirectory = ChannelDirectory()
-
     /** Mirror bridge. */
     val mirrorBridge = MirrorBridge()
 
     /** Sticker cache. */
     val stickerCache = StickerCache(context)
-
-    /** Display config registry. */
-    val displayConfigRegistry = DisplayConfigRegistry()
 
     /** Pairing store. */
     val pairingStore = PairingStore()
