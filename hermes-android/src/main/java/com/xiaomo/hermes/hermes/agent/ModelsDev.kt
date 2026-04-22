@@ -355,3 +355,155 @@ class ModelsDev {
 
 
 }
+
+// ── Module-level aligned with Python agent/models_dev.py ──────────────────
+
+const val _MODELS_DEV_CACHE_TTL: Long = 3600L
+
+/**
+ * Google's live Gemini catalogs contain stale slugs and Gemma variants whose
+ * TPM quotas are too small for agent-style traffic. Keep capability metadata
+ * available but hide from Gemini catalog surfaces.
+ */
+val _GOOGLE_HIDDEN_MODELS: Set<String> = setOf(
+    "gemma-4-31b-it",
+    "gemma-4-26b-it",
+    "gemma-4-26b-a4b-it",
+    "gemma-3-1b",
+    "gemma-3-1b-it",
+    "gemma-3-2b",
+    "gemma-3-2b-it",
+    "gemma-3-4b",
+    "gemma-3-4b-it",
+    "gemma-3-12b",
+    "gemma-3-12b-it",
+    "gemma-3-27b",
+    "gemma-3-27b-it",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash-8b",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite"
+)
+
+private val _sharedModelsDev: ModelsDev by lazy { ModelsDev() }
+
+/** Path to disk cache file under HERMES_HOME. */
+fun _getCachePath(): java.io.File {
+    val envVal = (System.getenv("HERMES_HOME") ?: "").trim()
+    val home = if (envVal.isNotEmpty()) java.io.File(envVal)
+    else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+    return java.io.File(home, "models_dev_cache.json")
+}
+
+/** Persist models.dev data to disk cache (best-effort, atomic via .tmp rename). */
+fun _saveDiskCache(data: Map<String, Any?>) {
+    try {
+        val path = _getCachePath()
+        path.parentFile?.mkdirs()
+        val tmp = java.io.File(path.parentFile, path.name + ".tmp")
+        val gson = com.google.gson.Gson()
+        tmp.writeText(gson.toJson(data), Charsets.UTF_8)
+        tmp.renameTo(path)
+    } catch (_: Exception) {
+    }
+}
+
+/** Fetch models.dev registry. In-memory cache (1hr) + disk fallback. */
+fun fetchModelsDev(forceRefresh: Boolean = false): Map<String, Any> {
+    return _sharedModelsDev.fetch(forceRefresh)
+}
+
+/** Look up context_length for a provider+model in models.dev. */
+fun lookupModelsDevContext(provider: String, model: String): Int? {
+    return _sharedModelsDev.lookupContextLength(provider, model)
+}
+
+/** Return true if the provider/model pair should be hidden from the catalog. */
+fun _shouldHideFromProviderCatalog(provider: String, modelId: String): Boolean {
+    val providerLower = provider.trim().lowercase()
+    val modelLower = modelId.trim().lowercase()
+    if (providerLower in setOf("gemini", "google") && modelLower in _GOOGLE_HIDDEN_MODELS) {
+        return true
+    }
+    return false
+}
+
+/** Convert a raw models.dev model entry map into a ModelInfo. */
+@Suppress("UNCHECKED_CAST")
+fun _parseModelInfo(modelId: String, raw: Map<String, Any?>, providerId: String): ModelInfo {
+    val limit = (raw["limit"] as? Map<String, Any?>) ?: emptyMap()
+    val cost = (raw["cost"] as? Map<String, Any?>) ?: emptyMap()
+    val modalities = (raw["modalities"] as? Map<String, Any?>) ?: emptyMap()
+
+    val inputMods = (modalities["input"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    val outputMods = (modalities["output"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
+    val ctx = (limit["context"] as? Number)?.toInt()?.takeIf { it > 0 } ?: 0
+    val out = (limit["output"] as? Number)?.toInt()?.takeIf { it > 0 } ?: 0
+    val inp = (limit["input"] as? Number)?.toInt()?.takeIf { it > 0 }
+
+    val cacheReadRaw = cost["cache_read"]
+    val cacheWriteRaw = cost["cache_write"]
+
+    return ModelInfo(
+        id = modelId,
+        name = (raw["name"] as? String)?.ifEmpty { modelId } ?: modelId,
+        family = (raw["family"] as? String) ?: "",
+        providerId = providerId,
+        reasoning = (raw["reasoning"] as? Boolean) ?: false,
+        toolCall = (raw["tool_call"] as? Boolean) ?: false,
+        attachment = (raw["attachment"] as? Boolean) ?: false,
+        temperature = (raw["temperature"] as? Boolean) ?: false,
+        structuredOutput = (raw["structured_output"] as? Boolean) ?: false,
+        openWeights = (raw["open_weights"] as? Boolean) ?: false,
+        inputModalities = inputMods,
+        outputModalities = outputMods,
+        contextWindow = ctx,
+        maxOutput = out,
+        maxInput = inp,
+        costInput = (cost["input"] as? Number)?.toDouble() ?: 0.0,
+        costOutput = (cost["output"] as? Number)?.toDouble() ?: 0.0,
+        costCacheRead = (cacheReadRaw as? Number)?.toDouble(),
+        costCacheWrite = (cacheWriteRaw as? Number)?.toDouble(),
+        knowledgeCutoff = (raw["knowledge"] as? String) ?: "",
+        releaseDate = (raw["release_date"] as? String) ?: "",
+        status = (raw["status"] as? String) ?: ""
+    )
+}
+
+/** Convert a raw models.dev provider entry map into a ProviderInfo. */
+@Suppress("UNCHECKED_CAST")
+fun _parseProviderInfo(providerId: String, raw: Map<String, Any?>): ProviderInfo {
+    val env = (raw["env"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    val models = (raw["models"] as? Map<String, Any?>) ?: emptyMap()
+    return ProviderInfo(
+        id = providerId,
+        name = (raw["name"] as? String)?.ifEmpty { providerId } ?: providerId,
+        env = env,
+        api = (raw["api"] as? String) ?: "",
+        doc = (raw["doc"] as? String) ?: "",
+        modelCount = models.size
+    )
+}
+
+/** Get full model metadata from models.dev. */
+@Suppress("UNCHECKED_CAST")
+fun getModelInfo(providerId: String, modelId: String): ModelInfo? {
+    val mdevId = ModelsDev.PROVIDER_TO_MODELS_DEV[providerId] ?: providerId
+    val data = fetchModelsDev()
+    val pdata = data[mdevId] as? Map<String, Any?> ?: return null
+    val models = pdata["models"] as? Map<String, Any?> ?: return null
+
+    val raw = models[modelId] as? Map<String, Any?>
+    if (raw != null) return _parseModelInfo(modelId, raw, mdevId)
+
+    val modelLower = modelId.lowercase()
+    for ((mid, mdata) in models) {
+        if (mid.lowercase() == modelLower) {
+            val r = mdata as? Map<String, Any?> ?: continue
+            return _parseModelInfo(mid, r, mdevId)
+        }
+    }
+    return null
+}
