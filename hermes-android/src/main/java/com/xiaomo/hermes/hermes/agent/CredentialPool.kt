@@ -884,3 +884,129 @@ class CredentialPool {
         }
     }
 }
+
+// ── Module-level symbols (1:1 with agent/credential_pool.py) ───────────
+
+/** Extra metadata keys that should be carried on a PooledCredential. */
+val _EXTRA_KEYS: Set<String> = setOf(
+    "oauth_token",
+    "oauth_refresh_token",
+    "oauth_expires_at",
+    "oauth_scope",
+    "oauth_token_type",
+    "oauth_account_id",
+    "oauth_account_email",
+    "profile_dir",
+    "session_id",
+    "priority",
+    "weight",
+    "label",
+    "notes",
+    "expires_at",
+    "last_used_at",
+)
+
+/** Human-readable label derived from an API key / token string. */
+fun labelFromToken(token: String?, fallback: String = ""): String {
+    if (token.isNullOrBlank()) return fallback
+    val t = token.trim()
+    if (t.length <= 8) return fallback.ifEmpty { t }
+    return t.take(4) + "…" + t.takeLast(4)
+}
+
+/** Return the next priority slot (maxPriority + 1), or 0 for empty list. */
+fun _nextPriority(entries: List<Any?>?): Int {
+    if (entries.isNullOrEmpty()) return 0
+    var maxP = -1
+    for (e in entries) {
+        val p = (e as? Map<*, *>)?.get("priority") as? Number
+        if (p != null && p.toInt() > maxP) maxP = p.toInt()
+    }
+    return maxP + 1
+}
+
+/** True when a credential source label denotes a manually-added entry. */
+fun _isManualSource(source: String?): Boolean {
+    if (source.isNullOrBlank()) return false
+    val s = source.lowercase()
+    return s.startsWith("manual") || s.startsWith("user") || s == "cli"
+}
+
+/** Normalize a custom pool name into a stable lowercase slug. */
+fun _normalizeCustomPoolName(name: String?): String {
+    if (name.isNullOrBlank()) return ""
+    return name.trim().lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
+}
+
+/** Iterate over configured custom providers (empty on Android). */
+fun _iterCustomProviders(config: Map<String, Any?>? = null): List<Map<String, Any?>> = emptyList()
+
+/** Resolve the pool key for a given custom provider base URL, or null. */
+fun getCustomProviderPoolKey(baseUrl: String?): String? {
+    if (baseUrl.isNullOrBlank()) return null
+    val normalized = baseUrl.trim().trimEnd('/')
+    return _normalizeCustomPoolName(normalized).ifEmpty { null }
+}
+
+/** Enumerate configured custom pool provider keys. */
+fun listCustomPoolProviders(): List<String> = emptyList()
+
+/** Fetch the raw config map for a custom provider pool, or null. */
+fun _getCustomProviderConfig(poolKey: String?): Map<String, Any?>? = null
+
+/** Insert / update a pooled-credential entry. Returns true if mutated. */
+fun _upsertEntry(
+    entries: MutableList<Any?>?,
+    provider: String,
+    source: String,
+    payload: Map<String, Any?>?
+): Boolean {
+    if (entries == null || payload == null) return false
+    val existing = entries.firstOrNull {
+        val m = it as? Map<*, *> ?: return@firstOrNull false
+        m["source"] == source
+    }
+    if (existing != null) {
+        // Existing entry — caller applies payload merge upstream; report no-op.
+        return false
+    }
+    entries.add(payload + mapOf("provider" to provider, "source" to source))
+    return true
+}
+
+/** Normalize priorities so they are contiguous starting from 0. */
+fun _normalizePoolPriorities(provider: String, entries: MutableList<Any?>?): Boolean {
+    if (entries.isNullOrEmpty()) return false
+    val sorted = entries.sortedBy { e -> ((e as? Map<*, *>)?.get("priority") as? Number)?.toInt() ?: Int.MAX_VALUE }
+    var changed = false
+    for ((i, e) in sorted.withIndex()) {
+        val m = e as? Map<*, *> ?: continue
+        val cur = (m["priority"] as? Number)?.toInt()
+        if (cur != i) changed = true
+    }
+    return changed
+}
+
+/** Seed pool from standalone env/config singleton credentials. */
+fun _seedFromSingletons(
+    provider: String,
+    entries: MutableList<Any?>?
+): Pair<Boolean, Set<String>> = false to emptySet()
+
+/** Seed pool from environment variables (e.g. ANTHROPIC_API_KEY_2). */
+fun _seedFromEnv(
+    provider: String,
+    entries: MutableList<Any?>?
+): Pair<Boolean, Set<String>> = false to emptySet()
+
+/** Remove seeded-but-no-longer-active entries. Returns true if pruned. */
+fun _pruneStaleSeededEntries(
+    entries: MutableList<Any?>?,
+    activeSources: Set<String>?
+): Boolean = false
+
+/** Seed a custom provider pool. Android: no-op returning empty set. */
+fun _seedCustomPool(
+    poolKey: String,
+    entries: MutableList<Any?>?
+): Pair<Boolean, Set<String>> = false to emptySet()
