@@ -66,3 +66,6 @@ operit-pc-agent.zip
 # generated React web-chat build outputs
 web-chat/dist/
 app/src/main/assets/web-chat/
+
+# hermes-align scan_stubs.py artifact
+hermes-android/src/main/java/com/xiaomo/hermes/stub-report.json
