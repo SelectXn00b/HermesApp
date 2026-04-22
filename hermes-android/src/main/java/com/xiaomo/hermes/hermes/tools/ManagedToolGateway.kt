@@ -98,7 +98,7 @@ fun resolveManagedToolGateway(
     gatewayBuilder: ((String) -> String)? = null,
     tokenReader: (() -> String?)? = null,
 ): ManagedToolGatewayConfig? {
-    if (!ToolBackendHelpers.managedNousToolsEnabled()) return null
+    if (!managedNousToolsEnabled()) return null
 
     val gatewayOrigin = (gatewayBuilder ?: ::buildVendorGatewayUrl)(vendor)
     val nousUserToken = (tokenReader ?: ::readNousAccessToken)()
