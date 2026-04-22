@@ -482,7 +482,6 @@ class AuxiliaryClient(
     private val requestBuilder = RequestBuilder(gson)
     private val responseParser = ResponseParser(gson)
     private val streamParser = StreamParser(gson)
-    private val errorClassifier = ErrorClassifier()
     private val compressor = ContextCompressor()
     private val rateLimitTracker = RateLimitTracker()
     private val insights = Insights()
@@ -533,13 +532,13 @@ class AuxiliaryClient(
                         errors = errors
                     )
                 } catch (e: Exception) {
-                    val errorType = classifyError(e, provider.name)
+                    val classified = classifyApiError(e, provider = provider.name)
                     val statusCode = extractStatusCode(e)
 
                     errors.add(
                         FailoverError(
                             provider = provider.name,
-                            errorType = errorType.name,
+                            errorType = classified.reason.value,
                             message = e.message ?: "Unknown error",
                             statusCode = statusCode
                         )
@@ -550,22 +549,20 @@ class AuxiliaryClient(
                             provider = provider.name,
                             model = request.model,
                             success = false,
-                            errorType = errorType.name
+                            errorType = classified.reason.value
                         )
                     )
 
                     // 判断是否需要 failover
-                    if (errorClassifier.shouldFailover(errorType)) {
+                    if (classified.shouldFallback) {
                         excludedProviders.add(provider.name)
                         break // 切换到下一个 provider
                     }
 
                     // 可重试的错误
-                    if (errorClassifier.isRetryable(errorType)) {
-                        val delay = errorClassifier.getRetryDelayMs(errorType, attempt)
-                        if (delay > 0) {
-                            Thread.sleep(delay)
-                        }
+                    if (classified.retryable) {
+                        val delay = 2000L * (attempt + 1)
+                        Thread.sleep(delay)
                         continue // 重试
                     }
 
@@ -730,15 +727,6 @@ class AuxiliaryClient(
 
         headers.putAll(provider.headers)
         return headers
-    }
-
-    /**
-     * 分类错误类型
-     */
-    private fun classifyError(e: Exception, provider: String): ErrorClassifier.ErrorType {
-        val statusCode = extractStatusCode(e)
-        val message = e.message ?: ""
-        return errorClassifier.classify(statusCode, message)
     }
 
     /**
