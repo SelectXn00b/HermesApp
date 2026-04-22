@@ -152,6 +152,7 @@ fun buildSessionKey(platform: String, chatId: String, userId: String): String =
 class SessionStore(
     private val persistDir: File? = null) {
     private val sessions: ConcurrentHashMap<String, SessionEntry> = ConcurrentHashMap()
+    private val resumePending: ConcurrentHashMap<String, Map<String, Any?>> = ConcurrentHashMap()
 
     /** Get or create a session. */
     fun getOrCreate(
@@ -380,6 +381,37 @@ class SessionStore(
             Log.d(_TAG, "Pruned ${toRemove.size} session entries older than $maxAgeDays days")
         }
         return toRemove.size
+    }
+
+    /**
+     * Derive a stable session key from a [SessionSource] — mirrors Python's
+     * `SessionStore._generate_session_key`.  Android stub composes platform
+     * and chat/user ids with a colon separator.
+     */
+    fun _generateSessionKey(source: Any?): String {
+        if (source !is Map<*, *>) return ""
+        val platform = (source["platform"] as? String) ?: "unknown"
+        val chatId = (source["chat_id"] as? String) ?: ""
+        val userId = (source["user_id"] as? String) ?: ""
+        return "$platform:$chatId:$userId"
+    }
+
+    /**
+     * Mark a session as having a pending resume request (cross-restart hint).
+     * Android stub persists the payload in an in-memory side-map keyed by session.
+     */
+    fun markResumePending(sessionKey: String, payload: Map<String, Any?>? = null): Boolean {
+        if (sessions[sessionKey] == null) return false
+        resumePending[sessionKey] = payload ?: emptyMap()
+        return true
+    }
+
+    /**
+     * Clear the resume-pending flag on a session.  Returns true if the flag
+     * was set and has now been removed.
+     */
+    fun clearResumePending(sessionKey: String): Boolean {
+        return resumePending.remove(sessionKey) != null
     }
 }
 
@@ -910,4 +942,56 @@ class SessionManager(
         return mapOf("ai_representation" to repr)
     }
 
+}
+
+// ── Module-level aligned with Python gateway/session.py ───────────────────
+
+/**
+ * Build a session-context prompt block describing the current conversation's
+ * platform, chat, user, and recent turn history.  Mirrors Python
+ * `build_session_context_prompt` used during system-prompt assembly.
+ */
+fun buildSessionContextPrompt(
+    entry: SessionEntry?,
+    systemInstructions: String? = null,
+    @Suppress("UNUSED_PARAMETER") extra: Map<String, Any?>? = null
+): String {
+    if (entry == null) return systemInstructions.orEmpty()
+    val lines = mutableListOf<String>()
+    if (!systemInstructions.isNullOrBlank()) lines.add(systemInstructions)
+    lines.add("Platform: ${entry.platform}")
+    lines.add("Chat: ${entry.chatName.ifEmpty { entry.chatId }} (${entry.chatType})")
+    lines.add("User: ${entry.userName.ifEmpty { entry.userId }}")
+    return lines.joinToString("\n")
+}
+
+/**
+ * Return true when a session represents a shared, multi-user channel — e.g. a
+ * Slack public channel or a Discord guild text channel — where the bot should
+ * treat follow-ups as not necessarily directed at it.  Android mirrors the
+ * Python rule: chatType == "group" or platform-specific "channel" types.
+ */
+fun isSharedMultiUserSession(entry: SessionEntry?): Boolean {
+    if (entry == null) return false
+    return entry.chatType in setOf("group", "channel", "supergroup")
+}
+
+/**
+ * Compose the structured session-context map passed to downstream consumers
+ * (memory, platform handlers).  Mirrors Python `build_session_context` which
+ * returns a dict keyed by platform/chat/user/session identifiers.
+ */
+fun buildSessionContext(entry: SessionEntry?): Map<String, Any?> {
+    if (entry == null) return emptyMap()
+    return mapOf(
+        "session_key" to entry.sessionKey,
+        "platform" to entry.platform,
+        "chat_id" to entry.chatId,
+        "chat_name" to entry.chatName,
+        "chat_type" to entry.chatType,
+        "user_id" to entry.userId,
+        "user_name" to entry.userName,
+        "created_at" to entry.createdAt,
+        "last_message_at" to entry.lastMessageAt
+    )
 }

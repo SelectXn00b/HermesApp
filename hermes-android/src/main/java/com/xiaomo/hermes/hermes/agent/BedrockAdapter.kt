@@ -748,3 +748,56 @@ fun getBedrockContextLength(modelId: String): Int {
     }
     return bestVal
 }
+
+// ── Module-level aligned with Python agent/bedrock_adapter.py ─────────────
+
+/**
+ * Ensure the AWS SDK (boto3 on Python) is available.
+ * Android-stub: AWS Bedrock SDK isn't bundled; returns null.
+ */
+fun _requireBoto3(): Any? = null
+
+/**
+ * Return a Bedrock Runtime client for the given region.
+ * Android-stub: SDK absent, returns null.
+ */
+fun _getBedrockRuntimeClient(region: String): Any? = null
+
+/**
+ * Return a Bedrock Control-plane client for the given region.
+ * Android-stub: SDK absent, returns null.
+ */
+fun _getBedrockControlClient(region: String): Any? = null
+
+/**
+ * Call Bedrock Converse API (non-streaming) and return an OpenAI-compatible
+ * response.  Android-stub: Bedrock is a server-side provider, not available
+ * on-device; returns null so call-sites treat the provider as unreachable.
+ */
+fun callConverse(
+    region: String,
+    model: String,
+    messages: List<Map<String, Any?>>,
+    tools: List<Map<String, Any?>>? = null,
+    maxTokens: Int = 4096,
+    temperature: Double? = null,
+    topP: Double? = null,
+    stopSequences: List<String>? = null,
+    guardrailConfig: Map<String, Any?>? = null
+): Any? = null
+
+/**
+ * Call Bedrock Converse Stream API and yield streaming chunks.  Android-stub:
+ * returns an empty sequence — see [callConverse] for reasoning.
+ */
+fun callConverseStream(
+    region: String,
+    model: String,
+    messages: List<Map<String, Any?>>,
+    tools: List<Map<String, Any?>>? = null,
+    maxTokens: Int = 4096,
+    temperature: Double? = null,
+    topP: Double? = null,
+    stopSequences: List<String>? = null,
+    guardrailConfig: Map<String, Any?>? = null
+): Sequence<Map<String, Any?>> = emptySequence()
