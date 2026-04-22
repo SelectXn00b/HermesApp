@@ -9,6 +9,25 @@ package com.xiaomo.hermes.hermes.gateway.platforms
 
 import android.util.Base64
 import android.util.Log
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.API_BASE
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.CONNECT_TIMEOUT_SECONDS
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.DEDUP_MAX_SIZE
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.DEDUP_WINDOW_SECONDS
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.DEFAULT_API_TIMEOUT
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.FILE_UPLOAD_TIMEOUT
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.GATEWAY_URL_PATH
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MAX_MESSAGE_LENGTH
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MAX_RECONNECT_ATTEMPTS
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MEDIA_TYPE_FILE
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MEDIA_TYPE_IMAGE
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MEDIA_TYPE_VIDEO
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MEDIA_TYPE_VOICE
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MSG_TYPE_INPUT_NOTIFY
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MSG_TYPE_MARKDOWN
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MSG_TYPE_MEDIA
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.MSG_TYPE_TEXT
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.RECONNECT_BACKOFF
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.TOKEN_URL
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -24,35 +43,6 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-private const val API_BASE = "https://api.sgroup.qq.com"
-private const val TOKEN_URL = "https://bots.qq.com/app/getAppAccessToken"
-private const val GATEWAY_URL_PATH = "/gateway"
-private const val DEFAULT_API_TIMEOUT = 30L
-private const val FILE_UPLOAD_TIMEOUT = 60L
-private const val CONNECT_TIMEOUT_SECONDS = 15L
-private val RECONNECT_BACKOFF = listOf(1, 2, 5, 10, 30, 60)
-private const val MAX_RECONNECT_ATTEMPTS = 10
-private const val RATE_LIMIT_DELAY = 60L
-private const val QUICK_DISCONNECT_THRESHOLD = 5.0
-private const val MAX_QUICK_DISCONNECT_COUNT = 3
-private const val MAX_MESSAGE_LENGTH = 4096
-private const val DEDUP_WINDOW_SECONDS = 120.0
-private const val DEDUP_MAX_SIZE = 1000
-
-private const val MSG_TYPE_TEXT = 0
-private const val MSG_TYPE_MARKDOWN = 2
-private const val MSG_TYPE_MEDIA = 7
-private const val MSG_TYPE_INPUT_NOTIFY = 5
-
-private const val MEDIA_TYPE_IMAGE = 1
-private const val MEDIA_TYPE_VIDEO = 2
-private const val MEDIA_TYPE_VOICE = 3
-private const val MEDIA_TYPE_FILE = 4
 
 private const val TAG = "QQAdapter"
 
@@ -89,9 +79,9 @@ class QQAdapter(
     // Connection state
     private var _ws: WebSocket? = null
     private val _httpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .readTimeout(DEFAULT_API_TIMEOUT, TimeUnit.SECONDS)
-        .writeTimeout(DEFAULT_API_TIMEOUT, TimeUnit.SECONDS)
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
+        .readTimeout(DEFAULT_API_TIMEOUT.toLong(), TimeUnit.SECONDS)
+        .writeTimeout(DEFAULT_API_TIMEOUT.toLong(), TimeUnit.SECONDS)
         .build()
     private var _listenJob: Job? = null
     private var _heartbeatJob: Job? = null
@@ -1090,7 +1080,7 @@ class QQAdapter(
         return _convertAudioToWavFile(audioData, "voice$ext")
     }
 
-    suspend fun _apiRequest(method: String, path: String, body: Map<String, Any?>? = null, timeout: Double = DEFAULT_API_TIMEOUT.toDouble()): Map<String, Any?> {
+    suspend fun _apiRequest(method: String, path: String, body: Map<String, Any?>? = null, timeout: Double = DEFAULT_API_TIMEOUT): Map<String, Any?> {
         val token = _ensureToken()
 
         return withContext(Dispatchers.IO) {
@@ -1149,7 +1139,7 @@ class QQAdapter(
         var lastExc: Exception? = null
         for (attempt in 0 until 3) {
             try {
-                return _apiRequest("POST", path, body, FILE_UPLOAD_TIMEOUT.toDouble())
+                return _apiRequest("POST", path, body, FILE_UPLOAD_TIMEOUT)
             } catch (e: RuntimeException) {
                 lastExc = e
                 val errMsg = e.message ?: ""
