@@ -171,15 +171,6 @@ data class DeliveryTarget(
     val threadId: String? = null,
     val isOrigin: Boolean = false,
     val isExplicit: Boolean = false) {
-    /** Convert back to string format. */
-    fun toString_(): String = when {
-        isOrigin -> "origin"
-        platform == "local" -> "local"
-        chatId != null && threadId != null -> "$platform:$chatId:$threadId"
-        chatId != null -> "$platform:$chatId"
-        else -> platform
-    }
-
     companion object {
         /** Parse a delivery target string. */
         fun parse(target: String, originPlatform: String? = null, originChatId: String? = null, originThreadId: String? = null): DeliveryTarget {
