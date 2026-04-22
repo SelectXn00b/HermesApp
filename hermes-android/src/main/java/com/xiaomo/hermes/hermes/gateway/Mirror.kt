@@ -1,128 +1,100 @@
 package com.xiaomo.hermes.hermes.gateway
 
 /**
- * Mirror bridge — reflects messages to an arbitrary "target" session.
+ * Session mirroring for cross-platform message delivery.
  *
- * A user can set up mirroring so that every message they send to a
- * primary channel (e.g. Telegram) is also delivered to a secondary
- * session running under a different identity or on a different platform.
+ * When a message is sent to a platform (via send_message or cron delivery),
+ * this module appends a "delivery-mirror" record to the target session's
+ * transcript so the receiving-side agent has context about what was sent.
+ *
+ * Standalone -- works from CLI, cron, and gateway contexts without needing
+ * the full SessionStore machinery.
  *
  * Ported from gateway/mirror.py
  */
 
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import com.xiaomo.hermes.hermes.SessionDB
+import com.xiaomo.hermes.hermes.getHermesHome
 import org.json.JSONObject
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
+import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-/** Mirror rule — maps a source session to a target URL + key. */
-data class MirrorRule(
-    val targetUrl: String,
-    val targetKey: String,
-    val label: String = "")
+private const val _TAG = "Mirror"
+
+private val _SESSIONS_DIR: File get() = File(getHermesHome(), "sessions")
+private val _SESSIONS_INDEX: File get() = File(_SESSIONS_DIR, "sessions.json")
 
 /**
- * In-memory mirror bridge.
+ * Append a delivery-mirror message to the target session's transcript.
  *
- * Each rule maps a * (the session key of the incoming message)
- * to a * and * where the message should also be
- * delivered.  The actual delivery is fire-and-forget — a failure to mirror
- * never blocks the primary session.
+ * Finds the gateway session that matches the given platform + chatId,
+ * then writes a mirror entry to both the JSONL transcript and SQLite DB.
+ *
+ * Returns true if mirrored successfully, false if no matching session or error.
+ * All errors are caught -- this is never fatal.
  */
-class MirrorBridge(
-    private val httpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()) {
-    companion object {
-        private const val _TAG = "MirrorBridge"
-    }
-
-    /** source_key → MirrorRule */
-    private val _rules: ConcurrentHashMap<String, MirrorRule> = ConcurrentHashMap()
-
-    /** Register a mirror rule. */
-    fun addRule(sourceKey: String, rule: MirrorRule) {
-        _rules[sourceKey] = rule
-    }
-
-    /** Remove the mirror rule for *. */
-    fun removeRule(sourceKey: String) {
-        _rules.remove(sourceKey)
-    }
-
-    /** Return the rule for * or null. */
-    fun getRule(sourceKey: String): MirrorRule? = _rules[sourceKey]
-
-    /** True when at least one rule is active. */
-    val hasRules: Boolean get() = _rules.isNotEmpty()
-
-    /**
-     * Mirror the given message if a rule exists for *.
-     *
-     * @param sourceKey  The session key of the original message.
-     * @param text       The message text to mirror.
-     * @param userId     Optional user-id for multi-tenant targets.
-     */
-    suspend fun mirror(sourceKey: String, text: String, userId: String? = null) {
-        val rule = _rules[sourceKey] ?: return
-        try {
-            _deliver(rule, text, userId)
-        } catch (e: Exception) {
-            Log.w(_TAG, "Mirror delivery failed for $sourceKey: ${e.message}")
-        }
-    }
-
-    private suspend fun _deliver(rule: MirrorRule, text: String, userId: String?) =
-        withContext(Dispatchers.IO) {
-            val payload = JSONObject().apply {
-                put("text", text)
-                put("target_key", rule.targetKey)
-                userId?.let { put("user_id", it) }
-            }
-            val body = payload.toString()
-                .toRequestBody("application/json".toMediaType())
-            val request = Request.Builder()
-                .url(rule.targetUrl)
-                .post(body)
-                .build()
-            httpClient.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) {
-                    Log.w(_TAG, "Mirror HTTP ${resp.code}: ${resp.body?.string()}")
-                }
-            }
+fun mirrorToSession(
+    platform: String,
+    chatId: String,
+    messageText: String,
+    sourceLabel: String = "cli",
+    threadId: String? = null): Boolean {
+    return try {
+        val sessionId = _findSessionId(platform, chatId, threadId = threadId)
+        if (sessionId == null) {
+            Log.d(_TAG, "Mirror: no session found for $platform:$chatId:$threadId")
+            return false
         }
 
+        val mirrorMsg = mapOf<String, Any?>(
+            "role" to "assistant",
+            "content" to messageText,
+            "timestamp" to LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+            "mirror" to true,
+            "mirror_source" to sourceLabel)
 
+        _appendToJsonl(sessionId, mirrorMsg)
+        _appendToSqlite(sessionId, mirrorMsg)
+
+        Log.d(_TAG, "Mirror: wrote to session $sessionId (from $sourceLabel)")
+        true
+    } catch (e: Exception) {
+        Log.d(_TAG, "Mirror failed for $platform:$chatId:$threadId: ${e.message}")
+        false
+    }
 }
 
-
 /**
- * Standalone mirror functions (ported from gateway/mirror.py).
- * These work without the full MirrorBridge class.
+ * Find the active sessionId for a platform + chatId pair.
+ *
+ * Scans sessions.json entries and matches where origin.chat_id == chatId
+ * on the right platform.  DM session keys don't embed the chatId
+ * (e.g. "agent:main:telegram:dm"), so we check the origin dict.
  */
+private fun _findSessionId(platform: String, chatId: String, threadId: String? = null): String? {
+    if (!_SESSIONS_INDEX.exists()) return null
 
-/** Find the session ID for a platform + chatId pair. */
-fun findSessionId(sessionsIndex: java.io.File, platform: String, chatId: String, threadId: String? = null): String? {
-    if (!sessionsIndex.exists()) return null
-    try {
-        val data = org.json.JSONObject(sessionsIndex.readText())
-        val platformLower = platform.lowercase()
-        var bestMatch: String? = null
-        var bestUpdated = ""
-        for (key in data.keys()) {
-            val entry = data.optJSONObject(key) ?: continue
-            val origin = entry.optJSONObject("origin") ?: continue
-            val entryPlatform = (origin.optString("platform") ?: entry.optString("platform", "")).lowercase()
-            if (entryPlatform != platformLower) continue
-            val originChatId = origin.optString("chat_id", "")
-            if (originChatId != chatId) continue
+    val data: JSONObject = try {
+        JSONObject(_SESSIONS_INDEX.readText(Charsets.UTF_8))
+    } catch (_: Exception) {
+        return null
+    }
+
+    val platformLower = platform.lowercase()
+    var bestMatch: String? = null
+    var bestUpdated = ""
+
+    for (key in data.keys()) {
+        val entry = data.optJSONObject(key) ?: continue
+        val origin = entry.optJSONObject("origin") ?: JSONObject()
+        val entryPlatform = (origin.optString("platform").ifEmpty { entry.optString("platform", "") }).lowercase()
+
+        if (entryPlatform != platformLower) continue
+
+        val originChatId = origin.optString("chat_id", "")
+        if (originChatId == chatId) {
             val originThreadId = origin.optString("thread_id", "")
             if (threadId != null && originThreadId != threadId) continue
             val updated = entry.optString("updated_at", "")
@@ -131,21 +103,35 @@ fun findSessionId(sessionsIndex: java.io.File, platform: String, chatId: String,
                 bestMatch = entry.optString("session_id")
             }
         }
-        return bestMatch
-    } catch (_unused: Exception) { return null }
+    }
+
+    return bestMatch
 }
 
-/** Append a message to a JSONL transcript file. */
-fun appendToJsonl(transcriptPath: java.io.File, message: Map<String, Any?>) {
+/** Append a message to the JSONL transcript file. */
+private fun _appendToJsonl(sessionId: String, message: Map<String, Any?>) {
+    val transcriptPath = File(_SESSIONS_DIR, "$sessionId.jsonl")
     try {
-        val gson = com.google.gson.Gson()
         transcriptPath.parentFile?.mkdirs()
-        transcriptPath.appendText(gson.toJson(message) + "\n")
-    } catch (_unused: Exception) {}
+        val json = JSONObject(message).toString()
+        transcriptPath.appendText(json + "\n", Charsets.UTF_8)
+    } catch (e: Exception) {
+        Log.d(_TAG, "Mirror JSONL write failed: ${e.message}")
+    }
 }
 
-/** Append a message to a SQLite session database. */
-fun appendToSqlite(sessionId: String, message: Map<String, Any?>) {
-    // Android: SQLite operations handled by SessionStore
-    // No-op on Android platform
+/** Append a message to the SQLite session database. */
+private fun _appendToSqlite(sessionId: String, message: Map<String, Any?>) {
+    var db: SessionDB? = null
+    try {
+        db = SessionDB()
+        db.appendMessage(
+            sessionId = sessionId,
+            role = (message["role"] as? String) ?: "assistant",
+            content = message["content"] as? String)
+    } catch (e: Exception) {
+        Log.d(_TAG, "Mirror SQLite write failed: ${e.message}")
+    } finally {
+        db?.close()
+    }
 }

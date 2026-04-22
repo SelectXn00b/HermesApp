@@ -62,9 +62,6 @@ class GatewayRunner(
     /** Gateway status. */
     val status = GatewayStatus()
 
-    /** Mirror bridge. */
-    val mirrorBridge = MirrorBridge()
-
     /** Pairing store. */
     val pairingStore = PairingStore()
 
@@ -365,14 +362,6 @@ class GatewayRunner(
 
             // Record turn
             session.recordTurn()
-
-            // Mirror if configured
-            val mirrorRule = mirrorBridge.getRule(session.sessionKey)
-            if (mirrorRule != null) {
-                _scope.launch {
-                    mirrorBridge.mirror(session.sessionKey, sendText, event.source.userId)
-                }
-            }
         } catch (e: Exception) {
             Log.e(_TAG, "Error handling message: ${e.message}")
         } finally {
