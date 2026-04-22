@@ -2,7 +2,11 @@ package com.xiaomo.hermes.hermes
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.xiaomo.hermes.hermes.tools.FileTools
+import com.xiaomo.hermes.hermes.tools.listDir
+import com.xiaomo.hermes.hermes.tools.patchTool
+import com.xiaomo.hermes.hermes.tools.readFileTool
+import com.xiaomo.hermes.hermes.tools.searchTool
+import com.xiaomo.hermes.hermes.tools.writeFileTool
 import com.xiaomo.hermes.hermes.tools.terminalTool
 import com.xiaomo.hermes.hermes.tools.ProcessRegistry
 import com.xiaomo.hermes.hermes.tools.MemoryTool
@@ -253,7 +257,7 @@ fun registerDefaultTools() {
 
     // ── 文件操作 ──────────────────────────────────────────────────────
 
-    // read_file — 委托 FileTools.readFile（支持 offset/limit 分页）
+    // read_file — 委托 FileTools.readFileTool（支持 offset/limit 分页）
     ToolRegistry.register(
         name = "read_file",
         description = "Read the contents of a file with line numbers. Supports offset and limit for large files.",
@@ -268,10 +272,10 @@ fun registerDefaultTools() {
             val path = args["path"] as? String ?: ""
             val offset = (args["offset"] as? Number)?.toInt() ?: 1
             val limit = (args["limit"] as? Number)?.toInt() ?: 500
-            FileTools.readFile(path, offset, limit)
+            readFileTool(path, offset, limit)
         })
 
-    // write_file — 委托 FileTools.writeFile
+    // write_file — 委托 FileTools.writeFileTool
     ToolRegistry.register(
         name = "write_file",
         description = "Write content to a file. Creates parent directories if needed.",
@@ -284,10 +288,10 @@ fun registerDefaultTools() {
         handler = { args ->
             val path = args["path"] as? String ?: ""
             val content = args["content"] as? String ?: ""
-            FileTools.writeFile(path, content)
+            writeFileTool(path, content)
         })
 
-    // patch — 委托 FileTools.patchFile（fuzzy find-and-replace）
+    // patch — 委托 FileTools.patchTool（fuzzy find-and-replace）
     ToolRegistry.register(
         name = "patch",
         description = "Patch a file by replacing old text with new text (fuzzy match).",
@@ -304,10 +308,10 @@ fun registerDefaultTools() {
             val oldString = args["old_string"] as? String ?: ""
             val newString = args["new_string"] as? String ?: ""
             val replaceAll = args["replace_all"] as? Boolean ?: false
-            FileTools.patchFile(path, oldString, newString, replaceAll)
+            patchTool(path, oldString, newString, replaceAll)
         })
 
-    // search_files — 委托 FileTools.searchFiles
+    // search_files — 委托 FileTools.searchTool
     ToolRegistry.register(
         name = "search_files",
         description = "Search for content or filenames matching a pattern.",
@@ -324,7 +328,7 @@ fun registerDefaultTools() {
             val path = args["path"] as? String ?: "."
             val fileGlob = args["file_glob"] as? String
             val limit = (args["limit"] as? Number)?.toInt() ?: 50
-            FileTools.searchFiles(pattern, path, fileGlob, limit)
+            searchTool(pattern, path, fileGlob, limit)
         })
 
     // ── 终端命令 ──────────────────────────────────────────────────────
@@ -654,7 +658,7 @@ fun registerDefaultTools() {
             val path = args["path"] as? String ?: "."
             val depth = (args["depth"] as? Number)?.toInt() ?: 2
             val showHidden = args["show_hidden"] as? Boolean ?: false
-            FileTools.listDir(path, depth, showHidden)
+            listDir(path, depth, showHidden)
         })
 
     // ── Android 专属 ──────────────────────────────────────────────────
