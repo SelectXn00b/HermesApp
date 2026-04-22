@@ -228,8 +228,10 @@ class GatewayRunner(
                 chatType = event.source.chatType)
 
             // Record message
-            session.recordMessage()
-            session.markProcessing()
+            session.messageCount.incrementAndGet()
+            session.lastMessageAt = _sessionNowIso()
+            session.isProcessing = true
+            session.processingStartedAt = System.currentTimeMillis()
             status.processingSessions++
             status.countersFor(adapter.name).recordReceived()
 
@@ -338,11 +340,14 @@ class GatewayRunner(
                 userId = event.source.userId)
 
             // Record turn
-            session.recordTurn()
+            session.turnCount.incrementAndGet()
         } catch (e: Exception) {
             Log.e(_TAG, "Error handling message: ${e.message}")
         } finally {
-            sessionStore.get(event.sessionKey)?.markIdle()
+            sessionStore.get(event.sessionKey)?.let {
+                it.isProcessing = false
+                it.processingStartedAt = 0L
+            }
             status.processingSessions--
             _sessionSemaphore.release()
         }
@@ -672,7 +677,7 @@ class GatewayRunner(
         val sessionKey = _sessionKeyForSource(event.source)
         val session = sessionStore.get(sessionKey)
         return if (session != null) {
-            sessionStore.remove(sessionKey)
+            sessionStore.removeSession(sessionKey)
             "🔄 Session reset. Starting fresh."
         } else {
             "No active session to reset."
@@ -791,7 +796,9 @@ class GatewayRunner(
         val sessionKey = _sessionKeyForSource(event.source)
         val session = sessionStore.get(sessionKey)
         if (session == null) return "No active session to undo."
-        session.recordMessage() // Decrement would be more accurate but record keeps it simple
+        // Decrement would be more accurate but record keeps it simple
+        session.messageCount.incrementAndGet()
+        session.lastMessageAt = _sessionNowIso()
         return "↩️ Last exchange removed."
     }
     /** Handle /sethome command -- set the current chat as the platform's home channel. */
@@ -1063,7 +1070,7 @@ class GatewayRunner(
             if (count >= _STUCK_LOOP_THRESHOLD) {
                 val session = sessionStore.get(key)
                 if (session != null) {
-                    sessionStore.remove(key)
+                    sessionStore.removeSession(key)
                     suspended++
                     Log.w(_TAG, "Auto-suspended stuck session $key (active across $count consecutive restarts)")
                 }
@@ -1122,7 +1129,7 @@ class GatewayRunner(
                 for (key in sessionStore.keys.toList()) {
                     val entry = sessionStore.get(key) ?: continue
                     if (sessionStore.isSessionExpired(entry)) {
-                        sessionStore.remove(key)
+                        sessionStore.removeSession(key)
                         _evictCachedAgent(key)
                         Log.d(_TAG, "Expired session cleaned up: $key")
                     }
@@ -1431,7 +1438,10 @@ class GatewayRunner(
         synchronized(_agentCacheLock) {
             _agentCache.remove(sessionKey)
         }
-        sessionStore.get(sessionKey)?.markIdle()
+        sessionStore.get(sessionKey)?.let {
+            it.isProcessing = false
+            it.processingStartedAt = 0L
+        }
         Log.d(_TAG, "Released running agent state for $sessionKey")
     }
 

@@ -22,6 +22,9 @@ private const val _TAG = "SessionStore"
 
 private fun now(): String = Instant.now().toString()
 
+/** ISO-8601 UTC timestamp used by external call sites. */
+internal val _sessionNowIso: () -> String = { Instant.now().toString() }
+
 /** Hash a value for PII-safe logging. */
 private fun hashId(value: String): String {
     if (value.isEmpty()) return ""
@@ -84,30 +87,6 @@ data class SessionRecord(
     var processingStartedAt: Long = 0L,
     var parentSessionKey: String? = null,
     val source: SessionSource = SessionSource.NEW) {
-    fun recordMessage() {
-        messageCount.incrementAndGet()
-        lastMessageAt = now()
-    }
-
-    fun recordTurn() {
-        turnCount.incrementAndGet()
-    }
-
-    fun recordTokens(input: Long, output: Long) {
-        inputTokens.addAndGet(input)
-        outputTokens.addAndGet(output)
-    }
-
-    fun markProcessing() {
-        isProcessing = true
-        processingStartedAt = System.currentTimeMillis()
-    }
-
-    fun markIdle() {
-        isProcessing = false
-        processingStartedAt = 0L
-    }
-
     fun toDict(): Map<String, Any?> = buildMap {
         put("session_key", sessionKey)
         put("platform", platform)
@@ -210,7 +189,6 @@ class SessionStore(
     }
 
     fun get(sessionKey: String): SessionRecord? = sessions[sessionKey]
-    fun remove(sessionKey: String) { sessions.remove(sessionKey) }
     val keys: Set<String> get() = sessions.keys.toSet()
     val all: Collection<SessionRecord> get() = sessions.values
     val size: Int get() = sessions.size
@@ -244,15 +222,17 @@ class SessionStore(
     /** Update session with latest token counts. */
     fun updateSession(sessionKey: String, promptTokens: Int = 0, completionTokens: Int = 0) {
         val entry = sessions[sessionKey] ?: return
-        entry.recordTurn()
-        entry.recordTokens(promptTokens.toLong(), completionTokens.toLong())
+        entry.turnCount.incrementAndGet()
+        entry.inputTokens.addAndGet(promptTokens.toLong())
+        entry.outputTokens.addAndGet(completionTokens.toLong())
         entry.lastMessageAt = now()
     }
 
     /** Suspend a session (mark as not processing). */
     fun suspendSession(sessionKey: String): Boolean {
         val entry = sessions[sessionKey] ?: return false
-        entry.markIdle()
+        entry.isProcessing = false
+        entry.processingStartedAt = 0L
         return true
     }
 
@@ -261,7 +241,8 @@ class SessionStore(
         val cutoff = System.currentTimeMillis() - maxAgeSeconds * 1000
         var count = 0
         sessions.values.filter { it.isProcessing && it.processingStartedAt < cutoff }.forEach {
-            it.markIdle()
+            it.isProcessing = false
+            it.processingStartedAt = 0L
             count++
         }
         return count
