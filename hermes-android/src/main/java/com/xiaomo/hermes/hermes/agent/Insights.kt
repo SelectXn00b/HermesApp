@@ -1039,4 +1039,18 @@ class InsightsEngine(private val db: Any? = null) {
     fun formatGateway(report: Map<String, Any?>): String {
         return insights.formatGateway(report)
     }
+
+    /** Load per-skill usage counters (Python `_get_skill_usage`). Stub. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _getSkillUsage(days: Int = 30): Map<String, Int> = emptyMap()
+
+    /** Compute per-skill breakdown for the insights report
+     *  (Python `_compute_skill_breakdown`). Stub. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _computeSkillBreakdown(days: Int = 30): List<Map<String, Any?>> = emptyList()
+
+    companion object {
+        /** Default pricing table used when no provider-specific pricing is known. */
+        val _DEFAULT_PRICING: Map<String, Double> = emptyMap()
+    }
 }

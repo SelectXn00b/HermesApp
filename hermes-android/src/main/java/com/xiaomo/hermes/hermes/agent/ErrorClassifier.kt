@@ -64,8 +64,7 @@ data class ClassifiedError(
     val shouldRotateCredential: Boolean = false,
     val shouldFallback: Boolean = false,
 ) {
-    val isAuth: Boolean
-        get() = reason == FailoverReason.auth || reason == FailoverReason.auth_permanent
+    fun isAuth(): Boolean = reason == FailoverReason.auth || reason == FailoverReason.auth_permanent
 }
 
 

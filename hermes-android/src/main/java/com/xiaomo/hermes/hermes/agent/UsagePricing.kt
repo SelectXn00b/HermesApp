@@ -39,8 +39,13 @@ data class CanonicalUsage(
     val requestCount: Int = 1,
     val rawUsage: Map<String, Any?>? = null,
 ) {
-    val promptTokens: Int get() = inputTokens + cacheReadTokens + cacheWriteTokens
-    val totalTokens: Int get() = promptTokens + outputTokens
+    fun promptTokens(): Int = inputTokens + cacheReadTokens + cacheWriteTokens
+    fun totalTokens(): Int = promptTokens() + outputTokens
+
+    companion object {
+        /** Current UTC time (Python `_UTC_NOW`). Returns ISO 8601 string. */
+        val _UTC_NOW: String get() = java.time.Instant.now().toString()
+    }
 }
 
 

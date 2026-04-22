@@ -80,3 +80,23 @@ fun iterCacheFiles(
 
 /** Clear all registered credential files. Android: no-op. */
 fun clearCredentialFiles() {}
+
+/** Get or create the registered credential-files dict for the current session.
+ *  Android stub: returns a fresh empty map each call (no ContextVar equivalent). */
+private fun _getRegistered(): MutableMap<String, String> = mutableMapOf()
+
+/** Resolve HERMES_HOME per `hermes_constants.get_hermes_home`.
+ *  Android stub: returns `$HERMES_HOME` or ~/.hermes. */
+private fun _resolveHermesHome(): java.io.File {
+    val env = (System.getenv("HERMES_HOME") ?: "").trim()
+    return if (env.isNotEmpty()) java.io.File(env)
+    else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+}
+
+/** Cache for config-based file list (loaded once per process).
+ *  Android stub: always empty. */
+private fun _loadConfigFiles(): List<Map<String, String>> = emptyList()
+
+/** Validate and normalize a skills-directory path.  Android stub: returns input. */
+@Suppress("UNUSED_PARAMETER")
+private fun _safeSkillsPath(skillsDir: java.io.File): String = skillsDir.absolutePath

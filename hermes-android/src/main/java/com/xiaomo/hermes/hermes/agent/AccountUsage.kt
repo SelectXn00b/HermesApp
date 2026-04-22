@@ -32,8 +32,8 @@ data class AccountUsageSnapshot(
     val details: List<String> = emptyList(),
     val unavailableReason: String? = null) {
 
-    val available: Boolean
-        get() = (windows.isNotEmpty() || details.isNotEmpty()) && unavailableReason == null
+    fun available(): Boolean =
+        (windows.isNotEmpty() || details.isNotEmpty()) && unavailableReason == null
 }
 
 private fun _titleCaseSlug(value: String?): String? {

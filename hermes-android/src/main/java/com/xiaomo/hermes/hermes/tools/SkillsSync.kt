@@ -210,3 +210,20 @@ fun syncSkills(
         "cleaned" to cleaned,
         "total_bundled" to bundledSkills.size)
 }
+
+/** Per-module constants for skills_sync — wrapped to avoid colliding with
+ *  `HERMES_HOME` / `SKILLS_DIR` in SkillsTool.kt (same package). */
+private object _SkillsSyncConstants {
+    /** HERMES_HOME path (Python `HERMES_HOME`). */
+    val HERMES_HOME: java.io.File by lazy {
+        val env = (System.getenv("HERMES_HOME") ?: "").trim()
+        if (env.isNotEmpty()) java.io.File(env)
+        else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+    }
+
+    /** Per-user skills directory (Python `SKILLS_DIR`). */
+    val SKILLS_DIR: java.io.File by lazy { java.io.File(HERMES_HOME, "skills") }
+
+    /** Name of the manifest file describing bundled skills (Python `MANIFEST_FILE`). */
+    const val MANIFEST_FILE: String = "skill.md"
+}

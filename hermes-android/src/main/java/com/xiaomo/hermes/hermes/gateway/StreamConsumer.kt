@@ -71,7 +71,7 @@ private sealed class QueueItem {
  *
  * Ported from gateway/stream_consumer.py (GatewayStreamConsumer).
  */
-class StreamConsumer(
+class GatewayStreamConsumer(
     private val deliveryRouter: DeliveryRouter,
     private val config: StreamConsumerConfig = StreamConsumerConfig()) {
     companion object {
@@ -813,6 +813,13 @@ class StreamConsumer(
     }
 
     /**
+     * Best-effort flush of the accumulated segment tail as a fresh message
+     * after edit-in-place fails (Python `_flush_segment_tail_on_edit_failure`).
+     */
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _flushSegmentTailOnEditFailure(text: String = ""): Unit = Unit
+
+    /**
      * Best-effort edit to remove the cursor from the last visible message.
      *
      * Called when entering fallback mode so the user doesn't see a stuck cursor.
@@ -947,5 +954,14 @@ class StreamConsumer(
     }
 }
 
-/** Alias for backward compatibility — GatewayStreamConsumer is now StreamConsumer. */
-typealias GatewayStreamConsumer = StreamConsumer
+/** Alias — Python's GatewayStreamConsumer was renamed StreamConsumer locally. */
+typealias StreamConsumer = GatewayStreamConsumer
+
+/** Queue-item sentinel — signals end of stream (Python `_DONE`). */
+const val _DONE: String = "__done__"
+
+/** Queue-item sentinel — signals start of a new segment (Python `_NEW_SEGMENT`). */
+const val _NEW_SEGMENT: String = "__new_segment__"
+
+/** Queue-item sentinel — signals inline commentary (Python `_COMMENTARY`). */
+const val _COMMENTARY: String = "__commentary__"

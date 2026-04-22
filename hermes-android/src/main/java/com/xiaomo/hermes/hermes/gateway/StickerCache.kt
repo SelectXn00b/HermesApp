@@ -62,3 +62,11 @@ fun buildAnimatedStickerInjection(emoji: String = ""): String {
     }
     return "[The user sent an animated sticker~ I can't see animated ones yet]"
 }
+
+/** Filesystem path to the sticker description cache (Python `CACHE_PATH`). */
+val CACHE_PATH: java.io.File by lazy {
+    val env = (System.getenv("HERMES_HOME") ?: "").trim()
+    val home = if (env.isNotEmpty()) java.io.File(env)
+    else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+    java.io.File(home, "sticker_cache.json")
+}

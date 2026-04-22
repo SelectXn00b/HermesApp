@@ -119,3 +119,7 @@ object SessionContext {
         return System.getProperty(name, default)
     }
 }
+
+/** Mapping from SessionContext field names to the ContextVar they bind.
+ *  Android stub: empty — no ContextVar equivalent available. */
+val _VAR_MAP: Map<String, String> = emptyMap()

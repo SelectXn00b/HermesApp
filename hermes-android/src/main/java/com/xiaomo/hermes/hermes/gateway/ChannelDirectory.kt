@@ -74,3 +74,11 @@ fun formatDirectoryForDisplay(): String {
     // Python: format_directory_for_display
     return ""
 }
+
+/** Path to the JSON directory describing active channels (Python `DIRECTORY_PATH`). */
+val DIRECTORY_PATH: java.io.File by lazy {
+    val env = (System.getenv("HERMES_HOME") ?: "").trim()
+    val home = if (env.isNotEmpty()) java.io.File(env)
+    else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+    java.io.File(home, "channel_directory.json")
+}

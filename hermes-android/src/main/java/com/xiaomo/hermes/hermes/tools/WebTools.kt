@@ -109,3 +109,33 @@ suspend fun webCrawlTool(vararg args: Any?): String =
 fun checkFirecrawlApiKey(): Boolean = false
 fun checkWebApiKey(): Boolean = false
 fun checkAuxiliaryModel(): Boolean = false
+
+/** Process fetched HTML/Markdown content via an auxiliary LLM. Android stub. */
+@Suppress("UNUSED_PARAMETER")
+suspend fun processContentWithLlm(
+    content: String,
+    url: String = "",
+    model: String? = null,
+): String = content
+
+/** Drive one call to the auxiliary summarizer LLM. Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _callSummarizerLlm(
+    prompt: String,
+    model: String? = null,
+): String = ""
+
+/** Chunk oversized content and summarize each part. Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _processLargeContentChunked(
+    content: String,
+    chunkSize: Int = 4000,
+    model: String? = null,
+): String = content
+
+/** Fan-out extract across multiple urls. Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _parallelExtract(
+    urls: List<String>,
+    format: String? = null,
+): List<Map<String, Any?>> = emptyList()

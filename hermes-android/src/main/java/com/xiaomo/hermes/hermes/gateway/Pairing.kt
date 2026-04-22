@@ -272,3 +272,19 @@ class PairingStore {
         return platforms
     }
 }
+
+/** Directory that stores platform pairing JSON files (Python `PAIRING_DIR`). */
+val PAIRING_DIR: java.io.File by lazy {
+    val env = (System.getenv("HERMES_HOME") ?: "").trim()
+    val home = if (env.isNotEmpty()) java.io.File(env)
+    else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+    java.io.File(home, "pairings")
+}
+
+/** Atomic write for pairing JSON (Python `_secure_write`). Stub: simple overwrite. */
+@Suppress("UNUSED_PARAMETER")
+private fun _secureWrite(file: java.io.File, contents: String): Boolean = try {
+    file.parentFile?.mkdirs()
+    file.writeText(contents)
+    true
+} catch (_: Exception) { false }

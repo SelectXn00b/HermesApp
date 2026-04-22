@@ -619,3 +619,10 @@ class ShellFileOperations(
         return search(pattern, path, "content", fileGlob, limit, offset, outputMode, context)
     }
 }
+
+/** Per-module constants for file_operations — wrapped to avoid colliding with
+ *  `MAX_FILE_SIZE` in TranscriptionTools.kt (same package). */
+private object _FileOperationsConstants {
+    /** Maximum file size for in-memory read/write (Python `MAX_FILE_SIZE`). */
+    const val MAX_FILE_SIZE: Long = 10L * 1024 * 1024
+}

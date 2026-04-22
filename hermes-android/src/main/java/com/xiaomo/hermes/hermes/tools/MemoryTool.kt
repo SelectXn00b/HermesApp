@@ -379,3 +379,6 @@ fun memoryTool(
 }
 
 fun checkMemoryRequirements(): Boolean = true
+
+/** Schema map for the `memory` tool (Python `MEMORY_SCHEMA`). Stub. */
+val MEMORY_SCHEMA: Map<String, Any?> = emptyMap()

@@ -55,3 +55,23 @@ fun _handleListServices(args: Map<String, Any?>, vararg kw: Any?): String =
     toolError("Home Assistant tool is not available on Android")
 
 fun _checkHaAvailable(): Boolean = false
+
+/** Async list-entities helper (Python `_async_list_entities`). Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _asyncListEntities(args: Map<String, Any?>): String =
+    toolError("Home Assistant tool is not available on Android")
+
+/** Async get-state helper (Python `_async_get_state`). Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _asyncGetState(args: Map<String, Any?>): String =
+    toolError("Home Assistant tool is not available on Android")
+
+/** Async call-service helper (Python `_async_call_service`). Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _asyncCallService(args: Map<String, Any?>): String =
+    toolError("Home Assistant tool is not available on Android")
+
+/** Async list-services helper (Python `_async_list_services`). Android stub. */
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _asyncListServices(args: Map<String, Any?>): String =
+    toolError("Home Assistant tool is not available on Android")

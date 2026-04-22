@@ -413,7 +413,18 @@ class SessionDB(private val dbPath: File = File(getHermesHome(), "state.db")) {
         private const val WRITE_RETRY_MIN_MS = 20L
         private const val WRITE_RETRY_MAX_MS = 150L
         private const val CHECKPOINT_EVERY_N_WRITES = 50
+
+        /** Default SQLite path for session state (Python `DEFAULT_DB_PATH`). */
+        val DEFAULT_DB_PATH: File by lazy { File(getHermesHome(), "state.db") }
     }
+
+    /** Compression-tip lookup for a session (Python `get_compression_tip`). Stub. */
+    @Suppress("UNUSED_PARAMETER")
+    fun getCompressionTip(sessionId: String): String? = null
+
+    /** Rich row projection of a session (Python `_get_session_rich_row`). Stub. */
+    @Suppress("UNUSED_PARAMETER")
+    private fun _getSessionRichRow(sessionId: String): Map<String, Any?>? = null
 
     private val _lock = Any()
     @Volatile private var _conn: SQLiteDatabase? = null
