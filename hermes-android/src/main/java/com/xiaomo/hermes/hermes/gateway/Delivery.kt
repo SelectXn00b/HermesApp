@@ -196,44 +196,4 @@ data class DeliveryTarget(
             return DeliveryTarget(platform = t)
         }
     }
-
-
-    /** Deliver a message to the appropriate platform. */
-    suspend fun deliver(content: String, target: DeliveryTarget): Boolean {
-        return deliverToPlatform(content, target)
-    }
-
-    /** Deliver to a specific platform. */
-    private suspend fun deliverToPlatform(content: String, target: DeliveryTarget): Boolean {
-        Log.d("Delivery", "Delivering to ${target.platform}:${target.chatId}")
-        return true
-    }
-
-    /** Save full output to file. */
-    fun saveFullOutput(content: String, path: String) {
-        try { java.io.File(path).writeText(content) } catch (_unused: Exception) {}
-    }
-
-    /** Deliver locally (to local storage). */
-    fun deliverLocal(content: String, path: String) {
-        saveFullOutput(content, path)
-    }
-
-    /** String representation. */
-    override fun toString(): String = "DeliveryRouter()"
-
-
-    /** Save content to local files. */
-    fun _deliverLocal(content: String, jobId: String?, jobName: String?, metadata: Map<String, Any>?): Map<String, Any> {
-        return emptyMap()
-    }
-    /** Save full cron output to disk and return the file path. */
-    fun _saveFullOutput(content: String, jobId: String): String {
-        return ""
-    }
-    /** Deliver content to a messaging platform. */
-    suspend fun _deliverToPlatform(target: Any?, content: String, metadata: Map<String, Any>?): Map<String, Any> {
-        return emptyMap()
-    }
-
 }
