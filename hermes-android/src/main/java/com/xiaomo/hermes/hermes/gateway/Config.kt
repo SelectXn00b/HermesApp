@@ -65,7 +65,6 @@ enum class Platform(val value: String) {
     WEBHOOK("webhook"),
     API_SERVER("api_server"),
     BLUEBUBBLES("bluebubbles"),
-    APP_CHAT("app_chat"),
     ;
 }
 

@@ -187,7 +187,6 @@ class GatewayRunner(
             Platform.WEBHOOK -> Webhook(context, platformConfig)
             Platform.API_SERVER -> ApiServer(context, platformConfig)
             Platform.BLUEBUBBLES -> Bluebubbles(context, platformConfig)
-            Platform.APP_CHAT -> AppChat(context, platformConfig)
             else -> {
                 Log.w(_TAG, "Unknown platform: ${platformConfig.platform}")
                 return null
