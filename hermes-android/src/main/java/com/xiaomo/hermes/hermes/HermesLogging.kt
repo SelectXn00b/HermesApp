@@ -326,3 +326,194 @@ class _ManagedRotatingFileHandler(
         java.io.File("$filePath.${backupCount + 1}").delete()
     }
 }
+
+// ── Module-level helpers ported from hermes_logging.py ────────────────────
+
+/** Default log format — includes timestamp, level, optional session tag, logger name, and message. */
+const val _LOG_FORMAT: String = "%(asctime)s %(levelname)s%(session_tag)s %(name)s: %(message)s"
+
+/** Verbose log format — dashes between fields. */
+const val _LOG_FORMAT_VERBOSE: String =
+    "%(asctime)s - %(name)s - %(levelname)s%(session_tag)s - %(message)s"
+
+/** Third-party loggers that are noisy at DEBUG/INFO level. */
+val _NOISY_LOGGERS: List<String> = listOf(
+    "openai",
+    "openai._base_client",
+    "httpx",
+    "httpcore",
+    "asyncio",
+    "hpack",
+    "hpack.hpack",
+    "grpc",
+    "modal",
+    "urllib3",
+    "urllib3.connectionpool",
+    "websockets",
+    "charset_normalizer",
+    "markdown_it"
+)
+
+/** Logger name prefixes per component.  Used by _ComponentFilter and `hermes logs --component`. */
+val COMPONENT_PREFIXES: Map<String, List<String>> = mapOf(
+    "gateway" to listOf("gateway"),
+    "agent" to listOf("agent", "run_agent", "model_tools", "batch_runner"),
+    "tools" to listOf("tools"),
+    "cli" to listOf("hermes_cli", "cli"),
+    "cron" to listOf("cron")
+)
+
+/** Per-thread session-id storage.  Mirrors Python `threading.local()` holding `session_id`. */
+private val _sessionIdLocal: ThreadLocal<String?> = ThreadLocal()
+
+/** Track whether `setupLogging()` has already run so that subsequent calls are no-ops. */
+@Volatile
+private var _loggingInitialized: Boolean = false
+
+/** Guard for `_installSessionRecordFactory()` idempotency. */
+@Volatile
+private var _sessionRecordFactoryInstalled: Boolean = false
+
+/**
+ * Set the session ID for the current thread.
+ * All subsequent log records on this thread will include `[sessionId]`.
+ */
+fun setSessionContext(sessionId: String) {
+    _sessionIdLocal.set(sessionId)
+}
+
+/** Clear the session ID for the current thread. */
+fun clearSessionContext() {
+    _sessionIdLocal.set(null)
+}
+
+/**
+ * Return the session tag for the current thread, formatted as ` [sid]` when
+ * a session id is set, empty string otherwise.  Used internally by the
+ * record-factory hook; exposed for callers that want to format their own
+ * log strings with the same semantics as Python's `%(session_tag)s`.
+ */
+fun _currentSessionTag(): String {
+    val sid = _sessionIdLocal.get()
+    return if (!sid.isNullOrEmpty()) " [$sid]" else ""
+}
+
+/**
+ * Replace the global record factory with one that adds `session_tag` to
+ * every LogRecord.  On Android there is no logging.setLogRecordFactory,
+ * so this records that the factory has been installed and relies on
+ * `_currentSessionTag()` to supply the tag lazily.  Idempotent.
+ */
+fun _installSessionRecordFactory() {
+    if (_sessionRecordFactoryInstalled) return
+    _sessionRecordFactoryInstalled = true
+}
+
+/** Install immediately on class load so the tag is available from the start. */
+private val _sessionFactoryBootstrap: Unit = _installSessionRecordFactory()
+
+/**
+ * Add a rotating file handler to [logger] writing to [path].
+ *
+ * Android stub: the Logger class delegates file rotation to
+ * [_ManagedRotatingFileHandler] at the module level.  This helper
+ * ensures the parent directory exists and wires up [HermesLogging.initialize]
+ * to use the given file path when no handler has been installed yet.
+ * Idempotent — repeated calls with the same path are no-ops.
+ */
+fun _addRotatingHandler(
+    logger: Logger,
+    path: File,
+    level: LogLevel,
+    maxBytes: Long,
+    backupCount: Int,
+    formatter: Any? = null,
+    logFilter: _ComponentFilter? = null
+) {
+    try {
+        path.parentFile?.mkdirs()
+        if (HermesLogging.getLogFile() == null) {
+            HermesLogging.initialize(level = level, logFile = path)
+        }
+    } catch (e: Exception) {
+        Log.w("HermesLogging", "_addRotatingHandler failed: ${e.message}")
+    }
+}
+
+/**
+ * Best-effort read of `logging.*` from config.yaml.
+ * Returns `(level, maxSizeMb, backupCount)` — any field may be null.
+ * Android has no YAML parser bundled here; returns all nulls (the defaults
+ * applied by [setupLogging] match Python defaults).
+ */
+fun _readLoggingConfig(): Triple<String?, Int?, Int?> {
+    return Triple(null, null, null)
+}
+
+/**
+ * Configure the Hermes logging subsystem.  Safe to call multiple times —
+ * the second call is a no-op unless [force] is true.
+ *
+ * Returns the logs/ directory path where files are written.
+ */
+fun setupLogging(
+    hermesHome: File? = null,
+    logLevel: String? = null,
+    maxSizeMb: Int? = null,
+    backupCount: Int? = null,
+    mode: String? = null,
+    force: Boolean = false
+): File {
+    val home = hermesHome ?: run {
+        val envVal = (System.getenv("HERMES_HOME") ?: "").trim()
+        if (envVal.isNotEmpty()) File(envVal).canonicalFile
+        else File(System.getProperty("user.home") ?: "/", ".hermes").canonicalFile
+    }
+    val logDir = File(home, "logs")
+    if (_loggingInitialized && !force) return logDir
+
+    logDir.mkdirs()
+
+    val (cfgLevel, cfgMaxSize, cfgBackup) = _readLoggingConfig()
+    val levelName = (logLevel ?: cfgLevel ?: "INFO").uppercase()
+    val level: LogLevel = when (levelName) {
+        "DEBUG" -> LogLevel.DEBUG
+        "WARNING", "WARN" -> LogLevel.WARNING
+        "ERROR" -> LogLevel.ERROR
+        "CRITICAL" -> LogLevel.CRITICAL
+        else -> LogLevel.INFO
+    }
+    val maxBytes: Long = ((maxSizeMb ?: cfgMaxSize ?: 5).toLong()) * 1024L * 1024L
+    val backups: Int = backupCount ?: cfgBackup ?: 3
+
+    val root = Logger("")
+    _addRotatingHandler(root, File(logDir, "agent.log"), level, maxBytes, backups)
+    _addRotatingHandler(
+        root,
+        File(logDir, "errors.log"),
+        LogLevel.WARNING,
+        2L * 1024L * 1024L,
+        2
+    )
+    if (mode == "gateway") {
+        _addRotatingHandler(
+            root,
+            File(logDir, "gateway.log"),
+            LogLevel.INFO,
+            5L * 1024L * 1024L,
+            3,
+            logFilter = _ComponentFilter("gateway")
+        )
+    }
+
+    _loggingInitialized = true
+    return logDir
+}
+
+/**
+ * Enable DEBUG-level console logging for `--verbose` / `-v` mode.
+ * Called by AIAgent when verboseLogging=true.
+ */
+fun setupVerboseLogging() {
+    HermesLogging.setLogLevel(LogLevel.DEBUG)
+}
