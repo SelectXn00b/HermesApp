@@ -20,7 +20,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class WeCom(
+class WeComAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WECOM) {
     companion object { private const val _TAG = "WeCom" }

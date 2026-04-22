@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class WhatsApp(
+class WhatsAppAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WHATSAPP) {
     companion object { private const val _TAG = "WhatsApp" }

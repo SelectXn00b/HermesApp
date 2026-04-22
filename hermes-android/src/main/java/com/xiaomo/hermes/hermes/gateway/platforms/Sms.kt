@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Sms(
+class SmsAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.SMS) {
     companion object { private const val _TAG = "Sms" }

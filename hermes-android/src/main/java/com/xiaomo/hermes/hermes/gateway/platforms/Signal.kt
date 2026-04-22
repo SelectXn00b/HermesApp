@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Signal(
+class SignalAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.SIGNAL) {
     companion object { private const val _TAG = "Signal" }

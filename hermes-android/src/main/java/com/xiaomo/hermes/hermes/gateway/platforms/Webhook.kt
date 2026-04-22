@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Webhook(
+class WebhookAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEBHOOK) {
     companion object { private const val _TAG = "Webhook" }

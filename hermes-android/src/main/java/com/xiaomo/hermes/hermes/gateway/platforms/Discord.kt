@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * - Reactions
  * - Typing indicators
  */
-class Discord(
+class DiscordAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.DISCORD) {
     companion object {

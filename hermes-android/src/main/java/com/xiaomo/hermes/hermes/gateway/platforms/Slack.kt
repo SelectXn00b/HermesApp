@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Slack(
+class SlackAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.SLACK) {
     companion object { private const val _TAG = "Slack" }

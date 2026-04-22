@@ -90,7 +90,7 @@ enum class FeishuMessageType(val value: String) {
  * - Reaction events routed as synthetic text events
  * - Interactive card button-click events routed as synthetic COMMAND events
  */
-class Feishu(
+class FeishuAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.FEISHU) {
     companion object {

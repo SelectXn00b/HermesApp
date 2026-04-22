@@ -21,7 +21,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class Weixin(
+class WeixinAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEIXIN) {
     companion object { private const val _TAG = "Weixin" }

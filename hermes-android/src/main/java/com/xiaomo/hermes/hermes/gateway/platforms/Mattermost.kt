@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Mattermost(
+class MattermostAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.MATTERMOST) {
     companion object { private const val _TAG = "Mattermost" }

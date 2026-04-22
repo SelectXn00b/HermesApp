@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Email(
+class EmailAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.EMAIL) {
     companion object { private const val _TAG = "Email" }

@@ -14,7 +14,7 @@ import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.*
 import org.json.JSONObject
 
-class Matrix(
+class MatrixAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.MATRIX) {
     companion object { private const val _TAG = "Matrix" }

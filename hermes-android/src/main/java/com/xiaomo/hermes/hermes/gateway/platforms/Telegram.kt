@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong
  * - Inline keyboards (basic)
  * - MarkdownV2 formatting
  */
-class Telegram(
+class TelegramAdapter(
     context: Context,
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.TELEGRAM) {
     companion object {
