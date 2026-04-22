@@ -1,15 +1,15 @@
 /**
  * MCP (Model Context Protocol) Client Support
  *
- * Connects to external MCP servers via stdio or HTTP/StreamableHTTP
- * transport, discovers their tools, and registers them into the
- * hermes-agent tool registry so the agent can call them like any
- * built-in tool.
+ * 1:1 对齐 — connects to external MCP servers via stdio or
+ * HTTP/StreamableHTTP transport, discovers their tools, and registers
+ * them into the hermes-agent tool registry so the agent can call them
+ * like any built-in tool.
  *
- * Ported from tools/mcp_tool.py — Python relies on the optional `mcp`
- * SDK and a dedicated asyncio background loop. Android has neither, so
- * the port is a structural skeleton: all top-level names present,
- * bodies deferred with TODO comments.
+ * Ported from tools/mcp_tool.py (Python 原始) — Python relies on the
+ * optional `mcp` SDK and a dedicated asyncio background loop. Android
+ * has neither, so the port is a structural skeleton: all top-level
+ * names present, bodies deferred with TODO comments.
  */
 package com.xiaomo.hermes.hermes.tools
 

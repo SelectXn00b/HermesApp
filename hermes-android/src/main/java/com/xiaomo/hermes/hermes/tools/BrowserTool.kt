@@ -1,14 +1,16 @@
 /**
  * Browser Tool — agent-browser CLI wrapper.
  *
- * Provides browser automation backed by agent-browser / Browserbase /
- * Browser Use / Firecrawl / Camofox. Uses ariaSnapshot for text-based
- * page representation, making it ideal for LLM agents without vision.
+ * 1:1 对齐 — provides browser automation backed by agent-browser /
+ * Browserbase / Browser Use / Firecrawl / Camofox. Uses ariaSnapshot
+ * for text-based page representation, making it ideal for LLM agents
+ * without vision.
  *
- * Ported from tools/browser_tool.py (2505 lines). Android has no
- * subprocess/CDP browser — the port is a structural skeleton: all
- * top-level names present, bodies deferred with TODO comments. The
- * schema list is preserved verbatim so tool-discovery still works.
+ * Ported from tools/browser_tool.py (Python 原始, 2505 lines).
+ * Android has no subprocess/CDP browser — the port is a structural
+ * skeleton: all top-level names present, bodies deferred with TODO
+ * comments. The schema list is preserved verbatim so tool-discovery
+ * still works.
  */
 package com.xiaomo.hermes.hermes.tools
 

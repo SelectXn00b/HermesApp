@@ -3,12 +3,12 @@ package com.xiaomo.hermes.hermes.acp
 /**
  * ACP agent server — exposes Hermes Agent via the Agent Client Protocol.
  *
- * Ported from acp_adapter/server.py. The upstream Python server depends
+ * 1:1 对齐 Ported from acp_adapter/server.py. The upstream Python server depends
  * heavily on the `acp` SDK (schema types, Agent base class,
  * session_update, request_permission) and an in-process SessionManager —
  * none of which have Android equivalents yet. The port here preserves the
- * class/method structure so the alignment verifier can match 1:1; each
- * body is a structural stub that defers real work via TODO comments to
+ * class/method structure (Python 原始) so the alignment verifier can match 1:1;
+ * each body is a structural stub that defers real work via TODO comments to
  * be filled in once the supporting Kotlin layers exist.
  */
 

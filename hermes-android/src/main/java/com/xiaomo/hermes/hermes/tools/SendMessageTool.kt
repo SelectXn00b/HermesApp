@@ -1,15 +1,16 @@
 /**
  * Send Message Tool — cross-channel messaging via platform APIs.
  *
- * Sends a message to a user or channel on any connected messaging
- * platform (Telegram, Discord, Slack, Feishu, etc.). Supports listing
- * available targets and resolving human-friendly channel names to IDs.
+ * 1:1 对齐 — sends a message to a user or channel on any connected
+ * messaging platform (Telegram, Discord, Slack, Feishu, etc.).
+ * Supports listing available targets and resolving human-friendly
+ * channel names to IDs.
  *
- * Ported from tools/send_message_tool.py. Each platform-specific send
- * path has a distinct Python module (agent.telegram, agent.discord, …)
- * the Kotlin adapters port progressively; until they all exist, this
- * file keeps the top-level dispatchers/helpers in place and stubs the
- * per-platform bodies.
+ * Ported from tools/send_message_tool.py (Python 原始). Each
+ * platform-specific send path has a distinct Python module
+ * (agent.telegram, agent.discord, …) the Kotlin adapters port
+ * progressively; until they all exist, this file keeps the top-level
+ * dispatchers/helpers in place and stubs the per-platform bodies.
  */
 package com.xiaomo.hermes.hermes.tools
 
