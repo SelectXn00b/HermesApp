@@ -337,6 +337,66 @@ fun isValidSessionState(state: String): Boolean {
 
 }
 
+// ── Module helpers (1:1 with hermes_constants.py) ──────────────────────
+
+/** Root Hermes directory for profile-level operations. Android → `filesDir/.hermes`. */
+fun getDefaultHermesRoot(): File = getHermesHome()
+
+/** Optional-skills directory; mirrors ``HERMES_OPTIONAL_SKILLS`` env override if set. */
+fun getOptionalSkillsDir(default: File? = null): File {
+    val override = System.getenv("HERMES_OPTIONAL_SKILLS")?.trim()
+    if (!override.isNullOrEmpty()) return File(override)
+    return default ?: File(getHermesHome(), "optional-skills")
+}
+
+/** User-friendly display path for HERMES_HOME. Android uses absolute path as-is. */
+fun displayHermesHome(): String {
+    val home = getHermesHome().absolutePath
+    val userHome = System.getProperty("user.home") ?: System.getenv("HOME") ?: ""
+    return if (userHome.isNotEmpty() && home.startsWith(userHome)) {
+        "~" + home.substring(userHome.length)
+    } else home
+}
+
+/**
+ * Per-profile HOME for subprocesses. On Android there are no forked system
+ * tools (git/ssh/gh), so the concept doesn't apply — return null.
+ */
+fun getSubprocessHome(): String? = null
+
+/**
+ * Parse a reasoning-effort string into a config dict.
+ * Valid: "none", "minimal", "low", "medium", "high", "xhigh".
+ */
+fun parseReasoningEffort(effort: String?): Map<String, Any?>? {
+    val normalized = effort?.trim()?.lowercase() ?: return null
+    if (normalized.isEmpty()) return null
+    if (normalized == "none") return mapOf("enabled" to false)
+    val valid = setOf("minimal", "low", "medium", "high", "xhigh")
+    if (normalized !in valid) return null
+    return mapOf("enabled" to true, "effort" to normalized)
+}
+
+/** True when running inside a Termux (Android user-space linux) environment. */
+fun isTermux(): Boolean {
+    val prefix = System.getenv("PREFIX") ?: ""
+    return System.getenv("TERMUX_VERSION") != null || "com.termux/files/usr" in prefix
+}
+
+/** WSL detection is meaningless on Android but kept for API parity. */
+fun isWsl(): Boolean = false
+
+/** Container detection is meaningless inside an Android app sandbox. */
+fun isContainer(): Boolean = false
+
+/**
+ * No-op on Android. Python uses this to monkey-patch ``socket.getaddrinfo``
+ * to prefer IPv4; the Android java.net.Socket stack has its own
+ * ``java.net.preferIPv4Stack`` system property and this is set at JVM launch,
+ * not runtime, so runtime adjustment isn't supported.
+ */
+fun applyIpv4Preference(force: Boolean = false) { /* no-op */ }
+
 // ── Logger helper ──────────────────────────────────────────────────
 
 /** Simple logger wrapper using Android Log. */
