@@ -8,9 +8,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import java.io.RandomAccessFile
-import java.nio.channels.FileChannel
-import java.nio.channels.FileLock
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -25,11 +22,7 @@ import java.util.concurrent.TimeUnit
  * 移除 Python threading/asyncio，使用 Kotlin coroutine 替代。
  */
 
-private object tcLogger {
-    private const val TAG = "TrajectoryCompressor"
-    fun info(msg: String) = android.util.Log.i(TAG, msg)
-    fun warning(msg: String) = android.util.Log.w(TAG, msg)
-}
+private val logger = getLogger("trajectory_compressor")
 private val tcGson = Gson()
 
 // ── 配置 ──────────────────────────────────────────────────────────────────
@@ -255,7 +248,34 @@ class TrajectoryCompressor(
 
         for (attempt in 0 until config.maxRetries) {
             try {
-                val result = callSummarizationApi(prompt)
+                val result: String? = if (apiKey.isEmpty()) {
+                    null
+                } else {
+                    val requestBody = tcGson.toJson(mapOf(
+                        "model" to config.summarizationModel,
+                        "messages" to listOf(mapOf("role" to "user", "content" to prompt)),
+                        "temperature" to config.temperature,
+                        "max_tokens" to config.summaryTargetTokens * 2))
+                    val request = Request.Builder()
+                        .url("${config.baseUrl}/chat/completions")
+                        .addHeader("Authorization", "Bearer $apiKey")
+                        .addHeader("Content-Type", "application/json")
+                        .post(requestBody.toRequestBody("application/json".toMediaType()))
+                        .build()
+                    httpClient.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            val body = response.body?.string()
+                            if (body == null) null
+                            else {
+                                val parsed = tcGson.fromJson(body, Map::class.java) as? Map<*, *>
+                                val choices = parsed?.get("choices") as? List<*>
+                                val firstChoice = choices?.firstOrNull() as? Map<*, *>
+                                val message = firstChoice?.get("message") as? Map<*, *>
+                                message?.get("content") as? String
+                            }
+                        } else null
+                    }
+                }
                 if (result != null) {
                     val summary = if (result.startsWith("[CONTEXT SUMMARY]:")) {
                         result
@@ -268,7 +288,7 @@ class TrajectoryCompressor(
                 updatedMetrics = updatedMetrics.copy(
                     summarizationErrors = updatedMetrics.summarizationErrors + 1
                 )
-                tcLogger.warning("Summarization attempt ${attempt + 1} failed: ${e.message}")
+                logger.warning("Summarization attempt ${attempt + 1} failed: ${e.message}")
                 if (attempt < config.maxRetries - 1) {
                     Thread.sleep(((attempt + 1) * config.retryDelay * 1000).toLong())
                 }
@@ -307,7 +327,35 @@ class TrajectoryCompressor(
 
         for (attempt in 0 until config.maxRetries) {
             try {
-                val result = callSummarizationApiAsync(prompt)
+                val result = withContext(Dispatchers.IO) {
+                    if (apiKey.isEmpty()) null
+                    else {
+                        val requestBody = tcGson.toJson(mapOf(
+                            "model" to config.summarizationModel,
+                            "messages" to listOf(mapOf("role" to "user", "content" to prompt)),
+                            "temperature" to config.temperature,
+                            "max_tokens" to config.summaryTargetTokens * 2))
+                        val request = Request.Builder()
+                            .url("${config.baseUrl}/chat/completions")
+                            .addHeader("Authorization", "Bearer $apiKey")
+                            .addHeader("Content-Type", "application/json")
+                            .post(requestBody.toRequestBody("application/json".toMediaType()))
+                            .build()
+                        httpClient.newCall(request).execute().use { response ->
+                            if (response.isSuccessful) {
+                                val body = response.body?.string()
+                                if (body == null) null
+                                else {
+                                    val parsed = tcGson.fromJson(body, Map::class.java) as? Map<*, *>
+                                    val choices = parsed?.get("choices") as? List<*>
+                                    val firstChoice = choices?.firstOrNull() as? Map<*, *>
+                                    val message = firstChoice?.get("message") as? Map<*, *>
+                                    message?.get("content") as? String
+                                }
+                            } else null
+                        }
+                    }
+                }
                 if (result != null) {
                     val summary = if (result.startsWith("[CONTEXT SUMMARY]:")) {
                         result
@@ -320,7 +368,7 @@ class TrajectoryCompressor(
                 updatedMetrics = updatedMetrics.copy(
                     summarizationErrors = updatedMetrics.summarizationErrors + 1
                 )
-                tcLogger.warning("Summarization attempt ${attempt + 1} failed: ${e.message}")
+                logger.warning("Summarization attempt ${attempt + 1} failed: ${e.message}")
                 if (attempt < config.maxRetries - 1) {
                     delay(((attempt + 1) * config.retryDelay * 1000).toLong())
                 }
@@ -328,49 +376,6 @@ class TrajectoryCompressor(
         }
 
         return "[CONTEXT SUMMARY]: [Summary generation failed - previous turns contained tool calls and responses that have been compressed to save context space.]" to updatedMetrics
-    }
-
-    /**
-     * 调用总结 API（同步）
-     */
-    private fun callSummarizationApi(prompt: String): String? {
-        val apiKey = this.apiKey
-        if (apiKey.isEmpty()) return null
-
-        val requestBody = tcGson.toJson(mapOf(
-            "model" to config.summarizationModel,
-            "messages" to listOf(mapOf("role" to "user", "content" to prompt)),
-            "temperature" to config.temperature,
-            "max_tokens" to config.summaryTargetTokens * 2))
-
-        val request = Request.Builder()
-            .url("${config.baseUrl}/chat/completions")
-            .addHeader("Authorization", "Bearer $apiKey")
-            .addHeader("Content-Type", "application/json")
-            .post(requestBody.toRequestBody("application/json".toMediaType()))
-            .build()
-
-        return httpClient.newCall(request).execute().use { response ->
-            if (response.isSuccessful) {
-                val body = response.body?.string() ?: return@use null
-                val result = tcGson.fromJson(body, Map::class.java) as? Map<*, *>
-                val choices = result?.get("choices") as? List<*>
-                val firstChoice = choices?.firstOrNull() as? Map<*, *>
-                val message = firstChoice?.get("message") as? Map<*, *>
-                message?.get("content") as? String
-            } else {
-                null
-            }
-        }
-    }
-
-    /**
-     * 调用总结 API（异步）
-     */
-    private suspend fun callSummarizationApiAsync(prompt: String): String? {
-        return withContext(Dispatchers.IO) {
-            callSummarizationApi(prompt)
-        }
     }
 
     /**
@@ -534,67 +539,7 @@ class TrajectoryCompressor(
     }
 
     /**
-     * 处理 JSONL 文件（异步版）
-     */
-    suspend fun processJsonlFileAsync(
-        inputFile: File,
-        outputFile: File) {
-        val entries = mutableListOf<Map<String, Any>>()
-
-        // 读取 JSONL
-        inputFile.readLines().forEach { line ->
-            if (line.isNotBlank()) {
-                try {
-                    val type = object : TypeToken<Map<String, Any>>() {}.type
-                    val entry: Map<String, Any> = tcGson.fromJson(line, type)
-                    entries.add(entry)
-                } catch (e: Exception) {
-                    tcLogger.warning("Skipping invalid JSON: ${e.message}")
-                }
-            }
-        }
-
-        tcLogger.info("Loaded ${entries.size} trajectories from ${inputFile.name}")
-
-        // 并发压缩
-        val processed = coroutineScope {
-            val results = entries.map { entry ->
-                async(Dispatchers.IO) {
-                    try {
-                        withTimeout(config.perTrajectoryTimeout * 1000L) {
-                            val conversations = entry["conversations"] as? List<Map<String, String>>
-                            if (conversations != null) {
-                                val (compressed, metrics) = compressTrajectoryAsync(conversations)
-                                aggregateMetrics.addTrajectoryMetrics(metrics)
-                                val result = entry.toMutableMap()
-                                result["conversations"] = compressed
-                                result
-                            } else {
-                                entry
-                            }
-                        }
-                    } catch (e: Exception) {
-                        aggregateMetrics.trajectoriesFailed++
-                        entry
-                    }
-                }
-            }
-
-            results.awaitAll()
-        }
-
-        // 写入输出文件
-        outputFile.parentFile.mkdirs()
-        outputFile.writeText(
-            processed.joinToString("\n") { tcGson.toJson(it) },
-            Charsets.UTF_8
-        )
-
-        tcLogger.info("Wrote ${processed.size} trajectories to ${outputFile.name}")
-    }
-
-    /**
-     * 处理目录
+     * 处理目录（异步版）
      */
     suspend fun processDirectoryAsync(
         inputDir: File,
@@ -608,56 +553,78 @@ class TrajectoryCompressor(
             ?: emptyList()
 
         if (jsonlFiles.isEmpty()) {
-            tcLogger.warning("No JSONL files found in ${inputDir.absolutePath}")
+            logger.warning("No JSONL files found in ${inputDir.absolutePath}")
             return
         }
 
         outputDir.mkdirs()
 
-        for (file in jsonlFiles) {
-            val outputFile = File(outputDir, file.name)
-            processJsonlFileAsync(file, outputFile)
+        for (inputFile in jsonlFiles) {
+            val outputFile = File(outputDir, inputFile.name)
+            val entries = mutableListOf<Map<String, Any>>()
+
+            inputFile.readLines().forEach { line ->
+                if (line.isNotBlank()) {
+                    try {
+                        val type = object : TypeToken<Map<String, Any>>() {}.type
+                        val entry: Map<String, Any> = tcGson.fromJson(line, type)
+                        entries.add(entry)
+                    } catch (e: Exception) {
+                        logger.warning("Skipping invalid JSON: ${e.message}")
+                    }
+                }
+            }
+
+            logger.info("Loaded ${entries.size} trajectories from ${inputFile.name}")
+
+            val processed = coroutineScope {
+                val results = entries.map { entry ->
+                    async(Dispatchers.IO) {
+                        try {
+                            withTimeout(config.perTrajectoryTimeout * 1000L) {
+                                val conversations = entry["conversations"] as? List<Map<String, String>>
+                                if (conversations != null) {
+                                    val (compressed, metrics) = compressTrajectoryAsync(conversations)
+                                    aggregateMetrics.addTrajectoryMetrics(metrics)
+                                    val result = entry.toMutableMap()
+                                    result["conversations"] = compressed
+                                    result
+                                } else {
+                                    entry
+                                }
+                            }
+                        } catch (e: Exception) {
+                            aggregateMetrics.trajectoriesFailed++
+                            entry
+                        }
+                    }
+                }
+
+                results.awaitAll()
+            }
+
+            outputFile.parentFile.mkdirs()
+            outputFile.writeText(
+                processed.joinToString("\n") { tcGson.toJson(it) },
+                Charsets.UTF_8
+            )
+
+            logger.info("Wrote ${processed.size} trajectories to ${outputFile.name}")
         }
 
         aggregateMetrics.processingEndTime = java.time.Instant.now().toString()
         aggregateMetrics.processingDurationSeconds =
             (System.currentTimeMillis() - startTime) / 1000.0
 
-        // 保存指标
         val metricsFile = File(outputDir, "compression_metrics.json")
         metricsFile.writeText(prettyGson.toJson(aggregateMetrics), Charsets.UTF_8)
-        tcLogger.info("Metrics saved to ${metricsFile.absolutePath}")
+        logger.info("Metrics saved to ${metricsFile.absolutePath}")
     }
-
-    /**
-     * 获取聚合指标
-     */
-    fun getAggregateMetrics(): AggregateMetrics = aggregateMetrics
-
 
     fun processDirectory(inputDir: String, outputDir: String) {
         kotlinx.coroutines.runBlocking {
             processDirectoryAsync(java.io.File(inputDir), java.io.File(outputDir))
         }
-    }
-}
-
-// ── 文件锁工具 ────────────────────────────────────────────────────────────
-
-private fun <T> acquireFileLock(file: File, block: (RandomAccessFile) -> T): T {
-    val lockFile = File(file.parent, ".${file.name}.lock")
-    val raf = RandomAccessFile(lockFile, "rw")
-    var channel: FileChannel? = null
-    var lock: FileLock? = null
-
-    try {
-        channel = raf.channel
-        lock = channel.lock()
-        return block(raf)
-    } finally {
-        lock?.release()
-        channel?.close()
-        raf.close()
     }
 }
 
@@ -670,14 +637,14 @@ private fun <T> acquireFileLock(file: File, block: (RandomAccessFile) -> T): T {
 fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
     val file = File(yamlPath)
     if (!file.exists()) {
-        tcLogger.warning("Config not found at $yamlPath, using defaults")
+        logger.warning("Config not found at $yamlPath, using defaults")
         return CompressionConfig()
     }
     val data: Map<String, Any> = try {
         val type = object : TypeToken<Map<String, Any>>() {}.type
         tcGson.fromJson(file.readText(Charsets.UTF_8), type)
     } catch (e: Exception) {
-        tcLogger.warning("Failed to parse config: ${e.message}, using defaults")
+        logger.warning("Failed to parse config: ${e.message}, using defaults")
         return CompressionConfig()
     }
 
@@ -942,10 +909,13 @@ private fun TrajectoryCompressor.printSummary() {
                   else "${String.format("%.1f", duration)} seconds"
     val throughput = total / maxOf(duration, 0.001)
 
-    tcLogger.info(buildString {
+    logger.info(buildString {
         appendLine("")
         appendLine("╔${"═".repeat(70)}╗")
-        appendLine("║${"TRAJECTORY COMPRESSION REPORT".centerPad(70)}║")
+        val title = "TRAJECTORY COMPRESSION REPORT"
+        val titlePad = maxOf(0, 70 - title.length)
+        val titleLeft = titlePad / 2
+        appendLine("║${" ".repeat(titleLeft)}$title${" ".repeat(titlePad - titleLeft)}║")
         appendLine("╠${"═".repeat(70)}╣")
         appendLine("║  📁 TRAJECTORIES${" ".repeat(54)}║")
         appendLine("║${"─".repeat(70)}║")
@@ -996,16 +966,10 @@ private fun TrajectoryCompressor.printSummary() {
     })
 }
 
-private fun String.centerPad(width: Int): String {
-    val pad = maxOf(0, width - this.length)
-    val left = pad / 2
-    return " ".repeat(left) + this + " ".repeat(pad - left)
-}
-
 /**
  * main - 入口函数（Android 版：直接处理文件/目录）
  */
-suspend fun trajectoryCompressorMain(
+suspend fun main(
     input: String,
     output: String? = null,
     configPath: String? = null,
@@ -1014,15 +978,15 @@ suspend fun trajectoryCompressorMain(
     samplePercent: Double? = null,
     seed: Int = 42,
     dryRun: Boolean = false) {
-    tcLogger.info("Trajectory Compressor")
-    tcLogger.info("=".repeat(60))
+    logger.info("Trajectory Compressor")
+    logger.info("=".repeat(60))
 
     // 加载配置
     val compressionConfig = if (configPath != null && File(configPath).exists()) {
-        tcLogger.info("Loading config from $configPath")
+        logger.info("Loading config from $configPath")
         CompressionConfig.fromYaml(configPath)
     } else {
-        tcLogger.warning("Config not found, using defaults")
+        logger.warning("Config not found, using defaults")
         CompressionConfig()
     }.let { cfg ->
         var c = cfg
@@ -1033,13 +997,13 @@ suspend fun trajectoryCompressorMain(
 
     // 验证 samplePercent
     if (samplePercent != null && (samplePercent <= 0 || samplePercent > 100)) {
-        tcLogger.warning("samplePercent must be between 1 and 100, got $samplePercent")
+        logger.warning("samplePercent must be between 1 and 100, got $samplePercent")
         return
     }
 
     val inputPath = File(input)
     if (!inputPath.exists()) {
-        tcLogger.warning("Input not found: $input")
+        logger.warning("Input not found: $input")
         return
     }
 
@@ -1050,7 +1014,7 @@ suspend fun trajectoryCompressorMain(
             else File(inputPath.parent, "${inputPath.nameWithoutExtension}${compressionConfig.outputSuffix}.${inputPath.extension}")
 
         if (dryRun) {
-            tcLogger.info("DRY RUN - would process: $inputPath -> $outputPath")
+            logger.info("DRY RUN - would process: $inputPath -> $outputPath")
             return
         }
 
@@ -1080,23 +1044,23 @@ suspend fun trajectoryCompressorMain(
         if (metricsFile.exists()) {
             val metricsOutput = File(outputPath.parent, "${outputPath.nameWithoutExtension}_metrics.json")
             metricsFile.copyTo(metricsOutput, overwrite = true)
-            tcLogger.info("Metrics saved to ${metricsOutput.absolutePath}")
+            logger.info("Metrics saved to ${metricsOutput.absolutePath}")
         }
 
         tempDir.deleteRecursively()
-        tcLogger.info("Compression complete! Output: $outputPath")
+        logger.info("Compression complete! Output: $outputPath")
     } else {
         // 目录输入
         val outputPath = if (output != null) File(output)
             else File(inputPath.parent, "${inputPath.name}${compressionConfig.outputSuffix}")
 
         if (dryRun) {
-            tcLogger.info("DRY RUN - would process directory: $inputPath -> $outputPath")
+            logger.info("DRY RUN - would process directory: $inputPath -> $outputPath")
             return
         }
 
         val compressor = TrajectoryCompressor(compressionConfig)
         compressor.processDirectoryAsync(inputPath, outputPath)
-        tcLogger.info("Compression complete!")
+        logger.info("Compression complete!")
     }
 }
