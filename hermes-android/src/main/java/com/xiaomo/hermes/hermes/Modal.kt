@@ -136,7 +136,7 @@ class ModalEnvironment(
 // ── Module-level aligned with Python tools/environments/modal.py ──────────
 
 /** Path to persistent snapshot store under HERMES_HOME. */
-val _SNAPSHOT_STORE: java.io.File by lazy {
+private val _SNAPSHOT_STORE: java.io.File by lazy {
     val envVal = (System.getenv("HERMES_HOME") ?: "").trim()
     val home = if (envVal.isNotEmpty()) java.io.File(envVal)
     else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")

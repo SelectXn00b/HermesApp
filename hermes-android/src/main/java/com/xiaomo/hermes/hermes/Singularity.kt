@@ -59,7 +59,7 @@ class SingularityEnvironment(
 // ── Module-level aligned with Python tools/environments/singularity.py ────
 
 /** Path to the Singularity per-task snapshot store under HERMES_HOME. */
-val _SNAPSHOT_STORE_SINGULARITY: java.io.File by lazy {
+private val _SNAPSHOT_STORE: java.io.File by lazy {
     val envVal = (System.getenv("HERMES_HOME") ?: "").trim()
     val home = if (envVal.isNotEmpty()) java.io.File(envVal)
     else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
@@ -92,12 +92,12 @@ fun _ensureSingularityAvailable(): String = _findSingularityExecutable()
 
 /** Load the persisted snapshot map. */
 fun _loadSnapshotsSingularity(): MutableMap<String, Any?> {
-    return com.xiaomo.hermes.hermes.tools.environments._loadJsonStore(_SNAPSHOT_STORE_SINGULARITY)
+    return com.xiaomo.hermes.hermes.tools.environments._loadJsonStore(_SNAPSHOT_STORE)
 }
 
 /** Persist the snapshot map back to disk. */
 fun _saveSnapshotsSingularity(data: Map<String, Any?>) {
-    com.xiaomo.hermes.hermes.tools.environments._saveJsonStore(_SNAPSHOT_STORE_SINGULARITY, data)
+    com.xiaomo.hermes.hermes.tools.environments._saveJsonStore(_SNAPSHOT_STORE, data)
 }
 
 /**
