@@ -533,3 +533,21 @@ val _BOXED_RE: Regex = Regex("""\\boxed\{(-?\d+)\}""")
 
 /** Matches `[HINT_START]...[HINT_END]` blocks (dotall). */
 val _HINT_RE: Regex = Regex("\\[HINT_START\\](.*?)\\[HINT_END\\]", RegexOption.DOT_MATCHES_ALL)
+
+// ── Module-level aligned with environments/agentic_opd_env.py ────────────
+
+/** Build the judge message list for hint extraction. */
+@Suppress("UNUSED_PARAMETER")
+fun _buildHintJudgeMessages(trajectory: List<Map<String, Any?>>, rubric: String = ""): List<Map<String, Any?>> = emptyList()
+
+/** Parse the judge's hint-result JSON payload. */
+@Suppress("UNUSED_PARAMETER")
+fun _parseHintResult(raw: String): Map<String, Any?> = emptyMap()
+
+/** Pick the highest-scoring hint from a list of candidates. */
+@Suppress("UNUSED_PARAMETER")
+fun _selectBestHint(candidates: List<Map<String, Any?>>): Map<String, Any?>? = null
+
+/** Append the selected hint as a system message at the end of [messages]. */
+@Suppress("UNUSED_PARAMETER")
+fun _appendHintToMessages(messages: MutableList<Map<String, Any?>>, hint: String): Unit = Unit

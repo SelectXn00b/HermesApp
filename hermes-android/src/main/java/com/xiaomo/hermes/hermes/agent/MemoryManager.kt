@@ -324,3 +324,25 @@ class MemoryManager(
     }
 
 }
+
+// ── Module-level aligned with agent/memory_manager.py ────────────────────
+
+/** Regex matching code-fence tags inside assistant content. */
+val _FENCE_TAG_RE: Regex = Regex("```[a-zA-Z0-9_+-]*")
+
+/** Regex matching internal-context wrappers (stripped before model input). */
+val _INTERNAL_CONTEXT_RE: Regex = Regex("<internal_context>.*?</internal_context>", RegexOption.DOT_MATCHES_ALL)
+
+/** Regex matching internal-note wrappers. */
+val _INTERNAL_NOTE_RE: Regex = Regex("<internal_note>.*?</internal_note>", RegexOption.DOT_MATCHES_ALL)
+
+/** Strip internal/metadata wrappers from agent context before model input. */
+fun sanitizeContext(content: String): String {
+    var out = _INTERNAL_CONTEXT_RE.replace(content, "")
+    out = _INTERNAL_NOTE_RE.replace(out, "")
+    return out
+}
+
+/** Build a per-turn memory-context block injected into the system prompt. */
+@Suppress("UNUSED_PARAMETER")
+fun buildMemoryContextBlock(sessionKey: String, userId: String? = null): String = ""

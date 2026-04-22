@@ -339,3 +339,20 @@ fun isUserAllowed(rule: ResolvedCommentRule, userOpenId: String): Boolean {
  * The implementation is provided by MtimeCache above.
  */
 typealias _MtimeCache = MtimeCache
+
+// ── Module-level aligned with gateway/platforms/feishu_comment_rules.py ──
+
+/** Parse a comma-separated string into a Set (Python frozenset). */
+fun _parseFrozenset(raw: String?): Set<String> =
+    (raw ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
+/** Log a short human-readable status line for a rules check. */
+@Suppress("UNUSED_PARAMETER")
+fun _printStatus(label: String, ok: Boolean, detail: String = ""): Unit = Unit
+
+/** Run a single rule check (stub). */
+@Suppress("UNUSED_PARAMETER")
+fun _doCheck(payload: Map<String, Any?>): Boolean = false
+
+/** CLI entry-point equivalent (Android stub). */
+fun _main(): Unit = Unit

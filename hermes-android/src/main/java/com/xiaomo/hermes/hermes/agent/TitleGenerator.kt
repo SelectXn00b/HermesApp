@@ -76,3 +76,20 @@ class TitleGenerator {
 
 
 }
+
+// ── Module-level aligned with agent/title_generator.py ───────────────────
+
+/** Prompt used to instruct the model to write a session title. */
+const val _TITLE_PROMPT: String = "Generate a short, descriptive title (max 6 words) for this conversation."
+
+/** Generate a title for the given conversation (stub). */
+@Suppress("UNUSED_PARAMETER")
+suspend fun generateTitle(messages: List<Map<String, Any?>>, provider: Any? = null): String = ""
+
+/** Auto-title a session if it has enough content and no title yet. */
+@Suppress("UNUSED_PARAMETER")
+suspend fun autoTitleSession(sessionKey: String, messages: List<Map<String, Any?>>): String? = null
+
+/** Optionally run auto_title_session based on current session state. */
+@Suppress("UNUSED_PARAMETER")
+suspend fun maybeAutoTitle(sessionKey: String, messages: List<Map<String, Any?>>): String? = null

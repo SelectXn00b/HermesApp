@@ -846,3 +846,21 @@ object ProcessRegistry {
     private val Process.outputWriter: OutputStreamWriter?
         get() = try { this.outputStream?.let { OutputStreamWriter(it) } } catch (_: Exception) { null }
 }
+
+/** Per-module constants for process_registry — wrapped to avoid
+ *  colliding with `_IS_WINDOWS` in CodeExecutionTool.kt (same package). */
+private object _ProcessRegistryConstants {
+    /** Windows-platform check (Python `sys.platform`). On Android: always false. */
+    const val _IS_WINDOWS: Boolean = false
+
+    /** Path to the process-registry checkpoint JSON under HERMES_HOME. */
+    val CHECKPOINT_PATH: java.io.File by lazy {
+        val env = (System.getenv("HERMES_HOME") ?: "").trim()
+        val home = if (env.isNotEmpty()) java.io.File(env)
+        else java.io.File(System.getProperty("user.home") ?: "/", ".hermes")
+        java.io.File(home, "process_registry.json")
+    }
+
+    /** OpenAI-shaped schema for the `process_*` tool family (stub). */
+    val PROCESS_SCHEMA: Map<String, Any?> = emptyMap()
+}

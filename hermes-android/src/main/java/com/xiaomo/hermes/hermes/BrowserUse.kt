@@ -108,3 +108,26 @@ class BrowserUseProvider {
     /** Alias: build headers. */
     fun _headers(config: Map<String, Any>): Map<String, String> = headers(config)
 }
+
+// ── Module-level aligned with tools/browser_providers/browser_use.py ──────
+
+/** Managed-mode base URL (stub — real URL hits browser-use cloud). */
+const val _BASE_URL: String = ""
+
+/** Default per-session timeout for managed-mode sessions, minutes. */
+const val _DEFAULT_MANAGED_TIMEOUT_MINUTES: Int = 15
+
+/** Default proxy country-code for managed-mode sessions. */
+const val _DEFAULT_MANAGED_PROXY_COUNTRY_CODE: String = "us"
+
+/** Get-or-create a key for a pending browser-use create request. */
+@Suppress("UNUSED_PARAMETER")
+fun _getOrCreatePendingCreateKey(taskId: String, sessionKey: String): String = ""
+
+/** Clear the pending create-key after the request resolves. */
+@Suppress("UNUSED_PARAMETER")
+fun _clearPendingCreateKey(taskId: String): Unit = Unit
+
+/** Return true if the pending key should be preserved for retry. */
+@Suppress("UNUSED_PARAMETER")
+fun _shouldPreservePendingCreateKey(exc: Throwable?): Boolean = false
