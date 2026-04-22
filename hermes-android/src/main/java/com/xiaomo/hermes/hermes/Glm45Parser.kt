@@ -1,6 +1,5 @@
 package com.xiaomo.hermes.hermes
 
-import android.util.Log
 import com.xiaomo.hermes.hermes.ParseResult
 import com.xiaomo.hermes.hermes.ParsedToolCall
 import com.xiaomo.hermes.hermes.ToolCallParser
@@ -9,18 +8,20 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 /**
- * GLM 4.5 tool call parser.
+ * GLM 4.5 (GLM-4-MoE) tool call parser.
  * Uses <tool_call> tags with <arg_key>/<arg_value> pairs.
  * Based on VLLM's Glm4MoeModelToolParser.extract_tool_calls()
  */
 open class Glm45ToolCallParser : ToolCallParser() {
     override val supportedModels: List<String> = listOf("glm45")
-    companion object {
-        private const val _TAG = "Glm45Parser"
-        internal val FUNC_CALL_REGEX = Pattern.compile("<tool_call>.*?</tool_call>", Pattern.DOTALL)
-        internal val FUNC_DETAIL_REGEX = Pattern.compile("<tool_call>([^\\n]*)\\n(.*)</tool_call>", Pattern.DOTALL)
-        internal val FUNC_ARG_REGEX = Pattern.compile("<arg_key>(.*?)</arg_key>\\s*<arg_value>(.*?)</arg_value>", Pattern.DOTALL)
-    }
+
+    protected open val FUNC_CALL_REGEX: Pattern =
+        Pattern.compile("<tool_call>.*?</tool_call>", Pattern.DOTALL)
+    protected open val FUNC_DETAIL_REGEX: Pattern =
+        Pattern.compile("<tool_call>([^\\n]*)\\n(.*)</tool_call>", Pattern.DOTALL)
+    protected open val FUNC_ARG_REGEX: Pattern =
+        Pattern.compile("<arg_key>(.*?)</arg_key>\\s*<arg_value>(.*?)</arg_value>", Pattern.DOTALL)
+
     protected fun deserializeValue(value: String): Any {
         try { return JSONObject(value) } catch (_: Exception) {}
         try { return java.math.BigDecimal(value) } catch (_: Exception) {}
@@ -29,6 +30,7 @@ open class Glm45ToolCallParser : ToolCallParser() {
         if (value == "null") return JSONObject.NULL
         return value
     }
+
     override fun parse(response: String): ParseResult {
         if (!response.contains("<tool_call>")) return ParseResult(response, null)
         return try {
