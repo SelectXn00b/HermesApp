@@ -41,27 +41,32 @@ private fun hashChatId(value: String): String = hashId(value)
 
 // ── Data classes ────────────────────────────────────────────────────
 
-/** Where a session was loaded from. */
-enum class SessionSource {
-    NEW,
-    PERSISTED,
-    RECOVERED;
-
-    /** Human-readable description. */
-    val description: String get() = when (this) {
-        NEW -> "fresh session"
-        PERSISTED -> "restored from disk"
-        RECOVERED -> "recovered after restart"
-    }
-
-    fun toDict(): Map<String, Any> = mapOf("source" to name)
-
-    companion object {
-        fun fromDict(data: Map<String, Any?>): SessionSource {
-            val name = (data["source"] as? String) ?: "NEW"
-            return try { valueOf(name) } catch (_unused: Exception) { NEW }
-        }
-    }
+/**
+ * Source of a message (platform, chat, user metadata).
+ *
+ * Ported from gateway/session.py:SessionSource.
+ */
+data class SessionSource(
+    /** Platform name. */
+    val platform: String,
+    /** Chat/channel id. */
+    val chatId: String,
+    /** Chat name (best-effort). */
+    val chatName: String = "",
+    /** Chat type: "dm", "group", "channel". */
+    val chatType: String = "dm",
+    /** User id. */
+    val userId: String = "",
+    /** User name. */
+    val userName: String = "",
+    /** Thread/topic id (if applicable). */
+    val threadId: String? = null,
+    /** Whether the user is an admin in the chat. */
+    val isAdmin: Boolean = false,
+    /** Arbitrary metadata. */
+    val metadata: JSONObject = JSONObject()) {
+    /** Build a session key from this source. */
+    val sessionKey: String get() = buildSessionKey(platform, chatId, userId)
 }
 
 /**
@@ -85,8 +90,7 @@ data class SessionRecord(
     var systemPromptOverride: String? = null,
     @Volatile var isProcessing: Boolean = false,
     var processingStartedAt: Long = 0L,
-    var parentSessionKey: String? = null,
-    val source: SessionSource = SessionSource.NEW) {
+    var parentSessionKey: String? = null) {
     fun toDict(): Map<String, Any?> = buildMap {
         put("session_key", sessionKey)
         put("platform", platform)
@@ -106,7 +110,6 @@ data class SessionRecord(
         put("is_processing", isProcessing)
         put("processing_started_at", processingStartedAt)
         parentSessionKey?.let { put("parent_session_key", it) }
-        put("source", source.name)
     }
 
     companion object {
@@ -119,8 +122,7 @@ data class SessionRecord(
             userName = data["user_name"] as? String ?: "",
             chatType = data["chat_type"] as? String ?: "dm",
             createdAt = data["created_at"] as? String ?: now(),
-            lastMessageAt = data["last_message_at"] as? String ?: now(),
-            source = try { SessionSource.valueOf(data["source"] as? String ?: "NEW") } catch (_unused: Exception) { SessionSource.NEW }).apply {
+            lastMessageAt = data["last_message_at"] as? String ?: now()).apply {
             messageCount.set((data["message_count"] as? Number)?.toInt() ?: 0)
             turnCount.set((data["turn_count"] as? Number)?.toInt() ?: 0)
             inputTokens.set((data["input_tokens"] as? Number)?.toLong() ?: 0)
@@ -167,8 +169,7 @@ class SessionStore(
             userId = userId,
             chatName = chatName,
             userName = userName,
-            chatType = chatType,
-            source = SessionSource.NEW)
+            chatType = chatType)
     }
 
     /** Get or create session from a source map (Python-compatible). */
@@ -258,8 +259,7 @@ class SessionStore(
             userId = old.userId,
             chatName = old.chatName,
             userName = old.userName,
-            chatType = old.chatType,
-            source = old.source)
+            chatType = old.chatType)
         sessions[sessionKey] = newEntry
         return newEntry
     }
@@ -356,8 +356,7 @@ class SessionStore(
             userId = old.userId,
             chatName = old.chatName,
             userName = old.userName,
-            chatType = old.chatType,
-            source = old.source)
+            chatType = old.chatType)
         sessions[targetSessionKey] = newEntry
         return newEntry
     }
@@ -533,11 +532,6 @@ class SessionManager(
         }
     }
 
-    /** Generate a session key from a source. */
-    fun _generateSessionKey(source: SessionSource): String {
-        return "${source.name.lowercase()}_${System.currentTimeMillis()}"
-    }
-
     /** Check if a session has expired based on its reset policy. */
     fun _isSessionExpired(entry: Any?): Boolean {
         if (entry !is Map<*, *>) return false
@@ -549,15 +543,6 @@ class SessionManager(
             } catch (_: Exception) { }
         }
         return false
-    }
-
-    /** Check if a session should be reset based on policy. */
-    fun _shouldReset(entry: Any?, source: SessionSource): String? {
-        if (entry !is Map<*, *>) return null
-        if (_isSessionExpired(entry)) return "expired"
-        val policy = entry["reset_policy"] as? String
-        if (policy == "always") return "policy"
-        return null
     }
 
     /** Check if any sessions have ever been created (across all platforms). */

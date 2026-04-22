@@ -9,6 +9,7 @@ package com.xiaomo.hermes.hermes.gateway.platforms
 
 import android.util.Base64
 import android.util.Log
+import com.xiaomo.hermes.hermes.gateway.SessionSource
 import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.API_BASE
 import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.CONNECT_TIMEOUT_SECONDS
 import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.Constants.DEDUP_MAX_SIZE
@@ -548,7 +549,7 @@ class QQAdapter(
 
         _chatTypeMap[userOpenid] = "c2c"
         val event = MessageEvent(
-            source = MessageSource(
+            source = SessionSource(
                 platform = "qqbot",
                 chatId = userOpenid,
                 userId = userOpenid,
@@ -589,7 +590,7 @@ class QQAdapter(
 
         _chatTypeMap[groupOpenid] = "group"
         val event = MessageEvent(
-            source = MessageSource(
+            source = SessionSource(
                 platform = "qqbot",
                 chatId = groupOpenid,
                 userId = author["member_openid"]?.toString() ?: "",
@@ -633,7 +634,7 @@ class QQAdapter(
 
         _chatTypeMap[channelId] = "guild"
         val event = MessageEvent(
-            source = MessageSource(
+            source = SessionSource(
                 platform = "qqbot",
                 chatId = channelId,
                 userId = author["id"]?.toString() ?: "",
@@ -674,7 +675,7 @@ class QQAdapter(
 
         _chatTypeMap[guildId] = "dm"
         val event = MessageEvent(
-            source = MessageSource(
+            source = SessionSource(
                 platform = "qqbot",
                 chatId = guildId,
                 userId = author["id"]?.toString() ?: "",

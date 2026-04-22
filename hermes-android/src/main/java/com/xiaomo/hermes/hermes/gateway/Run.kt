@@ -439,8 +439,8 @@ class GatewayRunner(
 
     /** Get session key for a source. */
     
-    /** Build a session key from a MessageSource. */
-    fun sessionKeyForSource(source: MessageSource): String {
+    /** Build a session key from a SessionSource. */
+    fun sessionKeyForSource(source: SessionSource): String {
         return buildSessionKey(source.platform, source.chatId, source.userId)
     }
 
@@ -539,7 +539,7 @@ class GatewayRunner(
 
 
     /** Check if a user is authorized for the given source. */
-    fun isUserAuthorized(source: MessageSource): Boolean {
+    fun isUserAuthorized(source: SessionSource): Boolean {
         val chatId = source.chatId
         val userId = source.userId
         // Simplified: check if user is in approved users list
@@ -575,7 +575,7 @@ class GatewayRunner(
     // ── Gateway lifecycle ───────────────────────────────────────────
 
     /** Get guild ID from source. */
-    fun getGuildId(source: MessageSource): String? {
+    fun getGuildId(source: SessionSource): String? {
         return source.chatId
     }
 
@@ -624,12 +624,8 @@ class GatewayRunner(
             /* TODO: _flushMemoriesForSession */ Log.d("Run", "flush memories: $oldSessionId")
         }
     }
-    /** Resolve the current session key for a source, honoring gateway config when available. */
+    /** Resolve the current session key for a SessionSource. */
     fun _sessionKeyForSource(source: SessionSource): String {
-        return buildSessionKey(source.name, "", "")
-    }
-    /** Resolve the current session key for a MessageSource. */
-    fun _sessionKeyForSource(source: MessageSource): String {
         return buildSessionKey(source.platform, source.chatId, source.userId)
     }
     /** Resolve model/runtime for a session, honoring session-scoped /model overrides. */
@@ -898,10 +894,6 @@ class GatewayRunner(
             _agentCache.remove(sessionKey)
         }
         Log.d(_TAG, "Evicted cached agent for session $sessionKey")
-    }
-    /** Run the agent with the given message and context. */
-    suspend fun _runAgent(message: String, contextPrompt: String, history: List<Map<String, Any>>, source: SessionSource, sessionId: String, sessionKey: String? = null, _interruptDepth: Int = 0, eventMessageId: String? = null): Map<String, Any> {
-        return emptyMap()
     }
 
 
@@ -1252,7 +1244,7 @@ class GatewayRunner(
 
     /** Execute an ephemeral /btw side question and deliver the answer. */
     suspend fun _runBtwTask(question: String, source: Any?, sessionKey: String, taskId: String) {
-        val msgSource = source as? MessageSource ?: return
+        val msgSource = source as? SessionSource ?: return
         val adapter = _adapters[msgSource.platform] ?: return
         try {
             // Agent loop not wired into GatewayRunner on Android (ChatViewModel
@@ -1425,7 +1417,7 @@ class GatewayRunner(
         val sessionKey = (evt["session_key"] as? String)?.trim() ?: return null
         val parts = sessionKey.split(":")
         if (parts.size < 3) return null
-        return MessageSource(
+        return SessionSource(
             platform = parts[0],
             chatId = parts[1],
             userId = parts.getOrElse(2) { "" }

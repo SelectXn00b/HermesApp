@@ -80,32 +80,6 @@ enum class MessageType {
 }
 
 /**
- * Source of a message (platform, chat, user metadata).
- */
-data class MessageSource(
-    /** Platform name. */
-    val platform: String,
-    /** Chat/channel id. */
-    val chatId: String,
-    /** Chat name (best-effort). */
-    val chatName: String = "",
-    /** Chat type: "dm", "group", "channel". */
-    val chatType: String = "dm",
-    /** User id. */
-    val userId: String = "",
-    /** User name. */
-    val userName: String = "",
-    /** Thread/topic id (if applicable). */
-    val threadId: String? = null,
-    /** Whether the user is an admin in the chat. */
-    val isAdmin: Boolean = false,
-    /** Arbitrary metadata. */
-    val metadata: JSONObject = JSONObject()) {
-    /** Build a session key from this source. */
-    val sessionKey: String get() = buildSessionKey(platform, chatId, userId)
-}
-
-/**
  * Processing outcome — returned by the agent handler.
  */
 data class ProcessingOutcome(
@@ -142,7 +116,7 @@ data class MessageEvent(
     /** The message type. */
     val messageType: MessageType = MessageType.TEXT,
     /** Source metadata. */
-    val source: MessageSource,
+    val source: SessionSource,
     /** Original message id from the platform. */
     val message_id: String = "",
     /** ID of the message this is replying to (if any). */
@@ -377,7 +351,7 @@ abstract class BasePlatformAdapter(
     }
 
     /**
-     * Build a [MessageSource] from common parameters.
+     * Build a [SessionSource] from common parameters.
      */
     fun buildSource(
         chatId: String,
@@ -386,7 +360,7 @@ abstract class BasePlatformAdapter(
         userId: String = "",
         userName: String = "",
         threadId: String? = null,
-        isAdmin: Boolean = false): MessageSource = MessageSource(
+        isAdmin: Boolean = false): SessionSource = SessionSource(
         platform = name,
         chatId = chatId,
         chatName = chatName,
