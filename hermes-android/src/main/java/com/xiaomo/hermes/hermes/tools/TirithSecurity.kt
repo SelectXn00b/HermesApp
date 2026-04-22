@@ -10,9 +10,6 @@
  */
 package com.xiaomo.hermes.hermes.tools
 
-import org.json.JSONArray
-import org.json.JSONObject
-
 private const val _REPO: String = "sheeki03/tirith"
 private val _COSIGN_IDENTITY_REGEXP: String =
     "^https://github.com/$_REPO/\\.github/workflows/release\\.yml@refs/tags/v"
@@ -94,17 +91,4 @@ fun checkCommandSecurity(command: String): Map<String, Any?> {
     } else {
         mapOf("action" to "block", "findings" to emptyList<Any?>(), "summary" to "tirith spawn failed (fail-closed): unavailable on Android")
     }
-}
-
-@Suppress("unused")
-private fun _toJsonResult(result: Map<String, Any?>): String {
-    val findings = JSONArray()
-    (result["findings"] as? List<*>)?.forEach {
-        if (it is Map<*, *>) findings.put(JSONObject(it as Map<String, Any?>)) else findings.put(it)
-    }
-    return JSONObject().apply {
-        put("action", result["action"])
-        put("findings", findings)
-        put("summary", result["summary"])
-    }.toString()
 }
