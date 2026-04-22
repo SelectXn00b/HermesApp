@@ -1,115 +1,187 @@
+/**
+ * Tool result persistence -- preserves large outputs instead of truncating.
+ *
+ * Defense against context-window overflow operates at three levels:
+ *
+ * 1. **Per-tool output cap** (inside each tool): Tools like searchFiles
+ *    pre-truncate their own output before returning. This is the first line
+ *    of defense and the only one the tool author controls.
+ *
+ * 2. **Per-result persistence** (maybePersistToolResult): After a tool
+ *    returns, if its output exceeds the tool's registered threshold, the
+ *    full output is written INTO THE SANDBOX temp dir via env.execute().
+ *    The in-context content is replaced with a preview + file path
+ *    reference. The model can readFile to access the full output on any
+ *    backend.
+ *
+ * 3. **Per-turn aggregate budget** (enforceTurnBudget): After all tool
+ *    results in a single assistant turn are collected, if the total
+ *    exceeds MAX_TURN_BUDGET_CHARS (200K), the largest non-persisted
+ *    results are spilled to disk until the aggregate is under budget.
+ *
+ * Ported from tools/tool_result_storage.py
+ */
 package com.xiaomo.hermes.hermes.tools
 
-import android.util.Log
-import java.io.File
+import com.xiaomo.hermes.hermes.tools.environments.BaseEnvironment
 import java.util.UUID
 
-/**
- * Tool result persistence — preserves large outputs instead of truncating.
- * Ported from tool_result_storage.py
- */
-object ToolResultStorage {
+const val PERSISTED_OUTPUT_TAG: String = "<persisted-output>"
+const val PERSISTED_OUTPUT_CLOSING_TAG: String = "</persisted-output>"
+const val STORAGE_DIR: String = "/tmp/hermes-results"
+const val HEREDOC_MARKER: String = "HERMES_PERSIST_EOF"
+private const val _BUDGET_TOOL_NAME: String = "__budget_enforcement__"
 
-    const val PERSISTED_OUTPUT_TAG = "<persisted-output>"
-    const val PERSISTED_OUTPUT_CLOSING_TAG = "</persisted-output>"
-    private const val HEREDOC_MARKER = "HERMES_PERSIST_EOF"
-    private const val DEFAULT_PREVIEW_SIZE = 2000
-    private const val MAX_TURN_BUDGET = 200_000
-
-    private val TAG = "ToolResultStorage"
-
-    /**
-     * Generate a preview of content, truncating at the last newline within maxChars.
-     */
-    fun generatePreview(content: String, maxChars: Int = DEFAULT_PREVIEW_SIZE): Pair<String, Boolean> {
-        if (content.length <= maxChars) return content to false
-        val truncated = content.substring(0, maxChars)
-        val lastNl = truncated.lastIndexOf('\n')
-        val cut = if (lastNl > maxChars / 2) lastNl + 1 else maxChars
-        return content.substring(0, cut) to true
-    }
-
-    /**
-     * Build a persisted-output replacement block.
-     */
-    fun buildPersistedMessage(preview: String, hasMore: Boolean, originalSize: Int, filePath: String): String {
-        val sizeKb = originalSize / 1024.0
-        val sizeStr = if (sizeKb >= 1024) "%.1f MB".format(sizeKb / 1024) else "%.1f KB".format(sizeKb)
-
-        return buildString {
-            appendLine(PERSISTED_OUTPUT_TAG)
-            appendLine("This tool result was too large ($originalSize characters, $sizeStr).")
-            appendLine("Full output saved to: $filePath")
-            appendLine("Use file read tool with offset and limit to access specific sections.")
-            appendLine()
-            appendLine("Preview (first ${preview.length} chars):")
-            append(preview)
-            if (hasMore) append("\n...")
-            appendLine()
-            append(PERSISTED_OUTPUT_CLOSING_TAG)
-        }
-    }
-
-    /**
-     * Maybe persist a large tool result to a file, returning a preview + reference.
-     */
-    fun maybePersist(
-        content: String,
-        toolName: String,
-        toolUseId: String,
-        storageDir: File,
-        threshold: Int = DEFAULT_PREVIEW_SIZE * 5): String {
-        if (content.length <= threshold) return content
-
-        val filePath = File(storageDir, "$toolUseId.txt")
-        val (preview, hasMore) = generatePreview(content)
-
+private fun _resolveStorageDir(env: BaseEnvironment?): String {
+    if (env != null) {
         try {
-            storageDir.mkdirs()
-            filePath.writeText(content, Charsets.UTF_8)
-            Log.i(TAG, "Persisted large tool result: $toolName ($toolUseId, ${content.length} chars -> ${filePath.absolutePath})")
-            return buildPersistedMessage(preview, hasMore, content.length, filePath.absolutePath)
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to persist tool result: ${e.message}")
-            return "$preview\n\n[Truncated: tool response was ${content.length} chars. Full output could not be saved.]"
+            val tempDir = env.getTempDir().trimEnd('/').ifEmpty { "/" }
+            return "$tempDir/hermes-results"
+        } catch (_: Exception) {
+        }
+    }
+    return STORAGE_DIR
+}
+
+/**
+ * Truncate at last newline within maxChars. Returns (preview, hasMore).
+ */
+fun generatePreview(content: String, maxChars: Int = DEFAULT_PREVIEW_SIZE_CHARS): Pair<String, Boolean> {
+    if (content.length <= maxChars) return content to false
+    var truncated = content.substring(0, maxChars)
+    val lastNl = truncated.lastIndexOf('\n')
+    if (lastNl > maxChars / 2) {
+        truncated = truncated.substring(0, lastNl + 1)
+    }
+    return truncated to true
+}
+
+private fun _heredocMarker(content: String): String {
+    if (HEREDOC_MARKER !in content) return HEREDOC_MARKER
+    return "HERMES_PERSIST_${UUID.randomUUID().toString().replace("-", "").substring(0, 8)}"
+}
+
+private fun _shlexQuote(s: String): String = "'" + s.replace("'", "'\"'\"'") + "'"
+
+private fun _writeToSandbox(content: String, remotePath: String, env: BaseEnvironment): Boolean {
+    val marker = _heredocMarker(content)
+    val storageDir = java.io.File(remotePath).parent ?: "/"
+    val cmd = (
+        "mkdir -p ${_shlexQuote(storageDir)} && cat > ${_shlexQuote(remotePath)} << '$marker'\n" +
+        "$content\n" +
+        marker
+    )
+    val result = env.execute(cmd, timeout = 30)
+    val rc = (result["returncode"] as? Number)?.toInt() ?: 1
+    return rc == 0
+}
+
+private fun _buildPersistedMessage(
+    preview: String,
+    hasMore: Boolean,
+    originalSize: Int,
+    filePath: String,
+): String {
+    val sizeKb = originalSize / 1024.0
+    val sizeStr = if (sizeKb >= 1024) "%.1f MB".format(sizeKb / 1024) else "%.1f KB".format(sizeKb)
+
+    val sb = StringBuilder()
+    sb.append(PERSISTED_OUTPUT_TAG).append('\n')
+    sb.append("This tool result was too large ($originalSize characters, $sizeStr).\n")
+    sb.append("Full output saved to: $filePath\n")
+    sb.append("Use the read_file tool with offset and limit to access specific sections of this output.\n\n")
+    sb.append("Preview (first ${preview.length} chars):\n")
+    sb.append(preview)
+    if (hasMore) sb.append("\n...")
+    sb.append('\n').append(PERSISTED_OUTPUT_CLOSING_TAG)
+    return sb.toString()
+}
+
+/**
+ * Layer 2: persist oversized result into the sandbox, return preview + path.
+ */
+fun maybePersistToolResult(
+    content: String,
+    toolName: String,
+    toolUseId: String,
+    env: BaseEnvironment? = null,
+    config: BudgetConfig = DEFAULT_BUDGET,
+    threshold: Double? = null,
+): String {
+    val effectiveThreshold = threshold ?: config.resolveThreshold(toolName)
+
+    if (effectiveThreshold == Double.POSITIVE_INFINITY) return content
+    if (content.length <= effectiveThreshold) return content
+
+    val storageDir = _resolveStorageDir(env)
+    val remotePath = "$storageDir/$toolUseId.txt"
+    val (preview, hasMore) = generatePreview(content, maxChars = config.previewSize)
+
+    if (env != null) {
+        try {
+            if (_writeToSandbox(content, remotePath, env)) {
+                return _buildPersistedMessage(preview, hasMore, content.length, remotePath)
+            }
+        } catch (_: Exception) {
         }
     }
 
-    /**
-     * Enforce aggregate budget across all tool results in a turn.
-     */
-    fun enforceTurnBudget(results: MutableList<MutableMap<String, String>>, storageDir: File): List<Map<String, String>> {
-        var totalSize = 0
-        val candidates = mutableListOf<Pair<Int, Int>>()
+    return (
+        "$preview\n\n" +
+        "[Truncated: tool response was ${content.length} chars. " +
+        "Full output could not be saved to sandbox.]"
+    )
+}
 
-        for ((i, msg) in results.withIndex()) {
-            val content = msg["content"] ?: ""
-            val size = content.length
-            totalSize += size
-            if (!content.contains(PERSISTED_OUTPUT_TAG)) {
-                candidates.add(i to size)
-            }
+/**
+ * Layer 3: enforce aggregate budget across all tool results in a turn.
+ *
+ * If total chars exceed budget, persist the largest non-persisted results
+ * first (via sandbox write) until under budget. Already-persisted results
+ * are skipped.
+ *
+ * Mutates the list in-place and returns it.
+ */
+fun enforceTurnBudget(
+    toolMessages: MutableList<MutableMap<String, Any?>>,
+    env: BaseEnvironment? = null,
+    config: BudgetConfig = DEFAULT_BUDGET,
+): MutableList<MutableMap<String, Any?>> {
+    val candidates = mutableListOf<Pair<Int, Int>>()
+    var totalSize = 0
+    for ((i, msg) in toolMessages.withIndex()) {
+        val content = (msg["content"] as? String) ?: ""
+        val size = content.length
+        totalSize += size
+        if (PERSISTED_OUTPUT_TAG !in content) {
+            candidates.add(i to size)
         }
-
-        if (totalSize <= MAX_TURN_BUDGET) return results
-
-        candidates.sortByDescending { it.second }
-
-        for ((idx, size) in candidates) {
-            if (totalSize <= MAX_TURN_BUDGET) break
-            val msg = results[idx]
-            val content = msg["content"] ?: continue
-
-            val replacement = maybePersist(content, "__budget__", "budget_$idx", storageDir, 0)
-            if (replacement != content) {
-                totalSize -= size
-                totalSize += replacement.length
-                results[idx]["content"] = replacement
-            }
-        }
-
-        return results
     }
 
+    if (totalSize <= config.turnBudget) return toolMessages
 
+    candidates.sortByDescending { it.second }
+
+    for ((idx, size) in candidates) {
+        if (totalSize <= config.turnBudget) break
+        val msg = toolMessages[idx]
+        val content = (msg["content"] as? String) ?: continue
+        val toolUseId = (msg["tool_call_id"] as? String) ?: "budget_$idx"
+
+        val replacement = maybePersistToolResult(
+            content = content,
+            toolName = _BUDGET_TOOL_NAME,
+            toolUseId = toolUseId,
+            env = env,
+            config = config,
+            threshold = 0.0,
+        )
+        if (replacement != content) {
+            totalSize -= size
+            totalSize += replacement.length
+            toolMessages[idx]["content"] = replacement
+        }
+    }
+
+    return toolMessages
 }
