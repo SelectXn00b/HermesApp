@@ -28,9 +28,37 @@ class MistralToolCallParser : ToolCallParser() {
         private const val BOT_TOKEN = "[TOOL_CALLS]"
 
         /** Mistral tool call IDs are 9-char alphanumeric strings. */
-        private fun generateMistralId(): String {
+        private fun _generateMistralId(): String {
             val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
             return (1..9).map { chars[Random.nextInt(chars.length)] }.joinToString("")
+        }
+
+        private val _findMatchingBrace: (String, Int) -> Int = { s, start ->
+            var depth = 0
+            var inString = false
+            var escape = false
+            var result = -1
+            loop@ for (i in start until s.length) {
+                val c = s[i]
+                if (escape) { escape = false; continue@loop }
+                if (c == '\\') { escape = true; continue@loop }
+                if (c == '"') { inString = !inString; continue@loop }
+                if (inString) continue@loop
+                if (c == '{') depth++
+                if (c == '}') { depth--; if (depth == 0) { result = i; break@loop } }
+            }
+            result
+        }
+
+        private val _parseArgsToMap: (String) -> Map<String, Any> = { argsStr ->
+            try {
+                val obj = JSONObject(argsStr)
+                val map = mutableMapOf<String, Any>()
+                obj.keys().forEach { key -> map[key] = obj.get(key) }
+                map as Map<String, Any>
+            } catch (_: JSONException) {
+                emptyMap()
+            }
         }
     }
 
@@ -60,7 +88,6 @@ class MistralToolCallParser : ToolCallParser() {
                     val toolName = trimmed.substring(0, braceIdx).trim()
                     var argsStr = trimmed.substring(braceIdx)
 
-                    // Validate and clean the JSON arguments
                     try {
                         val parsedArgs = JSONObject(argsStr)
                         argsStr = parsedArgs.toString()
@@ -70,9 +97,9 @@ class MistralToolCallParser : ToolCallParser() {
 
                     toolCalls.add(
                         ParsedToolCall(
-                            id = generateMistralId(),
+                            id = _generateMistralId(),
                             name = toolName,
-                            arguments = parseArgsToMap(argsStr),
+                            arguments = _parseArgsToMap(argsStr),
                             rawArguments = argsStr
                         )
                     )
@@ -102,9 +129,9 @@ class MistralToolCallParser : ToolCallParser() {
 
                         toolCalls.add(
                             ParsedToolCall(
-                                id = generateMistralId(),
+                                id = _generateMistralId(),
                                 name = name,
-                                arguments = parseArgsToMap(argsStr),
+                                arguments = _parseArgsToMap(argsStr),
                                 rawArguments = argsStr
                             )
                         )
@@ -116,7 +143,7 @@ class MistralToolCallParser : ToolCallParser() {
                         val start = firstRaw.indexOf('{', idx)
                         if (start < 0) break
                         try {
-                            val end = findMatchingBrace(firstRaw, start)
+                            val end = _findMatchingBrace(firstRaw, start)
                             if (end < 0) break
                             val objStr = firstRaw.substring(start, end + 1)
                             val obj = JSONObject(objStr)
@@ -130,9 +157,9 @@ class MistralToolCallParser : ToolCallParser() {
                                 }
                                 toolCalls.add(
                                     ParsedToolCall(
-                                        id = generateMistralId(),
+                                        id = _generateMistralId(),
                                         name = name,
-                                        arguments = parseArgsToMap(argsStr),
+                                        arguments = _parseArgsToMap(argsStr),
                                         rawArguments = argsStr
                                     )
                                 )
@@ -154,46 +181,5 @@ class MistralToolCallParser : ToolCallParser() {
             Log.d(_TAG, "parse error: ${e.message}")
             return ParseResult(response, null)
         }
-    }
-
-    override fun formatToolCalls(toolCalls: List<ParsedToolCall>): String {
-        val sb = StringBuilder()
-        for (tc in toolCalls) {
-            sb.append(BOT_TOKEN)
-            sb.append(tc.name)
-            sb.append(tc.rawArguments ?: JSONObject(tc.arguments).toString())
-        }
-        return sb.toString()
-    }
-
-    override fun hasToolCall(response: String): Boolean {
-        return response.contains(BOT_TOKEN)
-    }
-
-    private fun parseArgsToMap(argsStr: String): Map<String, Any> {
-        return try {
-            val obj = JSONObject(argsStr)
-            val map = mutableMapOf<String, Any>()
-            obj.keys().forEach { key -> map[key] = obj.get(key) }
-            map
-        } catch (_: JSONException) {
-            emptyMap()
-        }
-    }
-
-    private fun findMatchingBrace(s: String, start: Int): Int {
-        var depth = 0
-        var inString = false
-        var escape = false
-        for (i in start until s.length) {
-            val c = s[i]
-            if (escape) { escape = false; continue }
-            if (c == '\\') { escape = true; continue }
-            if (c == '"') { inString = !inString; continue }
-            if (inString) continue
-            if (c == '{') depth++
-            if (c == '}') { depth--; if (depth == 0) return i }
-        }
-        return -1
     }
 }

@@ -54,7 +54,11 @@ class KimiK2ToolCallParser : ToolCallParser() {
                 // Extract function name from tool_call_id (e.g., "functions.get_weather:0" -> "get_weather")
                 val funcName = toolCallId.substringBeforeLast(":").substringAfterLast(".")
                 val argsMap = try {
-                    jsonToMap(JSONObject(functionArguments))
+                    val obj = JSONObject(functionArguments)
+                    val m = mutableMapOf<String, Any>()
+                    val keys = obj.keys()
+                    while (keys.hasNext()) { val k = keys.next(); m[k] = obj.get(k) }
+                    m as Map<String, Any>
                 } catch (e: Exception) {
                     emptyMap()
                 }
@@ -78,31 +82,5 @@ class KimiK2ToolCallParser : ToolCallParser() {
         } catch (e: Exception) {
             ParseResult(content = response, toolCalls = null)
         }
-    }
-
-    override fun formatToolCalls(toolCalls: List<ParsedToolCall>): String {
-        val sb = StringBuilder("<|tool_calls_section_begin|>")
-        for ((i, tc) in toolCalls.withIndex()) {
-            sb.append("<|tool_call_begin|>functions.${tc.name}:$i")
-            sb.append("<|tool_call_argument_begin|>")
-            sb.append(JSONObject(tc.arguments).toString())
-            sb.append("<|tool_call_end|>")
-        }
-        sb.append("<|tool_calls_section_end|>")
-        return sb.toString()
-    }
-
-    override fun hasToolCall(response: String): Boolean {
-        return START_TOKENS.any { response.contains(it) }
-    }
-
-    private fun jsonToMap(json: JSONObject): Map<String, Any> {
-        val map = mutableMapOf<String, Any>()
-        val keys = json.keys()
-        while (keys.hasNext()) {
-            val key = keys.next()
-            map[key] = json.get(key)
-        }
-        return map
     }
 }

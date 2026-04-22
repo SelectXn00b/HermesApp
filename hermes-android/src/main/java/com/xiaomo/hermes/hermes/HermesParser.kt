@@ -31,31 +31,18 @@ open class HermesToolCallParser : ToolCallParser() {
                 val name = tcData.optString("name", "")
                 if (name.isEmpty()) continue
                 val arguments = tcData.optJSONObject("arguments") ?: JSONObject()
+                val argsMap = mutableMapOf<String, Any>()
+                val keys = arguments.keys()
+                while (keys.hasNext()) { val k = keys.next(); argsMap[k] = arguments.get(k) }
                 toolCalls.add(ParsedToolCall(
                     id = "call_${UUID.randomUUID().toString().take(8)}",
                     name = name,
-                    arguments = jsonToMap(arguments),
+                    arguments = argsMap,
                     rawArguments = arguments.toString()
                 ))
             }
             if (toolCalls.isEmpty()) ParseResult(response, null)
             else ParseResult(response.substringBefore("<tool_call>").trim().ifEmpty { null }, toolCalls)
         } catch (e: Exception) { ParseResult(response, null) }
-    }
-    override fun formatToolCalls(toolCalls: List<ParsedToolCall>): String {
-        val sb = StringBuilder()
-        for (tc in toolCalls) {
-            sb.append("<tool_call>")
-            sb.append(JSONObject().put("name", tc.name).put("arguments", JSONObject(tc.arguments)))
-            sb.append("</tool_call>")
-        }
-        return sb.toString()
-    }
-    override fun hasToolCall(response: String): Boolean = response.contains("<tool_call>")
-    private fun jsonToMap(json: JSONObject): Map<String, Any> {
-        val map = mutableMapOf<String, Any>()
-        val keys = json.keys()
-        while (keys.hasNext()) { val k = keys.next(); map[k] = json.get(k) }
-        return map
     }
 }

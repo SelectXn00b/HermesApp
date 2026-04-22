@@ -75,8 +75,6 @@ class ToolCallParserTest {
         val custom = object : ToolCallParser() {
             override val supportedModels = listOf("my_model")
             override fun parse(response: String) = ParseResult(response, null)
-            override fun formatToolCalls(toolCalls: List<ParsedToolCall>) = ""
-            override fun hasToolCall(response: String) = false
         }
         registry.register(custom)
         assertNotNull(registry.getParser("my_model"))

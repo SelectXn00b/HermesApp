@@ -30,19 +30,6 @@ abstract class ToolCallParser {
     abstract fun parse(response: String): ParseResult
 
     /**
-     * 将 tool calls 格式化为模型期望的格式
-     *
-     * @param toolCalls tool calls
-     * @return 格式化后的字符串
-     */
-    abstract fun formatToolCalls(toolCalls: List<ParsedToolCall>): String
-
-    /**
-     * 判断响应是否包含 tool call
-     */
-    abstract fun hasToolCall(response: String): Boolean
-
-    /**
      * 便捷方法：从 LLM 响应中解析 tool calls (旧接口兼容)
      */
     fun parseToolCalls(response: String): List<ParsedToolCall> {

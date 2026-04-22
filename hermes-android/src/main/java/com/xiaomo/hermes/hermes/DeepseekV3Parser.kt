@@ -21,6 +21,4 @@ class DeepSeekV3ToolCallParser : ToolCallParser() {
         }
         return ParseResult(content=response, toolCalls=calls)
     }
-    override fun formatToolCalls(toolCalls: List<ParsedToolCall>): String = toolCalls.joinToString("❤️") { it.name }
-    override fun hasToolCall(response: String): Boolean = PATTERN.matcher(response).find()
 }

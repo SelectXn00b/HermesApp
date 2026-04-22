@@ -12,12 +12,6 @@ class Glm45ParserTest {
     private val parser = Glm45ToolCallParser()
 
     @Test
-    fun `hasToolCall detects tool_call tag`() {
-        assertTrue(parser.hasToolCall("text <tool_call>{}</tool_call>"))
-        assertFalse(parser.hasToolCall("no tags here"))
-    }
-
-    @Test
     fun `parse single tool call with arg tags`() {
         // GLM45 格式: <tool_call>funcname\n<arg_key>key</arg_key><arg_value>val</arg_value></tool_call>
         val response = """<tool_call>read

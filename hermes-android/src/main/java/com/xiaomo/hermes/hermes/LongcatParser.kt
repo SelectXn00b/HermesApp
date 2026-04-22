@@ -43,7 +43,9 @@ class LongcatToolCallParser : ToolCallParser() {
                 if (name.isEmpty()) continue
 
                 val arguments = tcData.optJSONObject("arguments") ?: JSONObject()
-                val argsMap = jsonToMap(arguments)
+                val argsMap = mutableMapOf<String, Any>()
+                val keys = arguments.keys()
+                while (keys.hasNext()) { val k = keys.next(); argsMap[k] = arguments.get(k) }
 
                 toolCalls.add(
                     ParsedToolCall(
@@ -64,29 +66,5 @@ class LongcatToolCallParser : ToolCallParser() {
         } catch (e: Exception) {
             ParseResult(content = response, toolCalls = null)
         }
-    }
-
-    override fun formatToolCalls(toolCalls: List<ParsedToolCall>): String {
-        val sb = StringBuilder()
-        for (tc in toolCalls) {
-            sb.append("<longcat_tool_call>")
-            sb.append(JSONObject().put("name", tc.name).put("arguments", JSONObject(tc.arguments)))
-            sb.append("</longcat_tool_call>")
-        }
-        return sb.toString()
-    }
-
-    override fun hasToolCall(response: String): Boolean {
-        return response.contains("<longcat_tool_call>")
-    }
-
-    private fun jsonToMap(json: JSONObject): Map<String, Any> {
-        val map = mutableMapOf<String, Any>()
-        val keys = json.keys()
-        while (keys.hasNext()) {
-            val key = keys.next()
-            map[key] = json.get(key)
-        }
-        return map
     }
 }

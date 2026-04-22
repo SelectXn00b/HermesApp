@@ -56,14 +56,4 @@ open class Glm45ToolCallParser : ToolCallParser() {
             else ParseResult(response.substringBefore("<tool_call>").trim().ifEmpty { null }, toolCalls)
         } catch (e: Exception) { ParseResult(response, null) }
     }
-    override fun formatToolCalls(toolCalls: List<ParsedToolCall>): String {
-        val sb = StringBuilder()
-        for (tc in toolCalls) {
-            sb.append("<tool_call>${tc.name}\n")
-            for ((k, v) in tc.arguments) sb.append("<arg_key>$k</arg_key><arg_value>$v</arg_value>")
-            sb.append("</tool_call>")
-        }
-        return sb.toString()
-    }
-    override fun hasToolCall(response: String): Boolean = response.contains("<tool_call>")
 }

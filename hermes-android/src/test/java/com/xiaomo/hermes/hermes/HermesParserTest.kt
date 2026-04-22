@@ -12,12 +12,6 @@ class HermesParserTest {
     private val parser = HermesToolCallParser()
 
     @Test
-    fun `hasToolCall detects tool call tag`() {
-        assertTrue(parser.hasToolCall("some text <tool_call>{}</tool_call>"))
-        assertFalse(parser.hasToolCall("no tool calls here"))
-    }
-
-    @Test
     fun `parse simple tool call`() {
         val response = """Let me read that file.
 <tool_call>{"name": "read", "arguments": {"path": "/tmp/test.txt"}}</tool_call>"""
@@ -85,19 +79,6 @@ class HermesParserTest {
         val result = parser.parse(response)
         // JSON 解析失败，整体回退
         assertNull(result.toolCalls)
-    }
-
-    @Test
-    fun `formatToolCalls produces correct format`() {
-        val calls = listOf(
-            ParsedToolCall("id1", "read", mapOf("path" to "/tmp")),
-            ParsedToolCall("id2", "exec", mapOf("command" to "ls"))
-        )
-        val formatted = parser.formatToolCalls(calls)
-        assertTrue(formatted.contains("<tool_call>"))
-        assertTrue(formatted.contains("</tool_call>"))
-        assertTrue(formatted.contains("\"name\":\"read\""))
-        assertTrue(formatted.contains("\"name\":\"exec\""))
     }
 
     @Test

@@ -11,13 +11,6 @@ class KimiK2ParserTest {
     private val parser = KimiK2ToolCallParser()
 
     @Test
-    fun `hasToolCall detects section begin`() {
-        assertTrue(parser.hasToolCall("text <|tool_calls_section_begin|> stuff"))
-        assertTrue(parser.hasToolCall("text <|tool_call_section_begin|> stuff"))
-        assertFalse(parser.hasToolCall("no kimi tags"))
-    }
-
-    @Test
     fun `parse single tool call`() {
         val response = """I'll check the weather.
 <|tool_calls_section_begin|>
@@ -51,16 +44,5 @@ class KimiK2ParserTest {
         val result = parser.parse("normal response without special tokens")
         assertNull(result.toolCalls)
         assertEquals("normal response without special tokens", result.content)
-    }
-
-    @Test
-    fun `formatToolCalls roundtrip`() {
-        val calls = listOf(
-            ParsedToolCall("functions.test:0", "test", mapOf("x" to "1"))
-        )
-        val formatted = parser.formatToolCalls(calls)
-        assertTrue(formatted.contains("<|tool_calls_section_begin|>"))
-        assertTrue(formatted.contains("<|tool_calls_section_end|>"))
-        assertTrue(formatted.contains("functions.test:0"))
     }
 }

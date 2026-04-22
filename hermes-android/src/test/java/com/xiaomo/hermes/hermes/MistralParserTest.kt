@@ -14,12 +14,6 @@ class MistralParserTest {
     private val parser = MistralToolCallParser()
 
     @Test
-    fun `hasToolCall detects BOT_TOKEN`() {
-        assertTrue(parser.hasToolCall("hello[TOOL_CALLS]something"))
-        assertFalse(parser.hasToolCall("no tool calls here"))
-    }
-
-    @Test
     fun `parse v11 format - single tool call`() {
         val response = """Let me check.[TOOL_CALLS]read_file{"path": "/tmp/test.txt"}"""
         val result = parser.parse(response)
@@ -76,15 +70,5 @@ class MistralParserTest {
         val result = parser.parse(response)
         assertNotNull(result.toolCalls)
         assertEquals(9, result.toolCalls!![0].id.length)
-    }
-
-    @Test
-    fun `formatToolCalls produces v11 format`() {
-        val calls = listOf(
-            ParsedToolCall("abc123456", "read", mapOf("path" to "/tmp"), """{"path":"/tmp"}""")
-        )
-        val formatted = parser.formatToolCalls(calls)
-        assertTrue(formatted.contains("[TOOL_CALLS]"))
-        assertTrue(formatted.contains("read"))
     }
 }

@@ -12,12 +12,6 @@ class DeepseekV3ParserTest {
     private val parser = DeepSeekV3ToolCallParser()
 
     @Test
-    fun `hasToolCall detects heart pattern`() {
-        assertTrue(parser.hasToolCall("text ❤️read❤️ more"))
-        assertFalse(parser.hasToolCall("no hearts here"))
-    }
-
-    @Test
     fun `parse single tool call`() {
         val response = "Let me ❤️read_file❤️ that"
         val result = parser.parse(response)
@@ -44,15 +38,5 @@ class DeepseekV3ParserTest {
         val result = parser.parse("normal text")
         assertNotNull(result.toolCalls)
         assertTrue(result.toolCalls!!.isEmpty())
-    }
-
-    @Test
-    fun `formatToolCalls uses heart separator`() {
-        val calls = listOf(
-            ParsedToolCall("id1", "read", emptyMap()),
-            ParsedToolCall("id2", "write", emptyMap())
-        )
-        val formatted = parser.formatToolCalls(calls)
-        assertEquals("read❤️write", formatted)
     }
 }
