@@ -51,7 +51,7 @@ import kotlinx.coroutines.flow.collect
 open class DebuggerFileSystemTools(context: Context) : AccessibilityFileSystemTools(context) {
     companion object {
         private const val TAG = "DebuggerFileSystemTools"
-        private const val OPERIT_PACKAGE = "com.ai.assistance.operit"
+        private const val OPERIT_PACKAGE = "com.xiaomo.androidforclaw"
 
         internal fun isOperitInternalPath(path: String): Boolean {
             val normalizedPath = path.trim()

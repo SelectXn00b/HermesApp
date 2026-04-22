@@ -403,7 +403,7 @@
         <activity
             android:name=".integrations.tasker.WorkflowTaskerActivityConfig"
             android:exported="true"
-            android:label="Operit Workflow"
+            android:label="Hermes Workflow"
             android:icon="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />

@@ -51,7 +51,7 @@ open class StandardSystemOperationTools(private val context: Context) {
 
     companion object {
         private const val TAG = "SystemOperationTools"
-        private const val OPERIT_PACKAGE = "com.ai.assistance.operit"
+        private const val OPERIT_PACKAGE = "com.xiaomo.androidforclaw"
 
         private const val AI_REPLY_CHANNEL_ID = "AI_REPLY_CHANNEL"
         private const val AI_REPLY_CHANNEL_NAME = "Chat Completion Reminder"

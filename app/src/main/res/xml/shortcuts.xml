@@ -8,7 +8,7 @@
         android:shortcutLongLabel="@string/service_voice_floating_window">
         <intent
             android:action="com.ai.assistance.operit.action.OPEN_VOICE_FLOATING_WINDOW"
-            android:targetPackage="com.ai.assistance.operit"
+            android:targetPackage="com.xiaomo.androidforclaw"
             android:targetClass="com.ai.assistance.operit.services.assistant.OperitAssistActivity" />
     </shortcut>
     <shortcut
@@ -19,7 +19,7 @@
         android:shortcutLongLabel="@string/nav_settings">
         <intent
             android:action="com.ai.assistance.operit.action.OPEN_SETTINGS_SHORTCUT"
-            android:targetPackage="com.ai.assistance.operit"
+            android:targetPackage="com.xiaomo.androidforclaw"
             android:targetClass="com.ai.assistance.operit.ui.main.MainActivity" />
     </shortcut>
 </shortcuts>
