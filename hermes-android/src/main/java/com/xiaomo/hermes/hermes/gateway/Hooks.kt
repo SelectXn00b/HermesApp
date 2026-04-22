@@ -102,22 +102,6 @@ class HookPipeline {
     /** All registered hooks, sorted by priority. */
     private val _hooks: CopyOnWriteArrayList<HookEntry> = CopyOnWriteArrayList()
 
-    /** Register a hook. */
-    fun register(entry: HookEntry) {
-        _hooks.add(entry)
-        _hooks.sortBy { it.priority }
-    }
-
-    /** Remove a hook by name. */
-    fun remove(name: String) {
-        _hooks.removeAll { it.name == name }
-    }
-
-    /** Remove all hooks for a given event. */
-    fun removeForEvent(event: HookEvent) {
-        _hooks.removeAll { it.event == event }
-    }
-
     /** True when no hooks are registered. */
     val isEmpty: Boolean get() = _hooks.isEmpty()
 
