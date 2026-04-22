@@ -154,7 +154,7 @@ fun terminalTool(
             .redirectErrorStream(false)
         workdir?.let { processBuilder.directory(java.io.File(it)) }
         val env = processBuilder.environment()
-        for (varName in EnvPassthrough.getAllPassthrough()) {
+        for (varName in getAllPassthrough()) {
             System.getenv(varName)?.let { env[varName] = it }
         }
         val process = processBuilder.start()
