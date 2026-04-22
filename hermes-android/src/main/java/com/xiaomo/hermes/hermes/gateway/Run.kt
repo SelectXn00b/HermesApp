@@ -10,6 +10,7 @@ package com.xiaomo.hermes.hermes.gateway
 import android.content.Context
 import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.platforms.*
+import com.xiaomo.hermes.hermes.gateway.platforms.qqbot.QQAdapter
 import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -177,7 +178,7 @@ class GatewayRunner(
             Platform.WECOM_CALLBACK -> WeComCallback(context, platformConfig)
             Platform.WEIXIN -> Weixin(context, platformConfig)
             Platform.DINGTALK -> Dingtalk(context, platformConfig)
-            Platform.QQBOT -> Qqbot(context, platformConfig)
+            Platform.QQBOT -> QQAdapter(context, platformConfig)
             Platform.EMAIL -> Email(context, platformConfig)
             Platform.SMS -> Sms(context, platformConfig)
             Platform.MATRIX -> Matrix(context, platformConfig)
