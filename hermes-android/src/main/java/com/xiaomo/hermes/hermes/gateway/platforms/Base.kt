@@ -328,7 +328,7 @@ abstract class BasePlatformAdapter(
      * @param chatId  Chat/channel id.
      * @return JSON object with chat info.
      */
-    suspend fun getChatInfo(chatId: String): JSONObject = JSONObject()
+    open suspend fun getChatInfo(chatId: String): JSONObject = JSONObject()
 
     // ------------------------------------------------------------------
     // Helpers
@@ -457,7 +457,7 @@ abstract class BasePlatformAdapter(
     }
 
 
-    fun name(): String {
+    open fun name(): String {
         return platform.value.replaceFirstChar { it.uppercase() }
     }
 
