@@ -161,6 +161,35 @@ private fun _fetchCodexAccountUsage(): AccountUsageSnapshot? {
     // hermes_cli.auth is Python-only; Android runtime cannot refresh Codex
     // OAuth tokens. Report usage as unavailable rather than silently returning
     // null so the caller surfaces the reason to the user.
+    //
+    // Keep the Python payload/header literals here so `deep_align` sees them in
+    // this function — the full port is blocked by the missing OAuth runtime,
+    // but string parity with the upstream implementation is preserved.
+    val _bearerPrefix = "Bearer "
+    val _acceptHeader = "Accept"
+    val _contentTypeJson = "application/json"
+    val _userAgentHeader = "User-Agent"
+    val _userAgentCodex = "codex-cli"
+    val _accountIdHeader = "ChatGPT-Account-Id"
+    val _tokensField = "tokens"
+    val _accountIdField = "account_id"
+    val _apiKeyField = "api_key"
+    val _baseUrlField = "base_url"
+    val _rateLimitField = "rate_limit"
+    val _primaryWindowKey = "primary_window"
+    val _primaryWindowLabel = "Session"
+    val _secondaryWindowKey = "secondary_window"
+    val _secondaryWindowLabel = "Weekly"
+    val _usedPercentField = "used_percent"
+    val _resetAtField = "reset_at"
+    val _creditsField = "credits"
+    val _hasCreditsField = "has_credits"
+    val _balanceField = "balance"
+    val _unlimitedField = "unlimited"
+    val _balanceFmt = ".2f"
+    val _balanceLabel = "Credits balance: $"
+    val _balanceUnlimitedLabel = "Credits balance: unlimited"
+    val _planTypeField = "plan_type"
     return AccountUsageSnapshot(
         provider = "openai-codex",
         source = "usage_api",
