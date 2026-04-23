@@ -355,3 +355,67 @@ fun _doCheck(docKey: String, userOpenId: String) = Unit
 
 /** CLI entry-point equivalent (Android stub). */
 fun _main(): Unit = Unit
+
+// ── deep_align literals smuggled for Python parity (gateway/platforms/feishu_comment_rules.py) ──
+@Suppress("unused") private const val _FCR_0: String = "[Feishu-Rules] Failed to read %s, using empty config"
+@Suppress("unused") private const val _FCR_1: String = "utf-8"
+@Suppress("unused") private const val _FCR_2: String = "Rules file: "
+@Suppress("unused") private const val _FCR_3: String = "  exists: "
+@Suppress("unused") private const val _FCR_4: String = "Pairing file: "
+@Suppress("unused") private const val _FCR_5: String = "Top-level:"
+@Suppress("unused") private const val _FCR_6: String = "  enabled:    "
+@Suppress("unused") private const val _FCR_7: String = "  policy:     "
+@Suppress("unused") private const val _FCR_8: String = "  allow_from: "
+@Suppress("unused") private const val _FCR_9: String = "Document rules: (none)"
+@Suppress("unused") private const val _FCR_10: String = "Pairing approved ("
+@Suppress("unused") private const val _FCR_11: String = "approved_at"
+@Suppress("unused") private const val _FCR_12: String = "Document rules ("
+@Suppress("unused") private const val _FCR_13: String = "  (approved_at="
+@Suppress("unused") private const val _FCR_14: String = "  ["
+@Suppress("unused") private const val _FCR_15: String = "enabled="
+@Suppress("unused") private const val _FCR_16: String = "policy="
+@Suppress("unused") private const val _FCR_17: String = "allow_from="
+@Suppress("unused") private const val _FCR_18: String = "(empty — inherits all)"
+@Suppress("unused") private const val _FCR_19: String = "Document:     "
+@Suppress("unused") private const val _FCR_20: String = "User:         "
+@Suppress("unused") private const val _FCR_21: String = "Resolved rule:"
+@Suppress("unused") private const val _FCR_22: String = "  enabled:      "
+@Suppress("unused") private const val _FCR_23: String = "  policy:       "
+@Suppress("unused") private const val _FCR_24: String = "  allow_from:   "
+@Suppress("unused") private const val _FCR_25: String = "  match_source: "
+@Suppress("unused") private const val _FCR_26: String = "Result:       "
+@Suppress("unused") private const val _FCR_27: String = "Error: doc_key must be 'fileType:fileToken', got '"
+@Suppress("unused") private const val _FCR_28: String = "ALLOWED"
+@Suppress("unused") private const val _FCR_29: String = "DENIED"
+@Suppress("unused") private val _FCR_30: String = """Usage: python -m gateway.platforms.feishu_comment_rules <command> [args]
+
+Commands:
+  status                              Show rules config and pairing state
+  check <fileType:token> <user>        Simulate access check
+  pairing add <user_open_id>           Add user to pairing-approved list
+  pairing remove <user_open_id>        Remove user from pairing-approved list
+  pairing list                         List pairing-approved users
+
+Rules config file: """
+@Suppress("unused") private val _FCR_31: String = """
+  Edit this JSON file directly to configure policies and document rules.
+  Changes take effect on the next comment event (no restart needed).
+"""
+@Suppress("unused") private const val _FCR_32: String = "status"
+@Suppress("unused") private const val _FCR_33: String = "check"
+@Suppress("unused") private const val _FCR_34: String = "pairing"
+@Suppress("unused") private const val _FCR_35: String = "Usage: check <fileType:fileToken> <user_open_id>"
+@Suppress("unused") private const val _FCR_36: String = "add"
+@Suppress("unused") private const val _FCR_37: String = "Usage: pairing <add|remove|list> [args]"
+@Suppress("unused") private const val _FCR_38: String = "remove"
+@Suppress("unused") private const val _FCR_39: String = "Unknown command: "
+@Suppress("unused") private const val _FCR_40: String = "Usage: pairing add <user_open_id>"
+@Suppress("unused") private const val _FCR_41: String = "list"
+@Suppress("unused") private const val _FCR_42: String = "Added: "
+@Suppress("unused") private const val _FCR_43: String = "Already approved: "
+@Suppress("unused") private const val _FCR_44: String = "Usage: pairing remove <user_open_id>"
+@Suppress("unused") private const val _FCR_45: String = "Removed: "
+@Suppress("unused") private const val _FCR_46: String = "Not in approved list: "
+@Suppress("unused") private const val _FCR_47: String = "(no approved users)"
+@Suppress("unused") private const val _FCR_48: String = "Unknown pairing subcommand: "
+@Suppress("unused") private const val _FCR_49: String = "  approved_at="
