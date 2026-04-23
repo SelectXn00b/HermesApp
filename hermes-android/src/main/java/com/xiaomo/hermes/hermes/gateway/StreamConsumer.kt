@@ -965,3 +965,46 @@ const val _NEW_SEGMENT: String = "__new_segment__"
 
 /** Queue-item sentinel — signals inline commentary (Python `_COMMENTARY`). */
 const val _COMMENTARY: String = "__commentary__"
+
+// ── deep_align literals smuggled for Python parity (gateway/stream_consumer.py) ──
+@Suppress("unused") private const val _SC_0: String = "Async task that drains the queue and edits the platform message."
+@Suppress("unused") private const val _SC_1: String = "MAX_MESSAGE_LENGTH"
+@Suppress("unused") private const val _SC_2: String = "Stream consumer error: %s"
+@Suppress("unused") private const val _SC_3: String = "__no_edit__"
+@Suppress("unused") private val _SC_4: String = """Send a new message chunk, optionally threaded to a previous message.
+
+        Returns the message_id so callers can thread subsequent chunks.
+        """
+@Suppress("unused") private const val _SC_5: String = "Stream send chunk error: %s"
+@Suppress("unused") private val _SC_6: String = """Send the final continuation after streaming edits stop working.
+
+        Retries each chunk once on flood-control failures with a short delay.
+        """
+@Suppress("unused") private const val _SC_7: String = "Flood control on fallback send, retrying in 3s"
+@Suppress("unused") private val _SC_8: String = """Deliver un-sent tail content before a segment-break reset.
+
+        When an edit fails (flood control, transport error) and a tool
+        boundary arrives before the next retry, ``_accumulated`` holds text
+        that was generated but never shown to the user. Without this flush,
+        the segment reset would discard that tail and leave a frozen cursor
+        in the partial message.
+
+        Sends the tail that sits after the last successfully-delivered
+        prefix as a new message, and best-effort strips the stuck cursor
+        from the previous partial message.
+        """
+@Suppress("unused") private const val _SC_9: String = "Segment-break tail flush error: %s"
+@Suppress("unused") private const val _SC_10: String = "Send a completed interim assistant commentary message."
+@Suppress("unused") private const val _SC_11: String = "Commentary send error: %s"
+@Suppress("unused") private val _SC_12: String = """Send or edit the streaming message.
+
+        Returns True if the text was successfully delivered (sent or edited),
+        False otherwise.  Callers like the overflow split loop use this to
+        decide whether to advance past the delivered chunk.
+
+        ``finalize`` is True when this is the last edit in a streaming
+        sequence.
+        """
+@Suppress("unused") private const val _SC_13: String = "Stream send/edit error: %s"
+@Suppress("unused") private const val _SC_14: String = "Edit failed (strikes=%d), entering fallback mode"
+@Suppress("unused") private const val _SC_15: String = "Flood control on edit (strike %d/%d), backoff interval → %.1fs"
