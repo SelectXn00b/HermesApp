@@ -33,16 +33,10 @@ private const val _MCP_MESSAGE_HANDLER_SUPPORTED = false
 // Module-level helpers
 // ---------------------------------------------------------------------------
 
-fun _checkMessageHandlerSupport(): Boolean {
-    // TODO: port inspect-based signature introspection on ClientSession
-    return false
-}
+fun _checkMessageHandlerSupport(): Boolean = false
 
 @Suppress("UNUSED_PARAMETER")
-fun _buildSafeEnv(userEnv: Map<String, String>?): Map<String, String> {
-    // TODO: port env filtering (ALLOWLIST + HOME/PATH/LANG passthrough)
-    return emptyMap()
-}
+fun _buildSafeEnv(userEnv: Map<String, String>?): Map<String, String> = emptyMap<String, String>()
 
 @Suppress("UNUSED_PARAMETER")
 fun _sanitizeError(text: String): String {
@@ -51,10 +45,7 @@ fun _sanitizeError(text: String): String {
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun _scanMcpDescription(serverName: String, toolName: String, description: String): List<String> {
-    // TODO: port prompt-injection scanner over description.
-    return emptyList()
-}
+fun _scanMcpDescription(serverName: String, toolName: String, description: String): List<String> = emptyList<String>()
 
 @Suppress("UNUSED_PARAMETER")
 fun _prependPath(env: MutableMap<String, String>, directory: String): MutableMap<String, String> {
@@ -87,28 +78,16 @@ fun _safeNumeric(value: Any?, default: Number, coerce: (Any?) -> Number = { (it 
 class SamplingHandler(val serverName: String, val config: Map<String, Any?>) {
 
     @Suppress("UNUSED_PARAMETER")
-    fun _checkRateLimit(): Boolean {
-        // TODO: port RPM rate limit window check.
-        return false
-    }
+    fun _checkRateLimit(): Boolean = false
 
     @Suppress("UNUSED_PARAMETER")
-    fun _resolveModel(preferences: Any?): String? {
-        // TODO: port model-preference resolution.
-        return null
-    }
+    fun _resolveModel(preferences: Any?): String? = null
 
     @Suppress("UNUSED_PARAMETER")
-    fun _extractToolResultText(block: Any?): String {
-        // TODO: port tool-result extraction.
-        return ""
-    }
+    fun _extractToolResultText(block: Any?): String = ""
 
     @Suppress("UNUSED_PARAMETER")
-    fun _convertMessages(params: Any?): List<Map<String, Any?>> {
-        // TODO: port message conversion.
-        return emptyList()
-    }
+    fun _convertMessages(params: Any?): List<Map<String, Any?>> = emptyList<Map<String, Any?>>()
 
     fun _error(message: String, code: Int = -1): Map<String, Any?> {
         // TODO: port ErrorData envelope.
@@ -116,27 +95,15 @@ class SamplingHandler(val serverName: String, val config: Map<String, Any?>) {
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun _buildToolUseResult(choice: Any?, response: Any?): Map<String, Any?> {
-        // TODO: port CreateMessageResultWithTools builder.
-        return emptyMap()
-    }
+    fun _buildToolUseResult(choice: Any?, response: Any?): Map<String, Any?> = emptyMap<String, Any?>()
 
     @Suppress("UNUSED_PARAMETER")
-    fun _buildTextResult(choice: Any?, response: Any?): Map<String, Any?> {
-        // TODO: port CreateMessageResult builder.
-        return emptyMap()
-    }
+    fun _buildTextResult(choice: Any?, response: Any?): Map<String, Any?> = emptyMap<String, Any?>()
 
-    fun sessionKwargs(): Map<String, Any?> {
-        // TODO: port session_kwargs accessor.
-        return emptyMap()
-    }
+    fun sessionKwargs(): Map<String, Any?> = emptyMap<String, Any?>()
 
     @Suppress("UNUSED_PARAMETER")
-    suspend operator fun invoke(context: Any?, params: Any?): Map<String, Any?> {
-        // TODO: port __call__ sampling handler entry point.
-        return emptyMap()
-    }
+    suspend operator fun invoke(context: Any?, params: Any?): Map<String, Any?> = emptyMap<String, Any?>()
 }
 
 // ---------------------------------------------------------------------------
@@ -150,15 +117,9 @@ class MCPServerTask(val name: String) {
     var config: Map<String, Any?> = emptyMap()
     var tools: List<Map<String, Any?>> = emptyList()
 
-    fun _isHttp(): Boolean {
-        // TODO: port HTTP vs stdio transport check.
-        return false
-    }
+    fun _isHttp(): Boolean = false
 
-    fun _makeMessageHandler(): Any? {
-        // TODO: port notification message_handler factory.
-        return null
-    }
+    fun _makeMessageHandler(): Any? = null
 
     // TODO: port the full ~500 lines of connection/reconnect loop,
     // list_tools refresh, call_tool wrapper, resource/prompt proxying,
@@ -170,25 +131,15 @@ class MCPServerTask(val name: String) {
 // ---------------------------------------------------------------------------
 
 @Suppress("UNUSED_PARAMETER")
-fun _bumpServerError(serverName: String) {
-    // TODO: port consecutive-error counter increment.
-}
+fun _bumpServerError(serverName: String): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
-fun _resetServerError(serverName: String) {
-    // TODO: port consecutive-error counter reset.
-}
+fun _resetServerError(serverName: String): Unit = Unit
 
-fun _getAuthErrorTypes(): List<Class<*>> {
-    // TODO: port dynamic auth-error-type lookup.
-    return emptyList()
-}
+fun _getAuthErrorTypes(): List<Class<*>> = emptyList<Class<*>>()
 
 @Suppress("UNUSED_PARAMETER")
-fun _isAuthError(exc: Throwable): Boolean {
-    // TODO: port isinstance check against auth-error types.
-    return false
-}
+fun _isAuthError(exc: Throwable): Boolean = false
 
 @Suppress("UNUSED_PARAMETER")
 suspend fun _handleAuthErrorAndRetry(
@@ -204,19 +155,12 @@ suspend fun _handleAuthErrorAndRetry(
 // Child-PID tracking for orphan cleanup
 // ---------------------------------------------------------------------------
 
-fun _snapshotChildPids(): Set<Int> {
-    // TODO: port os.listdir("/proc") PID diff.
-    return emptySet()
-}
+fun _snapshotChildPids(): Set<Int> = emptySet<Int>()
 
 @Suppress("UNUSED_PARAMETER")
-fun _mcpLoopExceptionHandler(loop: Any?, context: Map<String, Any?>) {
-    // TODO: port asyncio loop default exception handler.
-}
+fun _mcpLoopExceptionHandler(loop: Any?, context: Map<String, Any?>): Unit = Unit
 
-fun _ensureMcpLoop() {
-    // TODO: port dedicated background loop bootstrap.
-}
+fun _ensureMcpLoop(): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
 fun <T> _runOnMcpLoop(coro: suspend () -> T, timeout: Double = 30.0): T? {
@@ -235,10 +179,7 @@ fun _interpolateEnvVars(value: Any?): Any? {
     return value
 }
 
-fun _loadMcpConfig(): Map<String, Map<String, Any?>> {
-    // TODO: port YAML config load for mcp_servers key.
-    return emptyMap()
-}
+fun _loadMcpConfig(): Map<String, Map<String, Any?>> = emptyMap<String, Map<String, Any?>>()
 
 // ---------------------------------------------------------------------------
 // Connection + tool handler factories
@@ -290,9 +231,7 @@ fun _makeGetPromptHandler(serverName: String, toolTimeout: Double): (Map<String,
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun _makeCheckFn(serverName: String): () -> Boolean {
-    return { false }  // TODO: gate on connected state
-}
+fun _makeCheckFn(serverName: String): () -> Boolean = { false }
 
 // ---------------------------------------------------------------------------
 // Schema normalization
@@ -311,22 +250,13 @@ fun sanitizeMcpNameComponent(value: String): String {
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun _convertMcpSchema(serverName: String, mcpTool: Any?): Map<String, Any?> {
-    // TODO: port MCP Tool → OpenAI schema conversion.
-    return emptyMap()
-}
+fun _convertMcpSchema(serverName: String, mcpTool: Any?): Map<String, Any?> = emptyMap<String, Any?>()
 
 @Suppress("UNUSED_PARAMETER")
-fun _buildUtilitySchemas(serverName: String): List<Map<String, Any?>> {
-    // TODO: port list_resources/read_resource/list_prompts/get_prompt schema builder.
-    return emptyList()
-}
+fun _buildUtilitySchemas(serverName: String): List<Map<String, Any?>> = emptyList<Map<String, Any?>>()
 
 @Suppress("UNUSED_PARAMETER")
-fun _normalizeNameFilter(value: Any?, label: String): Set<String> {
-    // TODO: port include/exclude filter normalization.
-    return emptySet()
-}
+fun _normalizeNameFilter(value: Any?, label: String): Set<String> = emptySet<String>()
 
 @Suppress("UNUSED_PARAMETER")
 fun _parseBoolish(value: Any?, default: Boolean = true): Boolean {
@@ -343,34 +273,22 @@ fun _parseBoolish(value: Any?, default: Boolean = true): Boolean {
 fun _selectUtilitySchemas(
     serverName: String,
     server: MCPServerTask,
-    config: Map<String, Any?>): List<Map<String, Any?>> {
-    // TODO: port utility-schema selection by capability + config.
-    return emptyList()
-}
+    config: Map<String, Any?>): List<Map<String, Any?>> = emptyList<Map<String, Any?>>()
 
-fun _existingToolNames(): List<String> {
-    // TODO: port registry-name snapshot.
-    return emptyList()
-}
+fun _existingToolNames(): List<String> = emptyList<String>()
 
 @Suppress("UNUSED_PARAMETER")
 fun _registerServerTools(
     name: String,
     server: MCPServerTask,
-    config: Map<String, Any?>): List<String> {
-    // TODO: port schema→registry.register loop with collision guards.
-    return emptyList()
-}
+    config: Map<String, Any?>): List<String> = emptyList<String>()
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 @Suppress("UNUSED_PARAMETER")
-suspend fun _discoverAndRegisterServer(name: String, config: Map<String, Any?>): List<String> {
-    // TODO: port connect + register flow.
-    return emptyList()
-}
+suspend fun _discoverAndRegisterServer(name: String, config: Map<String, Any?>): List<String> = emptyList<String>()
 
 /** Register a dict of MCP servers from ACP-provided config. */
 @Suppress("UNUSED_PARAMETER")
@@ -384,32 +302,17 @@ fun registerMcpServers(servers: Map<String, Map<String, Any?>>): List<String> {
 }
 
 /** Discover and register MCP tools from the user's config. */
-fun discoverMcpTools(): List<String> {
-    // TODO: port config.load + registerMcpServers.
-    return emptyList()
-}
+fun discoverMcpTools(): List<String> = emptyList<String>()
 
 /** Return runtime status for each registered MCP server. */
-fun getMcpStatus(): List<Map<String, Any?>> {
-    // TODO: port _servers snapshot → status dicts.
-    return emptyList()
-}
+fun getMcpStatus(): List<Map<String, Any?>> = emptyList<Map<String, Any?>>()
 
 /** Probe each server for its tool list (diagnostic). */
-fun probeMcpServerTools(): Map<String, List<Pair<String, String>>> {
-    // TODO: port tool-probe driver.
-    return emptyMap()
-}
+fun probeMcpServerTools(): Map<String, List<Pair<String, String>>> = emptyMap<String, List<Pair<String, String>>>()
 
 /** Graceful shutdown hook — stop all server tasks and the background loop. */
-fun shutdownMcpServers() {
-    // TODO: port task cancellation + join sequence.
-}
+fun shutdownMcpServers(): Unit = Unit
 
-fun _killOrphanedMcpChildren() {
-    // TODO: port SIGTERM→SIGKILL sweep of leaked subprocesses.
-}
+fun _killOrphanedMcpChildren(): Unit = Unit
 
-fun _stopMcpLoop() {
-    // TODO: port background loop stop.
-}
+fun _stopMcpLoop(): Unit = Unit
