@@ -614,11 +614,31 @@ fun _processSinglePrompt(
 fun _processBatchWorker(args: List<Any?>): Map<String, Any?> = emptyMap()
 
 /** CLI main — Android keeps the symbol only so Python alignment matches. */
+@Suppress("UNUSED_PARAMETER")
 fun main(
-    datasetFile: String = "",
-    batchSize: Int = 1,
-    runName: String = "run",
-    numWorkers: Int = 1
+    datasetFile: String? = null,
+    batchSize: Int? = null,
+    runName: String? = null,
+    distribution: String = "default",
+    model: String = "anthropic/claude-sonnet-4.6",
+    apiKey: String? = null,
+    baseUrl: String = "https://openrouter.ai/api/v1",
+    maxTurns: Int = 10,
+    numWorkers: Int = 4,
+    resume: Boolean = false,
+    verbose: Boolean = false,
+    listDistributions: Boolean = false,
+    ephemeralSystemPrompt: String? = null,
+    logPrefixChars: Int = 100,
+    providersAllowed: String? = null,
+    providersIgnored: String? = null,
+    providersOrder: String? = null,
+    providerSort: String? = null,
+    maxTokens: Int? = null,
+    reasoningEffort: String? = null,
+    reasoningDisabled: Boolean = false,
+    prefillMessagesFile: String? = null,
+    maxSamples: Int? = null,
 ) {
     batchRunnerLogger.info("batch_runner.main: Android stub — use BatchRunner class directly")
 }

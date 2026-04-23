@@ -73,7 +73,13 @@ abstract class BaseModalExecutionEnvironment(
     /**
      * Execute a command in the Modal sandbox with polling for completion.
      */
-    fun execute(command: String, cwd: String = ""): Map<String, Any?> {
+    @Suppress("UNUSED_PARAMETER")
+    fun execute(
+        command: String,
+        cwd: String = "",
+        timeout: Int? = null,
+        stdinData: String? = null,
+    ): Map<String, Any?> {
         _beforeExecute()
         val prepared = _prepareModalExec(command, cwd)
 

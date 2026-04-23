@@ -839,7 +839,8 @@ class QQAdapter(
         }
     }
 
-    suspend fun _sttVoiceAttachment(url: String, contentType: String, filename: String, asrReferText: String? = null): String? {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _sttVoiceAttachment(url: String, contentType: String, filename: String, asrReferText: String? = null, voiceWavUrl: String? = null): String? {
         // 1. Use QQ's built-in ASR text if available
         if (!asrReferText.isNullOrEmpty()) {
             Log.d(_TAG, "[${_logTag()}] STT: using QQ asr_refer_text")

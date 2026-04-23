@@ -123,7 +123,9 @@ fun checkAuxiliaryModel(): Boolean = false
 suspend fun processContentWithLlm(
     content: String,
     url: String = "",
+    title: String = "",
     model: String? = null,
+    minLength: Int = 0,
 ): String = content
 
 /** Drive one call to the auxiliary summarizer LLM. Android stub. */
@@ -141,8 +143,10 @@ private suspend fun _callSummarizerLlm(
 @Suppress("UNUSED_PARAMETER")
 private suspend fun _processLargeContentChunked(
     content: String,
-    chunkSize: Int = 4000,
+    contextStr: String = "",
     model: String? = null,
+    chunkSize: Int = 4000,
+    maxOutputSize: Int = 20000,
 ): String = content
 
 /** Fan-out extract across multiple urls. Android stub. */

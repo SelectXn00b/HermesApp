@@ -87,12 +87,22 @@ fun _buildChildProgressCallback(
     taskCount: Int = 1,
 ): ((String) -> Unit)? = null
 
+@Suppress("UNUSED_PARAMETER")
 fun _buildChildAgent(
+    taskIndex: Int = 0,
     goal: String,
-    toolsets: List<String> = DEFAULT_TOOLSETS,
-    parentAgent: Any? = null,
+    context: String? = null,
+    toolsets: List<String>? = DEFAULT_TOOLSETS,
     model: String? = null,
     maxIterations: Int = DEFAULT_MAX_ITERATIONS,
+    taskCount: Int = 1,
+    parentAgent: Any? = null,
+    overrideProvider: String? = null,
+    overrideBaseUrl: String? = null,
+    overrideApiKey: String? = null,
+    overrideApiMode: String? = null,
+    overrideAcpCommand: String? = null,
+    overrideAcpArgs: List<String>? = null,
 ): Any? = null
 
 fun _runSingleChild(
@@ -109,12 +119,18 @@ fun _runSingleChild(
     )
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun delegateTask(
-    task: String,
+    goal: String? = null,
     context: String? = null,
-    model: String? = null,
+    toolsets: List<String>? = null,
+    tasks: List<Map<String, Any?>>? = null,
+    maxIterations: Int? = null,
+    acpCommand: String? = null,
+    acpArgs: List<String>? = null,
+    parentAgent: Any? = null,
 ): String {
-    if (task.isBlank()) {
+    if (goal.isNullOrBlank()) {
         return _gson.toJson(mapOf("error" to "Task description is required"))
     }
     return _gson.toJson(mapOf("error" to "Delegate tool is not available on Android"))

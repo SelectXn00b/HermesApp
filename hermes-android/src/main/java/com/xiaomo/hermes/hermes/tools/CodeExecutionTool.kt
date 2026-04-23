@@ -117,11 +117,14 @@ fun executeCode(
 
 // ── RPC helpers (Android: no-ops / fallbacks) ───────────────────────────
 
+@Suppress("UNUSED_PARAMETER")
 fun _rpcServerLoop(
-    socketPath: String? = null,
-    enabledTools: List<String>? = null,
+    serverSock: Any? = null,
     taskId: String = "default",
-    maxCalls: Int = DEFAULT_MAX_TOOL_CALLS,
+    toolCallLog: MutableList<Any?>? = null,
+    toolCallCounter: MutableList<Int>? = null,
+    maxToolCalls: Int = DEFAULT_MAX_TOOL_CALLS,
+    allowedTools: Set<String>? = null,
 ): Nothing = throw UnsupportedOperationException(
     "code_execution RPC server is not available on Android"
 )
@@ -136,11 +139,16 @@ fun _envTempDir(env: Any?): String {
     return System.getProperty("java.io.tmpdir") ?: "/tmp"
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun _rpcPollLoop(
+    env: Any? = null,
     rpcDir: String,
-    enabledTools: List<String>? = null,
     taskId: String = "default",
-    maxCalls: Int = DEFAULT_MAX_TOOL_CALLS,
+    toolCallLog: MutableList<Any?>? = null,
+    toolCallCounter: MutableList<Int>? = null,
+    maxToolCalls: Int = DEFAULT_MAX_TOOL_CALLS,
+    allowedTools: Set<String>? = null,
+    stopEvent: Any? = null,
 ): Nothing = throw UnsupportedOperationException(
     "code_execution RPC poll loop is not available on Android"
 )

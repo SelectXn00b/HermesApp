@@ -121,8 +121,14 @@ class ManagedModalEnvironment(
      * On Android, this would use OkHttp but is a stub since Modal
      * operations are server-side.
      */
-    fun _request(method: String, path: String): Any? {
-        // Server-side operation - would use OkHttp in a real implementation
+    @Suppress("UNUSED_PARAMETER")
+    fun _request(
+        method: String,
+        path: String,
+        json: Map<String, Any?>? = null,
+        timeout: Int = 30,
+        extraHeaders: Map<String, String>? = null,
+    ): Any? {
         Log.d(_TAG, "request: $method $path (server-side)")
         return null
     }

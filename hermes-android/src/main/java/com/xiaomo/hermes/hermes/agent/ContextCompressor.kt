@@ -66,43 +66,21 @@ class ContextCompressor(
         return estimatedTokens > (contextLength * threshold).toInt()
     }
 
-    /**
-     * 压缩消息列表
-     *
-     * @param messages 原始消息列表
-     * @param contextLength 模型的 context length
-     * @param systemPrompt system prompt
-     * @param tools 工具定义
-     * @return 压缩结果
-     */
+    /** Compact the message list and return the new message list. */
+    @Suppress("UNUSED_PARAMETER")
     fun compress(
         messages: List<Map<String, Any>>,
-        contextLength: Int,
-        systemPrompt: String = "",
-        tools: List<Map<String, Any>> = emptyList()
-    ): CompressionResult {
-        val tokensBefore = estimateRequestTokensRough(messages, systemPrompt, tools)
+        currentTokens: Int? = null,
+        focusTopic: String? = null,
+    ): List<Map<String, Any>> {
         val targetTokens = (contextLength * config.targetUtilization).toInt()
-
-        val result = when (config.strategy) {
-            CompressionStrategy.TRUNCATE_OLDEST -> truncateOldest(messages, targetTokens, systemPrompt, tools)
-            CompressionStrategy.DROP_TOOL_RESULTS -> dropOldToolResults(messages, targetTokens, systemPrompt, tools)
-            CompressionStrategy.KEEP_RECENT -> keepRecent(messages, targetTokens, systemPrompt, tools)
-            CompressionStrategy.ADAPTIVE -> adaptiveCompress(messages, targetTokens, systemPrompt, tools)
-            CompressionStrategy.SUMMARIZE -> truncateOldest(messages, targetTokens, systemPrompt, tools) // 简化版
+        return when (config.strategy) {
+            CompressionStrategy.TRUNCATE_OLDEST -> truncateOldest(messages, targetTokens, "", emptyList())
+            CompressionStrategy.DROP_TOOL_RESULTS -> dropOldToolResults(messages, targetTokens, "", emptyList())
+            CompressionStrategy.KEEP_RECENT -> keepRecent(messages, targetTokens, "", emptyList())
+            CompressionStrategy.ADAPTIVE -> adaptiveCompress(messages, targetTokens, "", emptyList())
+            CompressionStrategy.SUMMARIZE -> truncateOldest(messages, targetTokens, "", emptyList())
         }
-
-        val tokensAfter = estimateRequestTokensRough(result, systemPrompt, tools)
-
-        return CompressionResult(
-            compressedMessages = result,
-            originalCount = messages.size,
-            compressedCount = result.size,
-            removedCount = messages.size - result.size,
-            estimatedTokensBefore = tokensBefore,
-            estimatedTokensAfter = tokensAfter,
-            strategy = config.strategy.name
-        )
     }
 
     /**

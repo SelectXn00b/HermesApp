@@ -372,13 +372,17 @@ fun buildLocalCommentPrompt(
     return lines.joinToString("\n")
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun buildWholeCommentPrompt(
     docTitle: String,
     docUrl: String,
     fileToken: String,
     fileType: String,
+    commentText: String = "",
     timeline: List<Triple<String, String, Boolean>>,
     selfOpenId: String,
+    currentIndex: Int = -1,
+    nearestSelfIndex: Int = -1,
     referencedDocs: String = ""
 ): String {
     val selected = _selectWholeTimeline(timeline)

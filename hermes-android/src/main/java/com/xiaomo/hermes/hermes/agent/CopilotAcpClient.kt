@@ -16,7 +16,14 @@ import java.util.concurrent.TimeUnit
 
 class _ACPChatCompletions(private val _client: CopilotACPClient) {
     fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
-        return _client._createChatCompletion(kwargs)
+        @Suppress("UNCHECKED_CAST")
+        return _client._createChatCompletion(
+            model = kwargs["model"] as? String,
+            messages = kwargs["messages"] as? List<Map<String, Any?>>,
+            timeout = kwargs["timeout"],
+            tools = kwargs["tools"] as? List<Map<String, Any?>>,
+            toolChoice = kwargs["tool_choice"],
+        )
     }
 }
 
@@ -64,17 +71,16 @@ class CopilotACPClient(
         }
     }
 
-    fun _createChatCompletion(kwargs: Map<String, Any?>): Any {
-        @Suppress("UNCHECKED_CAST")
-        val model = kwargs["model"] as? String
-        @Suppress("UNCHECKED_CAST")
-        val messages = (kwargs["messages"] as? List<Map<String, Any?>>) ?: emptyList()
-        val timeout = kwargs["timeout"]
-        @Suppress("UNCHECKED_CAST")
-        val tools = kwargs["tools"] as? List<Map<String, Any?>>
-        val toolChoice = kwargs["tool_choice"]
+    fun _createChatCompletion(
+        model: String? = null,
+        messages: List<Map<String, Any?>>? = null,
+        timeout: Any? = null,
+        tools: List<Map<String, Any?>>? = null,
+        toolChoice: Any? = null,
+    ): Any {
+        val effectiveMessages = messages ?: emptyList()
 
-        val promptText = _formatMessagesAsPrompt(messages, model, tools, toolChoice)
+        val promptText = _formatMessagesAsPrompt(effectiveMessages, model, tools, toolChoice)
 
         // Normalise timeout: run_agent.py may pass an httpx.Timeout-style object.
         val effectiveTimeout: Double = when (timeout) {
