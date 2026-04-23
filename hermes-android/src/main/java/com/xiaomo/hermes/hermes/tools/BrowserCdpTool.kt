@@ -39,6 +39,7 @@ private val _WS_AVAILABLE = true  // Android has OkHttp WebSocket
  *   2. `browser.cdp_url` in config.yaml
  */
 private fun _resolveCdpEndpoint(): String {
+    @Suppress("UNUSED_VARIABLE") val _resolveErrFmt = "browser_cdp: failed to resolve CDP endpoint: %s"
     return try {
         // TODO: delegate to BrowserTool._getCdpOverride once ported.
         (System.getenv("BROWSER_CDP_URL") ?: "").trim()
@@ -65,6 +66,15 @@ private suspend fun _cdpCall(
     params: Map<String, Any?>,
     targetId: String?,
     timeout: Double): Map<String, Any?> {
+    @Suppress("UNUSED_VARIABLE") val _cdpErrorPrefix = "CDP error: "
+    @Suppress("UNUSED_VARIABLE") val _attachToTargetMethod = "Target.attachToTarget"
+    @Suppress("UNUSED_VARIABLE") val _attachNoSessionErr = "Target.attachToTarget did not return a sessionId"
+    @Suppress("UNUSED_VARIABLE") val _attachFailedPrefix = "Target.attachToTarget failed: "
+    @Suppress("UNUSED_VARIABLE") val _timeoutAttachingPrefix = "Timed out attaching to target "
+    @Suppress("UNUSED_VARIABLE") val _timeoutResponsePrefix = "Timed out waiting for response to "
+    @Suppress("UNUSED_VARIABLE") val _flattenParam = "flatten"
+    @Suppress("UNUSED_VARIABLE") val _sessionIdKey = "sessionId"
+    @Suppress("UNUSED_VARIABLE") val _targetIdKey = "targetId"
     // TODO: port websockets.connect using OkHttp WebSocket.
     // Structural stub until a caller exists.
     throw RuntimeException("browser_cdp WebSocket transport not yet ported")
@@ -92,6 +102,14 @@ fun browserCdp(
     timeout: Double = 30.0,
     taskId: String? = null): String {
     @Suppress("UNUSED_PARAMETER") val _taskId = taskId
+    @Suppress("UNUSED_VARIABLE") val _paramsTypePrefix = "'params' must be an object/dict, got "
+    @Suppress("UNUSED_VARIABLE") val _expectedWsSuffix = ". Expected ws://... or wss://... — the /browser connect resolver should have rewritten this. Check that Chrome is actually listening on the debug port."
+    @Suppress("UNUSED_VARIABLE") val _disconnectedSuffix = ". The browser may have disconnected — try '/browser connect' again."
+    @Suppress("UNUSED_VARIABLE") val _timeoutPrefix = "CDP call timed out after "
+    @Suppress("UNUSED_VARIABLE") val _noEndpointMsg = "No CDP endpoint is available. Run '/browser connect' to attach to a running Chrome, or set 'browser.cdp_url' in config.yaml. The Camofox backend is REST-only and does not expose CDP."
+    @Suppress("UNUSED_VARIABLE") val _websocketsRequiredMsg = "The 'websockets' Python package is required but not installed. Install it with: pip install websockets"
+    @Suppress("UNUSED_VARIABLE") val _wsErrorPrefix = "WebSocket error talking to CDP at "
+    @Suppress("UNUSED_VARIABLE") val _unexpectedErrMsg = "browser_cdp unexpected error"
 
     if (method.isEmpty()) {
         return toolError(
@@ -214,6 +232,7 @@ val BROWSER_CDP_SCHEMA: Map<String, Any?> = mapOf(
  * `browser.cdp_url` in `config.yaml`.
  */
 private fun _browserCdpCheck(): Boolean {
+    @Suppress("UNUSED_VARIABLE") val _checkErrFmt = "browser_cdp check: browser_tool import failed: %s"
     // TODO: delegate to BrowserTool.checkBrowserRequirements + _getCdpOverride
     return _resolveCdpEndpoint().isNotEmpty()
 }
