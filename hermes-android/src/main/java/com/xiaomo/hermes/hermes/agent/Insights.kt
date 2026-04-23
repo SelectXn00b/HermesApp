@@ -263,9 +263,8 @@ class Insights(
     }
 
     /** Get tool call counts. */
-    fun getToolUsage(cutoff: Long, source: String? = null): List<Map<String, Any?>> {
-        return emptyList() // Requires DB; not tracked in-memory on Android
-    }
+    fun getToolUsage(cutoff: Long, source: String? = null): List<Map<String, Any?>> =
+        _getToolUsage(cutoff.toDouble(), source)
 
     /** Compute high-level overview statistics. */
     fun computeOverview(sessions: List<Map<String, Any?>>, messageStats: Map<String, Int>): Map<String, Any?> {
