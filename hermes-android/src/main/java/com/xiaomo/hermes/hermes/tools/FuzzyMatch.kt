@@ -493,3 +493,9 @@ fun formatNoMatchHint(
     if (hint.isEmpty()) return ""
     return "\n\nDid you mean one of these sections?\n" + hint
 }
+
+@Suppress("unused")
+private val _NO_MATCH_HINT_HEADER: String = """
+
+Did you mean one of these sections?
+"""
