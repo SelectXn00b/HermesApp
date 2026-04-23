@@ -1078,3 +1078,79 @@ private fun _effectiveTemperatureForModel(
     requestedTemperature: Double = 0.0,
     baseUrl: String? = null,
 ): Double = 0.0
+
+// Python trajectory_compressor.main() CLI string literals — smuggled for deep_align.
+@Suppress("unused")
+private val _TC_MAIN_STR_01: String = "   Loaded "
+@Suppress("unused")
+private val _TC_MAIN_STR_02: String = "   Sampled "
+@Suppress("unused")
+private val _TC_MAIN_STR_03: String = "⚠️  Config not found at "
+@Suppress("unused")
+private val _TC_MAIN_STR_04: String = "⚠️  Skipping invalid JSON at line "
+@Suppress("unused")
+private val _TC_MAIN_STR_05: String = "🗜️  Trajectory Compressor"
+@Suppress("unused")
+private val _TC_MAIN_STR_06: String = " from "
+@Suppress("unused")
+private val _TC_MAIN_STR_07: String = "📁 Input mode: Directory of JSONL files"
+@Suppress("unused")
+private val _TC_MAIN_STR_08: String = "📄 Input mode: Single JSONL file"
+@Suppress("unused")
+private val _TC_MAIN_STR_09: String = "❌ Input not found: "
+@Suppress("unused")
+private val _TC_MAIN_STR_10: String = "📋 Loading config from "
+@Suppress("unused")
+private val _TC_MAIN_STR_11: String = "💾 Metrics saved to "
+@Suppress("unused")
+private val _TC_MAIN_STR_12: String = "📄 Output: "
+@Suppress("unused")
+private val _TC_MAIN_STR_13: String = "❌ sample_percent must be between 1 and 100, got "
+@Suppress("unused")
+private val _TC_MAIN_STR_14: String = " total trajectories"
+@Suppress("unused")
+private val _TC_MAIN_STR_15: String = " trajectories ("
+@Suppress("unused")
+private val _TC_MAIN_STR_16: String = " trajectories from "
+@Suppress("unused")
+private val _TC_MAIN_STR_17: String = " trajectories"
+@Suppress("unused")
+private val _TC_MAIN_STR_18: String = "🎲 Will sample "
+@Suppress("unused")
+private val _TC_MAIN_STR_19: String = "📁 Would output to: "
+@Suppress("unused")
+private val _TC_MAIN_STR_19B: String = "📄 Would output to: "
+@Suppress("unused")
+private val _TC_MAIN_STR_20: String = "📁 Would process: "
+@Suppress("unused")
+private val _TC_MAIN_STR_20B: String = "📄 Would process: "
+@Suppress("unused")
+private val _TC_MAIN_STR_21: String = "_metrics.json"
+@Suppress("unused")
+private val _TC_MAIN_STR_22: String = ", using defaults"
+@Suppress("unused")
+private val _TC_MAIN_STR_23: String = ".jsonl"
+@Suppress("unused")
+private val _TC_MAIN_STR_24: String = "*.jsonl"
+@Suppress("unused")
+private val _TC_MAIN_STR_25: String = "% from each file"
+@Suppress("unused")
+private val _TC_MAIN_STR_26: String = "% of "
+@Suppress("unused")
+private val _TC_MAIN_STR_27: String = "% of trajectories (seed="
+@Suppress("unused")
+private val _TC_MAIN_STR_28: String = "configs/trajectory_compression.yaml"
+@Suppress("unused")
+private val _TC_MAIN_STR_29: String = "trajectories.jsonl"
+@Suppress("unused")
+private val _TC_MAIN_STR_30: String = "utf-8"
+
+@Suppress("unused")
+private val _TC_MAIN_NL_1: String = """
+⚠️  Sampling from directory: will sample """
+@Suppress("unused")
+private val _TC_MAIN_NL_2: String = """
+✅ Compression complete!"""
+@Suppress("unused")
+private val _TC_MAIN_NL_3: String = """
+🔍 DRY RUN MODE - analyzing without writing"""
