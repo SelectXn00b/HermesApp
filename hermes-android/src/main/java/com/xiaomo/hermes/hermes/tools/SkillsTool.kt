@@ -103,13 +103,12 @@ fun _normalizePrerequisiteValues(value: Any?): List<String> {
 
 fun _collectPrerequisiteValues(
     frontmatter: Map<String, Any?>,
-    keys: List<String>,
-): List<String> {
-    val out = linkedSetOf<String>()
-    for (key in keys) {
-        out.addAll(_normalizePrerequisiteValues(frontmatter[key]))
-    }
-    return out.toList()
+): Pair<List<String>, List<String>> {
+    val prereqs = frontmatter["prerequisites"] as? Map<*, *> ?: return emptyList<String>() to emptyList()
+    return Pair(
+        _normalizePrerequisiteValues(prereqs["env_vars"]),
+        _normalizePrerequisiteValues(prereqs["commands"]),
+    )
 }
 
 fun _normalizeSetupMetadata(frontmatter: Map<String, Any?>): Map<String, Any?> {

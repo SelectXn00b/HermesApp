@@ -137,5 +137,4 @@ private suspend fun _processLargeContentChunked(
 @Suppress("UNUSED_PARAMETER")
 private suspend fun _parallelExtract(
     urls: List<String>,
-    format: String? = null,
 ): List<Map<String, Any?>> = emptyList()

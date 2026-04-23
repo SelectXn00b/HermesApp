@@ -108,8 +108,7 @@ suspend fun camofoxClose(sessionId: String? = null): String =
     toolError("Camofox is not available on Android")
 
 suspend fun camofoxGetImages(
-    sessionId: String? = null,
-    limit: Int = 10
+    taskId: String? = null
 ): String = toolError("Camofox is not available on Android")
 
 suspend fun camofoxVision(

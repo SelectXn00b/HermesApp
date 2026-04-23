@@ -687,10 +687,25 @@ class GeminiCloudCodeClient(
 /**
  * Translate an httpx/HTTP response into a CodeAssistError with rich metadata.
  */
+@Suppress("UNUSED_PARAMETER")
 fun _geminiHttpError(
-    statusCode: Int,
-    bodyText: String,
+    response: Any?,
 ): CodeAssistError {
+    val statusCode: Int = when (response) {
+        is HttpURLConnection -> response.responseCode
+        is Map<*, *> -> (response["statusCode"] as? Int) ?: (response["status_code"] as? Int) ?: 0
+        else -> 0
+    }
+    val bodyText: String = when (response) {
+        is HttpURLConnection -> try {
+            val stream = response.errorStream ?: response.inputStream
+            stream?.bufferedReader()?.use { it.readText() } ?: ""
+        } catch (_: Exception) { "" }
+        is Map<*, *> -> (response["bodyText"] as? String) ?: (response["body_text"] as? String) ?: ""
+        is String -> response
+        else -> ""
+    }
+
     val bodyJson: Map<String, Any> = try {
         val jo = JSONObject(bodyText)
         jsonObjectToMap(jo)

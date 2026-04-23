@@ -345,4 +345,4 @@ fun sanitizeContext(content: String): String {
 
 /** Build a per-turn memory-context block injected into the system prompt. */
 @Suppress("UNUSED_PARAMETER")
-fun buildMemoryContextBlock(sessionKey: String, userId: String? = null): String = ""
+fun buildMemoryContextBlock(rawContext: String): String = ""

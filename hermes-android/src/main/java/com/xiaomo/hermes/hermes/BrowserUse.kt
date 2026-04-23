@@ -122,7 +122,7 @@ const val _DEFAULT_MANAGED_PROXY_COUNTRY_CODE: String = "us"
 
 /** Get-or-create a key for a pending browser-use create request. */
 @Suppress("UNUSED_PARAMETER")
-fun _getOrCreatePendingCreateKey(taskId: String, sessionKey: String): String = ""
+fun _getOrCreatePendingCreateKey(taskId: String): String = ""
 
 /** Clear the pending create-key after the request resolves. */
 @Suppress("UNUSED_PARAMETER")

@@ -1763,7 +1763,12 @@ fun _resolveRuntimeAgentKwargs(
 }
 
 /** Build a media placeholder string for a non-text attachment. */
-fun _buildMediaPlaceholder(mediaType: String, url: String = ""): String {
+fun _buildMediaPlaceholder(event: Any?): String {
+    val mediaType = when (event) {
+        is Map<*, *> -> (event["type"] ?: event["media_type"])?.toString() ?: ""
+        is String -> event
+        else -> ""
+    }
     val label = when (mediaType.lowercase()) {
         "image", "photo" -> "Image"
         "audio", "voice" -> "Voice"
@@ -1772,7 +1777,7 @@ fun _buildMediaPlaceholder(mediaType: String, url: String = ""): String {
         "sticker" -> "Sticker"
         else -> mediaType.ifEmpty { "Media" }
     }
-    return if (url.isNotEmpty()) "[$label: $url]" else "[$label]"
+    return "[$label]"
 }
 
 /** Pop the next pending event for a session, or null. */
@@ -1788,16 +1793,32 @@ fun _isControlInterruptMessage(reason: String?): Boolean {
 }
 
 /** Check whether a skill is unavailable on the current platform/runtime. */
-fun _checkUnavailableSkill(skillId: String?, unavailable: Set<String>?): Boolean {
-    if (skillId.isNullOrBlank()) return false
-    val set = unavailable ?: return false
-    return skillId in set
+fun _checkUnavailableSkill(commandName: String?): String? {
+    if (commandName.isNullOrBlank()) return null
+    val normalized = commandName.lowercase().replace("_", "-")
+    return try {
+        val disabled = com.xiaomo.hermes.hermes.tools._getDisabledSkillNames()
+        for (skillsDir in com.xiaomo.hermes.hermes.agent.getAllSkillsDirs()) {
+            if (!skillsDir.exists()) continue
+            skillsDir.walkTopDown()
+                .filter { it.name == "SKILL.md" && it.isFile }
+                .filterNot { f -> f.path.split(File.separatorChar).any { it in setOf(".git", ".github", ".hub") } }
+                .forEach { skillMd ->
+                    val name = skillMd.parentFile?.name?.lowercase()?.replace("_", "-") ?: return@forEach
+                    if (name == normalized && name in disabled) {
+                        return "The **$commandName** skill is installed but disabled.\n" +
+                                "Enable it with: `hermes skills config`"
+                    }
+                }
+        }
+        null
+    } catch (_: Exception) {
+        null
+    }
 }
 
 /** Build a deterministic config key from a platform descriptor. */
-fun _platformConfigKey(platform: String, chatId: String? = null): String {
-    return if (chatId.isNullOrBlank()) platform else "$platform:$chatId"
-}
+fun _platformConfigKey(platform: String): String = platform
 
 /** Load gateway YAML/JSON config — Android returns empty map (injected). */
 fun _loadGatewayConfig(): Map<String, Any?> = emptyMap()
