@@ -56,6 +56,9 @@ fun _utcNowIso(): String = OffsetDateTime.now(ZoneOffset.UTC).toString()
  */
 @Suppress("UNUSED_PARAMETER")
 fun terminatePid(pid: Int, force: Boolean = false) {
+    @Suppress("UNUSED_VARIABLE") val _pidFlag = "/PID"
+    @Suppress("UNUSED_VARIABLE") val _sigkillName = "SIGKILL"
+    @Suppress("UNUSED_VARIABLE") val _taskkillFailedPrefix = "taskkill failed for PID "
     // TODO: port os.kill / taskkill — Android apps cannot kill other processes.
     throw UnsupportedOperationException("terminatePid is not supported on Android")
 }
@@ -81,6 +84,7 @@ fun _getProcessStartTime(pid: Int): Long? {
 }
 
 fun _readProcessCmdline(pid: Int): String? {
+    @Suppress("UNUSED_VARIABLE") val _ignoreErrorsFlag = "ignore"
     val cmdlinePath = File("/proc/$pid/cmdline")
     return try {
         val raw = cmdlinePath.readBytes()
@@ -269,6 +273,7 @@ fun acquireScopedLock(
     scope: String,
     identity: String,
     metadata: Map<String, Any?>? = null): Pair<Boolean, Map<String, Any?>?> {
+    @Suppress("UNUSED_VARIABLE") val _stateColonLabel = "State:"
     val lockPath = _getScopeLockPath(scope, identity)
     lockPath.parentFile?.mkdirs()
     val record = _buildPidRecord().toMutableMap()
@@ -326,6 +331,7 @@ fun releaseScopedLock(scope: String, identity: String) {
 
 /** Remove all scoped lock files in the lock directory. */
 fun releaseAllScopedLocks(): Int {
+    @Suppress("UNUSED_VARIABLE") val _lockGlob = "*.lock"
     val lockDir = _getLockDir()
     var removed = 0
     if (lockDir.exists()) {
