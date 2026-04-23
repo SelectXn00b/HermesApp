@@ -78,11 +78,4 @@ class DebugSession(
     companion object {
         private val ISO_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
     }
-
-
-
-    fun active(): Boolean {
-        return false
-    }
-
 }
