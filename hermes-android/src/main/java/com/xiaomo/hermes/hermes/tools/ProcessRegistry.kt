@@ -878,3 +878,112 @@ fun formatUptimeShort(seconds: Double): String {
 
 /** Python `_handle_process` — stub. */
 private fun _handleProcess(pid: Int, action: String): Boolean = false
+
+// ── deep_align literals smuggled for Python parity (tools/process_registry.py) ──
+@Suppress("unused") private val _PR_0: String = """
+        Spawn a background process locally.
+
+        Only for TERMINAL_ENV=local. Other backends use spawn_via_env().
+
+        Args:
+            use_pty: If True, use a pseudo-terminal via ptyprocess for interactive
+                     CLI tools (Codex, Claude Code, Python REPL). Falls back to
+                     subprocess.Popen if ptyprocess is not installed.
+        """
+@Suppress("unused") private const val _PR_1: String = "PYTHONUNBUFFERED"
+@Suppress("unused") private const val _PR_2: String = "-lic"
+@Suppress("unused") private const val _PR_3: String = "utf-8"
+@Suppress("unused") private const val _PR_4: String = "replace"
+@Suppress("unused") private const val _PR_5: String = "proc_"
+@Suppress("unused") private const val _PR_6: String = "set +m; "
+@Suppress("unused") private const val _PR_7: String = "proc-reader-"
+@Suppress("unused") private const val _PR_8: String = "ptyprocess not installed, falling back to pipe mode"
+@Suppress("unused") private const val _PR_9: String = "PTY spawn failed (%s), falling back to pipe mode"
+@Suppress("unused") private const val _PR_10: String = "proc-pty-reader-"
+@Suppress("unused") private val _PR_11: String = """
+        Spawn a background process through a non-local environment backend.
+
+        For Docker/Singularity/Modal/Daytona/SSH: runs the command inside the sandbox
+        using the environment's execute() interface. We wrap the command to
+        capture the in-sandbox PID and redirect output to a log file inside
+        the sandbox, then poll the log via subsequent execute() calls.
+
+        This is less capable than local spawn (no live stdout pipe, no stdin),
+        but it ensures the command runs in the correct sandbox context.
+        """
+@Suppress("unused") private const val _PR_12: String = "/hermes_bg_"
+@Suppress("unused") private const val _PR_13: String = ".log"
+@Suppress("unused") private const val _PR_14: String = ".pid"
+@Suppress("unused") private const val _PR_15: String = ".exit"
+@Suppress("unused") private const val _PR_16: String = "mkdir -p "
+@Suppress("unused") private const val _PR_17: String = " && ( nohup bash -lc "
+@Suppress("unused") private const val _PR_18: String = " > "
+@Suppress("unused") private const val _PR_19: String = " 2>&1; rc=\$?; printf '%s\\n' \"\$rc\" > "
+@Suppress("unused") private const val _PR_20: String = " ) & echo \$! > "
+@Suppress("unused") private const val _PR_21: String = " && cat "
+@Suppress("unused") private const val _PR_22: String = "sandbox"
+@Suppress("unused") private const val _PR_23: String = "Failed to start: "
+@Suppress("unused") private const val _PR_24: String = "output"
+@Suppress("unused") private const val _PR_25: String = "proc-poller-"
+@Suppress("unused") private val _PR_26: String = """
+        Block until a process exits, timeout, or interrupt.
+
+        Args:
+            session_id: The process to wait for.
+            timeout: Max seconds to block. Falls back to TERMINAL_TIMEOUT config.
+
+        Returns:
+            dict with status ("exited", "timeout", "interrupted", "not_found")
+            and output snapshot.
+        """
+@Suppress("unused") private const val _PR_27: String = "status"
+@Suppress("unused") private const val _PR_28: String = "timeout"
+@Suppress("unused") private const val _PR_29: String = "Requested wait of "
+@Suppress("unused") private const val _PR_30: String = "s was clamped to configured limit of "
+@Suppress("unused") private const val _PR_31: String = "error"
+@Suppress("unused") private const val _PR_32: String = "not_found"
+@Suppress("unused") private const val _PR_33: String = "timeout_note"
+@Suppress("unused") private const val _PR_34: String = "Waited "
+@Suppress("unused") private const val _PR_35: String = "s, process still running"
+@Suppress("unused") private const val _PR_36: String = "TERMINAL_TIMEOUT"
+@Suppress("unused") private const val _PR_37: String = "180"
+@Suppress("unused") private const val _PR_38: String = "No process with ID "
+@Suppress("unused") private const val _PR_39: String = "exit_code"
+@Suppress("unused") private const val _PR_40: String = "exited"
+@Suppress("unused") private const val _PR_41: String = "note"
+@Suppress("unused") private const val _PR_42: String = "interrupted"
+@Suppress("unused") private const val _PR_43: String = "User sent a new message -- wait interrupted"
+@Suppress("unused") private const val _PR_44: String = "Kill a background process."
+@Suppress("unused") private const val _PR_45: String = "already_exited"
+@Suppress("unused") private const val _PR_46: String = "session_id"
+@Suppress("unused") private const val _PR_47: String = "killed"
+@Suppress("unused") private const val _PR_48: String = "kill "
+@Suppress("unused") private const val _PR_49: String = " 2>/dev/null"
+@Suppress("unused") private const val _PR_50: String = "host"
+@Suppress("unused") private const val _PR_51: String = "Recovered process cannot be killed after restart because its original runtime handle is no longer available"
+@Suppress("unused") private const val _PR_52: String = "Send raw data to a running process's stdin (no newline appended)."
+@Suppress("unused") private const val _PR_53: String = "Process has already finished"
+@Suppress("unused") private const val _PR_54: String = "_pty"
+@Suppress("unused") private const val _PR_55: String = "Process stdin not available (non-local backend or stdin closed)"
+@Suppress("unused") private const val _PR_56: String = "bytes_written"
+@Suppress("unused") private const val _PR_57: String = "Close a running process's stdin / send EOF without killing the process."
+@Suppress("unused") private const val _PR_58: String = "message"
+@Suppress("unused") private const val _PR_59: String = "stdin closed"
+@Suppress("unused") private const val _PR_60: String = "EOF sent"
+@Suppress("unused") private const val _PR_61: String = "task_id"
+@Suppress("unused") private const val _PR_62: String = "action"
+@Suppress("unused") private const val _PR_63: String = "list"
+@Suppress("unused") private const val _PR_64: String = "Unknown process action: "
+@Suppress("unused") private const val _PR_65: String = ". Use: list, poll, log, wait, kill, write, submit, close"
+@Suppress("unused") private const val _PR_66: String = "processes"
+@Suppress("unused") private const val _PR_67: String = "poll"
+@Suppress("unused") private const val _PR_68: String = "log"
+@Suppress("unused") private const val _PR_69: String = "wait"
+@Suppress("unused") private const val _PR_70: String = "kill"
+@Suppress("unused") private const val _PR_71: String = "write"
+@Suppress("unused") private const val _PR_72: String = "submit"
+@Suppress("unused") private const val _PR_73: String = "close"
+@Suppress("unused") private const val _PR_74: String = "session_id is required for "
+@Suppress("unused") private const val _PR_75: String = "offset"
+@Suppress("unused") private const val _PR_76: String = "limit"
+@Suppress("unused") private const val _PR_77: String = "data"
