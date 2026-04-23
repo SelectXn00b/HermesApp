@@ -131,8 +131,21 @@ private fun _removeHermesPkce(provider: String, removed: Any?): RemovalResult {
 
 /** Delete auth_store.providers[provider]. Returns True if deleted. */
 private fun _clearAuthStoreProvider(provider: String): Boolean {
-    // TODO: port hermes_cli.auth _load_auth_store / _save_auth_store
-    return false
+    val file = CredentialPool.getAuthStoreFile() ?: return false
+    if (!file.exists()) return false
+    return try {
+        val text = file.readText(Charsets.UTF_8)
+        if (text.isBlank()) return false
+        val root = org.json.JSONObject(text)
+        val providers = root.optJSONObject("providers") ?: return false
+        if (!providers.has(provider)) return false
+        providers.remove(provider)
+        file.parentFile?.mkdirs()
+        file.writeText(root.toString(), Charsets.UTF_8)
+        true
+    } catch (e: Exception) {
+        false
+    }
 }
 
 /** Nous OAuth lives in auth.json providers.nous — clear it and suppress. */

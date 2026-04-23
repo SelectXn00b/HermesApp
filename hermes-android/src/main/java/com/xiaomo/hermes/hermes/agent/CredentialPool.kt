@@ -64,6 +64,8 @@ class CredentialPool {
         fun setAuthStoreFile(file: File) {
             authStoreFile = file
         }
+
+        fun getAuthStoreFile(): File? = authStoreFile
     }
 
     // === Simple API key model (backward compat) ===
