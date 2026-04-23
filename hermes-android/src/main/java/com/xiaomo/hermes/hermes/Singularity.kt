@@ -157,8 +157,3 @@ fun _getOrBuildSif(image: String, executable: String = "apptainer"): String {
     return if (sifPath.exists()) sifPath.absolutePath else image
 }
 
-/** Python `_load_snapshots` / `_save_snapshots` — stubs wrapped to avoid package-level collision with Modal.kt. */
-private object _SingularitySnapshots {
-    fun _loadSnapshots(): Map<String, Any?> = emptyMap()
-    fun _saveSnapshots(snapshots: Map<String, Any?>) {}
-}
