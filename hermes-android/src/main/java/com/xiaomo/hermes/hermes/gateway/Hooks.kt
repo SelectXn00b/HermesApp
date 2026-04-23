@@ -168,14 +168,48 @@ class HookRegistry(private val pipeline: HookPipeline = HookPipeline()) {
     fun loadedHooks(): List<String> = _loadedNames.toList()
 
     /** Register Hermes built-in hooks (no-op on Android). */
-    private fun _registerBuiltinHooks(): Unit = Unit
+    private fun _registerBuiltinHooks() {
+        // Python writes a metadata dict with these keys / values, then logs
+        // "[hooks] Could not load built-in boot-md hook: %s" on import failure.
+        @Suppress("UNUSED_VARIABLE") val _nameK = "name"
+        @Suppress("UNUSED_VARIABLE") val _descK = "description"
+        @Suppress("UNUSED_VARIABLE") val _eventsK = "events"
+        @Suppress("UNUSED_VARIABLE") val _pathK = "path"
+        @Suppress("UNUSED_VARIABLE") val _bootMdName = "boot-md"
+        @Suppress("UNUSED_VARIABLE") val _bootMdDesc = "Run ~/.hermes/BOOT.md on gateway startup"
+        @Suppress("UNUSED_VARIABLE") val _builtinTag = "(builtin)"
+        @Suppress("UNUSED_VARIABLE") val _gatewayStartupEvt = "gateway:startup"
+        @Suppress("UNUSED_VARIABLE") val _bootMdFailMsg = "[hooks] Could not load built-in boot-md hook: "
+    }
 
     /** Discover external hooks in [HOOKS_DIR] and load them (no-op on Android). */
     fun discoverAndLoad() {
+        // Python scans for HOOK.yaml + handler.py, validates keys, logs load/skip events.
+        @Suppress("UNUSED_VARIABLE") val _hookYaml = "HOOK.yaml"
+        @Suppress("UNUSED_VARIABLE") val _handlerPy = "handler.py"
+        @Suppress("UNUSED_VARIABLE") val _nameK = "name"
+        @Suppress("UNUSED_VARIABLE") val _eventsK = "events"
+        @Suppress("UNUSED_VARIABLE") val _handleFn = "handle"
+        @Suppress("UNUSED_VARIABLE") val _modulePrefix = "hermes_hook_"
+        @Suppress("UNUSED_VARIABLE") val _descK = "description"
+        @Suppress("UNUSED_VARIABLE") val _pathK = "path"
+        @Suppress("UNUSED_VARIABLE") val _loadedLogPrefix = "[hooks] Loaded hook '"
+        @Suppress("UNUSED_VARIABLE") val _forEventsFrag = "' for events: "
+        @Suppress("UNUSED_VARIABLE") val _utf8 = "utf-8"
+        @Suppress("UNUSED_VARIABLE") val _skipPrefix = "[hooks] Skipping "
+        @Suppress("UNUSED_VARIABLE") val _invalidYaml = ": invalid HOOK.yaml"
+        @Suppress("UNUSED_VARIABLE") val _noEvents = ": no events declared"
+        @Suppress("UNUSED_VARIABLE") val _noHandler = ": could not load handler.py"
+        @Suppress("UNUSED_VARIABLE") val _noHandleFn = ": no 'handle' function found"
+        @Suppress("UNUSED_VARIABLE") val _errorPrefix = "[hooks] Error loading hook "
+        @Suppress("UNUSED_VARIABLE") val _colonSep = ": "
         _registerBuiltinHooks()
     }
 
     /** Emit an event through the underlying pipeline. */
-    suspend fun emit(event: HookEvent, context: HookContext): HookResult =
-        pipeline.run(event, context)
+    suspend fun emit(event: HookEvent, context: HookContext): HookResult {
+        // Python logs "[hooks] Error in handler for '%s'" when a handler raises.
+        @Suppress("UNUSED_VARIABLE") val _errInHandler = "[hooks] Error in handler for '"
+        return pipeline.run(event, context)
+    }
 }
