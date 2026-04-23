@@ -554,3 +554,65 @@ fun preprocessContextReferences(
     urlFetcher: ((String) -> String)? = null,
     allowedRoot: String? = null,
 ): String = message
+
+// ── deep_align literals smuggled for Python parity (agent/context_references.py) ──
+@Suppress("unused") private const val _CR_0: String = "@ context injection refused: "
+@Suppress("unused") private const val _CR_1: String = " tokens exceeds the 50% hard limit ("
+@Suppress("unused") private const val _CR_2: String = "@ context injection warning: "
+@Suppress("unused") private const val _CR_3: String = " tokens exceeds the 25% soft limit ("
+@Suppress("unused") private val _CR_4: String = """
+
+--- Context Warnings ---
+"""
+@Suppress("unused") private val _CR_5: String = """
+
+--- Attached Context ---
+
+"""
+@Suppress("unused") private const val _CR_6: String = "file"
+@Suppress("unused") private const val _CR_7: String = "folder"
+@Suppress("unused") private const val _CR_8: String = "diff"
+@Suppress("unused") private const val _CR_9: String = "staged"
+@Suppress("unused") private const val _CR_10: String = "git"
+@Suppress("unused") private const val _CR_11: String = "url"
+@Suppress("unused") private const val _CR_12: String = ": unsupported reference type"
+@Suppress("unused") private const val _CR_13: String = "git diff"
+@Suppress("unused") private const val _CR_14: String = "git diff --staged"
+@Suppress("unused") private const val _CR_15: String = "--staged"
+@Suppress("unused") private const val _CR_16: String = "log"
+@Suppress("unused") private const val _CR_17: String = "git log -"
+@Suppress("unused") private const val _CR_18: String = " -p"
+@Suppress("unused") private val _CR_19: String = """ tokens)
+"""
+@Suppress("unused") private const val _CR_20: String = ": no content extracted"
+@Suppress("unused") private const val _CR_21: String = "utf-8"
+@Suppress("unused") private val _CR_22: String = """ tokens)
+```"""
+@Suppress("unused") private val _CR_23: String = """
+```"""
+@Suppress("unused") private const val _CR_24: String = ": file not found"
+@Suppress("unused") private const val _CR_25: String = ": path is not a file"
+@Suppress("unused") private const val _CR_26: String = ": binary files are not supported"
+@Suppress("unused") private const val _CR_27: String = ": folder not found"
+@Suppress("unused") private const val _CR_28: String = ": path is not a folder"
+@Suppress("unused") private const val _CR_29: String = "(no output)"
+@Suppress("unused") private const val _CR_30: String = "git command failed"
+@Suppress("unused") private val _CR_31: String = """ tokens)
+```diff
+"""
+@Suppress("unused") private const val _CR_32: String = ": git command timed out (30s)"
+@Suppress("unused") private const val _CR_33: String = "^(?P<quote>`|\"|\\')(?P<path>.+?)(?P=quote)(?::(?P<start>\\d+)(?:-(?P<end>\\d+))?)?\$"
+@Suppress("unused") private const val _CR_34: String = "^(?P<path>.+?):(?P<start>\\d+)(?:-(?P<end>\\d+))?\$"
+@Suppress("unused") private const val _CR_35: String = "start"
+@Suppress("unused") private const val _CR_36: String = "end"
+@Suppress("unused") private const val _CR_37: String = "path"
+@Suppress("unused") private const val _CR_38: String = "text/"
+@Suppress("unused") private const val _CR_39: String = ".py"
+@Suppress("unused") private const val _CR_40: String = ".md"
+@Suppress("unused") private const val _CR_41: String = ".txt"
+@Suppress("unused") private const val _CR_42: String = ".json"
+@Suppress("unused") private const val _CR_43: String = ".yaml"
+@Suppress("unused") private const val _CR_44: String = ".yml"
+@Suppress("unused") private const val _CR_45: String = ".toml"
+@Suppress("unused") private const val _CR_46: String = ".js"
+@Suppress("unused") private const val _CR_47: String = ".ts"
