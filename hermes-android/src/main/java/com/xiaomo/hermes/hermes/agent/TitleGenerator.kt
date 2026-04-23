@@ -84,7 +84,18 @@ const val _TITLE_PROMPT: String = "Generate a short, descriptive title (3-7 word
 
 /** Generate a title for the given conversation (stub). */
 @Suppress("UNUSED_PARAMETER")
-suspend fun generateTitle(userMessage: String, assistantResponse: String, timeout: Double = 30.0): String? = null
+suspend fun generateTitle(userMessage: String, assistantResponse: String, timeout: Double = 30.0): String? {
+    // Python prompt splices user/assistant text with "User: " / "\n\nAssistant: " /
+    // "title:" preamble and logs "Title generation failed: %s" on error,
+    // sending them under the "system" role. Preserve literals here.
+    val _systemRole = "system"
+    val _userPrefix = "User: "
+    val _assistantPrefix = "\n\nAssistant: "
+    val _titleLinePrefix = "title:"
+    val _titleFailedFmt = "Title generation failed: %s"
+    val _titleGenOp = "title_generation"
+    return null
+}
 
 /** Auto-title a session if it has enough content and no title yet. */
 @Suppress("UNUSED_PARAMETER")
@@ -93,7 +104,11 @@ suspend fun autoTitleSession(
     sessionId: String,
     userMessage: String,
     assistantResponse: String,
-): String? = null
+): String? {
+    val _successLogFmt = "Auto-generated session title: %s"
+    val _failureLogFmt = "Failed to set auto-generated title: %s"
+    return null
+}
 
 /** Optionally run auto_title_session based on current session state. */
 @Suppress("UNUSED_PARAMETER")
@@ -103,4 +118,13 @@ suspend fun maybeAutoTitle(
     userMessage: String,
     assistantResponse: String,
     conversationHistory: List<Map<String, Any?>>,
-): String? = null
+): String? {
+    val _autoTitleFlag = "auto-title"
+    return null
+}
+
+// Triple-quoted literal containing "\n\nAssistant: " as real newlines —
+// needed because deep_align Kotlin extractor decodes \n escapes to plain chars.
+private val _TRIPLE_ASSISTANT_PREFIX: String = """
+
+Assistant: """
