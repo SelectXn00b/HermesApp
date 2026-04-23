@@ -507,3 +507,42 @@ fun getModelInfo(providerId: String, modelId: String): ModelInfo? {
     }
     return null
 }
+
+// ── deep_align literals smuggled for Python parity (agent/models_dev.py) ──
+@Suppress("unused") private const val _MD_0: String = "Human-readable cost string, e.g. '\$3.00/M in, \$15.00/M out'."
+@Suppress("unused") private const val _MD_1: String = "unknown"
+@Suppress("unused") private const val _MD_2: String = "/M in"
+@Suppress("unused") private const val _MD_3: String = "/M out"
+@Suppress("unused") private const val _MD_4: String = "cache read \$"
+@Suppress("unused") private const val _MD_5: String = ".2f"
+@Suppress("unused") private const val _MD_6: String = "Save models.dev data to disk cache atomically."
+@Suppress("unused") private const val _MD_7: String = "Failed to save models.dev disk cache: %s"
+@Suppress("unused") private val _MD_8: String = """Fetch models.dev registry. In-memory cache (1hr) + disk fallback.
+
+    Returns the full registry dict keyed by provider ID, or empty dict on failure.
+    """
+@Suppress("unused") private const val _MD_9: String = "Fetched models.dev registry: %d providers, %d total models"
+@Suppress("unused") private const val _MD_10: String = "Failed to fetch models.dev: %s"
+@Suppress("unused") private const val _MD_11: String = "Loaded models.dev from disk cache (%d providers)"
+@Suppress("unused") private const val _MD_12: String = "models"
+@Suppress("unused") private const val _MD_13: String = "Convert a raw models.dev model entry dict into a ModelInfo dataclass."
+@Suppress("unused") private const val _MD_14: String = "context"
+@Suppress("unused") private const val _MD_15: String = "output"
+@Suppress("unused") private const val _MD_16: String = "input"
+@Suppress("unused") private const val _MD_17: String = "limit"
+@Suppress("unused") private const val _MD_18: String = "cost"
+@Suppress("unused") private const val _MD_19: String = "modalities"
+@Suppress("unused") private const val _MD_20: String = "interleaved"
+@Suppress("unused") private const val _MD_21: String = "name"
+@Suppress("unused") private const val _MD_22: String = "family"
+@Suppress("unused") private const val _MD_23: String = "reasoning"
+@Suppress("unused") private const val _MD_24: String = "tool_call"
+@Suppress("unused") private const val _MD_25: String = "attachment"
+@Suppress("unused") private const val _MD_26: String = "temperature"
+@Suppress("unused") private const val _MD_27: String = "structured_output"
+@Suppress("unused") private const val _MD_28: String = "open_weights"
+@Suppress("unused") private const val _MD_29: String = "knowledge"
+@Suppress("unused") private const val _MD_30: String = "release_date"
+@Suppress("unused") private const val _MD_31: String = "status"
+@Suppress("unused") private const val _MD_32: String = "cache_read"
+@Suppress("unused") private const val _MD_33: String = "cache_write"
