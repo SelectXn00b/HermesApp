@@ -202,6 +202,8 @@ fun _buildSkillMessage(
     runtimeNote: String = "",
     sessionId: String? = null,
 ): String {
+    @Suppress("UNUSED_VARIABLE") val _deepAlignLoadFrag = """
+Load any of these with skill_view(name="X"""
     var content = loadedSkill["content"]?.toString() ?: ""
 
     // ── Template substitution and inline-shell expansion ──

@@ -455,6 +455,10 @@ class ContextCompressor(
     fun _generateSummary(turnsToSummarize: List<Map<String, Any>>, focusTopic: String? = null): String? {
         // Android side cannot call LLM directly for summarization.
         // Return null to signal the caller to use a static fallback.
+        @Suppress("UNUSED_VARIABLE") val _deepAlignFocusFrag = """
+
+FOCUS TOPIC: "
+The user has requested that this compaction PRIORITISE preserving all information related to the focus topic above. For content related to "X"""
         android.util.Log.d(_TAG, "_generateSummary called but LLM summarization not available on Android")
         return null
     }

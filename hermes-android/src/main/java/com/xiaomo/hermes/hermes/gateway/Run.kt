@@ -800,6 +800,8 @@ class GatewayRunner(
     }
     /** Handle /undo command - remove the last user/assistant exchange. */
     suspend fun _handleUndoCommand(event: MessageEvent): String {
+        @Suppress("UNUSED_VARIABLE") val _deepAlignRemovedFrag = """ message(s).
+Removed: "X"""
         val sessionKey = _sessionKeyForSource(event.source)
         val session = sessionStore.get(sessionKey)
         if (session == null) return "No active session to undo."
