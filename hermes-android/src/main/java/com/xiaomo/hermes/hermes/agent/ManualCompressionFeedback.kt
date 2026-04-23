@@ -44,11 +44,40 @@ class NoOpCompressionFeedback : ManualCompressionFeedback {
 
 }
 
-/** Python `summarize_manual_compression` — stub. */
-@Suppress("UNUSED_PARAMETER")
+/** Python `summarize_manual_compression` — user-facing feedback for manual compression. */
 fun summarizeManualCompression(
     beforeMessages: List<Map<String, Any?>>,
     afterMessages: List<Map<String, Any?>>,
     beforeTokens: Int,
     afterTokens: Int,
-): String = ""
+): Map<String, Any?> {
+    val beforeCount = beforeMessages.size
+    val afterCount = afterMessages.size
+    val noop = afterMessages == beforeMessages
+
+    val headline: String
+    val tokenLine: String
+    if (noop) {
+        headline = "No changes from compression: %,d messages".format(beforeCount)
+        tokenLine = if (afterTokens == beforeTokens) {
+            "Rough transcript estimate: ~%,d tokens (unchanged)".format(beforeTokens)
+        } else {
+            "Rough transcript estimate: ~%,d → ~%,d tokens".format(beforeTokens, afterTokens)
+        }
+    } else {
+        headline = "Compressed: %,d → %,d messages".format(beforeCount, afterCount)
+        tokenLine = "Rough transcript estimate: ~%,d → ~%,d tokens".format(beforeTokens, afterTokens)
+    }
+
+    var note: String? = null
+    if (!noop && afterCount < beforeCount && afterTokens > beforeTokens) {
+        note = "Note: fewer messages can still raise this rough transcript estimate when compression rewrites the transcript into denser summaries."
+    }
+
+    return mapOf(
+        "noop" to noop,
+        "headline" to headline,
+        "token_line" to tokenLine,
+        "note" to note,
+    )
+}

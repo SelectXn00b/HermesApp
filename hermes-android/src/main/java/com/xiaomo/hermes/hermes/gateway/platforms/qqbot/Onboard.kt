@@ -88,7 +88,7 @@ object Onboard {
                 throw RuntimeException("create_bind_task: missing task_id in response")
             }
 
-            Log.d(_TAG, "create_bind_task ok: task_id=$taskId")
+            Log.d(_TAG, "create_bind_task ok: task_id=%s".format(taskId))
             return BindTaskResult(taskId, key)
         } finally {
             conn.disconnect()

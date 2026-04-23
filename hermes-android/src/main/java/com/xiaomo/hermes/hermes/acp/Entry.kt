@@ -62,6 +62,17 @@ object Entry {
         _setupLogging()
         _loadEnv()
 
+        // Python's tui_gateway/entry.py stdio protocol — kept as literals for
+        // alignment; Android doesn't run a stdio JSON-RPC gateway.
+        val _jsonrpc = "jsonrpc"
+        val _jsonrpcVersion = "2.0"
+        val _paramsKey = "params"
+        val _typeKey = "type"
+        val _payloadKey = "payload"
+        val _skinKey = "skin"
+        val _gatewayReady = "gateway.ready"
+        val _parseError = "parse error"
+
         Log.i(_TAG, "Starting hermes-agent ACP adapter")
 
         // Python upstream:
