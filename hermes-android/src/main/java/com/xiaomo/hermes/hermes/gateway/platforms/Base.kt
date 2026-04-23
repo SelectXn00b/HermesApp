@@ -308,7 +308,7 @@ abstract class BasePlatformAdapter(
      *
      * @param chatId  Target chat/channel id.
      */
-    suspend open fun sendTyping(chatId: String, metadata: JSONObject? = null) {}
+    suspend open fun sendTyping(chatId: String, metadata: JSONObject? = null): Unit = Unit
 
     /**
      * Edit a previously sent message.
