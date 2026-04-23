@@ -104,13 +104,13 @@ object Permissions {
                             }
                         }
                     } else {
-                        Log.w(_TAG, "Permission request timed out")
+                        Log.w(_TAG, "Permission request timed out or failed: %s".format("timeout"))
                     }
                 }
                 // Note: In a real implementation, we'd need to block here to
                 // return the result synchronously. This is a structural placeholder.
             } catch (e: Exception) {
-                Log.w(_TAG, "Permission request failed: ${e.message}")
+                Log.w(_TAG, "Permission request timed out or failed: %s".format(e.message ?: e.toString()))
                 result = "deny"
             }
 

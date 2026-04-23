@@ -94,7 +94,7 @@ object Events {
                         // Android: placeholder — edit snapshot not yet implemented
                         snapshot = null
                     } catch (e: Exception) {
-                        Log.d(_TAG, "Failed to capture ACP edit snapshot for $name: ${e.message}")
+                        Log.d(_TAG, "Failed to capture ACP edit snapshot for %s".format(name), e)
                     }
                 }
                 toolCallMeta[tcId] = mutableMapOf("args" to parsedArgs, "snapshot" to snapshot)

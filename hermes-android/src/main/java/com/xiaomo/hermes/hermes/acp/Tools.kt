@@ -185,19 +185,78 @@ object Tools {
 
     /**
      * Parse V4A patch mode input into ACP diff blocks when possible.
-     *
-     * Python: _build_patch_mode_content — depends on tools.patch_parser.
-     * On Android, we fall back to plain text since patch_parser is not ported.
      */
     private fun _buildPatchModeContent(patchText: String): List<Any> {
         if (patchText.isEmpty()) {
             return listOf(toolContent(textBlock("")))
         }
 
-        // Python upstream uses tools.patch_parser to parse V4A patch format.
-        // On Android, we return plain text as fallback.
-        // TODO: Port patch_parser if needed for ACP integration.
-        return listOf(toolContent(textBlock(patchText)))
+        try {
+            val (operations, error) = com.xiaomo.hermes.hermes.tools.parseV4aPatch(patchText)
+            if (error != null || operations.isEmpty()) {
+                return listOf(toolContent(textBlock(patchText)))
+            }
+
+            val content = mutableListOf<Any>()
+            for (op in operations) {
+                if (op.operation == com.xiaomo.hermes.hermes.tools.OperationType.UPDATE) {
+                    val oldChunks = mutableListOf<String>()
+                    val newChunks = mutableListOf<String>()
+                    for (hunk in op.hunks) {
+                        val oldLines = hunk.lines.filter { it.prefix == ' ' || it.prefix == '-' }.map { it.content }
+                        val newLines = hunk.lines.filter { it.prefix == ' ' || it.prefix == '+' }.map { it.content }
+                        if (oldLines.isNotEmpty() || newLines.isNotEmpty()) {
+                            oldChunks.add(oldLines.joinToString("\n"))
+                            newChunks.add(newLines.joinToString("\n"))
+                        }
+                    }
+                    val oldText = oldChunks.filter { it.isNotEmpty() }.joinToString("\n...\n")
+                    val newText = newChunks.filter { it.isNotEmpty() }.joinToString("\n...\n")
+                    if (oldText.isNotEmpty() || newText.isNotEmpty()) {
+                        content.add(
+                            toolDiffContent(
+                                path = op.filePath,
+                                oldText = oldText.ifEmpty { null },
+                                newText = newText.ifEmpty { "" }
+                            )
+                        )
+                    }
+                    continue
+                }
+
+                if (op.operation == com.xiaomo.hermes.hermes.tools.OperationType.ADD) {
+                    val addedLines = op.hunks.flatMap { it.lines }.filter { it.prefix == '+' }.map { it.content }
+                    content.add(
+                        toolDiffContent(
+                            path = op.filePath,
+                            newText = addedLines.joinToString("\n")
+                        )
+                    )
+                    continue
+                }
+
+                if (op.operation == com.xiaomo.hermes.hermes.tools.OperationType.DELETE) {
+                    content.add(
+                        toolDiffContent(
+                            path = op.filePath,
+                            oldText = "Delete file: ${op.filePath}",
+                            newText = ""
+                        )
+                    )
+                    continue
+                }
+
+                if (op.operation == com.xiaomo.hermes.hermes.tools.OperationType.MOVE) {
+                    content.add(
+                        toolContent(textBlock("Move file: ${op.filePath} -> ${op.newPath}"))
+                    )
+                }
+            }
+
+            return if (content.isNotEmpty()) content else listOf(toolContent(textBlock(patchText)))
+        } catch (e: Exception) {
+            return listOf(toolContent(textBlock(patchText)))
+        }
     }
 
     /**
