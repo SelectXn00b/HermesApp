@@ -1,160 +1,18 @@
 package com.xiaomo.hermes.hermes.agent
 
 /**
- * Copilot ACP Client - Copilot ACP 客户端（简化版）
- * 1:1 对齐 hermes/agent/copilot_acp_client.py（大幅简化）
+ * Copilot ACP Client - Copilot ACP 客户端
+ * 1:1 对齐 hermes/agent/copilot_acp_client.py
  *
- * Android 上不需要完整的 Copilot ACP 协议实现。
- * 保留类名、方法名、结构与 Python 一致，具体实现为 stub。
+ * Minimal OpenAI-client-compatible facade for Copilot ACP.
+ * 在 Android 上 copilot 二进制通常不可用；代码路径保持完整，
+ * 运行时若无 binary 会按 Python 一样抛 RuntimeError。
  */
 
-data class CopilotAcpConfig(
-    val apiEndpoint: String = "",
-    val clientId: String = "",
-    val clientSecret: String = "",
-    val scopes: List<String> = emptyList()
-)
-
-data class CopilotAcpResponse(
-    val content: String,
-    val model: String = "",
-    val finishReason: String = "",
-    val usage: Map<String, Int>? = null
-)
-
-/**
- * Copilot ACP 客户端（Android 简化版）
- */
-class CopilotAcpClient(
-    private val config: CopilotAcpConfig = CopilotAcpConfig()
-) {
-
-    private var accessToken: String? = null
-    private var tokenExpiryMs: Long = 0L
-    private var _activeProcess: Process? = null
-    var isClosed: Boolean = false
-
-    /**
-     * 获取访问令牌
-     *
-     * @return 访问令牌
-     */
-    suspend fun getAccessToken(): String? {
-        // Android 简化版：token 由外部提供
-        return accessToken
-    }
-
-    /**
-     * 设置访问令牌
-     *
-     * @param token 访问令牌
-     * @param expiresInMs 过期时间（毫秒）
-     */
-    fun setAccessToken(token: String, expiresInMs: Long = 3600_000L) {
-        accessToken = token
-        tokenExpiryMs = System.currentTimeMillis() + expiresInMs
-    }
-
-    /**
-     * 检查令牌是否有效
-     *
-     * @return 令牌是否有效
-     */
-    fun isTokenValid(): Boolean {
-        return accessToken != null && System.currentTimeMillis() < tokenExpiryMs
-    }
-
-    /**
-     * 发送聊天请求
-     *
-     * @param messages 消息列表
-     * @param model 模型 ID
-     * @return 响应结果
-     */
-    suspend fun chat(
-        messages: List<Map<String, Any>>,
-        model: String = ""
-    ): CopilotAcpResponse {
-        // Android 简化版：实际实现由 app 模块提供
-        return CopilotAcpResponse(
-            content = "",
-            model = model,
-            finishReason = "stub"
-        )
-    }
-
-    /**
-     * 发送流式聊天请求
-     *
-     * @param messages 消息列表
-     * @param model 模型 ID
-     * @param onChunk 接收每个 chunk 的回调
-     */
-    suspend fun chatStream(
-        messages: List<Map<String, Any>>,
-        model: String = "",
-        onChunk: (String) -> Unit
-    ) {
-        // Android 简化版：实际实现由 app 模块提供
-    }
-
-    /**
-     * 列出可用模型
-     *
-     * @return 模型 ID 列表
-     */
-    suspend fun listModels(): List<String> {
-        // Android 简化版：返回空列表
-        return emptyList()
-    }
-
-    /**
-     * 获取当前用户信息
-     *
-     * @return 用户信息 map
-     */
-    suspend fun getUserInfo(): Map<String, Any>? {
-        // Android 简化版：返回 null
-        return null
-    }
-
-    /**
-     * 撤销访问令牌
-     */
-    suspend fun revokeToken() {
-        accessToken = null
-        tokenExpiryMs = 0L
-    }
-
-
-
-    fun create(kwargs: Any): Any {
-        throw NotImplementedError("create")
-    }
-    /** Release resources. Mark client as closed and terminate any active process. */
-    fun close(): Unit {
-        val proc = _activeProcess
-        _activeProcess = null
-        isClosed = true
-        if (proc == null) return
-        try {
-            proc.destroy()
-            if (!proc.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) {
-                proc.destroyForcibly()
-            }
-        } catch (_: Exception) { }
-    }
-    fun _createChatCompletion(_unused: Any): Any {
-        throw NotImplementedError("_createChatCompletion")
-    }
-    fun _runPrompt(promptText: String): Pair<String, String> {
-        throw NotImplementedError("_runPrompt")
-    }
-    fun _handleServerMessage(msg: Map<String, Any>): Boolean {
-        return false
-    }
-
-}
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 class _ACPChatCompletions(private val _client: CopilotACPClient) {
     fun create(kwargs: Map<String, Any?> = emptyMap()): Any? {
@@ -167,42 +25,331 @@ class _ACPChatNamespace(client: CopilotACPClient) {
 }
 
 class CopilotACPClient(
-    val apiKey: String = "copilot-acp",
-    val baseUrl: String = "",
-    private val _defaultHeaders: Map<String, String> = emptyMap(),
-    private val _acpCommand: String = "",
-    private val _acpArgs: List<String> = emptyList(),
-    private val _acpCwd: String = ""
+    apiKey: String? = null,
+    baseUrl: String? = null,
+    defaultHeaders: Map<String, String>? = null,
+    acpCommand: String? = null,
+    acpArgs: List<String>? = null,
+    acpCwd: String? = null,
+    command: String? = null,
+    args: List<String>? = null,
 ) {
+    val apiKey: String = apiKey ?: "copilot-acp"
+    val baseUrl: String = baseUrl ?: ACP_MARKER_BASE_URL
+    private val _defaultHeaders: Map<String, String> = (defaultHeaders ?: emptyMap()).toMap()
+    private val _acpCommand: String = acpCommand ?: command ?: _resolveCommand()
+    private val _acpArgs: List<String> = (acpArgs ?: args ?: _resolveArgs()).toList()
+    private val _acpCwd: String = java.io.File(acpCwd ?: System.getProperty("user.dir") ?: ".").canonicalPath
     val chat = _ACPChatNamespace(this)
     var isClosed: Boolean = false
         private set
     private var _activeProcess: Process? = null
+    private val _activeProcessLock = Any()
 
     fun close() {
-        val proc = _activeProcess
-        _activeProcess = null
+        val proc: Process?
+        synchronized(_activeProcessLock) {
+            proc = _activeProcess
+            _activeProcess = null
+        }
         isClosed = true
         if (proc == null) return
         try {
             proc.destroy()
-            if (!proc.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) {
+            if (!proc.waitFor(2, TimeUnit.SECONDS)) {
                 proc.destroyForcibly()
             }
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+            try { proc.destroyForcibly() } catch (_: Exception) { }
+        }
     }
 
-    fun _createChatCompletion(kwargs: Any): Any? {
-        // Android: ACP subprocess not available; stub only
-        return null
+    fun _createChatCompletion(kwargs: Map<String, Any?>): Any {
+        @Suppress("UNCHECKED_CAST")
+        val model = kwargs["model"] as? String
+        @Suppress("UNCHECKED_CAST")
+        val messages = (kwargs["messages"] as? List<Map<String, Any?>>) ?: emptyList()
+        val timeout = kwargs["timeout"]
+        @Suppress("UNCHECKED_CAST")
+        val tools = kwargs["tools"] as? List<Map<String, Any?>>
+        val toolChoice = kwargs["tool_choice"]
+
+        val promptText = _formatMessagesAsPrompt(messages, model, tools, toolChoice)
+
+        // Normalise timeout: run_agent.py may pass an httpx.Timeout-style object.
+        val effectiveTimeout: Double = when (timeout) {
+            null -> _DEFAULT_TIMEOUT_SECONDS
+            is Int -> timeout.toDouble()
+            is Long -> timeout.toDouble()
+            is Float -> timeout.toDouble()
+            is Double -> timeout
+            is Map<*, *> -> {
+                val numeric = listOf("read", "write", "connect", "pool", "timeout")
+                    .mapNotNull { (timeout[it] as? Number)?.toDouble() }
+                if (numeric.isNotEmpty()) numeric.max() else _DEFAULT_TIMEOUT_SECONDS
+            }
+            else -> _DEFAULT_TIMEOUT_SECONDS
+        }
+
+        val (responseText, reasoningText) = _runPrompt(promptText, effectiveTimeout)
+        val (toolCalls, cleanedText) = _extractToolCallsFromText(responseText)
+
+        val usage = mapOf(
+            "prompt_tokens" to 0,
+            "completion_tokens" to 0,
+            "total_tokens" to 0,
+            "prompt_tokens_details" to mapOf("cached_tokens" to 0),
+        )
+        val assistantMessage = mapOf<String, Any?>(
+            "content" to cleanedText,
+            "tool_calls" to toolCalls,
+            "reasoning" to reasoningText.ifEmpty { null },
+            "reasoning_content" to reasoningText.ifEmpty { null },
+            "reasoning_details" to null,
+        )
+        val finishReason = if (toolCalls.isNotEmpty()) "tool_calls" else "stop"
+        val choice = mapOf(
+            "message" to assistantMessage,
+            "finish_reason" to finishReason,
+        )
+        return mapOf(
+            "choices" to listOf(choice),
+            "usage" to usage,
+            "model" to (model ?: "copilot-acp"),
+        )
     }
 
-    fun _runPrompt(promptText: String): Pair<String, String> {
-        throw NotImplementedError("_runPrompt: ACP not available on Android")
+    fun _runPrompt(
+        promptText: String,
+        timeoutSeconds: Double = _DEFAULT_TIMEOUT_SECONDS,
+    ): Pair<String, String> {
+        val proc: Process = try {
+            ProcessBuilder(listOf(_acpCommand) + _acpArgs)
+                .directory(java.io.File(_acpCwd))
+                .redirectErrorStream(false)
+                .start()
+        } catch (e: java.io.IOException) {
+            throw RuntimeException(
+                "Could not start Copilot ACP command '$_acpCommand'. " +
+                    "Install GitHub Copilot CLI or set HERMES_COPILOT_ACP_COMMAND/COPILOT_CLI_PATH.",
+                e,
+            )
+        }
+
+        val stdin = proc.outputStream ?: run {
+            proc.destroyForcibly()
+            throw RuntimeException("Copilot ACP process did not expose stdin pipe.")
+        }
+        val stdout = proc.inputStream ?: run {
+            proc.destroyForcibly()
+            throw RuntimeException("Copilot ACP process did not expose stdout pipe.")
+        }
+        val stderr = proc.errorStream
+
+        isClosed = false
+        synchronized(_activeProcessLock) { _activeProcess = proc }
+
+        val inbox = LinkedBlockingQueue<Map<String, Any?>>()
+        val stderrTail = ArrayDeque<String>()
+        val stderrTailMax = 40
+
+        val outThread = Thread {
+            BufferedReader(InputStreamReader(stdout)).use { reader ->
+                while (true) {
+                    val line = try { reader.readLine() } catch (_: Exception) { null } ?: return@Thread
+                    val parsed: Map<String, Any?> = try {
+                        @Suppress("UNCHECKED_CAST")
+                        com.xiaomo.hermes.hermes.gson.fromJson(line, Map::class.java) as Map<String, Any?>
+                    } catch (_: Exception) {
+                        mapOf("raw" to line.trimEnd('\n'))
+                    }
+                    inbox.put(parsed)
+                }
+            }
+        }.apply { isDaemon = true }
+
+        val errThread = Thread {
+            BufferedReader(InputStreamReader(stderr)).use { reader ->
+                while (true) {
+                    val line = try { reader.readLine() } catch (_: Exception) { null } ?: return@Thread
+                    synchronized(stderrTail) {
+                        stderrTail.addLast(line.trimEnd('\n'))
+                        while (stderrTail.size > stderrTailMax) stderrTail.removeFirst()
+                    }
+                }
+            }
+        }.apply { isDaemon = true }
+
+        outThread.start()
+        errThread.start()
+
+        var nextId = 0
+
+        fun request(
+            method: String,
+            params: Map<String, Any?>,
+            textParts: MutableList<String>? = null,
+            reasoningParts: MutableList<String>? = null,
+        ): Any? {
+            nextId += 1
+            val requestId = nextId
+            val payload = mapOf(
+                "jsonrpc" to "2.0",
+                "id" to requestId,
+                "method" to method,
+                "params" to params,
+            )
+            stdin.write((com.xiaomo.hermes.hermes.gson.toJson(payload) + "\n").toByteArray(Charsets.UTF_8))
+            stdin.flush()
+
+            val deadlineMs = System.currentTimeMillis() + (timeoutSeconds * 1000).toLong()
+            while (System.currentTimeMillis() < deadlineMs) {
+                if (!proc.isAlive) break
+                val msg = inbox.poll(100, TimeUnit.MILLISECONDS) ?: continue
+                if (_handleServerMessage(msg, proc, _acpCwd, textParts, reasoningParts)) continue
+
+                val msgId = msg["id"]
+                if (msgId != requestId && (msgId as? Number)?.toInt() != requestId) continue
+                if (msg.containsKey("error")) {
+                    @Suppress("UNCHECKED_CAST")
+                    val err = (msg["error"] as? Map<String, Any?>) ?: emptyMap()
+                    throw RuntimeException("Copilot ACP $method failed: ${err["message"] ?: err}")
+                }
+                return msg["result"]
+            }
+
+            val stderrText = synchronized(stderrTail) { stderrTail.joinToString("\n").trim() }
+            if (!proc.isAlive && stderrText.isNotEmpty()) {
+                throw RuntimeException("Copilot ACP process exited early: $stderrText")
+            }
+            throw RuntimeException("Timed out waiting for Copilot ACP response to $method.")
+        }
+
+        try {
+            request(
+                "initialize",
+                mapOf(
+                    "protocolVersion" to 1,
+                    "clientCapabilities" to mapOf(
+                        "fs" to mapOf(
+                            "readTextFile" to true,
+                            "writeTextFile" to true,
+                        ),
+                    ),
+                    "clientInfo" to mapOf(
+                        "name" to "hermes-agent",
+                        "title" to "Hermes Agent",
+                        "version" to "0.0.0",
+                    ),
+                ),
+            )
+            @Suppress("UNCHECKED_CAST")
+            val session = (request(
+                "session/new",
+                mapOf(
+                    "cwd" to _acpCwd,
+                    "mcpServers" to emptyList<Any?>(),
+                ),
+            ) as? Map<String, Any?>) ?: emptyMap()
+            val sessionId = (session["sessionId"] as? String)?.trim().orEmpty()
+            if (sessionId.isEmpty()) {
+                throw RuntimeException("Copilot ACP did not return a sessionId.")
+            }
+
+            val textParts = mutableListOf<String>()
+            val reasoningParts = mutableListOf<String>()
+            request(
+                "session/prompt",
+                mapOf(
+                    "sessionId" to sessionId,
+                    "prompt" to listOf(
+                        mapOf("type" to "text", "text" to promptText),
+                    ),
+                ),
+                textParts = textParts,
+                reasoningParts = reasoningParts,
+            )
+            return textParts.joinToString("") to reasoningParts.joinToString("")
+        } finally {
+            close()
+        }
     }
 
-    fun _handleServerMessage(msg: Map<String, Any>): Boolean {
-        return false
+    fun _handleServerMessage(
+        msg: Map<String, Any?>,
+        process: Process,
+        cwd: String,
+        textParts: MutableList<String>?,
+        reasoningParts: MutableList<String>?,
+    ): Boolean {
+        val method = msg["method"] as? String ?: return false
+
+        if (method == "session/update") {
+            @Suppress("UNCHECKED_CAST")
+            val params = (msg["params"] as? Map<String, Any?>) ?: emptyMap()
+            @Suppress("UNCHECKED_CAST")
+            val update = (params["update"] as? Map<String, Any?>) ?: emptyMap()
+            val kind = (update["sessionUpdate"] as? String)?.trim().orEmpty()
+            @Suppress("UNCHECKED_CAST")
+            val content = (update["content"] as? Map<String, Any?>) ?: emptyMap()
+            val chunkText = (content["text"] as? String).orEmpty()
+            if (kind == "agent_message_chunk" && chunkText.isNotEmpty() && textParts != null) {
+                textParts.add(chunkText)
+            } else if (kind == "agent_thought_chunk" && chunkText.isNotEmpty() && reasoningParts != null) {
+                reasoningParts.add(chunkText)
+            }
+            return true
+        }
+
+        val stdin = process.outputStream ?: return true
+        val messageId = msg["id"]
+        @Suppress("UNCHECKED_CAST")
+        val params = (msg["params"] as? Map<String, Any?>) ?: emptyMap()
+
+        val response: Map<String, Any?> = when (method) {
+            "session/request_permission" -> _permissionDenied(messageId)
+            "fs/read_text_file" -> try {
+                val path = _ensurePathWithinCwd((params["path"] as? String).orEmpty(), cwd)
+                var content = if (path.exists()) path.readText() else ""
+                val line = params["line"] as? Int
+                val limit = params["limit"] as? Int
+                if (line != null && line > 1) {
+                    val allLines = content.split("\n")
+                    val start = line - 1
+                    val end = if (limit != null && limit > 0) start + limit else allLines.size
+                    content = allLines.subList(start.coerceAtMost(allLines.size), end.coerceAtMost(allLines.size))
+                        .joinToString("\n")
+                }
+                mapOf(
+                    "jsonrpc" to "2.0",
+                    "id" to messageId,
+                    "result" to mapOf("content" to content),
+                )
+            } catch (exc: Exception) {
+                _jsonrpcError(messageId, -32602, exc.message ?: exc.toString())
+            }
+            "fs/write_text_file" -> try {
+                val path = _ensurePathWithinCwd((params["path"] as? String).orEmpty(), cwd)
+                path.parentFile?.mkdirs()
+                path.writeText((params["content"] as? String).orEmpty())
+                mapOf(
+                    "jsonrpc" to "2.0",
+                    "id" to messageId,
+                    "result" to null,
+                )
+            } catch (exc: Exception) {
+                _jsonrpcError(messageId, -32602, exc.message ?: exc.toString())
+            }
+            else -> _jsonrpcError(
+                messageId,
+                -32601,
+                "ACP client method '$method' is not supported by Hermes yet.",
+            )
+        }
+
+        stdin.write((com.xiaomo.hermes.hermes.gson.toJson(response) + "\n").toByteArray(Charsets.UTF_8))
+        stdin.flush()
+        return true
     }
 }
 
