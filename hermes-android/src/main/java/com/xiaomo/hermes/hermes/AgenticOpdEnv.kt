@@ -538,7 +538,7 @@ val _HINT_RE: Regex = Regex("\\[HINT_START\\](.*?)\\[HINT_END\\]", RegexOption.D
 
 /** Build the judge message list for hint extraction. */
 @Suppress("UNUSED_PARAMETER")
-fun _buildHintJudgeMessages(trajectory: List<Map<String, Any?>>, rubric: String = ""): List<Map<String, Any?>> = emptyList()
+fun _buildHintJudgeMessages(responseText: String, nextStateText: String, nextStateRole: String = "tool"): List<Map<String, Any?>> = emptyList()
 
 /** Parse the judge's hint-result JSON payload. */
 @Suppress("UNUSED_PARAMETER")

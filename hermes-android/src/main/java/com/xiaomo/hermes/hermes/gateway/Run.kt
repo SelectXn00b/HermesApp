@@ -97,7 +97,7 @@ class GatewayRunner(
         // Create and connect adapters
         for (platformConfig in config.enabledPlatforms) {
             try {
-                val adapter = _createAdapter(platformConfig)
+                val adapter = _createAdapter(platformConfig.platform, platformConfig)
                 if (adapter != null) {
                     _adapters[adapter.name] = adapter
                     deliveryRouter.register(adapter)
@@ -167,8 +167,8 @@ class GatewayRunner(
     /**
      * Create and connect an adapter for the given platform config.
      */
-    private suspend fun _createAdapter(platformConfig: PlatformConfig): BasePlatformAdapter? {
-        val adapter = when (platformConfig.platform) {
+    private suspend fun _createAdapter(platform: Platform, platformConfig: PlatformConfig): BasePlatformAdapter? {
+        val adapter = when (platform) {
             Platform.FEISHU -> FeishuAdapter(context, platformConfig)
             Platform.TELEGRAM -> TelegramAdapter(context, platformConfig)
             Platform.DISCORD -> DiscordAdapter(context, platformConfig)
@@ -650,7 +650,8 @@ class GatewayRunner(
     /** Background task that periodically retries connecting failed platforms. */
     suspend fun _platformReconnectWatcher(){ /* void */ }
     /** Inner handler that runs under the _running_agents sentinel guard. */
-    suspend fun _handleMessageWithAgent(event: Any?, source: Any?, _quickKey: String): Any? = null
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _handleMessageWithAgent(event: Any?, source: Any?, _quickKey: String, runGeneration: Int): Any? = null
     /** Resolve current model config and return a formatted info block. */
     fun _formatSessionInfo(): String = buildString {
         val model = resolveGatewayModel()
@@ -1485,7 +1486,8 @@ class GatewayRunner(
 
     /** Forward the message to a remote Hermes API server instead of running a local agent.
      *  On Android, this uses OkHttp for the SSE streaming connection. */
-    suspend fun _runAgentViaProxy(message: String, contextPrompt: String, history: List<Map<String, Any?>>, source: Any?, sessionId: String, sessionKey: String? = null, eventMessageId: String? = null): Map<String, Any?> {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _runAgentViaProxy(message: String, contextPrompt: String, history: List<Map<String, Any?>>, source: Any?, sessionId: String, sessionKey: String? = null, runGeneration: Int? = null, eventMessageId: String? = null): Map<String, Any?> {
         val proxyUrl = _getProxyUrl()
             ?: return mapOf("final_response" to "⚠️ Proxy URL not configured (GATEWAY_PROXY_URL)", "messages" to emptyList<Any>(), "api_calls" to 0)
 
@@ -1575,7 +1577,8 @@ class GatewayRunner(
     fun _voiceKey(platform: String, chatId: String): String = "$platform:$chatId"
 
     /** Disconnect an adapter without letting errors bubble up. */
-    suspend fun _safeAdapterDisconnect(adapter: Any?) {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _safeAdapterDisconnect(adapter: Any?, platform: Any? = null) {
         try {
             val m = adapter?.javaClass?.getMethod("disconnect") ?: return
             m.invoke(adapter)
@@ -1595,7 +1598,8 @@ class GatewayRunner(
     }
 
     /** Invalidate any running generation for a session (e.g. on reset). */
-    fun _invalidateSessionRunGeneration(sessionKey: String) {
+    @Suppress("UNUSED_PARAMETER")
+    fun _invalidateSessionRunGeneration(sessionKey: String, reason: String = "") {
         _sessionRunGenerations.remove(sessionKey)
     }
 
@@ -1773,10 +1777,8 @@ fun _buildMediaPlaceholder(event: Any?): String {
 }
 
 /** Pop the next pending event for a session, or null. */
-fun _dequeuePendingEvent(queue: MutableList<Any?>?): Any? {
-    if (queue.isNullOrEmpty()) return null
-    return queue.removeAt(0)
-}
+@Suppress("UNUSED_PARAMETER")
+fun _dequeuePendingEvent(adapter: Any?, sessionKey: String): Any? = null
 
 /** True if a message is a control-flow interrupt (stop/reset/timeout/etc). */
 fun _isControlInterruptMessage(reason: String?): Boolean {

@@ -90,7 +90,13 @@ suspend fun <T> withRetry(
 }
 
 /** Python `jittered_backoff` — stub. */
-fun jitteredBackoff(attempt: Int, base: Double = 1.0, cap: Double = 30.0): Double {
-    val exp = base * Math.pow(2.0, attempt.toDouble())
-    return minOf(cap, exp) * (0.5 + Math.random() * 0.5)
+fun jitteredBackoff(
+    attempt: Int,
+    baseDelay: Double = 5.0,
+    maxDelay: Double = 120.0,
+    jitterRatio: Double = 0.5,
+): Double {
+    val exp = baseDelay * Math.pow(2.0, attempt.toDouble())
+    val capped = minOf(maxDelay, exp)
+    return capped * (1.0 - jitterRatio + Math.random() * jitterRatio)
 }

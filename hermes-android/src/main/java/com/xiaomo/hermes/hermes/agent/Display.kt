@@ -654,11 +654,13 @@ private fun _summarizeRenderedDiffSections(
     else joined
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun renderEditDiffWithDelta(
     toolName: String,
     functionArgs: Map<String, Any?>?,
     result: String?,
     snapshot: LocalEditSnapshot? = null,
+    printFn: ((String) -> Unit)? = null,
 ): String? {
     val diff = extractEditDiff(toolName, functionArgs, result, snapshot) ?: return null
     val sections = _splitUnifiedDiffSections(diff)

@@ -717,7 +717,8 @@ class GeminiNativeClient(
     @Suppress("UNUSED_PARAMETER")
     private fun _streamCompletion(
         model: String,
-        request: Map<String, Any?>): Sequence<Map<String, Any?>> = emptySequence()
+        request: Map<String, Any?>,
+        timeout: Any? = null): Sequence<Map<String, Any?>> = emptySequence()
 
     private fun _headers(): Map<String, String> {
         val headers = mutableMapOf(

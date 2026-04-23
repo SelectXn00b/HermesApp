@@ -146,7 +146,8 @@ suspend fun deleteCommentReaction(
 
 suspend fun queryDocumentMeta(
     client: Any?,
-    tokens: List<Map<String, String>>
+    fileToken: String,
+    fileType: String,
 ): Map<String, Any?>? = null
 
 suspend fun batchQueryComment(
@@ -165,8 +166,9 @@ suspend fun listWholeComments(
 suspend fun listCommentReplies(
     client: Any?,
     fileToken: String,
+    fileType: String,
     commentId: String,
-    fileType: String = "docx"
+    expectReplyId: String = "",
 ): List<Map<String, Any?>> = emptyList()
 
 fun _sanitizeCommentText(text: String?): String {
@@ -279,8 +281,9 @@ fun _extractDocsLinks(replies: List<Map<String, Any?>>): List<Map<String, String
 
 suspend fun _reverseLookupWikiToken(
     client: Any?,
-    token: String
-): Pair<String?, String?> = null to null
+    objType: String,
+    objToken: String,
+): String? = null
 
 suspend fun _resolveWikiNodes(
     client: Any?,

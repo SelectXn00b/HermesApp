@@ -127,9 +127,13 @@ class QQAdapter(
         "User-Agent" to "Hermes QQ Bot/android"
     )
 
+    @Suppress("UNUSED_PARAMETER")
     private suspend fun _sttVoiceAttachment(
         url: String,
-        contentType: String
+        contentType: String,
+        filename: String,
+        asrReferText: String? = null,
+        voiceWavUrl: String? = null,
     ): String? = null
 
     private suspend fun _convertAudioToWavFile(
