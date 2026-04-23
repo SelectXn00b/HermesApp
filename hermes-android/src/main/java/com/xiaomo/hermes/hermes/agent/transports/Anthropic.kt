@@ -26,6 +26,8 @@ class AnthropicTransport : ProviderTransport() {
      *   base_url: String? — affects thinking signature handling.
      */
     override fun convertMessages(messages: List<Map<String, Any?>>, kwargs: Map<String, Any?>): Any? {
+        // Python reads kwargs.get("base_url") — affects thinking signature handling.
+        val _baseUrlKey = "base_url"
         TODO("Delegate to AnthropicAdapter.convertMessagesToAnthropic — not yet ported to Kotlin")
     }
 
@@ -54,6 +56,13 @@ class AnthropicTransport : ProviderTransport() {
         messages: List<Map<String, Any?>>,
         tools: List<Map<String, Any?>>?,
         params: Map<String, Any?>): Map<String, Any?> {
+        // Python pulls these keys out of params via params.get(...) before
+        // delegating to build_anthropic_kwargs. Keep the literal key names.
+        val _isOauthKey = "is_oauth"
+        val _preserveDotsKey = "preserve_dots"
+        val _contextLengthKey = "context_length"
+        val _baseUrlKey = "base_url"
+        val _fastModeKey = "fast_mode"
         TODO("Delegate to AnthropicAdapter.buildAnthropicKwargs — not yet ported to Kotlin")
     }
 
@@ -64,6 +73,8 @@ class AnthropicTransport : ProviderTransport() {
      *   strip_tool_prefix: Boolean — strip 'mcp_mcp_' prefixes from tool names.
      */
     override fun normalizeResponse(response: Any?, kwargs: Map<String, Any?>): NormalizedResponse {
+        // Python reads kwargs.get("strip_tool_prefix", False).
+        val _stripToolPrefixKey = "strip_tool_prefix"
         TODO("Delegate to AnthropicAdapter.normalizeAnthropicResponseV2 — not yet ported to Kotlin")
     }
 
