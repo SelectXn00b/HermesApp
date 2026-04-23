@@ -15,7 +15,10 @@
 package com.xiaomo.hermes.hermes.tools
 
 import android.util.Log
+import com.xiaomo.hermes.hermes.gateway.getSessionEnv
+import com.xiaomo.hermes.hermes.gateway.isGatewayRunning
 import org.json.JSONObject
+import java.io.File
 
 private const val _TAG = "send_message_tool"
 
@@ -126,21 +129,58 @@ fun _parseTargetRef(platformName: String, targetRef: String): Triple<String, Str
     return Triple(targetRef, null, null)
 }
 
-@Suppress("UNUSED_PARAMETER")
-fun _describeMediaForMirror(mediaFiles: List<String>?): String {
-    // TODO: port media-summary for mirror.
-    return ""
+fun _describeMediaForMirror(mediaFiles: List<Pair<String, Boolean>>?): String {
+    if (mediaFiles.isNullOrEmpty()) return ""
+    if (mediaFiles.size == 1) {
+        val (mediaPath, isVoice) = mediaFiles[0]
+        val ext = File(mediaPath).extension.lowercase().let { if (it.isEmpty()) "" else ".$it" }
+        if (isVoice && ext in _VOICE_EXTS) return "[Sent voice message]"
+        if (ext in _IMAGE_EXTS) return "[Sent image attachment]"
+        if (ext in _VIDEO_EXTS) return "[Sent video attachment]"
+        if (ext in _AUDIO_EXTS) return "[Sent audio attachment]"
+        return "[Sent document attachment]"
+    }
+    return "[Sent ${mediaFiles.size} media attachments]"
 }
 
-fun _getCronAutoDeliveryTarget(): Pair<String, String>? {
-    // TODO: port auto-delivery lookup for cronjob-originated sends.
-    return null
+fun _getCronAutoDeliveryTarget(): Map<String, String?>? {
+    val platform = getSessionEnv("HERMES_CRON_AUTO_DELIVER_PLATFORM", "").trim().lowercase()
+    val chatId = getSessionEnv("HERMES_CRON_AUTO_DELIVER_CHAT_ID", "").trim()
+    if (platform.isEmpty() || chatId.isEmpty()) return null
+    val threadId = getSessionEnv("HERMES_CRON_AUTO_DELIVER_THREAD_ID", "").trim().ifEmpty { null }
+    return mapOf(
+        "platform" to platform,
+        "chat_id" to chatId,
+        "thread_id" to threadId,
+    )
 }
 
-@Suppress("UNUSED_PARAMETER")
-fun _maybeSkipCronDuplicateSend(platformName: String, chatId: String, threadId: String?): Boolean {
-    // TODO: port duplicate-send suppression.
-    return false
+fun _maybeSkipCronDuplicateSend(platformName: String, chatId: String, threadId: String?): Map<String, Any?>? {
+    val autoTarget = _getCronAutoDeliveryTarget() ?: return null
+
+    val sameTarget = (
+        autoTarget["platform"] == platformName
+            && autoTarget["chat_id"].toString() == chatId.toString()
+            && autoTarget["thread_id"] == threadId
+        )
+    if (!sameTarget) return null
+
+    var targetLabel = "$platformName:$chatId"
+    if (threadId != null) {
+        targetLabel += ":$threadId"
+    }
+
+    return mapOf(
+        "success" to true,
+        "skipped" to true,
+        "reason" to "cron_auto_delivery_duplicate_target",
+        "target" to targetLabel,
+        "note" to (
+            "Skipped send_message to $targetLabel. This cron job will already auto-deliver " +
+                "its final response to that same target. Put the intended user-facing content in " +
+                "your final response instead, or use a different target if you want an additional message."
+            ),
+    )
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -179,15 +219,15 @@ fun _deriveForumThreadName(message: String): String {
     return if (trimmed.length > 50) trimmed.substring(0, 50) else trimmed
 }
 
-@Suppress("UNUSED_PARAMETER")
+/** Process-local cache for Discord channel-type probes. */
+private val _DISCORD_CHANNEL_TYPE_PROBE_CACHE: MutableMap<String, Boolean> = mutableMapOf()
+
 fun _rememberChannelIsForum(chatId: String, isForum: Boolean) {
-    // TODO: port forum-channel state cache.
+    _DISCORD_CHANNEL_TYPE_PROBE_CACHE[chatId.toString()] = isForum
 }
 
-@Suppress("UNUSED_PARAMETER")
 fun _probeIsForumCached(chatId: String): Boolean? {
-    // TODO: port cached forum probe.
-    return null
+    return _DISCORD_CHANNEL_TYPE_PROBE_CACHE[chatId.toString()]
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -305,8 +345,13 @@ suspend fun _sendFeishu(
 
 /** Availability check for the send_message tool. */
 fun _checkSendMessage(): Boolean {
-    // TODO: port config.platform.enabled check.
-    return false
+    val platform = getSessionEnv("HERMES_SESSION_PLATFORM", "")
+    if (platform.isNotEmpty() && platform != "local") return true
+    return try {
+        isGatewayRunning()
+    } catch (_: Exception) {
+        false
+    }
 }
 
 @Suppress("UNUSED_PARAMETER")
