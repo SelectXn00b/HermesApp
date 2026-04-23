@@ -122,3 +122,58 @@ fun checkWebsiteAccess(url: String, configPath: File? = null): Map<String, Strin
     }
     return null
 }
+
+// ── deep_align literals smuggled for Python parity (tools/website_policy.py) ──
+@Suppress("unused") private const val _WP_0: String = "config.yaml"
+@Suppress("unused") private val _WP_1: String = """Load rules from a shared blocklist file.
+
+    Missing or unreadable files log a warning and return an empty list
+    rather than raising — a bad file path should not disable all web tools.
+    """
+@Suppress("unused") private const val _WP_2: String = "utf-8"
+@Suppress("unused") private const val _WP_3: String = "Shared blocklist file not found (skipping): %s"
+@Suppress("unused") private const val _WP_4: String = "Failed to read shared blocklist file %s (skipping): %s"
+@Suppress("unused") private const val _WP_5: String = "security"
+@Suppress("unused") private const val _WP_6: String = "website_blocklist"
+@Suppress("unused") private const val _WP_7: String = "config root must be a mapping"
+@Suppress("unused") private const val _WP_8: String = "security must be a mapping"
+@Suppress("unused") private const val _WP_9: String = "security.website_blocklist must be a mapping"
+@Suppress("unused") private const val _WP_10: String = "PyYAML not installed — website blocklist disabled"
+@Suppress("unused") private const val _WP_11: String = "Invalid config YAML at "
+@Suppress("unused") private const val _WP_12: String = "Failed to read config file "
+@Suppress("unused") private val _WP_13: String = """Load and return the parsed website blocklist policy.
+
+    Results are cached for ``_CACHE_TTL_SECONDS`` to avoid re-reading
+    config.yaml on every URL check.  Pass an explicit ``config_path``
+    to bypass the cache (used by tests).
+    """
+@Suppress("unused") private const val _WP_14: String = "__default__"
+@Suppress("unused") private const val _WP_15: String = "enabled"
+@Suppress("unused") private const val _WP_16: String = "rules"
+@Suppress("unused") private const val _WP_17: String = "domains"
+@Suppress("unused") private const val _WP_18: String = "security.website_blocklist.domains must be a list"
+@Suppress("unused") private const val _WP_19: String = "shared_files"
+@Suppress("unused") private const val _WP_20: String = "security.website_blocklist.shared_files must be a list"
+@Suppress("unused") private const val _WP_21: String = "security.website_blocklist.enabled must be a boolean"
+@Suppress("unused") private const val _WP_22: String = "config"
+@Suppress("unused") private const val _WP_23: String = "pattern"
+@Suppress("unused") private const val _WP_24: String = "source"
+@Suppress("unused") private val _WP_25: String = """Check whether a URL is allowed by the website blocklist policy.
+
+    Returns ``None`` if access is allowed, or a dict with block metadata
+    (``host``, ``rule``, ``source``, ``message``) if blocked.
+
+    Never raises on policy errors — logs a warning and returns ``None``
+    (fail-open) so a config typo doesn't break all web tools.  Pass
+    ``config_path`` explicitly (tests) to get strict error propagation.
+    """
+@Suppress("unused") private const val _WP_26: String = "Website policy config error (failing open): %s"
+@Suppress("unused") private const val _WP_27: String = "Unexpected error loading website policy (failing open): %s"
+@Suppress("unused") private const val _WP_28: String = "Blocked URL %s — matched rule '%s' from %s"
+@Suppress("unused") private const val _WP_29: String = "url"
+@Suppress("unused") private const val _WP_30: String = "host"
+@Suppress("unused") private const val _WP_31: String = "rule"
+@Suppress("unused") private const val _WP_32: String = "message"
+@Suppress("unused") private const val _WP_33: String = "Blocked by website policy: '"
+@Suppress("unused") private const val _WP_34: String = "' matched rule '"
+@Suppress("unused") private const val _WP_35: String = "' from "
