@@ -201,5 +201,21 @@ fun formatDistributionInfo(distributionName: String): String {
 
 }
 
-/** Python `print_distribution_info` — stub. */
-fun printDistributionInfo(name: String) {}
+/**
+ * Python: print_distribution_info(distribution_name)
+ *
+ * Android 端通过 stdout 打印，对齐 Python `print()` 语义。
+ */
+fun printDistributionInfo(distributionName: String) {
+    val dist = getDistribution(distributionName)
+    if (dist == null) {
+        println("❌ Unknown distribution: $distributionName")
+        return
+    }
+    println("\n📊 Distribution: $distributionName")
+    println("   Description: ${dist.description}")
+    println("   Toolsets:")
+    for ((toolset, prob) in dist.toolsets.toList().sortedByDescending { it.second }) {
+        println("     • ${toolset.padEnd(15)} : ${prob.toString().padStart(3)}% chance")
+    }
+}
