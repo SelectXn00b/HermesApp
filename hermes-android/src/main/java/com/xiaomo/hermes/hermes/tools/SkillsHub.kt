@@ -2003,6 +2003,7 @@ fun parallelSearchSources(
     perSourceLimits: Map<String, Int>? = null,
     sourceFilter: String = "all",
     overallTimeout: Double = 30.0,
+    @Suppress("UNUSED_PARAMETER") onSourceDone: ((String, Int) -> Unit)? = null,
 ): Triple<List<SkillMeta>, List<String>, List<String>> {
     val results = mutableListOf<SkillMeta>()
     val succeeded = mutableListOf<String>()

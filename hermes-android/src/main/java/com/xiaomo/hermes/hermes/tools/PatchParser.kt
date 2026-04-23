@@ -292,4 +292,5 @@ private fun _countOccurrences(haystack: String, needle: String): Int =
     if (needle.isEmpty()) 0 else haystack.split(needle).size - 1
 
 /** Python `_validate_operations` — stub. */
-private fun _validateOperations(operations: List<Any?>): Boolean = true
+@Suppress("UNUSED_PARAMETER")
+private fun _validateOperations(operations: List<Any?>, fileOps: Any? = null): Boolean = true

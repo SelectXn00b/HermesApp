@@ -242,8 +242,12 @@ fun _getFileOps(taskId: String = "default"): ShellFileOperations {
     return _fileOpsCache.getOrPut(taskId) { ShellFileOperations() }
 }
 
-fun clearFileOpsCache() {
-    _fileOpsCache.clear()
+fun clearFileOpsCache(taskId: String? = null) {
+    if (taskId != null) {
+        _fileOpsCache.remove(taskId)
+    } else {
+        _fileOpsCache.clear()
+    }
 }
 
 fun resetFileDedup(taskId: String = "default") {

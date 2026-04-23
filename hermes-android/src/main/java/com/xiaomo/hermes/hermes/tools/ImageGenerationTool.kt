@@ -62,21 +62,23 @@ private fun _resolveFalModel(): Triple<String?, String?, Map<String, Any?>> =
     Triple(null, null, emptyMap())
 
 private fun _buildFalPayload(
+    modelId: String,
     prompt: String,
-    aspectRatio: String?,
-    referenceImageUrls: List<String>?,
-    extra: Map<String, Any?>?,
+    aspectRatio: String = DEFAULT_ASPECT_RATIO,
+    seed: Int? = null,
+    overrides: Map<String, Any?>? = null,
 ): Map<String, Any?> = mapOf("prompt" to prompt)
 
 private fun _upscaleImage(imageUrl: String, originalPrompt: String): Map<String, Any?>? = null
 
 fun imageGenerateTool(
     prompt: String,
-    aspectRatio: String? = null,
-    referenceImageUrls: List<String>? = null,
-    upscale: Boolean = false,
-    model: String? = null,
-    extra: Map<String, Any?>? = null,
+    aspectRatio: String = DEFAULT_ASPECT_RATIO,
+    numInferenceSteps: Int? = null,
+    guidanceScale: Double? = null,
+    numImages: Int? = null,
+    outputFormat: String? = null,
+    seed: Int? = null,
 ): String = toolError("image_generate tool is not available on Android")
 
 fun checkFalApiKey(): Boolean = false
@@ -94,12 +96,6 @@ val IMAGE_GENERATE_SCHEMA: Map<String, Any> = mapOf(
                 "type" to "string",
                 "enum" to VALID_ASPECT_RATIOS,
                 "description" to "Aspect ratio (landscape/square/portrait)"),
-            "reference_image_urls" to mapOf(
-                "type" to "array",
-                "items" to mapOf("type" to "string"),
-                "description" to "Optional reference image URLs"),
-            "upscale" to mapOf("type" to "boolean", "description" to "Upscale the result"),
-            "model" to mapOf("type" to "string", "description" to "Override model"),
         ),
         "required" to listOf("prompt"),
     ),
@@ -107,12 +103,6 @@ val IMAGE_GENERATE_SCHEMA: Map<String, Any> = mapOf(
 
 private fun _handleImageGenerate(args: Map<String, Any?>, vararg kw: Any?): String {
     val prompt = args["prompt"] as? String ?: ""
-    val aspectRatio = args["aspect_ratio"] as? String
-    @Suppress("UNCHECKED_CAST")
-    val refs = args["reference_image_urls"] as? List<String>
-    val upscale = args["upscale"] as? Boolean ?: false
-    val model = args["model"] as? String
-    @Suppress("UNCHECKED_CAST")
-    val extra = args["extra"] as? Map<String, Any?>
-    return imageGenerateTool(prompt, aspectRatio, refs, upscale, model, extra)
+    val aspectRatio = args["aspect_ratio"] as? String ?: DEFAULT_ASPECT_RATIO
+    return imageGenerateTool(prompt, aspectRatio)
 }

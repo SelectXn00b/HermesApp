@@ -319,4 +319,5 @@ private fun _isRegistryRegisterCall(node: Any?): Boolean = false
 private fun _moduleRegistersTools(modulePath: String): Boolean = false
 
 /** Python `discover_builtin_tools` — stub. */
-fun discoverBuiltinTools(): List<String> = emptyList()
+@Suppress("UNUSED_PARAMETER")
+fun discoverBuiltinTools(toolsDir: java.io.File? = null): List<String> = emptyList()

@@ -922,7 +922,8 @@ class SessionDB(private val dbPath: File = File(getHermesHome(), "state.db")) {
         excludeSources: List<String>? = null,
         limit: Int = 20,
         offset: Int = 0,
-        includeChildren: Boolean = false): List<Map<String, Any>> {
+        includeChildren: Boolean = false,
+        @Suppress("UNUSED_PARAMETER") projectCompressionTips: Boolean = true): List<Map<String, Any>> {
         val whereClauses = mutableListOf<String>()
         val params = mutableListOf<String>()
 

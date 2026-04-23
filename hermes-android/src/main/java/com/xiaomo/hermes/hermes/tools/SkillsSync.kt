@@ -50,7 +50,7 @@ private fun _writeManifest(entries: Map<String, String>) {
     }
 }
 
-private fun _readSkillName(skillMd: File): String? {
+private fun _readSkillName(skillMd: File, fallback: String = ""): String? {
     return try {
         val content = skillMd.readText(Charsets.UTF_8).take(4000)
         var inFrontmatter = false
@@ -229,4 +229,5 @@ private object _SkillsSyncConstants {
 }
 
 /** Python `reset_bundled_skill` — stub. */
-fun resetBundledSkill(skillName: String): Boolean = false
+@Suppress("UNUSED_PARAMETER")
+fun resetBundledSkill(skillName: String, restore: Boolean = false): Boolean = false

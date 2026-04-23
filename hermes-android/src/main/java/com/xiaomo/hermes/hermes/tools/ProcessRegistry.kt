@@ -286,7 +286,9 @@ object ProcessRegistry {
         return session
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun spawnViaEnv(
+        env: Any,
         command: String,
         cwd: String? = null,
         taskId: String = "",
