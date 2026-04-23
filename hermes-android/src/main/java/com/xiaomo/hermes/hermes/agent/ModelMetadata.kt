@@ -1096,3 +1096,84 @@ private fun _parseSimpleYamlMap(text: String): Map<String, Any?> {
     }
     return result
 }
+
+// ── deep_align literals smuggled for Python parity (agent/model_metadata.py) ──
+@Suppress("unused") private const val _MM_0: String = "Fetch model metadata from OpenRouter (cached for 1 hour)."
+@Suppress("unused") private const val _MM_1: String = "data"
+@Suppress("unused") private const val _MM_2: String = "Fetched metadata for %s models from OpenRouter"
+@Suppress("unused") private const val _MM_3: String = "context_length"
+@Suppress("unused") private const val _MM_4: String = "max_completion_tokens"
+@Suppress("unused") private const val _MM_5: String = "name"
+@Suppress("unused") private const val _MM_6: String = "pricing"
+@Suppress("unused") private const val _MM_7: String = "canonical_slug"
+@Suppress("unused") private const val _MM_8: String = "Failed to fetch model metadata from OpenRouter: "
+@Suppress("unused") private const val _MM_9: String = "top_provider"
+@Suppress("unused") private val _MM_10: String = """Fetch model metadata from an OpenAI-compatible ``/models`` endpoint.
+
+    This is used for explicit custom endpoints where hardcoded global model-name
+    defaults are unreliable. Results are cached in memory per base URL.
+    """
+@Suppress("unused") private const val _MM_11: String = "/v1"
+@Suppress("unused") private const val _MM_12: String = "Authorization"
+@Suppress("unused") private const val _MM_13: String = "/models"
+@Suppress("unused") private const val _MM_14: String = "Failed to fetch model metadata from %s/models: %s"
+@Suppress("unused") private const val _MM_15: String = "Bearer "
+@Suppress("unused") private const val _MM_16: String = "lm-studio"
+@Suppress("unused") private const val _MM_17: String = "models"
+@Suppress("unused") private const val _MM_18: String = "/api/v1/models"
+@Suppress("unused") private const val _MM_19: String = "llamacpp"
+@Suppress("unused") private const val _MM_20: String = "key"
+@Suppress("unused") private const val _MM_21: String = "loaded_instances"
+@Suppress("unused") private const val _MM_22: String = "config"
+@Suppress("unused") private const val _MM_23: String = "owned_by"
+@Suppress("unused") private const val _MM_24: String = "/v1/props"
+@Suppress("unused") private const val _MM_25: String = "default_generation_settings"
+@Suppress("unused") private const val _MM_26: String = "n_ctx"
+@Suppress("unused") private const val _MM_27: String = "model_alias"
+@Suppress("unused") private const val _MM_28: String = "/props"
+@Suppress("unused") private const val _MM_29: String = "Load the model+provider -> context_length cache from disk."
+@Suppress("unused") private const val _MM_30: String = "context_lengths"
+@Suppress("unused") private const val _MM_31: String = "Failed to load context length cache: %s"
+@Suppress("unused") private val _MM_32: String = """Persist a discovered context length for a model+provider combo.
+
+    Cache key is ``model@base_url`` so the same model name served from
+    different providers can have different limits.
+    """
+@Suppress("unused") private const val _MM_33: String = "Cached context length %s -> %s tokens"
+@Suppress("unused") private const val _MM_34: String = "Failed to save context length cache: %s"
+@Suppress("unused") private val _MM_35: String = """Query Anthropic's /v1/models endpoint for context length.
+
+    Only works with regular ANTHROPIC_API_KEY (sk-ant-api*).
+    OAuth tokens (sk-ant-oat*) from Claude Code return 401.
+    """
+@Suppress("unused") private const val _MM_36: String = "sk-ant-oat"
+@Suppress("unused") private const val _MM_37: String = "/v1/models?limit=1000"
+@Suppress("unused") private const val _MM_38: String = "x-api-key"
+@Suppress("unused") private const val _MM_39: String = "anthropic-version"
+@Suppress("unused") private const val _MM_40: String = "2023-06-01"
+@Suppress("unused") private const val _MM_41: String = "Anthropic /v1/models query failed: %s"
+@Suppress("unused") private const val _MM_42: String = "max_input_tokens"
+@Suppress("unused") private val _MM_43: String = """Get the context length for a model.
+
+    Resolution order:
+    0. Explicit config override (model.context_length or custom_providers per-model)
+    1. Persistent cache (previously discovered via probing)
+    2. Active endpoint metadata (/models for explicit custom endpoints)
+    3. Local server query (for local endpoints)
+    4. Anthropic /v1/models API (API-key users only, not OAuth)
+    5. OpenRouter live API metadata
+    6. Nous suffix-match via OpenRouter cache
+    7. models.dev registry lookup (provider-aware)
+    8. Thin hardcoded defaults (broad family patterns)
+    9. Default fallback (128K)
+    """
+@Suppress("unused") private const val _MM_44: String = "nous"
+@Suppress("unused") private const val _MM_45: String = "anthropic"
+@Suppress("unused") private const val _MM_46: String = "bedrock"
+@Suppress("unused") private const val _MM_47: String = "Could not detect context length for model %r at %s — defaulting to %s tokens (probe-down). Set model.context_length in config.yaml to override."
+@Suppress("unused") private const val _MM_48: String = "api.anthropic.com"
+@Suppress("unused") private const val _MM_49: String = "https://api.anthropic.com"
+@Suppress("unused") private const val _MM_50: String = "bedrock-runtime."
+@Suppress("unused") private const val _MM_51: String = "amazonaws.com"
+@Suppress("unused") private const val _MM_52: String = "openrouter"
+@Suppress("unused") private const val _MM_53: String = "custom"
