@@ -739,13 +739,6 @@ class AuxiliaryClient(
     }
 
     /**
-     * 获取 rate limit 信息
-     */
-    fun getRateLimitInfo(provider: String): RateLimitInfo? {
-        return null // 由外部更新
-    }
-
-    /**
      * 获取使用统计
      */
     fun getInsights(): Insights = insights
