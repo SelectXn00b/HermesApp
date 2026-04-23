@@ -91,29 +91,15 @@ class SessionManager {
         return SessionState(sessionId = "", cwd = cwd)
     }
 
-    fun updateCwd(sessionId: String, cwd: String): SessionState? {
-        // TODO: port SessionManager.update_cwd
-        return null
-    }
+    fun updateCwd(sessionId: String, cwd: String): SessionState? = null  // TODO: port SessionManager.update_cwd
 
-    fun getSession(sessionId: String): SessionState? {
-        // TODO: port SessionManager.get_session
-        return null
-    }
+    fun getSession(sessionId: String): SessionState? = null  // TODO: port SessionManager.get_session
 
-    fun forkSession(sessionId: String, cwd: String): SessionState? {
-        // TODO: port SessionManager.fork_session
-        return null
-    }
+    fun forkSession(sessionId: String, cwd: String): SessionState? = null  // TODO: port SessionManager.fork_session
 
-    fun listSessions(cwd: String? = null): List<Map<String, Any?>> {
-        // TODO: port SessionManager.list_sessions
-        return emptyList()
-    }
+    fun listSessions(cwd: String? = null): List<Map<String, Any?>> = emptyList()  // TODO: port SessionManager.list_sessions
 
-    fun saveSession(sessionId: String) {
-        // TODO: port SessionManager.save_session
-    }
+    fun saveSession(sessionId: String): Unit = Unit  // TODO: port SessionManager.save_session
 
     @Suppress("UNUSED_PARAMETER")
     fun _makeAgent(
@@ -122,10 +108,7 @@ class SessionManager {
         model: String,
         requestedProvider: String? = null,
         baseUrl: String? = null,
-        apiMode: String? = null): Any? {
-        // TODO: port SessionManager._make_agent
-        return null
-    }
+        apiMode: String? = null): Any? = null  // TODO: port SessionManager._make_agent
 
     @Suppress("FunctionName")
     fun _getDb(): Any? = null  // TODO: port SessionManager._get_db
