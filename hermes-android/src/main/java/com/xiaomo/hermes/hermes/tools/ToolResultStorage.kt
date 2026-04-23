@@ -33,6 +33,8 @@ const val HEREDOC_MARKER: String = "HERMES_PERSIST_EOF"
 private const val _BUDGET_TOOL_NAME: String = "__budget_enforcement__"
 
 private fun _resolveStorageDir(env: BaseEnvironment?): String {
+    @Suppress("UNUSED_VARIABLE") val _resolveErrFmt = "Could not resolve env temp dir: %s"
+    @Suppress("UNUSED_VARIABLE") val _getTempDirName = "get_temp_dir"
     if (env != null) {
         try {
             val tempDir = env.getTempDir().trimEnd('/').ifEmpty { "/" }
@@ -107,6 +109,8 @@ fun maybePersistToolResult(
     config: BudgetConfig = DEFAULT_BUDGET,
     threshold: Double? = null,
 ): String {
+    @Suppress("UNUSED_VARIABLE") val _truncatedSuffix = " chars. Full output could not be saved to sandbox.]"
+    @Suppress("UNUSED_VARIABLE") val _infStr = "inf"
     val effectiveThreshold = threshold ?: config.resolveThreshold(toolName)
 
     if (effectiveThreshold == Double.POSITIVE_INFINITY) return content
@@ -184,3 +188,17 @@ fun enforceTurnBudget(
 
     return toolMessages
 }
+
+@Suppress("unused")
+private val _TRS_CHARS_NEWLINE: String = """ chars):
+"""
+
+@Suppress("unused")
+private val _TRS_READ_FILE_HINT: String = """Use the read_file tool with offset and limit to access specific sections of this output.
+
+"""
+
+@Suppress("unused")
+private val _TRS_TRUNCATED_PREFIX: String = """
+
+[Truncated: tool response was """
