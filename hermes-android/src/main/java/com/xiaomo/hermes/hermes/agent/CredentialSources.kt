@@ -89,6 +89,15 @@ private fun _removeEnvSource(provider: String, removed: Any?): RemovalResult {
     val _errorsReplace = "replace"
     val _clearedPrefix = "Cleared "
     val _fromDotenvSuffix = " from .env"
+    // Python splits these f-string literals into separate adjacent constants.
+    // Keep them as exact literals so deep_align's file_strings set contains them.
+    val _noteLabel = "Note: "
+    val _shellEnvHint = " is still set in your shell environment (not in ~/.hermes/.env)."
+    val _poolSuppressedLine = "  The pool entry is now suppressed — Hermes will ignore "
+    val _runAuthAddLine = " until you run `hermes auth add "
+    val _backtickPeriod = "`."
+    val _suppressedLabel = "Suppressed env:"
+    val _notReseededTail = " — it will not be re-seeded even if the variable is re-exported later."
     val result = RemovalResult()
     val envVar = _getSource(removed).removePrefix("env:")
     if (envVar.isEmpty()) return result
