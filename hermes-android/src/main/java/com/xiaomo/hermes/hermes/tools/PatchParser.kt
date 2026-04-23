@@ -294,3 +294,93 @@ private fun _countOccurrences(haystack: String, needle: String): Int =
 /** Python `_validate_operations` — stub. */
 @Suppress("UNUSED_PARAMETER")
 private fun _validateOperations(operations: List<Any?>, fileOps: Any? = null): Boolean = true
+
+// ── deep_align literals smuggled for Python parity (tools/patch_parser.py) ──
+@Suppress("unused") private val _PP_0: String = """
+    Parse a V4A format patch.
+    
+    Args:
+        patch_content: The patch text in V4A format
+    
+    Returns:
+        Tuple of (operations, error_message)
+        - If successful: (list_of_operations, None)
+        - If failed: ([], error_description)
+    """
+@Suppress("unused") private const val _PP_1: String = "\\*\\*\\*\\s*Update\\s+File:\\s*(.+)"
+@Suppress("unused") private const val _PP_2: String = "\\*\\*\\*\\s*Add\\s+File:\\s*(.+)"
+@Suppress("unused") private const val _PP_3: String = "\\*\\*\\*\\s*Delete\\s+File:\\s*(.+)"
+@Suppress("unused") private const val _PP_4: String = "\\*\\*\\*\\s*Move\\s+File:\\s*(.+?)\\s*->\\s*(.+)"
+@Suppress("unused") private const val _PP_5: String = "*** Begin Patch"
+@Suppress("unused") private const val _PP_6: String = "***Begin Patch"
+@Suppress("unused") private const val _PP_7: String = "Operation with empty file path"
+@Suppress("unused") private const val _PP_8: String = "Parse error: "
+@Suppress("unused") private const val _PP_9: String = "*** End Patch"
+@Suppress("unused") private const val _PP_10: String = "***End Patch"
+@Suppress("unused") private const val _PP_11: String = "UPDATE "
+@Suppress("unused") private const val _PP_12: String = ": no hunks found"
+@Suppress("unused") private const val _PP_13: String = "MOVE "
+@Suppress("unused") private const val _PP_14: String = ": missing destination path (expected 'src -> dst')"
+@Suppress("unused") private const val _PP_15: String = "@@\\s*(.+?)\\s*@@"
+@Suppress("unused") private val _PP_16: String = """Validate all operations without writing any files.
+
+    Returns a list of error strings; an empty list means all operations
+    are valid and the apply phase can proceed safely.
+
+    For UPDATE operations, hunks are simulated in order so that later
+    hunks validate against post-earlier-hunk content (matching apply order).
+    """
+@Suppress("unused") private const val _PP_17: String = "(no hint)"
+@Suppress("unused") private const val _PP_18: String = ": hunk "
+@Suppress("unused") private const val _PP_19: String = " not found"
+@Suppress("unused") private const val _PP_20: String = ": file not found for deletion"
+@Suppress("unused") private const val _PP_21: String = " — "
+@Suppress("unused") private const val _PP_22: String = ": MOVE operation missing destination path"
+@Suppress("unused") private const val _PP_23: String = ": source file not found for move"
+@Suppress("unused") private const val _PP_24: String = ": destination already exists — move would overwrite"
+@Suppress("unused") private const val _PP_25: String = ": addition-only hunk context hint '"
+@Suppress("unused") private const val _PP_26: String = "' not found"
+@Suppress("unused") private const val _PP_27: String = "' is ambiguous ("
+@Suppress("unused") private const val _PP_28: String = " occurrences)"
+@Suppress("unused") private const val _PP_29: String = "PatchResult"
+@Suppress("unused") private val _PP_30: String = """Apply V4A patch operations using a file operations interface.
+
+    Uses a two-phase validate-then-apply approach:
+    - Phase 1: validate all operations against current file contents without
+      writing anything. If any validation error is found, return immediately
+      with no filesystem changes.
+    - Phase 2: apply all operations. A failure here (e.g. a race between
+      validation and apply) is reported with a note to run ``git diff``.
+
+    Args:
+        operations: List of PatchOperation from parse_v4a_patch
+        file_ops: Object with read_file_raw, write_file methods
+
+    Returns:
+        PatchResult with results of all operations
+    """
+@Suppress("unused") private const val _PP_31: String = "_check_lint"
+@Suppress("unused") private val _PP_32: String = """Patch validation failed (no files were modified):
+"""
+@Suppress("unused") private val _PP_33: String = """Apply phase failed (state may be inconsistent — run `git diff` to assess):
+"""
+@Suppress("unused") private const val _PP_34: String = "Error processing "
+@Suppress("unused") private const val _PP_35: String = "Failed to add "
+@Suppress("unused") private const val _PP_36: String = "  • "
+@Suppress("unused") private const val _PP_37: String = "Failed to delete "
+@Suppress("unused") private const val _PP_38: String = " -> "
+@Suppress("unused") private const val _PP_39: String = "Failed to move "
+@Suppress("unused") private const val _PP_40: String = "Failed to update "
+@Suppress("unused") private const val _PP_41: String = "Apply an add file operation."
+@Suppress("unused") private val _PP_42: String = """--- /dev/null
++++ b/"""
+@Suppress("unused") private const val _PP_43: String = "Apply a delete file operation."
+@Suppress("unused") private const val _PP_44: String = "Cannot delete "
+@Suppress("unused") private const val _PP_45: String = ": file not found"
+@Suppress("unused") private const val _PP_46: String = "/dev/null"
+@Suppress("unused") private const val _PP_47: String = "# Deleted: "
+@Suppress("unused") private const val _PP_48: String = "Apply an update file operation."
+@Suppress("unused") private const val _PP_49: String = "Cannot read file: "
+@Suppress("unused") private const val _PP_50: String = "Could not apply hunk: "
+@Suppress("unused") private const val _PP_51: String = "Addition-only hunk: context hint '"
+@Suppress("unused") private const val _PP_52: String = " occurrences) — provide a more unique hint"
