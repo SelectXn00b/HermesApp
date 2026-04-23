@@ -33,27 +33,42 @@ const val DEFAULT_EXECUTION_MODE: String = "project"
 
 val _TOOL_STUBS: Map<String, String> = emptyMap()
 
-const val _COMMON_HELPERS: String = """
-def json_parse(text):
-    import json
-    return json.loads(text, strict=False)
-
-def shell_quote(s):
-    import shlex
-    return shlex.quote(s)
-
-def retry(fn, max_attempts=3, delay=2):
-    import time
-    last_err = None
-    for attempt in range(max_attempts):
-        try:
-            return fn()
-        except Exception as e:
-            last_err = e
-            if attempt < max_attempts - 1:
-                time.sleep(delay * (2 ** attempt))
-    raise last_err
-"""
+const val _COMMON_HELPERS: String =
+    "\n" +
+    "# ---------------------------------------------------------------------------\n" +
+    "# Convenience helpers (avoid common scripting pitfalls)\n" +
+    "# ---------------------------------------------------------------------------\n" +
+    "\n" +
+    "def json_parse(text: str):\n" +
+    "    \"\"\"Parse JSON tolerant of control characters (strict=False).\n" +
+    "    Use this instead of json.loads() when parsing output from terminal()\n" +
+    "    or web_extract() that may contain raw tabs/newlines in strings.\"\"\"\n" +
+    "    return json.loads(text, strict=False)\n" +
+    "\n" +
+    "\n" +
+    "def shell_quote(s: str) -> str:\n" +
+    "    \"\"\"Shell-escape a string for safe interpolation into commands.\n" +
+    "    Use this when inserting dynamic content into terminal() commands:\n" +
+    "        terminal(f\"echo {shell_quote(user_input)}\")\n" +
+    "    \"\"\"\n" +
+    "    return shlex.quote(s)\n" +
+    "\n" +
+    "\n" +
+    "def retry(fn, max_attempts=3, delay=2):\n" +
+    "    \"\"\"Retry a function up to max_attempts times with exponential backoff.\n" +
+    "    Use for transient failures (network errors, API rate limits):\n" +
+    "        result = retry(lambda: terminal(\"gh issue list ...\"))\n" +
+    "    \"\"\"\n" +
+    "    last_err = None\n" +
+    "    for attempt in range(max_attempts):\n" +
+    "        try:\n" +
+    "            return fn()\n" +
+    "        except Exception as e:\n" +
+    "            last_err = e\n" +
+    "            if attempt < max_attempts - 1:\n" +
+    "                time.sleep(delay * (2 ** attempt))\n" +
+    "    raise last_err\n" +
+    "\n"
 
 const val _UDS_TRANSPORT_HEADER: String = """
 # Auto-generated Hermes tools RPC stubs (UDS transport).

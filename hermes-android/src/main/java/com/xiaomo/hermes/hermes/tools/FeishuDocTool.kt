@@ -145,4 +145,4 @@ object FeishuDocTool {
 
 /** Python `_RAW_CONTENT_URI` — Feishu raw content endpoint template. */
 private const val _RAW_CONTENT_URI: String =
-    "https://open.feishu.cn/open-apis/docx/v1/documents/%s/raw_content"
+    "/open-apis/docx/v1/documents/:document_id/raw_content"
