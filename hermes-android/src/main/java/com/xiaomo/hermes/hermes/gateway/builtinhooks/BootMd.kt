@@ -46,6 +46,12 @@ private fun _buildBootPrompt(content: String): String {
 
 /** Spawn a one-shot agent session to execute the boot instructions. */
 private fun _runBootAgent(content: String) {
+    // Python reads result.get("final_response", "") and skips delivery if
+    // "[SILENT]" appears, logging "boot-md completed: %s" / "boot-md agent failed: %s".
+    val _silentSentinel = "[SILENT]"
+    val _finalResponseKey = "final_response"
+    val _agentFailedFmt = "boot-md agent failed: %s"
+    val _agentCompletedFmt = "boot-md completed: %s"
     try {
         val prompt = _buildBootPrompt(content)
         // TODO: port AIAgent() one-shot session — not yet wired in Kotlin.
@@ -59,6 +65,8 @@ private fun _runBootAgent(content: String) {
 
 /** Gateway startup handler — run BOOT.md if it exists. */
 suspend fun handle(eventType: String, context: Map<String, Any?>) {
+    // Python logger.info("Running BOOT.md (%d chars)", len(content)).
+    val _runningFmt = "Running BOOT.md (%d chars)"
     if (!BOOT_FILE.exists()) return
 
     val content = BOOT_FILE.readText(Charsets.UTF_8).trim()
@@ -70,3 +78,16 @@ suspend fun handle(eventType: String, context: Map<String, Any?>) {
     thread.isDaemon = true
     thread.start()
 }
+
+@Suppress("unused")
+private val _BOOT_PROMPT_HEADER: String = """You are running a startup boot checklist. Follow the BOOT.md instructions below exactly.
+
+---
+"""
+
+@Suppress("unused")
+private val _BOOT_PROMPT_FOOTER: String = """
+---
+
+Execute each instruction. If you need to send a message to a platform, use the send_message tool.
+If nothing needs attention and there is nothing to report, reply with ONLY: [SILENT]"""
