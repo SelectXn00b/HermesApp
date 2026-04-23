@@ -51,7 +51,7 @@ fun getCurrentSessionKey(default: String = "default"): String {
 // via shell expansions like $HOME or $HERMES_HOME.
 const val _SSH_SENSITIVE_PATH: String = "(?:~|\\\$home|\\\$\\{home\\})/\\.ssh(?:/|\$)"
 const val _HERMES_ENV_PATH: String =
-    "(?:~/\\.hermes/|" +
+    "(?:~\\/\\.hermes/|" +
     "(?:\\\$home|\\\$\\{home\\})/\\.hermes/|" +
     "(?:\\\$hermes_home|\\\$\\{hermes_home\\})/)" +
     "\\.env\\b"
