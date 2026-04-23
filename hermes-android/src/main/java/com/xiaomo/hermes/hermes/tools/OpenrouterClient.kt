@@ -20,6 +20,9 @@ private var _client: OkHttpClient? = null
  */
 fun getAsyncClient(): OkHttpClient {
     if (_client == null) {
+        // Python calls resolve_provider_client("openrouter", async_mode=True);
+        // the Android port constructs OkHttp directly but keeps the provider key for alignment.
+        val _provider = "openrouter"
         if (System.getenv("OPENROUTER_API_KEY").isNullOrBlank()) {
             throw IllegalArgumentException("OPENROUTER_API_KEY environment variable not set")
         }

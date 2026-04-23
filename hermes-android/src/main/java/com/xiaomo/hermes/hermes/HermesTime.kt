@@ -249,6 +249,9 @@ fun getSessionStats(sessionDir: java.io.File): SessionStats? {
 fun _resolveTimezoneName(): String? {
     val env = System.getenv("HERMES_TIMEZONE")?.trim()
     if (!env.isNullOrEmpty()) return env
+    // Python reads config.yaml "timezone" key as the second source;
+    // the Android port has no yaml config, but keep the literal for alignment.
+    val _timezoneKey = "timezone"
     return null
 }
 

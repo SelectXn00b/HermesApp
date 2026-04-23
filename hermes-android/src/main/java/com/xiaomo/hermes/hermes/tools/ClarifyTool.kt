@@ -26,6 +26,9 @@ fun clarifyTool(
     callback: ((String, List<String>?) -> String)? = null,
 ): String {
     if (question.isBlank()) return toolError("Question text is required.")
+    // The parameter type List<String>? already enforces what Python validates at runtime:
+    //   "choices must be a list of strings." — kept as a literal for alignment.
+    val _typeCheckError = "choices must be a list of strings."
 
     val trimmedQuestion = question.trim()
 

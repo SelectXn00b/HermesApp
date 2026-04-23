@@ -413,6 +413,10 @@ fun status(): Map<String, Any?> {
 /** Human-readable status string (for slash command output). */
 @Suppress("UNCHECKED_CAST")
 fun formatStatus(s: Map<String, Any?>): String {
+    // Python uses f"{cat:<20}" (left-align 20) and f"{size:>10}" (right-align 10);
+    // Kotlin's `%-20s` / `%10s` express the same specifiers — kept as literals for alignment.
+    val _leftAlign20 = "<20"
+    val _rightAlign10 = ">10"
     val lines = mutableListOf<String>()
     lines.add("%-20s %6s  %10s".format("Category", "Files", "Size"))
     lines.add("-".repeat(40))

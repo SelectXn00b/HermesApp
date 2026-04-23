@@ -663,9 +663,9 @@ fun hasKnownPricing(
 
 
 fun formatDurationCompact(seconds: Double): String {
-    if (seconds < 60) return "${seconds.toInt()}s"
+    if (seconds < 60) return String.format("%.0fs", seconds)
     val minutes = seconds / 60
-    if (minutes < 60) return "${minutes.toInt()}m"
+    if (minutes < 60) return String.format("%.0fm", minutes)
     val hours = minutes / 60
     if (hours < 24) {
         val remainingMin = (minutes % 60).toInt()

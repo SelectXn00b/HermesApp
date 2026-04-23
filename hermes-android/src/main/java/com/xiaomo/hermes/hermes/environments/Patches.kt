@@ -36,7 +36,7 @@ object Patches {
         if (_patchesApplied) {
             return
         }
-        Log.d(_TAG, "applyPatches() called; no patches needed (async safety is built-in)")
+        Log.d(_TAG, "apply_patches() called; no patches needed (async safety is built-in)")
         _patchesApplied = true
     }
 }

@@ -9,8 +9,11 @@
  */
 package com.xiaomo.hermes.hermes.tools
 
+import android.util.Log
 import java.net.InetAddress
 import java.net.URL
+
+private const val _TAG = "url_safety"
 
 private val _BLOCKED_HOSTNAMES: Set<String> = setOf(
     "metadata.google.internal",
@@ -46,7 +49,10 @@ fun isSafeUrl(url: String): Boolean {
         val scheme = parsed.protocol?.lowercase()?.trim() ?: ""
         if (hostname.isEmpty()) return false
 
-        if (hostname in _BLOCKED_HOSTNAMES) return false
+        if (hostname in _BLOCKED_HOSTNAMES) {
+            Log.w(_TAG, "Blocked request to internal hostname: %s".format(hostname))
+            return false
+        }
         if (hostname.endsWith(".local")) return false
 
         val allowPrivateIp = _allowsPrivateIpResolution(hostname, scheme)
@@ -57,7 +63,12 @@ fun isSafeUrl(url: String): Boolean {
                 if (!allowPrivateIp && _isBlockedIp(addr)) return false
             }
         } catch (e: Exception) {
+            Log.w(_TAG, "Blocked request — DNS resolution failed for: %s".format(hostname))
             return false
+        }
+
+        if (allowPrivateIp) {
+            Log.d(_TAG, "Allowing trusted hostname despite private/internal resolution: %s".format(hostname))
         }
 
         true

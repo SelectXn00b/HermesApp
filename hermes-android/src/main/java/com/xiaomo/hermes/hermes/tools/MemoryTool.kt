@@ -48,7 +48,7 @@ fun getMemoryDir(): File {
 private fun _scanMemoryContent(content: String): String? {
     for (char in _INVISIBLE_CHARS) {
         if (char in content) {
-            return "Blocked: content contains invisible unicode character U+${char.code.toString(16).padStart(4, '0')} (possible injection)."
+            return "Blocked: content contains invisible unicode character U+%04X (possible injection).".format(char.code)
         }
     }
     for ((pattern, pid) in _MEMORY_THREAT_PATTERNS) {

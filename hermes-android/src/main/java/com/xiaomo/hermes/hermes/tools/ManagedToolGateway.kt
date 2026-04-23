@@ -5,12 +5,14 @@
  */
 package com.xiaomo.hermes.hermes.tools
 
+import android.util.Log
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+private const val _TAG = "managed_tool_gateway"
 private const val _DEFAULT_TOOL_GATEWAY_DOMAIN: String = "nousresearch.com"
 private const val _DEFAULT_TOOL_GATEWAY_SCHEME: String = "https"
 private const val _NOUS_ACCESS_TOKEN_REFRESH_SKEW_SECONDS: Long = 120L
@@ -62,7 +64,12 @@ fun readNousAccessToken(): String? {
     val explicit = System.getenv("TOOL_GATEWAY_USER_TOKEN")
     if (!explicit.isNullOrBlank()) return explicit.trim()
 
-    val nousProvider = _readNousProviderState() ?: emptyMap()
+    val nousProvider = try {
+        _readNousProviderState() ?: emptyMap()
+    } catch (exc: Exception) {
+        Log.d(_TAG, "Nous access token refresh failed: %s".format(exc.message))
+        emptyMap()
+    }
     val accessToken = nousProvider["access_token"] as? String
     val cachedToken = accessToken?.trim()?.ifEmpty { null }
 

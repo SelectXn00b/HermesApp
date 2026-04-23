@@ -34,7 +34,7 @@ fun getCamofoxIdentity(taskId: String? = null): Map<String, String> {
     val scopeRoot = getCamofoxStateDir().absolutePath
     val logicalScope = taskId ?: "default"
     // Python uses uuid.uuid5(NAMESPACE_URL, name) which is SHA1-based.
-    // Java's UUID.nameUUIDFromBytes is MD5-based (v3), so inline v5 here.
+    // The built-in UUID.nameUUIDFromBytes is MD5-based (v3), so inline v5 here.
     val namespaceUrlBytes = byteArrayOf(
         0x6b.toByte(), 0xa7.toByte(), 0xb8.toByte(), 0x11.toByte(),
         0x9d.toByte(), 0xad.toByte(), 0x11.toByte(), 0xd1.toByte(),
