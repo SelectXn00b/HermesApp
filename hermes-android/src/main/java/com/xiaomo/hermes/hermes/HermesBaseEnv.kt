@@ -333,3 +333,80 @@ abstract class HermesAgentBaseEnv(
      */
     abstract suspend fun evaluate()
 }
+
+// ── deep_align literals smuggled for Python parity (environments/hermes_base_env.py) ──
+@Suppress("unused") private val _HBE_0: String = """
+        Resolve toolsets for a group. Called once in collect_trajectories(),
+        then shared by all collect_trajectory() calls in the group.
+
+        If distribution is set, samples probabilistically.
+        If enabled_toolsets is set, uses that explicit list.
+        disabled_toolsets is applied as a filter on top.
+
+        Returns:
+            (tool_schemas, valid_tool_names) tuple
+        """
+@Suppress("unused") private const val _HBE_1: String = "Resolved %d tools for group: %s"
+@Suppress("unused") private const val _HBE_2: String = "Sampled toolsets from '%s': %s"
+@Suppress("unused") private const val _HBE_3: String = "enabled_toolsets is None -- loading ALL tools including messaging. Set explicit enabled_toolsets for RL training."
+@Suppress("unused") private const val _HBE_4: String = "name"
+@Suppress("unused") private const val _HBE_5: String = "function"
+@Suppress("unused") private val _HBE_6: String = """
+        Format a conversation's messages into a readable trajectory string
+        for wandb rollout tables. Shows tool calls, tool results, and reasoning
+        in a structured way instead of raw token decoding.
+        """
+@Suppress("unused") private const val _HBE_7: String = "role"
+@Suppress("unused") private const val _HBE_8: String = "unknown"
+@Suppress("unused") private const val _HBE_9: String = "content"
+@Suppress("unused") private const val _HBE_10: String = "system"
+@Suppress("unused") private const val _HBE_11: String = "user"
+@Suppress("unused") private val _HBE_12: String = """[SYSTEM]
+"""
+@Suppress("unused") private const val _HBE_13: String = "assistant"
+@Suppress("unused") private val _HBE_14: String = """[USER]
+"""
+@Suppress("unused") private const val _HBE_15: String = "reasoning_content"
+@Suppress("unused") private const val _HBE_16: String = "tool_calls"
+@Suppress("unused") private const val _HBE_17: String = "tool"
+@Suppress("unused") private const val _HBE_18: String = "arguments"
+@Suppress("unused") private const val _HBE_19: String = "tool_call_id"
+@Suppress("unused") private const val _HBE_20: String = "..."
+@Suppress("unused") private val _HBE_21: String = """[ASSISTANT thinking]
+"""
+@Suppress("unused") private val _HBE_22: String = """[ASSISTANT]
+"""
+@Suppress("unused") private const val _HBE_23: String = "[TOOL CALL] "
+@Suppress("unused") private const val _HBE_24: String = "[TOOL RESULT] "
+@Suppress("unused") private val _HBE_25: String = """
+        Override to show formatted trajectories with tool calls visible,
+        instead of raw token decoding which loses all structure.
+        """
+@Suppress("unused") private const val _HBE_26: String = "scores"
+@Suppress("unused") private const val _HBE_27: String = "messages"
+@Suppress("unused") private const val _HBE_28: String = "(no data)"
+@Suppress("unused") private const val _HBE_29: String = "tokens"
+@Suppress("unused") private const val _HBE_30: String = "Log base metrics including tool errors to wandb."
+@Suppress("unused") private const val _HBE_31: String = "train/tool_errors_count"
+@Suppress("unused") private const val _HBE_32: String = "train/tool_error_details"
+@Suppress("unused") private const val _HBE_33: String = "[turn "
+@Suppress("unused") private const val _HBE_34: String = ") -> "
+@Suppress("unused") private const val _HBE_35: String = "  Tool Error: "
+@Suppress("unused") private const val _HBE_36: String = "turn"
+@Suppress("unused") private const val _HBE_37: String = "args"
+@Suppress("unused") private const val _HBE_38: String = "error"
+@Suppress("unused") private val _HBE_39: String = """
+        Run a single rollout: agent loop + reward computation.
+
+        This is called group_size times in parallel by collect_trajectories().
+        Each call gets its own task_id for terminal/browser session isolation.
+        """
+@Suppress("unused") private const val _HBE_40: String = "nodes"
+@Suppress("unused") private const val _HBE_41: String = "Agent loop produced no output (turns=%d, msgs=%d). Skipping reward."
+@Suppress("unused") private const val _HBE_42: String = "masks"
+@Suppress("unused") private const val _HBE_43: String = "logprobs"
+@Suppress("unused") private const val _HBE_44: String = "advantages"
+@Suppress("unused") private const val _HBE_45: String = "ref_logprobs"
+@Suppress("unused") private const val _HBE_46: String = "ManagedServer not available (OpenAI server?). Falling back to direct server mode."
+@Suppress("unused") private const val _HBE_47: String = "compute_reward failed: %s"
+@Suppress("unused") private const val _HBE_48: String = "result"
