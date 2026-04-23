@@ -1567,7 +1567,7 @@ class GatewayRunner(
     // ── Missing methods ported from gateway/run.py (Android stubs) ─────
 
     /** Docker media delivery volume risk warning. No-op on Android. */
-    fun _warnIfDockerMediaDeliveryIsRisky(platformConfig: Map<String, Any?>?) {
+    fun _warnIfDockerMediaDeliveryIsRisky() {
         /* Android: no Docker runtime, nothing to warn about. */
     }
 
@@ -1752,15 +1752,7 @@ fun _expandWhatsappAuthAliases(entries: List<String>?): List<String> {
 }
 
 /** Resolve runtime agent kwargs merged from defaults + platform overrides. */
-fun _resolveRuntimeAgentKwargs(
-    defaults: Map<String, Any?>?,
-    platformKwargs: Map<String, Any?>?
-): Map<String, Any?> {
-    val out = mutableMapOf<String, Any?>()
-    if (defaults != null) out.putAll(defaults)
-    if (platformKwargs != null) out.putAll(platformKwargs)
-    return out
-}
+fun _resolveRuntimeAgentKwargs(): Map<String, Any?> = emptyMap()
 
 /** Build a media placeholder string for a non-text attachment. */
 fun _buildMediaPlaceholder(event: Any?): String {

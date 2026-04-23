@@ -816,8 +816,7 @@ class GatewayStreamConsumer(
      * Best-effort flush of the accumulated segment tail as a fresh message
      * after edit-in-place fails (Python `_flush_segment_tail_on_edit_failure`).
      */
-    @Suppress("UNUSED_PARAMETER")
-    suspend fun _flushSegmentTailOnEditFailure(text: String = ""): Unit = Unit
+    suspend fun _flushSegmentTailOnEditFailure(): Unit = Unit
 
     /**
      * Best-effort edit to remove the cursor from the last visible message.

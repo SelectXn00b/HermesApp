@@ -171,10 +171,8 @@ class HookRegistry(private val pipeline: HookPipeline = HookPipeline()) {
     private fun _registerBuiltinHooks(): Unit = Unit
 
     /** Discover external hooks in [HOOKS_DIR] and load them (no-op on Android). */
-    @Suppress("UNUSED_PARAMETER")
-    fun discoverAndLoad(extraDirs: List<java.io.File>? = null): Int {
+    fun discoverAndLoad() {
         _registerBuiltinHooks()
-        return 0
     }
 
     /** Emit an event through the underlying pipeline. */

@@ -323,7 +323,7 @@ private fun _restoreFileMode(path: String, mode: Int?) {
 fun normalizeProxyUrl(url: String): String = url
 
 /** Python `normalize_proxy_env_vars` — stub. */
-fun normalizeProxyEnvVars(env: Map<String, String>): Map<String, String> = env
+fun normalizeProxyEnvVars(): Unit = Unit
 
 /** Python `_PROXY_ENV_KEYS` — environment variable names consulted for proxy settings. */
 private val _PROXY_ENV_KEYS: List<String> = listOf(
