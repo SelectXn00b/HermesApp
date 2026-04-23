@@ -247,14 +247,34 @@ const val _SYNC_BACK_MAX_BYTES: Long = 2L * 1024 * 1024 * 1024
 /**
  * Enumerate all files that should be synced to a remote environment.
  *
- * Android surface-stub: Hermes-Android does not yet ship the
- * `credential_files` helpers (`get_credential_file_mounts`,
- * `iter_skills_files`, `iter_cache_files`), so this returns an
- * empty list. Backends call it through [GetFilesFn], which can be
- * substituted when the sync surface is finally wired up.
+ * Combines credentials, skills, and cache into a single flat list of
+ * (host_path, remote_path) pairs.  Credential paths are remapped from
+ * the hardcoded /root/.hermes to [containerBase] because the remote
+ * user's home may differ (e.g. /home/daytona, /home/user).
+ *
+ * Android: the underlying helpers in [CredentialFiles] are currently
+ * surface-only stubs (empty), so the result is also empty — but the
+ * structural wiring mirrors Python `iter_sync_files`.
  */
 fun iterSyncFiles(containerBase: String = "/root/.hermes"): List<Pair<String, String>> {
-    return emptyList()
+    val files = mutableListOf<Pair<String, String>>()
+    for (entry in com.xiaomo.hermes.hermes.tools.getCredentialFileMounts()) {
+        val host = entry["host_path"] ?: continue
+        val container = entry["container_path"] ?: continue
+        val remote = container.replaceFirst("/root/.hermes", containerBase)
+        files.add(host to remote)
+    }
+    for (entry in com.xiaomo.hermes.hermes.tools.iterSkillsFiles(containerBase)) {
+        val host = entry["host_path"] ?: continue
+        val container = entry["container_path"] ?: continue
+        files.add(host to container)
+    }
+    for (entry in com.xiaomo.hermes.hermes.tools.iterCacheFiles(containerBase)) {
+        val host = entry["host_path"] ?: continue
+        val container = entry["container_path"] ?: continue
+        files.add(host to container)
+    }
+    return files
 }
 
 /** Build a shell `rm -f` command for a batch of remote paths. */
