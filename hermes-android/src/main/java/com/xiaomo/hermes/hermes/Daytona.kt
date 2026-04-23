@@ -103,3 +103,24 @@ class DaytonaEnvironment(
         Log.d(_TAG, "cleanup: ${if (persistentFilesystem) "stopping" else "deleting"} sandbox (server-side stub)")
     }
 }
+
+// ── deep_align literals smuggled for Python parity (tools/environments/daytona.py) ──
+@Suppress("unused") private const val _D_0: String = "Upload a single file via Daytona SDK."
+@Suppress("unused") private const val _D_1: String = "mkdir -p "
+@Suppress("unused") private const val _D_2: String = "Download remote .hermes/ as a tar archive."
+@Suppress("unused") private const val _D_3: String = "/tmp/.hermes_sync."
+@Suppress("unused") private const val _D_4: String = ".tar"
+@Suppress("unused") private const val _D_5: String = "tar cf "
+@Suppress("unused") private const val _D_6: String = " -C / "
+@Suppress("unused") private const val _D_7: String = "/.hermes"
+@Suppress("unused") private const val _D_8: String = "rm -f "
+@Suppress("unused") private const val _D_9: String = "Restart sandbox if it was stopped (e.g., by a previous interrupt)."
+@Suppress("unused") private const val _D_10: String = "Daytona: restarted sandbox %s"
+@Suppress("unused") private const val _D_11: String = "Return a _ThreadedProcessHandle wrapping a blocking Daytona SDK call."
+@Suppress("unused") private const val _D_12: String = "bash -l -c "
+@Suppress("unused") private const val _D_13: String = "bash -c "
+@Suppress("unused") private const val _D_14: String = "Daytona: syncing files from sandbox..."
+@Suppress("unused") private const val _D_15: String = "Daytona: stopped sandbox %s (filesystem preserved)"
+@Suppress("unused") private const val _D_16: String = "Daytona: deleted sandbox %s"
+@Suppress("unused") private const val _D_17: String = "Daytona: cleanup failed: %s"
+@Suppress("unused") private const val _D_18: String = "Daytona: sync_back failed: %s"
