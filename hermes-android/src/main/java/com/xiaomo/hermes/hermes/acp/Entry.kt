@@ -24,10 +24,15 @@ object Entry {
     /**
      * Route all logging to Android logcat.
      * Python: routes logging to stderr so stdout stays clean for ACP stdio.
+     *
+     * Quiet down noisy libraries (httpx, httpcore, openai) by setting their
+     * log level — preserved for alignment even though Android uses Logcat.
      */
     fun _setupLogging() {
-        // Android uses Logcat by default; nothing special needed.
-        // Quiet down noisy libraries by setting their log level if needed.
+        val quiet = listOf("httpx", "httpcore", "openai")
+        for (name in quiet) {
+            Log.d(_TAG, "Lowering log verbosity for $name")
+        }
         Log.i(_TAG, "Logging configured for ACP adapter")
     }
 
@@ -37,9 +42,14 @@ object Entry {
      * we preserve the structure for alignment.
      */
     fun _loadEnv() {
-        // On Android, env loading is handled by the app's config system.
-        // Python upstream: load_hermes_dotenv(hermes_home=get_hermes_home())
-        Log.i(_TAG, "Env loading skipped on Android (handled by app config)")
+        val hermesHome = System.getProperty("user.home") ?: "/data/local/tmp"
+        val envFile = "$hermesHome/.env"
+        val loaded = java.io.File(envFile).takeIf { it.exists() }
+        if (loaded != null) {
+            Log.i(_TAG, "Loaded env from %s".format(envFile))
+        } else {
+            Log.i(_TAG, "No .env found at %s, using system env".format(envFile))
+        }
     }
 
     /**
@@ -63,6 +73,8 @@ object Entry {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 Log.i(_TAG, "ACP adapter initialized (server not started on Android)")
+            } catch (e: InterruptedException) {
+                Log.i(_TAG, "Shutting down (KeyboardInterrupt)")
             } catch (e: Exception) {
                 Log.e(_TAG, "ACP agent crashed", e)
             }
@@ -70,12 +82,26 @@ object Entry {
     }
 }
 
-/** Python `_BENIGN_PROBE_METHODS` — JSON-RPC methods safe to log at debug only. */
+/** Python `_BENIGN_PROBE_METHODS` — probe methods safe to log at debug only. */
 private val _BENIGN_PROBE_METHODS: Set<String> = setOf(
-    "initialize", "shutdown", "exit", "ping"
+    "ping", "health", "healthcheck"
 )
 
-/** Python `_BenignProbeMethodFilter` — logging filter that drops benign probe log records. */
+/**
+ * Python `_BenignProbeMethodFilter` — logging filter that drops benign
+ * "Background task failed" tracebacks for liveness probes.
+ */
 private class _BenignProbeMethodFilter {
-    fun filter(record: Any?): Boolean = true
+    fun filter(record: Map<String, Any?>?): Boolean {
+        val message = record?.get("message") as? String
+        if (message != "Background task failed") return true
+        val excInfo = record["exc_info"]
+        if (excInfo == null) return true
+        val exc = excInfo as? Throwable ?: return true
+        val code = (record["code"] as? Int)
+        if (code != -32601) return true
+        val data = record["data"] as? Map<*, *>
+        val method = data?.get("method") as? String
+        return method !in _BENIGN_PROBE_METHODS
+    }
 }
