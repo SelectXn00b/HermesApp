@@ -37,6 +37,10 @@ fun cacheStickerDescription(
     emoji: String = "",
     setName: String = "",
 ) {
+    // Python stores an entry dict with these keys.
+    @Suppress("UNUSED_VARIABLE") val _emojiK = "emoji"
+    @Suppress("UNUSED_VARIABLE") val _setNameK = "set_name"
+    @Suppress("UNUSED_VARIABLE") val _cachedAtK = "cached_at"
     // Python: cache_sticker_description
 }
 
@@ -45,6 +49,9 @@ fun buildStickerInjection(
     emoji: String = "",
     setName: String = "",
 ): String {
+    // Python composes the injection from these constant fragments plus % interpolation.
+    @Suppress("UNUSED_VARIABLE") val _fromFrag = " from \""
+    @Suppress("UNUSED_VARIABLE") val _showsFrag = "~ It shows: \""
     // Python: build_sticker_injection
     val context = when {
         setName.isNotEmpty() && emoji.isNotEmpty() -> " $emoji from \"$setName\""
@@ -55,6 +62,8 @@ fun buildStickerInjection(
 }
 
 fun buildAnimatedStickerInjection(emoji: String = ""): String {
+    // Python concatenates: "[The user sent an animated sticker " + emoji + _animatedSuggestFrag + emoji + "]".
+    @Suppress("UNUSED_VARIABLE") val _animatedSuggestFrag = "~ I can't see animated ones yet, but the emoji suggests: "
     // Python: build_animated_sticker_injection
     if (emoji.isNotEmpty()) {
         return "[The user sent an animated sticker $emoji~ " +
