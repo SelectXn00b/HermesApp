@@ -491,5 +491,5 @@ fun formatNoMatchHint(
     if (error == null || !error.startsWith("Could not find")) return ""
     val hint = findClosestLines(oldString, content)
     if (hint.isEmpty()) return ""
-    return "\n\nDid you mean one of these sections?\n$hint"
+    return "\n\nDid you mean one of these sections?\n" + hint
 }

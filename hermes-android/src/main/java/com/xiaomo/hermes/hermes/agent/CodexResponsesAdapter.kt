@@ -706,8 +706,7 @@ fun _normalizeCodexResponse(response: Any?): Pair<Map<String, Any?>, String> {
     if (output !is List<*> || (output as List<*>).isEmpty()) {
         val outText = _getAttr(response, "output_text")
         if (outText is String && outText.trim().isNotEmpty()) {
-            Log.d(_TAG, "Codex response has empty output but output_text is present " +
-                "(${outText.trim().length} chars); synthesizing output item.")
+            Log.d(_TAG, "Codex response has empty output but output_text is present (%d chars); synthesizing output item.".format(outText.trim().length))
             output = listOf(mapOf(
                 "type" to "message",
                 "role" to "assistant",

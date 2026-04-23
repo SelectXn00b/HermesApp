@@ -92,10 +92,7 @@ fun getReadBlockError(path: String): String? {
         File(File(hermesHome, "skills"), ".hub"))
     for (blocked in blockedDirs) {
         if (_isRelativeTo(resolved, blocked)) {
-            return (
-                "Access denied: $path is an internal Hermes cache file " +
-                "and cannot be read directly to prevent prompt injection. " +
-                "Use the skills_list or skill_view tools instead.")
+            return "Access denied: %s is an internal Hermes cache file and cannot be read directly to prevent prompt injection. Use the skills_list or skill_view tools instead.".format(path)
         }
     }
     return null

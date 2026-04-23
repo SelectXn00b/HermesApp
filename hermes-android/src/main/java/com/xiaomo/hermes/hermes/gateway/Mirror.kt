@@ -116,7 +116,7 @@ private fun _appendToJsonl(sessionId: String, message: Map<String, Any?>) {
         val json = JSONObject(message).toString()
         transcriptPath.appendText(json + "\n", Charsets.UTF_8)
     } catch (e: Exception) {
-        Log.d(_TAG, "Mirror JSONL write failed: ${e.message}")
+        Log.d(_TAG, "Mirror JSONL write failed: %s".format(e.message))
     }
 }
 

@@ -80,6 +80,7 @@ object FeishuDocTool {
         val _larkNotInstalled = "lark_oapi not installed"
         val _failedPrefix = "Failed to read document: code="
         val _msgSeparator = " msg="
+        val _msgAttr = "msg"
         val _codeKey = "code"
         val _dataKey = "data"
         val _contentKey = "content"
