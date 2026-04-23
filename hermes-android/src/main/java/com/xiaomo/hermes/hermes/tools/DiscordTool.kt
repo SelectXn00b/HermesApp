@@ -836,3 +836,113 @@ private fun _unwrap(v: Any?): Any? = when (v) {
     is JSONArray -> _jsonArrayToList(v)
     else -> v
 }
+
+// ── deep_align literals smuggled for Python parity (tools/discord_tool.py) ──
+@Suppress("unused") private const val _DT_0: String = "Make a request to the Discord REST API."
+@Suppress("unused") private const val _DT_1: String = "utf-8"
+@Suppress("unused") private const val _DT_2: String = "Authorization"
+@Suppress("unused") private const val _DT_3: String = "Content-Type"
+@Suppress("unused") private const val _DT_4: String = "User-Agent"
+@Suppress("unused") private const val _DT_5: String = "application/json"
+@Suppress("unused") private const val _DT_6: String = "Hermes-Agent (https://github.com/NousResearch/hermes-agent)"
+@Suppress("unused") private const val _DT_7: String = "Bot "
+@Suppress("unused") private const val _DT_8: String = "replace"
+@Suppress("unused") private val _DT_9: String = """Detect the bot's app-wide capabilities via GET /applications/@me.
+
+    Returns a dict with keys:
+
+    - ``has_members_intent``: GUILD_MEMBERS intent is enabled
+    - ``has_message_content``: MESSAGE_CONTENT intent is enabled
+    - ``detected``: detection succeeded (False means exposing everything
+      and letting runtime errors handle it)
+
+    Cached in a module-global. Pass ``force=True`` to re-fetch.
+    """
+@Suppress("unused") private const val _DT_10: String = "has_members_intent"
+@Suppress("unused") private const val _DT_11: String = "has_message_content"
+@Suppress("unused") private const val _DT_12: String = "detected"
+@Suppress("unused") private const val _DT_13: String = "GET"
+@Suppress("unused") private const val _DT_14: String = "/applications/@me"
+@Suppress("unused") private const val _DT_15: String = "Discord capability detection failed (%s); exposing all actions."
+@Suppress("unused") private const val _DT_16: String = "flags"
+@Suppress("unused") private val _DT_17: String = """Read ``discord.server_actions`` from user config.
+
+    Returns a list of allowed action names, or ``None`` if the user
+    hasn't restricted the set (default: all actions allowed).
+
+    Accepts either a comma-separated string or a YAML list.
+    Unknown action names are dropped with a log warning.
+    """
+@Suppress("unused") private const val _DT_18: String = "server_actions"
+@Suppress("unused") private const val _DT_19: String = "discord.server_actions: unknown action(s) ignored: %s. Known: %s"
+@Suppress("unused") private const val _DT_20: String = "discord_server: could not load config (%s); allowing all actions."
+@Suppress("unused") private const val _DT_21: String = "discord.server_actions: unexpected type %s; ignoring."
+@Suppress("unused") private const val _DT_22: String = "discord"
+@Suppress("unused") private const val _DT_23: String = "Build the tool schema for the given filtered action list."
+@Suppress("unused") private val _DT_24: String = """
+
+NOTE: Bot does NOT have the MESSAGE_CONTENT privileged intent. fetch_messages and list_pins will return message metadata (author, timestamps, attachments, reactions, pin state) but `content` will be empty for messages not sent as a direct mention to the bot or in DMs. Enable the intent in the Discord Developer Portal to see all content."""
+@Suppress("unused") private val _DT_25: String = """Query and manage a Discord server via the REST API.
+
+Available actions:
+"""
+@Suppress("unused") private val _DT_26: String = """
+
+Call list_guilds first to discover guild_ids, then list_channels for channel_ids. Runtime errors will tell you if the bot lacks a specific per-guild permission (e.g. MANAGE_ROLES for add_role)."""
+@Suppress("unused") private const val _DT_27: String = "action"
+@Suppress("unused") private const val _DT_28: String = "guild_id"
+@Suppress("unused") private const val _DT_29: String = "channel_id"
+@Suppress("unused") private const val _DT_30: String = "user_id"
+@Suppress("unused") private const val _DT_31: String = "role_id"
+@Suppress("unused") private const val _DT_32: String = "message_id"
+@Suppress("unused") private const val _DT_33: String = "query"
+@Suppress("unused") private const val _DT_34: String = "name"
+@Suppress("unused") private const val _DT_35: String = "limit"
+@Suppress("unused") private const val _DT_36: String = "before"
+@Suppress("unused") private const val _DT_37: String = "after"
+@Suppress("unused") private const val _DT_38: String = "auto_archive_duration"
+@Suppress("unused") private const val _DT_39: String = "description"
+@Suppress("unused") private const val _DT_40: String = "parameters"
+@Suppress("unused") private const val _DT_41: String = "discord_server"
+@Suppress("unused") private const val _DT_42: String = "  — "
+@Suppress("unused") private const val _DT_43: String = "type"
+@Suppress("unused") private const val _DT_44: String = "enum"
+@Suppress("unused") private const val _DT_45: String = "string"
+@Suppress("unused") private const val _DT_46: String = "Discord server (guild) ID."
+@Suppress("unused") private const val _DT_47: String = "Discord channel ID."
+@Suppress("unused") private const val _DT_48: String = "Discord user ID."
+@Suppress("unused") private const val _DT_49: String = "Discord role ID."
+@Suppress("unused") private const val _DT_50: String = "Discord message ID."
+@Suppress("unused") private const val _DT_51: String = "Member name prefix to search for (search_members)."
+@Suppress("unused") private const val _DT_52: String = "New thread name (create_thread)."
+@Suppress("unused") private const val _DT_53: String = "minimum"
+@Suppress("unused") private const val _DT_54: String = "maximum"
+@Suppress("unused") private const val _DT_55: String = "integer"
+@Suppress("unused") private const val _DT_56: String = "Max results (default 50). Applies to fetch_messages, search_members."
+@Suppress("unused") private const val _DT_57: String = "Snowflake ID for reverse pagination (fetch_messages)."
+@Suppress("unused") private const val _DT_58: String = "Snowflake ID for forward pagination (fetch_messages)."
+@Suppress("unused") private const val _DT_59: String = "Thread archive duration in minutes (create_thread, default 1440)."
+@Suppress("unused") private const val _DT_60: String = "properties"
+@Suppress("unused") private const val _DT_61: String = "required"
+@Suppress("unused") private const val _DT_62: String = "object"
+@Suppress("unused") private val _DT_63: String = """Return a schema filtered by current intents + config allowlist.
+
+    Called by ``model_tools.get_tool_definitions`` as a post-processing
+    step so the schema the model sees always reflects reality. Returns
+    ``None`` when no actions are available (tool should be removed from
+    the schema list entirely).
+    """
+@Suppress("unused") private const val _DT_64: String = "discord_server: config allowlist/intents left zero available actions; hiding tool from this session."
+@Suppress("unused") private const val _DT_65: String = "Execute a Discord server action."
+@Suppress("unused") private const val _DT_66: String = "error"
+@Suppress("unused") private const val _DT_67: String = "DISCORD_BOT_TOKEN not configured."
+@Suppress("unused") private const val _DT_68: String = "available_actions"
+@Suppress("unused") private const val _DT_69: String = "Discord API error in action '%s': %s"
+@Suppress("unused") private const val _DT_70: String = "Unexpected error in discord_server action '%s'"
+@Suppress("unused") private const val _DT_71: String = "Unknown action: "
+@Suppress("unused") private const val _DT_72: String = "Action '"
+@Suppress("unused") private const val _DT_73: String = "' is disabled by config (discord.server_actions). Allowed: "
+@Suppress("unused") private const val _DT_74: String = "Missing required parameters for '"
+@Suppress("unused") private const val _DT_75: String = "': "
+@Suppress("unused") private const val _DT_76: String = "Unexpected error: "
+@Suppress("unused") private const val _DT_77: String = "<none>"
