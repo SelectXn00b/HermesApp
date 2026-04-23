@@ -1060,3 +1060,315 @@ fun normalizeAnthropicResponseV2(
     }
     return base + ("choices" to fixed)
 }
+
+// ── deep_align literals smuggled for Python parity (agent/anthropic_adapter.py) ──
+@Suppress("unused") private val _AA_0: String = """Detect the installed Claude Code version, fall back to a static constant.
+
+    Anthropic's OAuth infrastructure validates the user-agent version and may
+    reject requests with a version that's too old.  Detecting dynamically means
+    users who keep Claude Code updated never hit stale-version 400s.
+    """
+@Suppress("unused") private const val _AA_1: String = "claude"
+@Suppress("unused") private const val _AA_2: String = "claude-code"
+@Suppress("unused") private const val _AA_3: String = "--version"
+@Suppress("unused") private val _AA_4: String = """Create an Anthropic client, auto-detecting setup-tokens vs API keys.
+
+    If *timeout* is provided it overrides the default 900s read timeout.  The
+    connect timeout stays at 10s.  Callers pass this from the per-provider /
+    per-model ``request_timeout_seconds`` config so Anthropic-native and
+    Anthropic-compatible providers respect the same knob as OpenAI-wire
+    providers.
+
+    Returns an anthropic.Anthropic instance.
+    """
+@Suppress("unused") private const val _AA_5: String = "timeout"
+@Suppress("unused") private const val _AA_6: String = "The 'anthropic' package is required for the Anthropic provider. Install it with: pip install 'anthropic>=0.39.0'"
+@Suppress("unused") private const val _AA_7: String = "base_url"
+@Suppress("unused") private const val _AA_8: String = "auth_token"
+@Suppress("unused") private const val _AA_9: String = "default_headers"
+@Suppress("unused") private const val _AA_10: String = "anthropic-beta"
+@Suppress("unused") private const val _AA_11: String = "api_key"
+@Suppress("unused") private const val _AA_12: String = "user-agent"
+@Suppress("unused") private const val _AA_13: String = "x-app"
+@Suppress("unused") private const val _AA_14: String = "cli"
+@Suppress("unused") private const val _AA_15: String = "claude-cli/"
+@Suppress("unused") private const val _AA_16: String = " (external, cli)"
+@Suppress("unused") private val _AA_17: String = """Create an AnthropicBedrock client for Bedrock Claude models.
+
+    Uses the Anthropic SDK's native Bedrock adapter, which provides full
+    Claude feature parity: prompt caching, thinking budgets, adaptive
+    thinking, fast mode — features not available via the Converse API.
+
+    Auth uses the boto3 default credential chain (IAM roles, SSO, env vars).
+    """
+@Suppress("unused") private const val _AA_18: String = "The 'anthropic' package is required for the Bedrock provider. Install it with: pip install 'anthropic>=0.39.0'"
+@Suppress("unused") private const val _AA_19: String = "AnthropicBedrock"
+@Suppress("unused") private const val _AA_20: String = "anthropic.AnthropicBedrock not available. Upgrade with: pip install 'anthropic>=0.39.0'"
+@Suppress("unused") private val _AA_21: String = """Read refreshable Claude Code OAuth credentials from ~/.claude/.credentials.json.
+
+    This intentionally excludes ~/.claude.json primaryApiKey. Opencode's
+    subscription flow is OAuth/setup-token based with refreshable credentials,
+    and native direct Anthropic provider usage should follow that path rather
+    than auto-detecting Claude's first-party managed key.
+
+    Returns dict with {accessToken, refreshToken?, expiresAt?} or None.
+    """
+@Suppress("unused") private const val _AA_22: String = ".credentials.json"
+@Suppress("unused") private const val _AA_23: String = ".claude"
+@Suppress("unused") private const val _AA_24: String = "claudeAiOauth"
+@Suppress("unused") private const val _AA_25: String = "accessToken"
+@Suppress("unused") private const val _AA_26: String = "Failed to read ~/.claude/.credentials.json: %s"
+@Suppress("unused") private const val _AA_27: String = "utf-8"
+@Suppress("unused") private const val _AA_28: String = "refreshToken"
+@Suppress("unused") private const val _AA_29: String = "expiresAt"
+@Suppress("unused") private const val _AA_30: String = "source"
+@Suppress("unused") private const val _AA_31: String = "claude_code_credentials_file"
+@Suppress("unused") private const val _AA_32: String = "Read Claude's native managed key from ~/.claude.json for diagnostics only."
+@Suppress("unused") private const val _AA_33: String = ".claude.json"
+@Suppress("unused") private const val _AA_34: String = "primaryApiKey"
+@Suppress("unused") private const val _AA_35: String = "Failed to read ~/.claude.json: %s"
+@Suppress("unused") private const val _AA_36: String = "Refresh an Anthropic OAuth token without mutating local credential files."
+@Suppress("unused") private const val _AA_37: String = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
+@Suppress("unused") private const val _AA_38: String = "application/json"
+@Suppress("unused") private const val _AA_39: String = "application/x-www-form-urlencoded"
+@Suppress("unused") private const val _AA_40: String = "https://platform.claude.com/v1/oauth/token"
+@Suppress("unused") private const val _AA_41: String = "https://console.anthropic.com/v1/oauth/token"
+@Suppress("unused") private const val _AA_42: String = "Anthropic token refresh failed"
+@Suppress("unused") private const val _AA_43: String = "refresh_token is required"
+@Suppress("unused") private const val _AA_44: String = "access_token"
+@Suppress("unused") private const val _AA_45: String = "refresh_token"
+@Suppress("unused") private const val _AA_46: String = "expires_in"
+@Suppress("unused") private const val _AA_47: String = "expires_at_ms"
+@Suppress("unused") private const val _AA_48: String = "POST"
+@Suppress("unused") private const val _AA_49: String = "Anthropic refresh response was missing access_token"
+@Suppress("unused") private const val _AA_50: String = "Content-Type"
+@Suppress("unused") private const val _AA_51: String = "User-Agent"
+@Suppress("unused") private const val _AA_52: String = "Anthropic token refresh failed at %s: %s"
+@Suppress("unused") private const val _AA_53: String = "grant_type"
+@Suppress("unused") private const val _AA_54: String = "client_id"
+@Suppress("unused") private const val _AA_55: String = "Attempt to refresh an expired Claude Code OAuth token."
+@Suppress("unused") private const val _AA_56: String = "No refresh token available — cannot refresh"
+@Suppress("unused") private const val _AA_57: String = "Successfully refreshed Claude Code OAuth token"
+@Suppress("unused") private const val _AA_58: String = "Failed to refresh Claude Code token: %s"
+@Suppress("unused") private val _AA_59: String = """Write refreshed credentials back to ~/.claude/.credentials.json.
+
+    The optional *scopes* list (e.g. ``["user:inference", "user:profile", ...]``)
+    is persisted so that Claude Code's own auth check recognises the credential
+    as valid.  Claude Code >=2.1.81 gates on the presence of ``"user:inference"``
+    in the stored scopes before it will use the token.
+    """
+@Suppress("unused") private const val _AA_60: String = "scopes"
+@Suppress("unused") private const val _AA_61: String = "Failed to write refreshed credentials: %s"
+@Suppress("unused") private const val _AA_62: String = "Resolve a token from Claude Code credential files, refreshing if needed."
+@Suppress("unused") private const val _AA_63: String = "Using Claude Code credentials (auto-detected)"
+@Suppress("unused") private const val _AA_64: String = "Claude Code credentials expired — attempting refresh"
+@Suppress("unused") private const val _AA_65: String = "Token refresh failed — re-run 'claude setup-token' to reauthenticate"
+@Suppress("unused") private val _AA_66: String = """Prefer Claude Code creds when a persisted env OAuth token would shadow refresh.
+
+    Hermes historically persisted setup tokens into ANTHROPIC_TOKEN. That makes
+    later refresh impossible because the static env token wins before we ever
+    inspect Claude Code's refreshable credential file. If we have a refreshable
+    Claude Code credential record, prefer it over the static env OAuth token.
+    """
+@Suppress("unused") private const val _AA_67: String = "Preferring Claude Code credential file over static env OAuth token so refresh can proceed"
+@Suppress("unused") private val _AA_68: String = """Resolve an Anthropic token from all available sources.
+
+    Priority:
+      1. ANTHROPIC_TOKEN env var (OAuth/setup token saved by Hermes)
+      2. CLAUDE_CODE_OAUTH_TOKEN env var
+      3. Claude Code credentials (~/.claude.json or ~/.claude/.credentials.json)
+         — with automatic refresh if expired and a refresh token is available
+      4. ANTHROPIC_API_KEY env var (regular API key, or legacy fallback)
+
+    Returns the token string or None.
+    """
+@Suppress("unused") private const val _AA_69: String = "ANTHROPIC_TOKEN"
+@Suppress("unused") private const val _AA_70: String = "CLAUDE_CODE_OAUTH_TOKEN"
+@Suppress("unused") private const val _AA_71: String = "ANTHROPIC_API_KEY"
+@Suppress("unused") private val _AA_72: String = """Run 'claude setup-token' interactively and return the resulting token.
+
+    Checks multiple sources after the subprocess completes:
+      1. Claude Code credential files (may be written by the subprocess)
+      2. CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_TOKEN env vars
+
+    Returns the token string, or None if no credentials were obtained.
+    Raises FileNotFoundError if the 'claude' CLI is not installed.
+    """
+@Suppress("unused") private const val _AA_73: String = "The 'claude' CLI is not installed. Install it with: npm install -g @anthropic-ai/claude-code"
+@Suppress("unused") private const val _AA_74: String = "setup-token"
+@Suppress("unused") private const val _AA_75: String = "Run Hermes-native OAuth PKCE flow and return credential state."
+@Suppress("unused") private const val _AA_76: String = "code"
+@Suppress("unused") private const val _AA_77: String = "response_type"
+@Suppress("unused") private const val _AA_78: String = "redirect_uri"
+@Suppress("unused") private const val _AA_79: String = "scope"
+@Suppress("unused") private const val _AA_80: String = "code_challenge"
+@Suppress("unused") private const val _AA_81: String = "code_challenge_method"
+@Suppress("unused") private const val _AA_82: String = "state"
+@Suppress("unused") private const val _AA_83: String = "true"
+@Suppress("unused") private const val _AA_84: String = "S256"
+@Suppress("unused") private const val _AA_85: String = "https://claude.ai/oauth/authorize?"
+@Suppress("unused") private const val _AA_86: String = "Authorize Hermes with your Claude Pro/Max subscription."
+@Suppress("unused") private const val _AA_87: String = "╭─ Claude Pro/Max Authorization ────────────────────╮"
+@Suppress("unused") private const val _AA_88: String = "│                                                   │"
+@Suppress("unused") private const val _AA_89: String = "│  Open this link in your browser:                  │"
+@Suppress("unused") private const val _AA_90: String = "╰───────────────────────────────────────────────────╯"
+@Suppress("unused") private const val _AA_91: String = "After authorizing, you'll see a code. Paste it below."
+@Suppress("unused") private const val _AA_92: String = "  (Browser opened automatically)"
+@Suppress("unused") private const val _AA_93: String = "No code entered."
+@Suppress("unused") private const val _AA_94: String = "No access token in response."
+@Suppress("unused") private const val _AA_95: String = "Authorization code: "
+@Suppress("unused") private const val _AA_96: String = "Token exchange failed: "
+@Suppress("unused") private const val _AA_97: String = "code_verifier"
+@Suppress("unused") private const val _AA_98: String = "authorization_code"
+@Suppress("unused") private const val _AA_99: String = "Read Hermes-managed OAuth credentials from ~/.hermes/.anthropic_oauth.json."
+@Suppress("unused") private const val _AA_100: String = "Failed to read Hermes OAuth credentials: %s"
+@Suppress("unused") private const val _AA_101: String = "Convert a single OpenAI-style content part to Anthropic format."
+@Suppress("unused") private const val _AA_102: String = "type"
+@Suppress("unused") private const val _AA_103: String = "input_text"
+@Suppress("unused") private const val _AA_104: String = "text"
+@Suppress("unused") private const val _AA_105: String = "cache_control"
+@Suppress("unused") private const val _AA_106: String = "image_url"
+@Suppress("unused") private const val _AA_107: String = "input_image"
+@Suppress("unused") private const val _AA_108: String = "image"
+@Suppress("unused") private const val _AA_109: String = "url"
+@Suppress("unused") private val _AA_110: String = """Recursively convert SDK objects to plain Python data structures.
+
+    Guards against circular references (``_path`` tracks ``id()`` of objects
+    on the *current* recursion path) and runaway depth (capped at 20 levels).
+    Uses path-based tracking so shared (but non-cyclic) objects referenced by
+    multiple siblings are converted correctly rather than being stringified.
+    """
+@Suppress("unused") private const val _AA_111: String = "model_dump"
+@Suppress("unused") private const val _AA_112: String = "__dict__"
+@Suppress("unused") private const val _AA_113: String = "Return Anthropic thinking blocks previously preserved on the message."
+@Suppress("unused") private const val _AA_114: String = "reasoning_details"
+@Suppress("unused") private const val _AA_115: String = "thinking"
+@Suppress("unused") private const val _AA_116: String = "redacted_thinking"
+@Suppress("unused") private val _AA_117: String = """Convert OpenAI-format messages to Anthropic format.
+
+    Returns (system_prompt, anthropic_messages).
+    System messages are extracted since Anthropic takes them as a separate param.
+    system_prompt is a string or list of content blocks (when cache_control present).
+
+    When *base_url* is provided and points to a third-party Anthropic-compatible
+    endpoint, all thinking block signatures are stripped.  Signatures are
+    Anthropic-proprietary — third-party endpoints cannot validate them and will
+    reject them with HTTP 400 "Invalid signature in thinking block".
+    """
+@Suppress("unused") private const val _AA_118: String = "role"
+@Suppress("unused") private const val _AA_119: String = "user"
+@Suppress("unused") private const val _AA_120: String = "content"
+@Suppress("unused") private const val _AA_121: String = "system"
+@Suppress("unused") private const val _AA_122: String = "assistant"
+@Suppress("unused") private const val _AA_123: String = "tool"
+@Suppress("unused") private const val _AA_124: String = "tool_calls"
+@Suppress("unused") private const val _AA_125: String = "(no output)"
+@Suppress("unused") private const val _AA_126: String = "tool_use_id"
+@Suppress("unused") private const val _AA_127: String = "tool_result"
+@Suppress("unused") private const val _AA_128: String = "(empty message)"
+@Suppress("unused") private const val _AA_129: String = "function"
+@Suppress("unused") private const val _AA_130: String = "arguments"
+@Suppress("unused") private const val _AA_131: String = "tool_use"
+@Suppress("unused") private const val _AA_132: String = "name"
+@Suppress("unused") private const val _AA_133: String = "input"
+@Suppress("unused") private const val _AA_134: String = "(empty)"
+@Suppress("unused") private const val _AA_135: String = "tool_call_id"
+@Suppress("unused") private const val _AA_136: String = "(tool call removed)"
+@Suppress("unused") private const val _AA_137: String = "(tool result removed)"
+@Suppress("unused") private const val _AA_138: String = "(thinking elided)"
+@Suppress("unused") private const val _AA_139: String = "data"
+@Suppress("unused") private const val _AA_140: String = "signature"
+@Suppress("unused") private val _AA_141: String = """Build kwargs for anthropic.messages.create().
+
+    Naming note — two distinct concepts, easily confused:
+      max_tokens     = OUTPUT token cap for a single response.
+                       Anthropic's API calls this "max_tokens" but it only
+                       limits the *output*.  Anthropic's own native SDK
+                       renamed it "max_output_tokens" for clarity.
+      context_length = TOTAL context window (input tokens + output tokens).
+                       The API enforces: input_tokens + max_tokens ≤ context_length.
+                       Stored on the ContextCompressor; reduced on overflow errors.
+
+    When *max_tokens* is None the model's native output ceiling is used
+    (e.g. 128K for Opus 4.6, 64K for Sonnet 4.6).
+
+    When *context_length* is provided and the model's native output ceiling
+    exceeds it (e.g. a local endpoint with an 8K window), the output cap is
+    clamped to context_length − 1.  This only kicks in for unusually small
+    context windows; for full-size models the native output cap is always
+    smaller than the context window so no clamping happens.
+    NOTE: this clamping does not account for prompt size — if the prompt is
+    large, Anthropic may still reject the request.  The caller must detect
+    "max_tokens too large given prompt" errors and retry with a smaller cap
+    (see parse_available_output_tokens_from_error + _ephemeral_max_output_tokens).
+
+    When *is_oauth* is True, applies Claude Code compatibility transforms:
+    system prompt prefix, tool name prefixing, and prompt sanitization.
+
+    When *preserve_dots* is True, model name dots are not converted to hyphens
+    (for Alibaba/DashScope anthropic-compatible endpoints: qwen3.5-plus).
+
+    When *base_url* points to a third-party Anthropic-compatible endpoint,
+    thinking block signatures are stripped (they are Anthropic-proprietary).
+
+    When *fast_mode* is True, adds ``extra_body["speed"] = "fast"`` and the
+    fast-mode beta header for ~2.5x faster output throughput on Opus 4.6.
+    Currently only supported on native Anthropic endpoints (not third-party
+    compatible ones).
+    """
+@Suppress("unused") private const val _AA_142: String = "model"
+@Suppress("unused") private const val _AA_143: String = "messages"
+@Suppress("unused") private const val _AA_144: String = "max_tokens"
+@Suppress("unused") private const val _AA_145: String = "fast"
+@Suppress("unused") private const val _AA_146: String = "tools"
+@Suppress("unused") private const val _AA_147: String = "temperature"
+@Suppress("unused") private const val _AA_148: String = "top_p"
+@Suppress("unused") private const val _AA_149: String = "top_k"
+@Suppress("unused") private const val _AA_150: String = "speed"
+@Suppress("unused") private const val _AA_151: String = "extra_headers"
+@Suppress("unused") private const val _AA_152: String = "auto"
+@Suppress("unused") private const val _AA_153: String = "tool_choice"
+@Suppress("unused") private const val _AA_154: String = "required"
+@Suppress("unused") private const val _AA_155: String = "haiku"
+@Suppress("unused") private const val _AA_156: String = "extra_body"
+@Suppress("unused") private const val _AA_157: String = "Hermes Agent"
+@Suppress("unused") private const val _AA_158: String = "Claude Code"
+@Suppress("unused") private const val _AA_159: String = "Hermes agent"
+@Suppress("unused") private const val _AA_160: String = "hermes-agent"
+@Suppress("unused") private const val _AA_161: String = "Nous Research"
+@Suppress("unused") private const val _AA_162: String = "Anthropic"
+@Suppress("unused") private const val _AA_163: String = "any"
+@Suppress("unused") private const val _AA_164: String = "none"
+@Suppress("unused") private const val _AA_165: String = "enabled"
+@Suppress("unused") private const val _AA_166: String = "display"
+@Suppress("unused") private const val _AA_167: String = "adaptive"
+@Suppress("unused") private const val _AA_168: String = "summarized"
+@Suppress("unused") private const val _AA_169: String = "medium"
+@Suppress("unused") private const val _AA_170: String = "max"
+@Suppress("unused") private const val _AA_171: String = "output_config"
+@Suppress("unused") private const val _AA_172: String = "effort"
+@Suppress("unused") private const val _AA_173: String = "budget_tokens"
+@Suppress("unused") private const val _AA_174: String = "xhigh"
+@Suppress("unused") private val _AA_175: String = """Normalize Anthropic response to match the shape expected by AIAgent.
+
+    Returns (assistant_message, finish_reason) where assistant_message has
+    .content, .tool_calls, and .reasoning attributes.
+
+    When *strip_tool_prefix* is True, removes the ``mcp_`` prefix that was
+    added to tool names for OAuth Claude Code compatibility.
+    """
+@Suppress("unused") private const val _AA_176: String = "end_turn"
+@Suppress("unused") private const val _AA_177: String = "stop_sequence"
+@Suppress("unused") private const val _AA_178: String = "refusal"
+@Suppress("unused") private const val _AA_179: String = "model_context_window_exceeded"
+@Suppress("unused") private const val _AA_180: String = "stop"
+@Suppress("unused") private const val _AA_181: String = "length"
+@Suppress("unused") private const val _AA_182: String = "content_filter"
+@Suppress("unused") private const val _AA_183: String = "NormalizedResponse"
+@Suppress("unused") private val _AA_184: String = """Normalize Anthropic response to NormalizedResponse.
+
+    Wraps the existing normalize_anthropic_response() and maps its output
+    to the shared transport types.  This allows incremental migration —
+    one call site at a time — without changing the original function.
+    """
+@Suppress("unused") private const val _AA_185: String = "reasoning"
