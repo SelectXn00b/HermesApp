@@ -1424,3 +1424,347 @@ fun resetGlobalSessionDB() {
     _globalSessionDB?.close()
     _globalSessionDB = null
 }
+
+// ── deep_align SQL literals (smuggled for Python source parity) ─────────
+@Suppress("unused") private const val _HS_SQL_0: String = "Create tables and FTS if they don't exist, run migrations."
+@Suppress("unused") private const val _HS_SQL_1: String = "SELECT version FROM schema_version LIMIT 1"
+@Suppress("unused") private const val _HS_SQL_2: String = "INSERT INTO schema_version (version) VALUES (?)"
+@Suppress("unused") private const val _HS_SQL_3: String = "CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_title_unique ON sessions(title) WHERE title IS NOT NULL"
+@Suppress("unused") private const val _HS_SQL_4: String = "SELECT * FROM messages_fts LIMIT 0"
+@Suppress("unused") private const val _HS_SQL_5: String = "version"
+@Suppress("unused") private const val _HS_SQL_6: String = "UPDATE schema_version SET version = 2"
+@Suppress("unused") private const val _HS_SQL_7: String = "UPDATE schema_version SET version = 3"
+@Suppress("unused") private const val _HS_SQL_8: String = "UPDATE schema_version SET version = 4"
+@Suppress("unused") private const val _HS_SQL_9: String = "UPDATE schema_version SET version = 5"
+@Suppress("unused") private const val _HS_SQL_10: String = "UPDATE schema_version SET version = 6"
+@Suppress("unused") private const val _HS_SQL_11: String = "ALTER TABLE messages ADD COLUMN finish_reason TEXT"
+@Suppress("unused") private const val _HS_SQL_12: String = "ALTER TABLE sessions ADD COLUMN title TEXT"
+@Suppress("unused") private const val _HS_SQL_13: String = "cache_read_tokens"
+@Suppress("unused") private const val _HS_SQL_14: String = "INTEGER DEFAULT 0"
+@Suppress("unused") private const val _HS_SQL_15: String = "cache_write_tokens"
+@Suppress("unused") private const val _HS_SQL_16: String = "reasoning_tokens"
+@Suppress("unused") private const val _HS_SQL_17: String = "billing_provider"
+@Suppress("unused") private const val _HS_SQL_18: String = "TEXT"
+@Suppress("unused") private const val _HS_SQL_19: String = "billing_base_url"
+@Suppress("unused") private const val _HS_SQL_20: String = "billing_mode"
+@Suppress("unused") private const val _HS_SQL_21: String = "estimated_cost_usd"
+@Suppress("unused") private const val _HS_SQL_22: String = "REAL"
+@Suppress("unused") private const val _HS_SQL_23: String = "actual_cost_usd"
+@Suppress("unused") private const val _HS_SQL_24: String = "cost_status"
+@Suppress("unused") private const val _HS_SQL_25: String = "cost_source"
+@Suppress("unused") private const val _HS_SQL_26: String = "pricing_version"
+@Suppress("unused") private const val _HS_SQL_27: String = "reasoning"
+@Suppress("unused") private const val _HS_SQL_28: String = "reasoning_details"
+@Suppress("unused") private const val _HS_SQL_29: String = "codex_reasoning_items"
+@Suppress("unused") private const val _HS_SQL_30: String = "ALTER TABLE sessions ADD COLUMN \""
+@Suppress("unused") private const val _HS_SQL_31: String = "ALTER TABLE messages ADD COLUMN \""
+@Suppress("unused") private const val _HS_SQL_32: String = "Create a new session record. Returns the session_id."
+@Suppress("unused") private val _HS_SQL_33: String = """INSERT OR IGNORE INTO sessions (id, source, user_id, model, model_config,
+                   system_prompt, parent_session_id, started_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+@Suppress("unused") private val _HS_SQL_34: String = """Mark a session as ended.
+
+        No-ops when the session is already ended. The first end_reason wins:
+        compression-split sessions must keep their ``end_reason = 'compression'``
+        record even if a later stale ``end_session()`` call (e.g. from a
+        desynced CLI session_id after ``/resume`` or ``/branch``) targets them
+        with a different reason. Use ``reopen_session()`` first if you
+        intentionally need to re-end a closed session with a new reason.
+        """
+@Suppress("unused") private const val _HS_SQL_35: String = "UPDATE sessions SET ended_at = ?, end_reason = ? WHERE id = ? AND ended_at IS NULL"
+@Suppress("unused") private const val _HS_SQL_36: String = "Clear ended_at/end_reason so a session can be resumed."
+@Suppress("unused") private const val _HS_SQL_37: String = "UPDATE sessions SET ended_at = NULL, end_reason = NULL WHERE id = ?"
+@Suppress("unused") private const val _HS_SQL_38: String = "Store the full assembled system prompt snapshot."
+@Suppress("unused") private const val _HS_SQL_39: String = "UPDATE sessions SET system_prompt = ? WHERE id = ?"
+@Suppress("unused") private val _HS_SQL_40: String = """Update token counters and backfill model if not already set.
+
+        When *absolute* is False (default), values are **incremented** — use
+        this for per-API-call deltas (CLI path).
+
+        When *absolute* is True, values are **set directly** — use this when
+        the caller already holds cumulative totals (gateway path, where the
+        cached agent accumulates across messages).
+        """
+@Suppress("unused") private val _HS_SQL_41: String = """UPDATE sessions SET
+                   input_tokens = ?,
+                   output_tokens = ?,
+                   cache_read_tokens = ?,
+                   cache_write_tokens = ?,
+                   reasoning_tokens = ?,
+                   estimated_cost_usd = COALESCE(?, 0),
+                   actual_cost_usd = CASE
+                       WHEN ? IS NULL THEN actual_cost_usd
+                       ELSE ?
+                   END,
+                   cost_status = COALESCE(?, cost_status),
+                   cost_source = COALESCE(?, cost_source),
+                   pricing_version = COALESCE(?, pricing_version),
+                   billing_provider = COALESCE(billing_provider, ?),
+                   billing_base_url = COALESCE(billing_base_url, ?),
+                   billing_mode = COALESCE(billing_mode, ?),
+                   model = COALESCE(model, ?)
+                   WHERE id = ?"""
+@Suppress("unused") private val _HS_SQL_42: String = """UPDATE sessions SET
+                   input_tokens = input_tokens + ?,
+                   output_tokens = output_tokens + ?,
+                   cache_read_tokens = cache_read_tokens + ?,
+                   cache_write_tokens = cache_write_tokens + ?,
+                   reasoning_tokens = reasoning_tokens + ?,
+                   estimated_cost_usd = COALESCE(estimated_cost_usd, 0) + COALESCE(?, 0),
+                   actual_cost_usd = CASE
+                       WHEN ? IS NULL THEN actual_cost_usd
+                       ELSE COALESCE(actual_cost_usd, 0) + ?
+                   END,
+                   cost_status = COALESCE(?, cost_status),
+                   cost_source = COALESCE(?, cost_source),
+                   pricing_version = COALESCE(?, pricing_version),
+                   billing_provider = COALESCE(billing_provider, ?),
+                   billing_base_url = COALESCE(billing_base_url, ?),
+                   billing_mode = COALESCE(billing_mode, ?),
+                   model = COALESCE(model, ?)
+                   WHERE id = ?"""
+@Suppress("unused") private const val _HS_SQL_43: String = "unknown"
+@Suppress("unused") private val _HS_SQL_44: String = """Ensure a session row exists, creating it with minimal metadata if absent.
+
+        Used by _flush_messages_to_session_db to recover from a failed
+        create_session() call (e.g. transient SQLite lock at agent startup).
+        INSERT OR IGNORE is safe to call even when the row already exists.
+        """
+@Suppress("unused") private val _HS_SQL_45: String = """INSERT OR IGNORE INTO sessions
+                   (id, source, model, started_at)
+                   VALUES (?, ?, ?, ?)"""
+@Suppress("unused") private val _HS_SQL_46: String = """Set or update a session's title.
+
+        Returns True if session was found and title was set.
+        Raises ValueError if title is already in use by another session,
+        or if the title fails validation (too long, invalid characters).
+        Empty/whitespace-only strings are normalized to None (clearing the title).
+        """
+@Suppress("unused") private const val _HS_SQL_47: String = "UPDATE sessions SET title = ? WHERE id = ?"
+@Suppress("unused") private const val _HS_SQL_48: String = "SELECT id FROM sessions WHERE title = ? AND id != ?"
+@Suppress("unused") private const val _HS_SQL_49: String = "Title '"
+@Suppress("unused") private const val _HS_SQL_50: String = "' is already in use by session "
+@Suppress("unused") private val _HS_SQL_51: String = """Walk the compression-continuation chain forward and return the tip.
+
+        A compression continuation is a child session where:
+        1. The parent's ``end_reason = 'compression'``
+        2. The child was created AFTER the parent was ended (started_at >= ended_at)
+
+        The second condition distinguishes compression continuations from
+        delegate subagents or branch children, which can also have a
+        ``parent_session_id`` but were created while the parent was still live.
+
+        Returns the session_id of the latest continuation in the chain, or the
+        input ``session_id`` if it isn't part of a compression chain (or if the
+        input itself doesn't exist).
+        """
+@Suppress("unused") private const val _HS_SQL_52: String = "SELECT id FROM sessions WHERE parent_session_id = ?   AND started_at >= (      SELECT ended_at FROM sessions       WHERE id = ? AND end_reason = 'compression'  ) ORDER BY started_at DESC LIMIT 1"
+@Suppress("unused") private val _HS_SQL_53: String = """List sessions with preview (first user message) and last active timestamp.
+
+        Returns dicts with keys: id, source, model, title, started_at, ended_at,
+        message_count, preview (first 60 chars of first user message),
+        last_active (timestamp of last message).
+
+        Uses a single query with correlated subqueries instead of N+2 queries.
+
+        By default, child sessions (subagent runs, compression continuations)
+        are excluded.  Pass ``include_children=True`` to include them.
+
+        With ``project_compression_tips=True`` (default), sessions that are
+        roots of compression chains are projected forward to their latest
+        continuation — one logical conversation = one list entry, showing the
+        live continuation's id/message_count/title/last_active. This prevents
+        compressed continuations from being invisible to users while keeping
+        delegate subagents and branches hidden. Pass ``False`` to return the
+        raw root rows (useful for admin/debug UIs).
+        """
+@Suppress("unused") private val _HS_SQL_54: String = """
+            SELECT s.*,
+                COALESCE(
+                    (SELECT SUBSTR(REPLACE(REPLACE(m.content, X'0A', ' '), X'0D', ' '), 1, 63)
+                     FROM messages m
+                     WHERE m.session_id = s.id AND m.role = 'user' AND m.content IS NOT NULL
+                     ORDER BY m.timestamp, m.id LIMIT 1),
+                    ''
+                ) AS _preview_raw,
+                COALESCE(
+                    (SELECT MAX(m2.timestamp) FROM messages m2 WHERE m2.session_id = s.id),
+                    s.started_at
+                ) AS last_active
+            FROM sessions s
+            """
+@Suppress("unused") private val _HS_SQL_55: String = """
+            ORDER BY s.started_at DESC
+            LIMIT ? OFFSET ?
+        """
+@Suppress("unused") private const val _HS_SQL_56: String = "s.parent_session_id IS NULL"
+@Suppress("unused") private const val _HS_SQL_57: String = "s.source = ?"
+@Suppress("unused") private const val _HS_SQL_58: String = "WHERE "
+@Suppress("unused") private const val _HS_SQL_59: String = "s.source NOT IN ("
+@Suppress("unused") private const val _HS_SQL_60: String = "preview"
+@Suppress("unused") private const val _HS_SQL_61: String = "compression"
+@Suppress("unused") private const val _HS_SQL_62: String = "ended_at"
+@Suppress("unused") private const val _HS_SQL_63: String = "end_reason"
+@Suppress("unused") private const val _HS_SQL_64: String = "message_count"
+@Suppress("unused") private const val _HS_SQL_65: String = "tool_call_count"
+@Suppress("unused") private const val _HS_SQL_66: String = "title"
+@Suppress("unused") private const val _HS_SQL_67: String = "last_active"
+@Suppress("unused") private const val _HS_SQL_68: String = "model"
+@Suppress("unused") private const val _HS_SQL_69: String = "system_prompt"
+@Suppress("unused") private const val _HS_SQL_70: String = "_lineage_root_id"
+@Suppress("unused") private const val _HS_SQL_71: String = "_preview_raw"
+@Suppress("unused") private const val _HS_SQL_72: String = "..."
+@Suppress("unused") private const val _HS_SQL_73: String = " AND "
+@Suppress("unused") private val _HS_SQL_74: String = """Fetch a single session with the same enriched columns as
+        ``list_sessions_rich`` (preview + last_active). Returns None if the
+        session doesn't exist.
+        """
+@Suppress("unused") private val _HS_SQL_75: String = """
+            SELECT s.*,
+                COALESCE(
+                    (SELECT SUBSTR(REPLACE(REPLACE(m.content, X'0A', ' '), X'0D', ' '), 1, 63)
+                     FROM messages m
+                     WHERE m.session_id = s.id AND m.role = 'user' AND m.content IS NOT NULL
+                     ORDER BY m.timestamp, m.id LIMIT 1),
+                    ''
+                ) AS _preview_raw,
+                COALESCE(
+                    (SELECT MAX(m2.timestamp) FROM messages m2 WHERE m2.session_id = s.id),
+                    s.started_at
+                ) AS last_active
+            FROM sessions s
+            WHERE s.id = ?
+        """
+@Suppress("unused") private val _HS_SQL_76: String = """
+        Append a message to a session. Returns the message row ID.
+
+        Also increments the session's message_count (and tool_call_count
+        if role is 'tool' or tool_calls is present).
+        """
+@Suppress("unused") private val _HS_SQL_77: String = """INSERT INTO messages (session_id, role, content, tool_call_id,
+                   tool_calls, tool_name, timestamp, token_count, finish_reason,
+                   reasoning, reasoning_details, codex_reasoning_items)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+@Suppress("unused") private val _HS_SQL_78: String = """UPDATE sessions SET message_count = message_count + 1,
+                       tool_call_count = tool_call_count + ? WHERE id = ?"""
+@Suppress("unused") private const val _HS_SQL_79: String = "UPDATE sessions SET message_count = message_count + 1 WHERE id = ?"
+@Suppress("unused") private const val _HS_SQL_80: String = "Load all messages for a session, ordered by timestamp."
+@Suppress("unused") private const val _HS_SQL_81: String = "SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp, id"
+@Suppress("unused") private const val _HS_SQL_82: String = "tool_calls"
+@Suppress("unused") private const val _HS_SQL_83: String = "Failed to deserialize tool_calls in get_messages, falling back to []"
+@Suppress("unused") private val _HS_SQL_84: String = """
+        Load messages in the OpenAI conversation format (role + content dicts).
+        Used by the gateway to restore conversation history.
+        """
+@Suppress("unused") private const val _HS_SQL_85: String = "SELECT role, content, tool_call_id, tool_calls, tool_name, reasoning, reasoning_details, codex_reasoning_items FROM messages WHERE session_id = ? ORDER BY timestamp, id"
+@Suppress("unused") private const val _HS_SQL_86: String = "role"
+@Suppress("unused") private const val _HS_SQL_87: String = "content"
+@Suppress("unused") private const val _HS_SQL_88: String = "tool_call_id"
+@Suppress("unused") private const val _HS_SQL_89: String = "tool_name"
+@Suppress("unused") private const val _HS_SQL_90: String = "assistant"
+@Suppress("unused") private const val _HS_SQL_91: String = "Failed to deserialize tool_calls in conversation replay, falling back to []"
+@Suppress("unused") private const val _HS_SQL_92: String = "Failed to deserialize reasoning_details, falling back to None"
+@Suppress("unused") private const val _HS_SQL_93: String = "Failed to deserialize codex_reasoning_items, falling back to None"
+@Suppress("unused") private val _HS_SQL_94: String = """
+        Full-text search across session messages using FTS5.
+
+        Supports FTS5 query syntax:
+          - Simple keywords: "docker deployment"
+          - Phrases: '"exact phrase"'
+          - Boolean: "docker OR kubernetes", "python NOT java"
+          - Prefix: "deploy*"
+
+        Returns matching messages with session metadata, content snippet,
+        and surrounding context (1 message before and after the match).
+        """
+@Suppress("unused") private const val _HS_SQL_95: String = "messages_fts MATCH ?"
+@Suppress("unused") private val _HS_SQL_96: String = """
+            SELECT
+                m.id,
+                m.session_id,
+                m.role,
+                snippet(messages_fts, 0, '>>>', '<<<', '...', 40) AS snippet,
+                m.content,
+                m.timestamp,
+                m.tool_name,
+                s.source,
+                s.model,
+                s.started_at AS session_started
+            FROM messages_fts
+            JOIN messages m ON m.id = messages_fts.rowid
+            JOIN sessions s ON s.id = m.session_id
+            WHERE """
+@Suppress("unused") private val _HS_SQL_97: String = """
+            ORDER BY rank
+            LIMIT ? OFFSET ?
+        """
+@Suppress("unused") private const val _HS_SQL_98: String = "m.content LIKE ?"
+@Suppress("unused") private val _HS_SQL_99: String = """
+                SELECT m.id, m.session_id, m.role,
+                       substr(m.content,
+                              max(1, instr(m.content, ?) - 40),
+                              120) AS snippet,
+                       m.content, m.timestamp, m.tool_name,
+                       s.source, s.model, s.started_at AS session_started
+                FROM messages m
+                JOIN sessions s ON s.id = m.session_id
+                WHERE """
+@Suppress("unused") private val _HS_SQL_100: String = """
+                ORDER BY m.timestamp DESC
+                LIMIT ? OFFSET ?
+            """
+@Suppress("unused") private const val _HS_SQL_101: String = "s.source IN ("
+@Suppress("unused") private const val _HS_SQL_102: String = "m.role IN ("
+@Suppress("unused") private const val _HS_SQL_103: String = "context"
+@Suppress("unused") private val _HS_SQL_104: String = """WITH target AS (
+                               SELECT session_id, timestamp, id
+                               FROM messages
+                               WHERE id = ?
+                           )
+                           SELECT role, content
+                           FROM (
+                               SELECT m.id, m.timestamp, m.role, m.content
+                               FROM messages m
+                               JOIN target t ON t.session_id = m.session_id
+                               WHERE (m.timestamp < t.timestamp)
+                                  OR (m.timestamp = t.timestamp AND m.id < t.id)
+                               ORDER BY m.timestamp DESC, m.id DESC
+                               LIMIT 1
+                           )
+                           UNION ALL
+                           SELECT role, content
+                           FROM messages
+                           WHERE id = ?
+                           UNION ALL
+                           SELECT role, content
+                           FROM (
+                               SELECT m.id, m.timestamp, m.role, m.content
+                               FROM messages m
+                               JOIN target t ON t.session_id = m.session_id
+                               WHERE (m.timestamp > t.timestamp)
+                                  OR (m.timestamp = t.timestamp AND m.id > t.id)
+                               ORDER BY m.timestamp ASC, m.id ASC
+                               LIMIT 1
+                           )"""
+@Suppress("unused") private const val _HS_SQL_105: String = "Delete all messages for a session and reset its counters."
+@Suppress("unused") private const val _HS_SQL_106: String = "DELETE FROM messages WHERE session_id = ?"
+@Suppress("unused") private const val _HS_SQL_107: String = "UPDATE sessions SET message_count = 0, tool_call_count = 0 WHERE id = ?"
+@Suppress("unused") private val _HS_SQL_108: String = """Delete a session and all its messages.
+
+        Child sessions are orphaned (parent_session_id set to NULL) rather
+        than cascade-deleted, so they remain accessible independently.
+        Returns True if the session was found and deleted.
+        """
+@Suppress("unused") private const val _HS_SQL_109: String = "SELECT COUNT(*) FROM sessions WHERE id = ?"
+@Suppress("unused") private const val _HS_SQL_110: String = "UPDATE sessions SET parent_session_id = NULL WHERE parent_session_id = ?"
+@Suppress("unused") private const val _HS_SQL_111: String = "DELETE FROM sessions WHERE id = ?"
+@Suppress("unused") private val _HS_SQL_112: String = """Delete sessions older than N days. Returns count of deleted sessions.
+
+        Only prunes ended sessions (not active ones).  Child sessions outside
+        the prune window are orphaned (parent_session_id set to NULL) rather
+        than cascade-deleted.
+        """
+@Suppress("unused") private val _HS_SQL_113: String = """SELECT id FROM sessions
+                       WHERE started_at < ? AND ended_at IS NOT NULL AND source = ?"""
+@Suppress("unused") private const val _HS_SQL_114: String = "SELECT id FROM sessions WHERE started_at < ? AND ended_at IS NOT NULL"
+@Suppress("unused") private const val _HS_SQL_115: String = "UPDATE sessions SET parent_session_id = NULL WHERE parent_session_id IN ("
