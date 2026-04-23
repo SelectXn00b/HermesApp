@@ -682,7 +682,19 @@ fun readClaudeCodeCredentials(): Map<String, Any?>? {
 }
 
 fun readClaudeManagedKey(): String? {
-    return null
+    // Python 读 ~/.claude.json 里的 primaryApiKey。Android 应用层没有这个
+    // 文件，但 hermes-android 也可以跑在桌面 JVM 上，所以保留同样的路径读取逻辑。
+    val home = System.getProperty("user.home") ?: return null
+    val claudeJson = java.io.File(home, ".claude.json")
+    if (!claudeJson.exists()) return null
+    return try {
+        val text = claudeJson.readText(Charsets.UTF_8)
+        val parsed = com.google.gson.Gson().fromJson(text, Map::class.java)
+        val primary = parsed?.get("primaryApiKey") as? String
+        primary?.trim()?.takeIf { it.isNotEmpty() }
+    } catch (_: Exception) {
+        null
+    }
 }
 
 fun isClaudeCodeTokenValid(creds: Map<String, Any?>?): Boolean {
@@ -710,7 +722,27 @@ fun refreshAnthropicOauthPure(
 }
 
 fun _refreshOauthToken(creds: Map<String, Any?>): String? {
-    return null
+    // Python: 拿 refreshToken 调 OAuth 端点刷新 → 写 ~/.claude/.credentials.json
+    // → 返回新的 access_token。Android 端 refresh 路径通过
+    // AnthropicOAuthManager 走 DataStore；此顶层函数仅做签名对齐 + 纯函数分支。
+    val refreshToken = (creds["refreshToken"] as? String)?.trim().orEmpty()
+    if (refreshToken.isEmpty()) return null
+    return try {
+        val refreshed = refreshAnthropicOauthPure(refreshToken, useJson = false)
+        if (refreshed["success"] == false) return null
+        val accessToken = (refreshed["access_token"] as? String)?.trim().orEmpty()
+        if (accessToken.isEmpty()) return null
+        _writeClaudeCodeCredentials(
+            mapOf(
+                "accessToken" to accessToken,
+                "refreshToken" to (refreshed["refresh_token"] as? String ?: refreshToken),
+                "expiresAt" to (refreshed["expires_at_ms"] as? Number ?: 0L)
+            )
+        )
+        accessToken
+    } catch (_: Exception) {
+        null
+    }
 }
 
 fun _writeClaudeCodeCredentials(creds: Map<String, Any?>): Boolean {
