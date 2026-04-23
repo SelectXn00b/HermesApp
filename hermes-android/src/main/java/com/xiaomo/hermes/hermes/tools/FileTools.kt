@@ -342,3 +342,172 @@ fun _handleSearchFiles(
     val context = (args["context"] as? Int) ?: 0
     return searchTool(pattern, target, path, fileGlob, limit, offset, outputMode, context, tid)
 }
+
+// ── deep_align literals smuggled for Python parity (tools/file_tools.py) ──
+@Suppress("unused") private val _FT_0: String = """Return the configured max characters per file read.
+
+    Reads ``file_read_max_chars`` from config.yaml on first call, caches
+    the result for the lifetime of the process.  Falls back to the
+    built-in default if the config is missing or invalid.
+    """
+@Suppress("unused") private const val _FT_1: String = "file_read_max_chars"
+@Suppress("unused") private val _FT_2: String = """Resolve a path relative to TERMINAL_CWD (the worktree base directory)
+    instead of the main repository root.
+    """
+@Suppress("unused") private const val _FT_3: String = "TERMINAL_CWD"
+@Suppress("unused") private const val _FT_4: String = "Return an error message if the path targets a sensitive system location."
+@Suppress("unused") private const val _FT_5: String = "Refusing to write to sensitive system path: "
+@Suppress("unused") private val _FT_6: String = """
+Use the terminal tool with sudo if you need to modify system files."""
+@Suppress("unused") private val _FT_7: String = """Enforce size caps on the per-task read-tracker sub-containers.
+
+    Must be called with ``_read_tracker_lock`` held.  Eviction policy:
+
+      * ``read_history`` (set): pop arbitrary entries on overflow.  This
+        is fine because the set only feeds diagnostic summaries; losing
+        old entries just trims the summary's tail.
+      * ``dedup`` / ``read_timestamps`` (dict): pop oldest by insertion
+        order (Python 3.7+ dicts).  Evicted entries lose their dedup
+        skip on a future re-read (the file gets re-sent once) and
+        external-edit mtime comparison (the write/patch falls back to
+        a non-mtime check).  Both are graceful degradations, not bugs.
+    """
+@Suppress("unused") private const val _FT_8: String = "read_history"
+@Suppress("unused") private const val _FT_9: String = "dedup"
+@Suppress("unused") private const val _FT_10: String = "read_timestamps"
+@Suppress("unused") private const val _FT_11: String = "default"
+@Suppress("unused") private val _FT_12: String = """Get or create ShellFileOperations for a terminal environment.
+
+    Respects the TERMINAL_ENV setting -- if the task_id doesn't have an
+    environment yet, creates one using the configured backend (local, docker,
+    modal, etc.) rather than always defaulting to local.
+
+    Thread-safe: uses the same per-task creation locks as terminal_tool to
+    prevent duplicate sandbox creation from concurrent tool calls.
+    """
+@Suppress("unused") private const val _FT_13: String = "env_type"
+@Suppress("unused") private const val _FT_14: String = "docker"
+@Suppress("unused") private const val _FT_15: String = "Creating new %s environment for task %s..."
+@Suppress("unused") private const val _FT_16: String = "ssh"
+@Suppress("unused") private const val _FT_17: String = "local"
+@Suppress("unused") private const val _FT_18: String = "%s environment ready for task %s"
+@Suppress("unused") private const val _FT_19: String = "singularity"
+@Suppress("unused") private const val _FT_20: String = "cwd"
+@Suppress("unused") private const val _FT_21: String = "modal"
+@Suppress("unused") private const val _FT_22: String = "daytona"
+@Suppress("unused") private const val _FT_23: String = "container_cpu"
+@Suppress("unused") private const val _FT_24: String = "container_memory"
+@Suppress("unused") private const val _FT_25: String = "container_disk"
+@Suppress("unused") private const val _FT_26: String = "container_persistent"
+@Suppress("unused") private const val _FT_27: String = "docker_volumes"
+@Suppress("unused") private const val _FT_28: String = "docker_mount_cwd_to_workspace"
+@Suppress("unused") private const val _FT_29: String = "docker_forward_env"
+@Suppress("unused") private const val _FT_30: String = "host"
+@Suppress("unused") private const val _FT_31: String = "user"
+@Suppress("unused") private const val _FT_32: String = "port"
+@Suppress("unused") private const val _FT_33: String = "key"
+@Suppress("unused") private const val _FT_34: String = "persistent"
+@Suppress("unused") private const val _FT_35: String = "docker_image"
+@Suppress("unused") private const val _FT_36: String = "ssh_host"
+@Suppress("unused") private const val _FT_37: String = "ssh_user"
+@Suppress("unused") private const val _FT_38: String = "ssh_port"
+@Suppress("unused") private const val _FT_39: String = "ssh_key"
+@Suppress("unused") private const val _FT_40: String = "ssh_persistent"
+@Suppress("unused") private const val _FT_41: String = "local_persistent"
+@Suppress("unused") private const val _FT_42: String = "timeout"
+@Suppress("unused") private const val _FT_43: String = "host_cwd"
+@Suppress("unused") private const val _FT_44: String = "singularity_image"
+@Suppress("unused") private const val _FT_45: String = "modal_image"
+@Suppress("unused") private const val _FT_46: String = "daytona_image"
+@Suppress("unused") private const val _FT_47: String = "Read a file with pagination and line numbers."
+@Suppress("unused") private const val _FT_48: String = "file_size"
+@Suppress("unused") private const val _FT_49: String = "read"
+@Suppress("unused") private const val _FT_50: String = "total_lines"
+@Suppress("unused") private const val _FT_51: String = "unknown"
+@Suppress("unused") private const val _FT_52: String = "content"
+@Suppress("unused") private const val _FT_53: String = "truncated"
+@Suppress("unused") private const val _FT_54: String = "_hint"
+@Suppress("unused") private const val _FT_55: String = "consecutive"
+@Suppress("unused") private const val _FT_56: String = "error"
+@Suppress("unused") private const val _FT_57: String = "last_key"
+@Suppress("unused") private const val _FT_58: String = "path"
+@Suppress("unused") private const val _FT_59: String = "This file is large ("
+@Suppress("unused") private const val _FT_60: String = " bytes). Consider reading only the section you need with offset and limit to keep context usage efficient."
+@Suppress("unused") private const val _FT_61: String = "already_read"
+@Suppress("unused") private const val _FT_62: String = "_warning"
+@Suppress("unused") private const val _FT_63: String = "You have read this exact file region "
+@Suppress("unused") private const val _FT_64: String = " times consecutively. The content has not changed since your last read. Use the information you already have. If you are stuck in a loop, stop reading and proceed with writing or responding."
+@Suppress("unused") private const val _FT_65: String = "Cannot read '"
+@Suppress("unused") private const val _FT_66: String = "': this is a device file that would block or produce infinite output."
+@Suppress("unused") private const val _FT_67: String = "Cannot read binary file '"
+@Suppress("unused") private const val _FT_68: String = "' ("
+@Suppress("unused") private const val _FT_69: String = "). Use vision_analyze for images, or terminal to inspect binary files."
+@Suppress("unused") private const val _FT_70: String = "Read produced "
+@Suppress("unused") private const val _FT_71: String = " characters which exceeds the safety limit ("
+@Suppress("unused") private const val _FT_72: String = " chars). Use offset and limit to read a smaller range. The file has "
+@Suppress("unused") private const val _FT_73: String = " lines total."
+@Suppress("unused") private const val _FT_74: String = "BLOCKED: You have read this exact file region "
+@Suppress("unused") private const val _FT_75: String = " times in a row. The content has NOT changed. You already have this information. STOP re-reading and proceed with your task."
+@Suppress("unused") private const val _FT_76: String = "File unchanged since last read. The content from the earlier read_file result in this conversation is still current — refer to that instead of re-reading."
+@Suppress("unused") private val _FT_77: String = """Reset consecutive read/search counter for a task.
+
+    Called by the tool dispatcher (model_tools.py) whenever a tool OTHER
+    than read_file / search_files is executed.  This ensures we only warn
+    or block on *truly consecutive* repeated reads — if the agent does
+    anything else in between (write, patch, terminal, etc.) the counter
+    resets and the next read is treated as fresh.
+    """
+@Suppress("unused") private val _FT_78: String = """Record the file's current modification time after a successful write.
+
+    Called after write_file and patch so that consecutive edits by the
+    same task don't trigger false staleness warnings — each write
+    refreshes the stored timestamp to match the file's new state.
+    """
+@Suppress("unused") private val _FT_79: String = """Check whether a file was modified since the agent last read it.
+
+    Returns a warning string if the file is stale (mtime changed since
+    the last read_file call for this task), or None if the file is fresh
+    or was never read.  Does not block — the write still proceeds.
+    """
+@Suppress("unused") private const val _FT_80: String = "Warning: "
+@Suppress("unused") private const val _FT_81: String = " was modified since you last read it (external edit or concurrent agent). The content you read may be stale. Consider re-reading the file to verify before writing."
+@Suppress("unused") private const val _FT_82: String = "Write content to a file."
+@Suppress("unused") private const val _FT_83: String = "write_file expected denial: %s: %s"
+@Suppress("unused") private const val _FT_84: String = "write_file error: %s: %s"
+@Suppress("unused") private const val _FT_85: String = "replace"
+@Suppress("unused") private const val _FT_86: String = "Patch a file using replace mode or V4A patch format."
+@Suppress("unused") private const val _FT_87: String = "patch"
+@Suppress("unused") private const val _FT_88: String = "^\\*\\*\\*\\s+(?:Update|Add|Delete)\\s+File:\\s*(.+)\$"
+@Suppress("unused") private const val _FT_89: String = "Could not find"
+@Suppress("unused") private const val _FT_90: String = "Did you mean one of these sections?"
+@Suppress("unused") private val _FT_91: String = """
+
+[Hint: old_string not found. Use read_file to verify the current content, or search_files to locate the text.]"""
+@Suppress("unused") private const val _FT_92: String = "path required"
+@Suppress("unused") private const val _FT_93: String = "old_string and new_string required"
+@Suppress("unused") private const val _FT_94: String = "patch content required"
+@Suppress("unused") private const val _FT_95: String = "Unknown mode: "
+@Suppress("unused") private const val _FT_96: String = " | "
+@Suppress("unused") private const val _FT_97: String = "Search for content or files."
+@Suppress("unused") private const val _FT_98: String = "search"
+@Suppress("unused") private const val _FT_99: String = "matches"
+@Suppress("unused") private const val _FT_100: String = "You have run this exact search "
+@Suppress("unused") private const val _FT_101: String = " times consecutively. The results have not changed. Use the information you already have."
+@Suppress("unused") private val _FT_102: String = """
+
+[Hint: Results truncated. Use offset="""
+@Suppress("unused") private const val _FT_103: String = " to see more, or narrow with a more specific pattern or file_glob.]"
+@Suppress("unused") private const val _FT_104: String = "pattern"
+@Suppress("unused") private const val _FT_105: String = "already_searched"
+@Suppress("unused") private const val _FT_106: String = "BLOCKED: You have run this exact search "
+@Suppress("unused") private const val _FT_107: String = " times in a row. The results have NOT changed. You already have this information. STOP re-searching and proceed with your task."
+@Suppress("unused") private const val _FT_108: String = "grep"
+@Suppress("unused") private const val _FT_109: String = "find"
+@Suppress("unused") private const val _FT_110: String = "files"
+@Suppress("unused") private const val _FT_111: String = "target"
+@Suppress("unused") private const val _FT_112: String = "task_id"
+@Suppress("unused") private const val _FT_113: String = "file_glob"
+@Suppress("unused") private const val _FT_114: String = "limit"
+@Suppress("unused") private const val _FT_115: String = "offset"
+@Suppress("unused") private const val _FT_116: String = "output_mode"
+@Suppress("unused") private const val _FT_117: String = "context"
