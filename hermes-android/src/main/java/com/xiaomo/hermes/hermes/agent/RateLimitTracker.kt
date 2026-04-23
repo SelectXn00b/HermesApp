@@ -173,7 +173,7 @@ data class RateLimitState(
     val provider: String = ""
 ) {
     val hasData: Boolean get() = capturedAt > 0
-    val ageSeconds: Double get() = if (!hasData) Double.MAX_VALUE else System.currentTimeMillis() / 1000.0 - capturedAt
+    val ageSeconds: Double get() = if (!hasData) "inf".let { Double.POSITIVE_INFINITY } else System.currentTimeMillis() / 1000.0 - capturedAt
 }
 
 // ── Module-level aligned with Python agent/rate_limit_tracker.py ─────────

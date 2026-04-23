@@ -170,8 +170,11 @@ class SubdirectoryHintTracker(workingDir: String? = null) {
                 // Same security scan as startup context loading
                 content = _scanContextContent(content, filename)
                 if (content.length > _MAX_HINT_CHARS) {
+                    val truncPrefix = """
+
+[...truncated """
                     content = content.substring(0, _MAX_HINT_CHARS) +
-                        "\n\n[...truncated $filename: ${"%,d".format(content.length)} chars total]"
+                        truncPrefix + filename + ": ${"%,d".format(content.length)} chars total]"
                 }
                 // Best-effort relative path for display
                 var relPath: String = hintPath.path
