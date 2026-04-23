@@ -203,7 +203,7 @@ object NousRateGuard {
 }
 
 /** Python `_STATE_SUBDIR` — subdirectory for nous rate guard state. */
-private const val _STATE_SUBDIR: String = "nous"
+private const val _STATE_SUBDIR: String = "rate_limits"
 
 /** Python `_STATE_FILENAME` — filename for persisted rate guard state. */
-private const val _STATE_FILENAME: String = "rate_guard.json"
+private const val _STATE_FILENAME: String = "nous.json"

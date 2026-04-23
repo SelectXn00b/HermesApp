@@ -1432,7 +1432,7 @@ class GatewayRunner(
         _cleanupAgentResources(agent)
     }
 
-    private val _AGENT_CACHE_MAX_SIZE = 20
+    private val _AGENT_CACHE_MAX_SIZE = 128
 
     /** Evict oldest cached agents when cache exceeds max size.
      *  Must be called with _agentCacheLock held. */
@@ -1449,7 +1449,7 @@ class GatewayRunner(
         }
     }
 
-    private val _AGENT_CACHE_IDLE_TTL_SECS = 1800L // 30 minutes
+    private val _AGENT_CACHE_IDLE_TTL_SECS = 3600L // 1 hour
 
     /** Evict cached agents idle longer than the TTL. Returns the number evicted. */
     fun _sweepIdleCachedAgents(): Int {

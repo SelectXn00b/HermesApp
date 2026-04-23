@@ -7,7 +7,7 @@ package com.xiaomo.hermes.hermes.gateway
  */
 
 /** Exit code that systemd / launchd / our own supervisor recognises as "restart requested". */
-const val GATEWAY_SERVICE_RESTART_EXIT_CODE: Int = 42
+const val GATEWAY_SERVICE_RESTART_EXIT_CODE: Int = 75
 
 /** Default drain timeout (seconds) — how long the gateway waits for in-flight sessions before restarting. */
 const val DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT: Double = 30.0

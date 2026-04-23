@@ -16,7 +16,7 @@ import com.xiaomo.hermes.hermes.gateway.platforms.BasePlatformAdapter
 const val MAX_PLATFORM_OUTPUT: Int = 4000
 
 /** Portion of truncated output that remains visible before the spillover marker. */
-const val TRUNCATED_VISIBLE: Int = 2000
+const val TRUNCATED_VISIBLE: Int = 3800
 
 /**
  * Result of a delivery attempt.

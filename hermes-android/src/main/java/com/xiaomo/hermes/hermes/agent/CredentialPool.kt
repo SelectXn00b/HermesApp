@@ -36,7 +36,7 @@ class CredentialPool {
         const val SOURCE_MANUAL = "manual"
 
         const val STRATEGY_FILL_FIRST = "fill_first"
-        const val STRATEGY_ROUND_ROBIN = "round_round"
+        const val STRATEGY_ROUND_ROBIN = "round_robin"
         const val STRATEGY_RANDOM = "random"
         const val STRATEGY_LEAST_USED = "least_used"
 
