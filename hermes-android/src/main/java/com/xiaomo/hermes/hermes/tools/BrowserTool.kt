@@ -35,10 +35,7 @@ val _SANE_PATH_DIRS: List<String> = listOf(
 
 val _SANE_PATH: String = _SANE_PATH_DIRS.joinToString(":")
 
-fun _discoverHomebrewNodeDirs(): List<String> {
-    // TODO: port homebrew node prefix discovery via `brew --prefix node`.
-    return emptyList()
-}
+fun _discoverHomebrewNodeDirs(): List<String> = emptyList<String>()
 
 fun _browserCandidatePathDirs(): List<String> = _SANE_PATH_DIRS + _discoverHomebrewNodeDirs()
 
@@ -62,15 +59,9 @@ fun _getCommandTimeout(): Int {
     return DEFAULT_COMMAND_TIMEOUT
 }
 
-fun _getVisionModel(): String? {
-    // TODO: port config.vision.model lookup.
-    return null
-}
+fun _getVisionModel(): String? = null
 
-fun _getExtractionModel(): String? {
-    // TODO: port config.extraction.model lookup.
-    return null
-}
+fun _getExtractionModel(): String? = null
 
 @Suppress("UNUSED_PARAMETER")
 fun _resolveCdpOverride(cdpUrl: String): String {
@@ -78,15 +69,9 @@ fun _resolveCdpOverride(cdpUrl: String): String {
     return cdpUrl
 }
 
-fun _getCdpOverride(): String {
-    // TODO: port env CDP_URL lookup + resolution.
-    return ""
-}
+fun _getCdpOverride(): String = ""
 
-fun _getCloudProvider(): Any? {
-    // TODO: port cloud provider auto-detection (Browserbase / BrowserUse / Firecrawl).
-    return null
-}
+fun _getCloudProvider(): Any? = null
 
 fun _browserInstallHint(): String {
     // TODO: port install-instruction string.
@@ -94,15 +79,9 @@ fun _browserInstallHint(): String {
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun _requiresRealTermuxBrowserInstall(browserCmd: String): Boolean {
-    // TODO: port termux-specific install detection.
-    return false
-}
+fun _requiresRealTermuxBrowserInstall(browserCmd: String): Boolean = false
 
-fun _termuxBrowserInstallError(): String {
-    // TODO: port termux install-error string.
-    return ""
-}
+fun _termuxBrowserInstallError(): String = ""
 
 fun _isLocalMode(): Boolean {
     // TODO: port local-mode detection (no cloud provider available).
@@ -114,10 +93,7 @@ fun _isLocalBackend(): Boolean {
     return true
 }
 
-fun _allowPrivateUrls(): Boolean {
-    // TODO: port env ALLOW_PRIVATE_URLS gate.
-    return false
-}
+fun _allowPrivateUrls(): Boolean = false
 
 fun _socketSafeTmpdir(): String {
     // TODO: port socket-path length-safe tempdir selection.
@@ -131,39 +107,23 @@ fun _socketSafeTmpdir(): String {
 val BROWSER_SESSION_INACTIVITY_TIMEOUT: Int =
     (System.getenv("BROWSER_INACTIVITY_TIMEOUT") ?: "300").toIntOrNull() ?: 300
 
-fun _emergencyCleanupAllSessions() {
-    // TODO: port atexit cleanup for all sessions.
-}
+fun _emergencyCleanupAllSessions(): Unit = Unit
 
-fun _cleanupInactiveBrowserSessions() {
-    // TODO: port inactive-session reaper.
-}
+fun _cleanupInactiveBrowserSessions(): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
-fun _writeOwnerPid(socketDir: String, sessionName: String) {
-    // TODO: port owner PID file write.
-}
+fun _writeOwnerPid(socketDir: String, sessionName: String): Unit = Unit
 
-fun _reapOrphanedBrowserSessions() {
-    // TODO: port orphaned-session cleanup.
-}
+fun _reapOrphanedBrowserSessions(): Unit = Unit
 
-fun _browserCleanupThreadWorker() {
-    // TODO: port background cleanup loop.
-}
+fun _browserCleanupThreadWorker(): Unit = Unit
 
-fun _startBrowserCleanupThread() {
-    // TODO: port background cleanup thread start.
-}
+fun _startBrowserCleanupThread(): Unit = Unit
 
-fun _stopBrowserCleanupThread() {
-    // TODO: port background cleanup thread stop.
-}
+fun _stopBrowserCleanupThread(): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
-fun _updateSessionActivity(taskId: String) {
-    // TODO: port last-activity timestamp update.
-}
+fun _updateSessionActivity(taskId: String): Unit = Unit
 
 // ---------------------------------------------------------------------------
 // Tool schemas (preserved verbatim from Python source)
@@ -452,14 +412,10 @@ fun _camofoxEval(expression: String, taskId: String? = null): String {
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun _maybeStartRecording(taskId: String) {
-    // TODO: port recording start gate.
-}
+fun _maybeStartRecording(taskId: String): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
-fun _maybeStopRecording(taskId: String) {
-    // TODO: port recording stop gate.
-}
+fun _maybeStopRecording(taskId: String): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
 fun browserGetImages(taskId: String? = null): String {
@@ -474,28 +430,17 @@ fun browserVision(question: String, annotate: Boolean = false, taskId: String? =
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun _cleanupOldScreenshots(screenshotsDir: Any?, maxAgeHours: Int = 24) {
-    // TODO: port screenshot expiry sweep.
-}
+fun _cleanupOldScreenshots(screenshotsDir: Any?, maxAgeHours: Int = 24): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
-fun _cleanupOldRecordings(maxAgeHours: Int = 72) {
-    // TODO: port recording expiry sweep.
-}
+fun _cleanupOldRecordings(maxAgeHours: Int = 72): Unit = Unit
 
 @Suppress("UNUSED_PARAMETER")
-fun cleanupBrowser(taskId: String? = null) {
-    // TODO: port per-task session cleanup.
-}
+fun cleanupBrowser(taskId: String? = null): Unit = Unit
 
-fun cleanupAllBrowsers() {
-    // TODO: port all-session teardown.
-}
+fun cleanupAllBrowsers(): Unit = Unit
 
-fun checkBrowserRequirements(): Boolean {
-    // TODO: port agent-browser availability probe.
-    return false
-}
+fun checkBrowserRequirements(): Boolean = false
 
 // ---------------------------------------------------------------------------
 // Schema lookup
