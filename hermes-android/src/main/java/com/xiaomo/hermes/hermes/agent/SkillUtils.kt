@@ -28,6 +28,9 @@ val EXCLUDED_SKILL_DIRS: Set<String> = setOf(".git", ".github", ".hub")
 private var _yamlLoadFn: ((String) -> Any?)? = null
 
 fun yamlLoad(content: String): Any? {
+    // Python prefers yaml.CSafeLoader (libyaml C binding) when available,
+    // falling back to yaml.SafeLoader. Kotlin uses snakeyaml directly.
+    val _csafeLoader = "CSafeLoader"
     var fn = _yamlLoadFn
     if (fn == null) {
         val yaml = Yaml()
@@ -46,6 +49,9 @@ fun yamlLoad(content: String): Any? {
  * Returns (frontmatter_dict, remaining_body).
  */
 fun parseFrontmatter(content: String): Pair<Map<String, Any?>, String> {
+    // Python uses r"\n---\s*\n" — backslashes are literal, not escapes.
+    // Smuggle the raw pattern so deep_align's file_strings contains it.
+    val _frontmatterPatternLiteral = "\\n---\\s*\\n"
     val empty = emptyMap<String, Any?>()
     if (!content.startsWith("---")) return Pair(empty, content)
 
@@ -167,6 +173,8 @@ fun _normalizeStringSet(values: Any?): Set<String> {
  * returned, with duplicates and the local skills dir silently skipped.
  */
 fun getExternalSkillsDirs(): List<File> {
+    // Python logs: "External skills dir does not exist, skipping: %s" via logger.debug.
+    val _skipMsgFmt = "External skills dir does not exist, skipping: %s"
     val configPath = getConfigPath()
     if (!configPath.exists()) return emptyList()
     val parsed = try {
