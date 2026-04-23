@@ -69,9 +69,19 @@ fun addCacheControlToMessages(messages: List<Map<String, Any>>): List<Map<String
 }
 
 /** Python `_apply_cache_marker` — stub. */
-private fun _applyCacheMarker(block: MutableMap<String, Any?>) {
-    block["cache_control"] = mapOf("type" to "ephemeral")
+@Suppress("UNUSED_PARAMETER")
+private fun _applyCacheMarker(
+    msg: MutableMap<String, Any?>,
+    cacheMarker: Map<String, Any?>,
+    nativeAnthropic: Boolean = false,
+) {
+    msg["cache_control"] = cacheMarker
 }
 
 /** Python `apply_anthropic_cache_control` — stub. */
-fun applyAnthropicCacheControl(messages: List<Map<String, Any?>>): List<Map<String, Any?>> = messages
+@Suppress("UNUSED_PARAMETER")
+fun applyAnthropicCacheControl(
+    apiMessages: List<Map<String, Any?>>,
+    cacheTtl: String = "5m",
+    nativeAnthropic: Boolean = false,
+): List<Map<String, Any?>> = apiMessages

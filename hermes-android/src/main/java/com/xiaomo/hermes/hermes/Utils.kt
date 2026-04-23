@@ -84,12 +84,13 @@ fun atomicJsonWrite(
 fun atomicYamlWrite(
     path: File,
     data: Any,
+    defaultFlowStyle: Boolean = false,
     sortKeys: Boolean = false,
     extraContent: String? = null) {
     path.parentFile.mkdirs()
 
     val options = DumperOptions()
-    options.defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+    options.defaultFlowStyle = if (defaultFlowStyle) DumperOptions.FlowStyle.FLOW else DumperOptions.FlowStyle.BLOCK
     options.isPrettyFlow = true
     options.splitLines = true
     if (sortKeys) {

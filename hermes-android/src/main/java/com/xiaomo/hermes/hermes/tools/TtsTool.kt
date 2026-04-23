@@ -97,7 +97,13 @@ private fun _generateMinimaxTts(text: String, outputPath: String, ttsConfig: Map
 
 private fun _generateMistralTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
 
-private fun _wrapPcmAsWav(vararg args: Any?): ByteArray = ByteArray(0)
+@Suppress("UNUSED_PARAMETER")
+private fun _wrapPcmAsWav(
+    pcmBytes: ByteArray,
+    sampleRate: Int = GEMINI_TTS_SAMPLE_RATE,
+    channels: Int = GEMINI_TTS_CHANNELS,
+    sampleWidth: Int = GEMINI_TTS_SAMPLE_WIDTH,
+): ByteArray = ByteArray(0)
 
 private fun _generateGeminiTts(text: String, outputPath: String, ttsConfig: Map<String, Any?>): String = ""
 
@@ -124,12 +130,21 @@ private fun _hasOpenaiAudioBackend(): Boolean = false
 
 private fun _stripMarkdownForTts(text: String): String = text
 
-fun streamTtsToSpeaker(vararg args: Any?): String =
-    toolError("stream_tts_to_speaker is not available on Android")
+@Suppress("UNUSED_PARAMETER")
+fun streamTtsToSpeaker(
+    textQueue: Any?,
+    stopEvent: Any?,
+    ttsDoneEvent: Any?,
+    displayCallback: ((String) -> Unit)? = null,
+): String = toolError("stream_tts_to_speaker is not available on Android")
 
 /** Python `_generate_edge_tts` — stub. */
-private suspend fun _generateEdgeTts(text: String, voice: String = "en-US-AriaNeural"): ByteArray =
-    ByteArray(0)
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _generateEdgeTts(
+    text: String,
+    outputPath: String,
+    ttsConfig: Map<String, Any?>,
+): String = ""
 
 /** Python `_check_kittentts_available` — stub. */
 private fun _checkKittenttsAvailable(): Boolean = false

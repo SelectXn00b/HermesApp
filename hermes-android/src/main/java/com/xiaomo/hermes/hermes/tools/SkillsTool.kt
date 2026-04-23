@@ -117,8 +117,10 @@ fun _normalizeSetupMetadata(frontmatter: Map<String, Any?>): Map<String, Any?> {
     return setup as Map<String, Any?>
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun _getRequiredEnvironmentVariables(
     frontmatter: Map<String, Any?>,
+    legacyEnvVars: List<String>? = null,
 ): List<String> {
     val setup = _normalizeSetupMetadata(frontmatter)
     val names = setup["env_vars"] as? List<*> ?: return emptyList()
@@ -147,9 +149,11 @@ fun _isEnvVarPersisted(name: String, env: Map<String, String>): Boolean {
     return System.getenv(name) != null
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun _remainingRequiredEnvironmentNames(
     frontmatter: Map<String, Any?>,
     env: Map<String, String>,
+    envSnapshot: Map<String, String>? = null,
 ): List<String> {
     return _getRequiredEnvironmentVariables(frontmatter)
         .filter { !_isEnvVarPersisted(it, env) }
@@ -157,9 +161,11 @@ fun _remainingRequiredEnvironmentNames(
 
 fun _gatewaySetupHint(): String = ""
 
+@Suppress("UNUSED_PARAMETER")
 fun _buildSetupNote(
     frontmatter: Map<String, Any?>,
     env: Map<String, String>,
+    setupHelp: String? = null,
 ): String {
     val missing = _remainingRequiredEnvironmentNames(frontmatter, env)
     if (missing.isEmpty()) return ""
@@ -251,7 +257,8 @@ fun skillsList(category: String? = null, taskId: String? = null): String {
     return _skillsGson.toJson(mapOf("skills" to filtered))
 }
 
-fun _servePluginSkill(name: String, filePath: String? = null): String? = null
+@Suppress("UNUSED_PARAMETER")
+fun _servePluginSkill(skillMd: String, namespace: String, bare: String): String? = null
 
 fun skillView(name: String, filePath: String? = null, taskId: String? = null): String {
     val all = _findAllSkills(skipDisabled = false)

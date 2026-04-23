@@ -34,9 +34,18 @@ private fun _getConfig(): Pair<String?, String?> = null to null
 
 private fun _getHeaders(token: String = ""): Map<String, String> = emptyMap()
 
-private fun _filterAndSummarize(entities: List<Any?>, vararg args: Any?): List<Any?> = emptyList()
+@Suppress("UNUSED_PARAMETER")
+private fun _filterAndSummarize(
+    states: List<Any?>,
+    domain: String? = null,
+    area: String? = null,
+): Map<String, Any?> = emptyMap()
 
-private fun _buildServicePayload(vararg args: Any?): Map<String, Any?> = emptyMap()
+@Suppress("UNUSED_PARAMETER")
+private fun _buildServicePayload(
+    entityId: String? = null,
+    data: Map<String, Any?>? = null,
+): Map<String, Any?> = emptyMap()
 
 private fun _parseServiceResponse(vararg args: Any?): Map<String, Any?> = emptyMap()
 
@@ -58,8 +67,10 @@ fun _checkHaAvailable(): Boolean = false
 
 /** Async list-entities helper (Python `_async_list_entities`). Android stub. */
 @Suppress("UNUSED_PARAMETER")
-private suspend fun _asyncListEntities(args: Map<String, Any?>): String =
-    toolError("Home Assistant tool is not available on Android")
+private suspend fun _asyncListEntities(
+    domain: String? = null,
+    area: String? = null,
+): String = toolError("Home Assistant tool is not available on Android")
 
 /** Async get-state helper (Python `_async_get_state`). Android stub. */
 @Suppress("UNUSED_PARAMETER")

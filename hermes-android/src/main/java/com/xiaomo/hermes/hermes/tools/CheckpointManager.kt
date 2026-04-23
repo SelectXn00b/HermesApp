@@ -291,11 +291,14 @@ object CheckpointManager {
     /**
      * Run a git command against the shadow repo.  Returns (ok, stdout, stderr).
      */
+    @Suppress("UNUSED_PARAMETER")
     private fun _runGit(
         args: List<String>,
         shadowRepo: String,
         workingDir: String,
-        timeout: Int = 30): Triple<Boolean, String, String> {
+        timeout: Int = 30,
+        allowedReturncodes: Set<Int>? = null,
+    ): Triple<Boolean, String, String> {
         return try {
             val cmd = listOf("git") + args
             val pb = ProcessBuilder(cmd)
