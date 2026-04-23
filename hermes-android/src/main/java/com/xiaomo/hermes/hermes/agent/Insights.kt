@@ -1041,7 +1041,7 @@ class InsightsEngine(private val db: Any? = null) {
 
     /** Load per-skill usage counters (Python `_get_skill_usage`). Stub. */
     @Suppress("UNUSED_PARAMETER")
-    private fun _getSkillUsage(days: Int = 30): Map<String, Int> = emptyMap()
+    private fun _getSkillUsage(cutoff: Double, source: String? = null): List<Map<String, Any?>> = emptyList()
 
     /** Compute per-skill breakdown for the insights report
      *  (Python `_compute_skill_breakdown`). Stub. */

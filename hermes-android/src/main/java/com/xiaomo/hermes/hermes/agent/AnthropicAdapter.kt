@@ -992,7 +992,10 @@ fun buildAnthropicKwargs(
 }
 
 @Suppress("UNCHECKED_CAST")
-fun normalizeAnthropicResponse(response: Any?): Map<String, Any?> {
+fun normalizeAnthropicResponse(
+    response: Any?,
+    @Suppress("UNUSED_PARAMETER") stripToolPrefix: Boolean = false,
+): Map<String, Any?> {
     // 将 Anthropic Messages 响应转为 OpenAI ChatCompletion 形状的极简映射。
     // 完整版由 AnthropicAdapter 类实现；这里仅用于对齐/测试。
     if (response !is Map<*, *>) return mapOf("choices" to emptyList<Any?>())
@@ -1035,7 +1038,10 @@ fun normalizeAnthropicResponse(response: Any?): Map<String, Any?> {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun normalizeAnthropicResponseV2(response: Any?): Map<String, Any?> {
+fun normalizeAnthropicResponseV2(
+    response: Any?,
+    @Suppress("UNUSED_PARAMETER") stripToolPrefix: Boolean = false,
+): Map<String, Any?> {
     // v2 与 v1 同构，只是把 stop_reason 映射为 OpenAI 术语。
     val base = normalizeAnthropicResponse(response)
     val choices = (base["choices"] as? List<Map<String, Any?>>) ?: emptyList()

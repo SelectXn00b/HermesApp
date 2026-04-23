@@ -84,7 +84,7 @@ const val _TITLE_PROMPT: String = "Generate a short, descriptive title (3-7 word
 
 /** Generate a title for the given conversation (stub). */
 @Suppress("UNUSED_PARAMETER")
-suspend fun generateTitle(messages: List<Map<String, Any?>>, provider: Any? = null): String = ""
+suspend fun generateTitle(userMessage: String, assistantResponse: String, timeout: Double = 30.0): String? = null
 
 /** Auto-title a session if it has enough content and no title yet. */
 @Suppress("UNUSED_PARAMETER")

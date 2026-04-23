@@ -351,7 +351,7 @@ fun _printStatus(): Unit = Unit
 
 /** Run a single rule check (stub). */
 @Suppress("UNUSED_PARAMETER")
-fun _doCheck(payload: Map<String, Any?>): Boolean = false
+fun _doCheck(docKey: String, userOpenId: String) = Unit
 
 /** CLI entry-point equivalent (Android stub). */
 fun _main(): Unit = Unit

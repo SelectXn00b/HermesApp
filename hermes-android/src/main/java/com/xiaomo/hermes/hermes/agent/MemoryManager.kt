@@ -163,7 +163,8 @@ class MemoryManager(
     }
 
     /** Collect prefetch context from all providers. */
-    fun prefetchAll(query: String): String {
+    @Suppress("UNUSED_PARAMETER")
+    fun prefetchAll(query: String, sessionId: String = ""): String {
         val parts = mutableListOf<String>()
         for (p in _providers) {
             try {
@@ -177,7 +178,8 @@ class MemoryManager(
     }
 
     /** Queue background prefetch on all providers for the next turn. */
-    fun queuePrefetchAll(query: String): Unit {
+    @Suppress("UNUSED_PARAMETER")
+    fun queuePrefetchAll(query: String, sessionId: String = ""): Unit {
         for (p in _providers) {
             try {
                 p.queuePrefetch(query)
@@ -188,7 +190,8 @@ class MemoryManager(
     }
 
     /** Sync a completed turn to all providers. */
-    fun syncAll(userContent: String, assistantContent: String): Unit {
+    @Suppress("UNUSED_PARAMETER")
+    fun syncAll(userContent: String, assistantContent: String, sessionId: String = ""): Unit {
         for (p in _providers) {
             try {
                 p.syncTurn(userContent, assistantContent)
