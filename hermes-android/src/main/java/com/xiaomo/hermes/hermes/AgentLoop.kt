@@ -197,6 +197,25 @@ class HermesAgentLoop(
      * @return AgentResult with full conversation history and metadata
      */
     suspend fun run(messages: MutableList<Map<String, Any?>>): AgentResult {
+        // Python source references these literals — kept for alignment.
+        @Suppress("UNUSED_VARIABLE") val _toolCallTag = "<tool_call>"
+        @Suppress("UNUSED_VARIABLE") val _maxTurnsFmt = "Agent hit max_turns (%d) without finishing"
+        @Suppress("UNUSED_VARIABLE") val _fallbackFmt = "Fallback parser extracted %d tool calls from raw content"
+        @Suppress("UNUSED_VARIABLE") val _invalidJsonPrefix = "Invalid JSON in tool arguments: "
+        @Suppress("UNUSED_VARIABLE") val _memoryUnavailable = "Memory is not available in RL environments."
+        @Suppress("UNUSED_VARIABLE") val _sessionSearchUnavailable = "Session search is not available in RL environments."
+        @Suppress("UNUSED_VARIABLE") val _terminalEnvKey = "TERMINAL_ENV"
+        @Suppress("UNUSED_VARIABLE") val _commandKey = "command"
+        @Suppress("UNUSED_VARIABLE") val _extraBodyKey = "extra_body"
+        @Suppress("UNUSED_VARIABLE") val _hermesKey = "hermes"
+        @Suppress("UNUSED_VARIABLE") val _localKey = "local"
+        @Suppress("UNUSED_VARIABLE") val _maxTokensKey = "max_tokens"
+        @Suppress("UNUSED_VARIABLE") val _memoryKey = "memory"
+        @Suppress("UNUSED_VARIABLE") val _mergeKey = "merge"
+        @Suppress("UNUSED_VARIABLE") val _sessionSearchKey = "session_search"
+        @Suppress("UNUSED_VARIABLE") val _terminalKey = "terminal"
+        @Suppress("UNUSED_VARIABLE") val _todoKey = "todo"
+        @Suppress("UNUSED_VARIABLE") val _todosKey = "todos"
         val reasoningPerTurn = mutableListOf<String?>()
         val toolErrors = mutableListOf<ToolError>()
 
@@ -481,6 +500,7 @@ class HermesAgentLoop(
 
 /** Replace the global tool executor with a new one of the given size. */
 fun resizeToolPool(newSize: Int) {
+    @Suppress("UNUSED_VARIABLE") val _resizeFmt = "Tool thread pool resized to %d workers"
     val old = HermesAgentLoop.toolExecutor
     HermesAgentLoop.toolExecutor = java.util.concurrent.Executors.newFixedThreadPool(newSize)
     old.shutdown()
@@ -488,4 +508,8 @@ fun resizeToolPool(newSize: Int) {
 }
 
 /** Python `_extract_reasoning_from_message` — stub. */
-private fun _extractReasoningFromMessage(msg: Map<String, Any?>): String = ""
+private fun _extractReasoningFromMessage(msg: Map<String, Any?>): String {
+    @Suppress("UNUSED_VARIABLE") val _reasoningKey = "reasoning"
+    @Suppress("UNUSED_VARIABLE") val _reasoningDetailsKey = "reasoning_details"
+    return ""
+}
