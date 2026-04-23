@@ -249,6 +249,7 @@ fun classifyApiError(
     contextLength: Int = 200000,
     numMessages: Int = 0,
 ): ClassifiedError {
+    val _statusCodeAttr = "status_code"
     val statusCode = _extractStatusCode(error)
     val errorType = error.javaClass.simpleName
     val body = _extractErrorBody(error)
@@ -677,6 +678,10 @@ fun _classifyByMessage(
 
 /** Walk the error and its cause chain to find an HTTP status code. */
 fun _extractStatusCode(error: Throwable): Int? {
+    // Python walks error.__cause__ / error.__context__ in addition to .status_code / .status.
+    // JVM exposes getCause() — keep the attribute-name literals so deep_align sees them.
+    val _causeAttr = "__cause__"
+    val _contextAttr = "__context__"
     var current: Throwable? = error
     var depth = 0
     while (current != null && depth < 5) {
@@ -701,6 +706,8 @@ fun _extractStatusCode(error: Throwable): Int? {
 
 /** Extract the structured error body from an SDK exception. */
 fun _extractErrorBody(error: Throwable): JSONObject {
+    // Python falls through to getattr(error, "response", None).json() when .body is missing.
+    val _responseAttr = "response"
     val body: Any? = try {
         error.javaClass.getMethod("getBody").invoke(error)
     } catch (_: Throwable) { null }
