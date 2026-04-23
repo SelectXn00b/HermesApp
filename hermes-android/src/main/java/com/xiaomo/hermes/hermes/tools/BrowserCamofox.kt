@@ -92,8 +92,7 @@ suspend fun camofoxType(
 
 suspend fun camofoxScroll(
     direction: String = "down",
-    amount: Int = 1,
-    sessionId: String? = null
+    taskId: String? = null
 ): String = toolError("Camofox is not available on Android")
 
 suspend fun camofoxBack(sessionId: String? = null): String =

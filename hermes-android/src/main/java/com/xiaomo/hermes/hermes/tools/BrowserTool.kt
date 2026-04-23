@@ -335,10 +335,9 @@ fun _runBrowserCommand(
 @Suppress("UNUSED_PARAMETER")
 fun _extractRelevantContent(
     snapshotText: String,
-    task: String? = null,
-    maxChars: Int = 8000): String {
+    userTask: String? = null): String {
     // TODO: port LLM-based task-aware extraction.
-    return snapshotText.take(maxChars)
+    return snapshotText.take(8000)
 }
 
 @Suppress("UNUSED_PARAMETER")

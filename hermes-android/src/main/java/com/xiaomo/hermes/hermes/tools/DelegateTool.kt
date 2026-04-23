@@ -96,18 +96,16 @@ fun _buildChildAgent(
 ): Any? = null
 
 fun _runSingleChild(
+    taskIndex: Int,
     goal: String,
-    toolsets: List<String> = DEFAULT_TOOLSETS,
+    child: Any? = null,
     parentAgent: Any? = null,
-    model: String? = null,
-    maxIterations: Int = DEFAULT_MAX_ITERATIONS,
-    taskIndex: Int = 0,
-    taskCount: Int = 1,
 ): Map<String, Any?> {
     return mapOf(
         "ok" to false,
         "error" to "Delegate tool is not available on Android",
         "goal" to goal,
+        "task_index" to taskIndex,
     )
 }
 

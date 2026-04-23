@@ -347,8 +347,7 @@ fun _parseFrozenset(raw: String?): Set<String> =
     (raw ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
 /** Log a short human-readable status line for a rules check. */
-@Suppress("UNUSED_PARAMETER")
-fun _printStatus(label: String, ok: Boolean, detail: String = ""): Unit = Unit
+fun _printStatus(): Unit = Unit
 
 /** Run a single rule check (stub). */
 @Suppress("UNUSED_PARAMETER")

@@ -85,9 +85,8 @@ private fun _discoverBundledSkills(bundledDir: File): List<Pair<String, File>> {
         .toList()
 }
 
-private fun _computeRelativeDest(skillSrc: File, bundledDir: File, targetDir: File): File {
-    val rel = skillSrc.relativeTo(bundledDir)
-    return File(targetDir, rel.path)
+private fun _computeRelativeDest(skillSrc: File, bundledDir: File): File {
+    return skillSrc.relativeTo(bundledDir)
 }
 
 private fun _dirHash(directory: File): String {
@@ -134,7 +133,8 @@ fun syncSkills(quiet: Boolean = false): Map<String, Any> {
     var skipped = 0
 
     for ((skillName, skillSrc) in bundledSkills) {
-        val dest = _computeRelativeDest(skillSrc, bundledDir, targetDir)
+        val rel = _computeRelativeDest(skillSrc, bundledDir)
+        val dest = File(targetDir, rel.path)
         val bundledHash = _dirHash(skillSrc)
 
         if (skillName !in manifest) {

@@ -154,7 +154,8 @@ class AudioRecorder {
     fun shutdown(): Unit = Unit
     private fun _ensureStream(): Unit = Unit
     private fun _closeStreamWithTimeout(timeout: Double = 1.0): Unit = Unit
-    private fun _writeWav(path: String, frames: List<Any?>): Unit = Unit
+    @Suppress("UNUSED_PARAMETER")
+    private fun _writeWav(audioData: Any?): String = ""
 }
 
 fun createAudioRecorder(): Any =

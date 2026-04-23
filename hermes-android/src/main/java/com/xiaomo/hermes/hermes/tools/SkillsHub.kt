@@ -232,16 +232,32 @@ object SkillsHub {
         }
     }
 
-    private fun _checkRateLimitResponse(code: Int, headers: Map<String, List<String>>) {
-        if (code == 403) {
-            val remaining = headers["X-RateLimit-Remaining"]?.firstOrNull() ?: ""
-            if (remaining == "0") {
-                _rateLimited = true
-                Log.w(_TAG,
-                    "GitHub API rate limit exhausted (unauthenticated: 60 req/hr). " +
-                    "Set GITHUB_TOKEN or install the gh CLI to raise the limit to 5,000/hr."
-                )
+    @Suppress("UNCHECKED_CAST")
+    private fun _checkRateLimitResponse(resp: Any?) {
+        val code: Int = when (resp) {
+            is java.net.HttpURLConnection -> resp.responseCode
+            is Map<*, *> -> (resp["statusCode"] as? Int) ?: (resp["status_code"] as? Int) ?: 0
+            else -> 0
+        }
+        if (code != 403) return
+        val remaining: String = when (resp) {
+            is java.net.HttpURLConnection -> resp.getHeaderField("X-RateLimit-Remaining") ?: ""
+            is Map<*, *> -> {
+                val headers = (resp["headers"] as? Map<String, Any?>) ?: emptyMap()
+                when (val v = headers["X-RateLimit-Remaining"]) {
+                    is String -> v
+                    is List<*> -> v.firstOrNull()?.toString() ?: ""
+                    else -> v?.toString() ?: ""
+                }
             }
+            else -> ""
+        }
+        if (remaining == "0") {
+            _rateLimited = true
+            Log.w(_TAG,
+                "GitHub API rate limit exhausted (unauthenticated: 60 req/hr). " +
+                "Set GITHUB_TOKEN or install the gh CLI to raise the limit to 5,000/hr."
+            )
         }
     }
 }

@@ -160,7 +160,6 @@ suspend fun listWholeComments(
     client: Any?,
     fileToken: String,
     fileType: String = "docx",
-    isWhole: Boolean = true
 ): List<Map<String, Any?>> = emptyList()
 
 suspend fun listCommentReplies(
