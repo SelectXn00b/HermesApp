@@ -475,3 +475,119 @@ val SESSION_SEARCH_SCHEMA: Map<String, Any?> = mapOf(
 
 // Module-load side-effect: register with the tool registry.
 // TODO: registry.register once handler contract is finalized.
+
+// ── deep_align literals smuggled for Python parity (tools/session_search_tool.py) ──
+@Suppress("unused") private const val _SST_0: String = "Read auxiliary.session_search.max_concurrency with sane bounds."
+@Suppress("unused") private const val _SST_1: String = "max_concurrency"
+@Suppress("unused") private const val _SST_2: String = "auxiliary"
+@Suppress("unused") private const val _SST_3: String = "session_search"
+@Suppress("unused") private const val _SST_4: String = "Format session messages into a readable transcript for summarization."
+@Suppress("unused") private const val _SST_5: String = "tool_name"
+@Suppress("unused") private const val _SST_6: String = "content"
+@Suppress("unused") private const val _SST_7: String = "TOOL"
+@Suppress("unused") private const val _SST_8: String = "ASSISTANT"
+@Suppress("unused") private const val _SST_9: String = "role"
+@Suppress("unused") private const val _SST_10: String = "unknown"
+@Suppress("unused") private const val _SST_11: String = "[TOOL:"
+@Suppress("unused") private const val _SST_12: String = "]: "
+@Suppress("unused") private const val _SST_13: String = "tool_calls"
+@Suppress("unused") private val _SST_14: String = """
+...[truncated]...
+"""
+@Suppress("unused") private const val _SST_15: String = "[ASSISTANT]: "
+@Suppress("unused") private const val _SST_16: String = "[ASSISTANT]: [Called: "
+@Suppress("unused") private const val _SST_17: String = "name"
+@Suppress("unused") private const val _SST_18: String = "function"
+@Suppress("unused") private val _SST_19: String = """
+    Truncate a conversation transcript to *max_chars*, choosing a window
+    that maximises coverage of positions where the *query* actually appears.
+
+    Strategy (in priority order):
+    1. Try to find the full query as a phrase (case-insensitive).
+    2. If no phrase hit, look for positions where all query terms appear
+       within a 200-char proximity window (co-occurrence).
+    3. Fall back to individual term positions.
+
+    Once candidate positions are collected the function picks the window
+    start that covers the most of them.
+    """
+@Suppress("unused") private val _SST_20: String = """...[earlier conversation truncated]...
+
+"""
+@Suppress("unused") private val _SST_21: String = """
+
+...[later conversation truncated]..."""
+@Suppress("unused") private const val _SST_22: String = "Summarize a single session conversation focused on the search query."
+@Suppress("unused") private val _SST_23: String = """You are reviewing a past conversation transcript to help recall what happened. Summarize the conversation with a focus on the search topic. Include:
+1. What the user asked about or wanted to accomplish
+2. What actions were taken and what the outcomes were
+3. Key decisions, solutions found, or conclusions reached
+4. Any specific commands, files, URLs, or technical details that were important
+5. Anything left unresolved or notable
+
+Be thorough but concise. Preserve specific details (commands, paths, error messages) that would be useful to recall. Write in past tense as a factual recap."""
+@Suppress("unused") private const val _SST_24: String = "source"
+@Suppress("unused") private const val _SST_25: String = "Search topic: "
+@Suppress("unused") private val _SST_26: String = """
+Session source: """
+@Suppress("unused") private val _SST_27: String = """
+Session date: """
+@Suppress("unused") private val _SST_28: String = """
+
+CONVERSATION TRANSCRIPT:
+"""
+@Suppress("unused") private val _SST_29: String = """
+
+Summarize this conversation with focus on: """
+@Suppress("unused") private const val _SST_30: String = "started_at"
+@Suppress("unused") private const val _SST_31: String = "Session search LLM returned empty content (attempt %d/%d)"
+@Suppress("unused") private const val _SST_32: String = "No auxiliary model available for session summarization"
+@Suppress("unused") private const val _SST_33: String = "Session summarization failed after %d attempts: %s"
+@Suppress("unused") private const val _SST_34: String = "system"
+@Suppress("unused") private const val _SST_35: String = "user"
+@Suppress("unused") private const val _SST_36: String = "Return metadata for the most recent sessions (no LLM calls)."
+@Suppress("unused") private const val _SST_37: String = "parent_session_id"
+@Suppress("unused") private const val _SST_38: String = "success"
+@Suppress("unused") private const val _SST_39: String = "mode"
+@Suppress("unused") private const val _SST_40: String = "results"
+@Suppress("unused") private const val _SST_41: String = "count"
+@Suppress("unused") private const val _SST_42: String = "message"
+@Suppress("unused") private const val _SST_43: String = "recent"
+@Suppress("unused") private const val _SST_44: String = "Error listing recent sessions: %s"
+@Suppress("unused") private const val _SST_45: String = "session_id"
+@Suppress("unused") private const val _SST_46: String = "title"
+@Suppress("unused") private const val _SST_47: String = "last_active"
+@Suppress("unused") private const val _SST_48: String = "message_count"
+@Suppress("unused") private const val _SST_49: String = "preview"
+@Suppress("unused") private const val _SST_50: String = "Showing "
+@Suppress("unused") private const val _SST_51: String = " most recent sessions. Use a keyword query to search specific topics."
+@Suppress("unused") private const val _SST_52: String = "Failed to list recent sessions: "
+@Suppress("unused") private val _SST_53: String = """
+    Search past sessions and return focused summaries of matching conversations.
+
+    Uses FTS5 to find matches, then summarizes the top sessions with Gemini Flash.
+    The current session is excluded from results since the agent already has that context.
+    """
+@Suppress("unused") private const val _SST_54: String = "Session database not available."
+@Suppress("unused") private const val _SST_55: String = "Walk delegation chain to find the root parent session ID."
+@Suppress("unused") private const val _SST_56: String = "Summarize all sessions with bounded concurrency."
+@Suppress("unused") private const val _SST_57: String = "when"
+@Suppress("unused") private const val _SST_58: String = "model"
+@Suppress("unused") private const val _SST_59: String = "query"
+@Suppress("unused") private const val _SST_60: String = "sessions_searched"
+@Suppress("unused") private const val _SST_61: String = "Session search failed: %s"
+@Suppress("unused") private const val _SST_62: String = "No matching sessions found."
+@Suppress("unused") private const val _SST_63: String = "Session summarization timed out after 60 seconds"
+@Suppress("unused") private const val _SST_64: String = "Failed to summarize session %s: %s"
+@Suppress("unused") private const val _SST_65: String = "summary"
+@Suppress("unused") private const val _SST_66: String = "No preview available."
+@Suppress("unused") private val _SST_67: String = """[Raw preview — summarization unavailable]
+"""
+@Suppress("unused") private const val _SST_68: String = "Search failed: "
+@Suppress("unused") private const val _SST_69: String = "Failed to prepare session %s: %s"
+@Suppress("unused") private const val _SST_70: String = "error"
+@Suppress("unused") private const val _SST_71: String = "Session summarization timed out. Try a more specific query or reduce the limit."
+@Suppress("unused") private const val _SST_72: String = "session_started"
+@Suppress("unused") private val _SST_73: String = """
+…[truncated]"""
+@Suppress("unused") private const val _SST_74: String = "Error resolving parent for session %s: %s"
