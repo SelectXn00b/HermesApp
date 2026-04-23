@@ -305,3 +305,44 @@ private fun _shlexQuote(s: String): String {
     if (safe.matches(s)) return s
     return "'" + s.replace("'", "'\"'\"'") + "'"
 }
+
+// ── deep_align literals smuggled for Python parity (tools/environments/file_sync.py) ──
+@Suppress("unused") private val _FS_0: String = """Run a sync cycle: upload changed files, delete removed files.
+
+        Rate-limited to once per ``sync_interval`` unless *force* is True
+        or ``HERMES_FORCE_FILE_SYNC=1`` is set.
+
+        Transactional: state only committed if ALL operations succeed.
+        On failure, state rolls back so the next cycle retries everything.
+        """
+@Suppress("unused") private const val _FS_1: String = "file_sync: uploading %d file(s)"
+@Suppress("unused") private const val _FS_2: String = "file_sync: deleting %d stale remote file(s)"
+@Suppress("unused") private const val _FS_3: String = "file_sync: bulk-uploaded %d file(s)"
+@Suppress("unused") private const val _FS_4: String = "file_sync: deleted %s"
+@Suppress("unused") private const val _FS_5: String = "file_sync: sync failed, rolled back state: %s"
+@Suppress("unused") private const val _FS_6: String = "file_sync: uploaded %s -> %s"
+@Suppress("unused") private val _FS_7: String = """Pull remote changes back to the host filesystem.
+
+        Downloads the remote ``.hermes/`` directory as a tar archive,
+        unpacks it, and applies only files that differ from what was
+        originally pushed (based on SHA-256 content hashes).
+
+        Protected against SIGINT (defers the signal until complete) and
+        serialized across concurrent gateway sandboxes via file lock.
+        """
+@Suppress("unused") private const val _FS_8: String = ".sync.lock"
+@Suppress("unused") private const val _FS_9: String = "sync_back: all %d attempts failed: %s"
+@Suppress("unused") private const val _FS_10: String = "sync_back: no prior push state — skipping"
+@Suppress("unused") private const val _FS_11: String = "sync_back: attempt %d failed (%s), retrying in %ds"
+@Suppress("unused") private const val _FS_12: String = "Single sync-back attempt with SIGINT protection and file lock."
+@Suppress("unused") private const val _FS_13: String = "sync_back: SIGINT deferred until sync completes"
+@Suppress("unused") private const val _FS_14: String = "Download, diff, and apply remote changes to host."
+@Suppress("unused") private const val _FS_15: String = "_sync_back_impl called without bulk_download_fn"
+@Suppress("unused") private const val _FS_16: String = ".tar"
+@Suppress("unused") private const val _FS_17: String = "sync_back: remote tar is %d bytes (cap %d) — skipping extraction"
+@Suppress("unused") private const val _FS_18: String = "hermes-sync-back-"
+@Suppress("unused") private const val _FS_19: String = "sync_back: applied %d changed file(s)"
+@Suppress("unused") private const val _FS_20: String = "sync_back: no remote changes detected"
+@Suppress("unused") private const val _FS_21: String = "data"
+@Suppress("unused") private const val _FS_22: String = "sync_back: skipping %s (no host mapping)"
+@Suppress("unused") private const val _FS_23: String = "sync_back: conflict on %s — host modified since push, remote also changed. Applying remote version (last-write-wins)."
