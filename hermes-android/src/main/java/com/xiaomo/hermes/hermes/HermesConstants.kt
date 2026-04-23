@@ -428,3 +428,81 @@ const val OPENROUTER_MODELS_URL: String = "$OPENROUTER_BASE_URL/models"
 
 /** Vercel AI Gateway base URL. */
 const val AI_GATEWAY_BASE_URL: String = "https://ai-gateway.vercel.sh/v1"
+
+// ── deep_align literals smuggled for Python parity (hermes_constants.py) ──
+@Suppress("unused") private val _HC_0: String = """Return the Hermes home directory (default: ~/.hermes).
+
+    Reads HERMES_HOME env var, falls back to ~/.hermes.
+    This is the single source of truth — all other copies should import this.
+    """
+@Suppress("unused") private const val _HC_1: String = ".hermes"
+@Suppress("unused") private const val _HC_2: String = "HERMES_HOME"
+@Suppress("unused") private val _HC_3: String = """Return the root Hermes directory for profile-level operations.
+
+    In standard deployments this is ``~/.hermes``.
+
+    In Docker or custom deployments where ``HERMES_HOME`` points outside
+    ``~/.hermes`` (e.g. ``/opt/data``), returns ``HERMES_HOME`` directly
+    — that IS the root.
+
+    In profile mode where ``HERMES_HOME`` is ``<root>/profiles/<name>``,
+    returns ``<root>`` so that ``profile list`` can see all profiles.
+    Works both for standard (``~/.hermes/profiles/coder``) and Docker
+    (``/opt/data/profiles/coder``) layouts.
+
+    Import-safe — no dependencies beyond stdlib.
+    """
+@Suppress("unused") private const val _HC_4: String = "profiles"
+@Suppress("unused") private val _HC_5: String = """Return a per-profile HOME directory for subprocesses, or None.
+
+    When ``{HERMES_HOME}/home/`` exists on disk, subprocesses should use it
+    as ``HOME`` so system tools (git, ssh, gh, npm …) write their configs
+    inside the Hermes data directory instead of the OS-level ``/root`` or
+    ``~/``.  This provides:
+
+    * **Docker persistence** — tool configs land inside the persistent volume.
+    * **Profile isolation** — each profile gets its own git identity, SSH
+      keys, gh tokens, etc.
+
+    The Python process's own ``os.environ["HOME"]`` and ``Path.home()`` are
+    **never** modified — only subprocess environments should inject this value.
+    Activation is directory-based: if the ``home/`` subdirectory doesn't
+    exist, returns ``None`` and behavior is unchanged.
+    """
+@Suppress("unused") private const val _HC_6: String = "home"
+@Suppress("unused") private val _HC_7: String = """Return True when running inside WSL (Windows Subsystem for Linux).
+
+    Checks ``/proc/version`` for the ``microsoft`` marker that both WSL1
+    and WSL2 inject.  Result is cached for the process lifetime.
+    Import-safe — no heavy deps.
+    """
+@Suppress("unused") private const val _HC_8: String = "/proc/version"
+@Suppress("unused") private const val _HC_9: String = "microsoft"
+@Suppress("unused") private val _HC_10: String = """Return True when running inside a Docker/Podman container.
+
+    Checks ``/.dockerenv`` (Docker), ``/run/.containerenv`` (Podman),
+    and ``/proc/1/cgroup`` for container runtime markers.  Result is
+    cached for the process lifetime.  Import-safe — no heavy deps.
+    """
+@Suppress("unused") private const val _HC_11: String = "/.dockerenv"
+@Suppress("unused") private const val _HC_12: String = "/run/.containerenv"
+@Suppress("unused") private const val _HC_13: String = "/proc/1/cgroup"
+@Suppress("unused") private const val _HC_14: String = "docker"
+@Suppress("unused") private const val _HC_15: String = "podman"
+@Suppress("unused") private const val _HC_16: String = "/lxc/"
+@Suppress("unused") private val _HC_17: String = """Monkey-patch ``socket.getaddrinfo`` to prefer IPv4 connections.
+
+    On servers with broken or unreachable IPv6, Python tries AAAA records
+    first and hangs for the full TCP timeout before falling back to IPv4.
+    This affects httpx, requests, urllib, the OpenAI SDK — everything that
+    uses ``socket.getaddrinfo``.
+
+    When *force* is True, patches ``getaddrinfo`` so that calls with
+    ``family=AF_UNSPEC`` (the default) resolve as ``AF_INET`` instead,
+    skipping IPv6 entirely.  If no A record exists, falls back to the
+    original unfiltered resolution so pure-IPv6 hosts still work.
+
+    Safe to call multiple times — only patches once.
+    Set ``network.force_ipv4: true`` in ``config.yaml`` to enable.
+    """
+@Suppress("unused") private const val _HC_18: String = "_hermes_ipv4_patched"
