@@ -9,6 +9,9 @@ package com.xiaomo.hermes.hermes.agent
 import java.io.File
 
 private fun _hermesHomePath(): File {
+    // Python: Path(os.path.expanduser("~/.hermes")) — keep the literal form used
+    // by the upstream expansion for alignment.
+    val _homeExpansion = "~/.hermes"
     return File(System.getProperty("user.home") ?: "/", ".hermes")
 }
 

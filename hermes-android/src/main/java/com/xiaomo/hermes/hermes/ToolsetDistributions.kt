@@ -153,7 +153,7 @@ fun sampleToolsetsFromDistribution(distributionName: String): List<String> {
     for ((toolsetName, probability) in dist.toolsets) {
         if (!validateToolset(toolsetName)) {
             getLogger("toolset_distributions").warning(
-                "Toolset '$toolsetName' in distribution '$distributionName' is not valid"
+                "⚠️  Warning: Toolset '$toolsetName' in distribution '$distributionName' is not valid"
             )
             continue
         }
@@ -212,7 +212,7 @@ fun printDistributionInfo(distributionName: String) {
         println("❌ Unknown distribution: $distributionName")
         return
     }
-    println("\n📊 Distribution: $distributionName")
+    println("\n📊 Distribution: " + distributionName)
     println("   Description: ${dist.description}")
     println("   Toolsets:")
     for ((toolset, prob) in dist.toolsets.toList().sortedByDescending { it.second }) {

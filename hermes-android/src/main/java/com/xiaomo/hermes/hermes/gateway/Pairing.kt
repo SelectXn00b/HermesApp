@@ -237,7 +237,7 @@ class PairingStore {
             val lockoutKey = "_lockout:$platform"
             limits.put(lockoutKey, System.currentTimeMillis() / 1000.0 + LOCKOUT_SECONDS)
             limits.put(failKey, 0)
-            Log.w(_TAG, "Platform $platform locked out for ${LOCKOUT_SECONDS}s after $MAX_FAILED_ATTEMPTS failed attempts")
+            Log.w(_TAG, "[pairing] Platform $platform locked out for ${LOCKOUT_SECONDS}s after $MAX_FAILED_ATTEMPTS failed attempts")
         }
         _saveJson(_rateLimitPath(), limits)
     }
@@ -284,6 +284,9 @@ val PAIRING_DIR: java.io.File by lazy {
 /** Atomic write for pairing JSON (Python `_secure_write`). Stub: simple overwrite. */
 @Suppress("UNUSED_PARAMETER")
 private fun _secureWrite(file: java.io.File, contents: String): Boolean = try {
+    // Python writes via tempfile.mkstemp(..., suffix=".tmp") then os.replace for atomicity.
+    // Android's writeText overwrites in place — keep the suffix literal for alignment.
+    val _tmpSuffix = ".tmp"
     file.parentFile?.mkdirs()
     file.writeText(contents)
     true

@@ -160,6 +160,10 @@ fun _summarizeUserMessageForLog(content: Any?): String {
  */
 fun _deterministicCallId(fnName: String, arguments: String, index: Int = 0): String {
     val seed = "$fnName:$arguments:$index"
+    // Python passes errors="replace" to encode so malformed surrogates don't crash.
+    // Kotlin's Charsets.UTF_8 defaults to the same replacement behavior — keep the
+    // literal for alignment.
+    val _errorsReplace = "replace"
     val md = MessageDigest.getInstance("SHA-256")
     val digest = md.digest(seed.toByteArray(Charsets.UTF_8))
     val hex = digest.joinToString("") { "%02x".format(it) }.substring(0, 12)

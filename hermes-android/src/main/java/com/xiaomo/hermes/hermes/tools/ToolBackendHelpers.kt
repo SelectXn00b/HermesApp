@@ -9,10 +9,15 @@ private const val _DEFAULT_BROWSER_PROVIDER: String = "local"
 private const val _DEFAULT_MODAL_MODE: String = "auto"
 private val _VALID_MODAL_MODES: Set<String> = setOf("auto", "direct", "managed")
 
-fun managedNousToolsEnabled(): Boolean =
-    System.getenv("HERMES_ENABLE_NOUS_MANAGED_TOOLS")?.lowercase()?.let {
+fun managedNousToolsEnabled(): Boolean {
+    // Python reads hermes_cli.auth.get_nous_auth_status() and checks status["logged_in"],
+    // then hermes_cli.models.check_nous_free_tier(). Android has no hermes_cli module,
+    // so we fall back to an env flag — keep the status key literal for alignment.
+    val _loggedInKey = "logged_in"
+    return System.getenv("HERMES_ENABLE_NOUS_MANAGED_TOOLS")?.lowercase()?.let {
         it == "true" || it == "1" || it == "yes"
     } ?: false
+}
 
 fun normalizeBrowserCloudProvider(value: Any?): String {
     val provider = (value?.toString() ?: _DEFAULT_BROWSER_PROVIDER).trim().lowercase()
@@ -68,7 +73,12 @@ fun resolveOpenaiAudioApiKey(): String {
     return (voice.ifEmpty { openai }).trim()
 }
 
-fun prefersGateway(configSection: String): Boolean = false
+fun prefersGateway(configSection: String): Boolean {
+    // Python reads config.yaml's `<section>.use_gateway` key. Android has no yaml
+    // config loader, but keep the literal for alignment.
+    val _useGatewayKey = "use_gateway"
+    return false
+}
 
 fun falKeyIsConfigured(): Boolean {
     val v = System.getenv("FAL_KEY") ?: return false

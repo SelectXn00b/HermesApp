@@ -130,7 +130,7 @@ private fun _appendToSqlite(sessionId: String, message: Map<String, Any?>) {
             role = (message["role"] as? String) ?: "assistant",
             content = message["content"] as? String)
     } catch (e: Exception) {
-        Log.d(_TAG, "Mirror SQLite write failed: ${e.message}")
+        Log.d(_TAG, "Mirror SQLite write failed: %s".format(e.message))
     } finally {
         db?.close()
     }

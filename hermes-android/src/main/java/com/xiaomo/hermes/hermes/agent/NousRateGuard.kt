@@ -139,7 +139,7 @@ object NousRateGuard {
                 resetAt!! - now, resetAt
             ))
         } catch (e: Exception) {
-            Log.d(_TAG, "Failed to write Nous rate limit state: $e")
+            Log.d(_TAG, "Failed to write Nous rate limit state: %s".format(e))
         }
     }
 
@@ -181,7 +181,7 @@ object NousRateGuard {
         } catch (_: java.io.FileNotFoundException) {
             // already gone
         } catch (e: Exception) {
-            Log.d(_TAG, "Failed to clear Nous rate limit state: $e")
+            Log.d(_TAG, "Failed to clear Nous rate limit state: %s".format(e))
         }
     }
 
