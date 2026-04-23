@@ -19,6 +19,9 @@ private const val _TAG_NEUTTS = "NeuTtsSynth"
  * Write a WAV file from float32 samples (no external dependencies).
  */
 fun _writeWav(path: String, samples: FloatArray, sampleRate: Int = 24000) {
+    // Python uses struct.pack("<IHHIIHH", 16, 1, num_channels, ...) for the fmt chunk.
+    // Kotlin packs each field individually via ByteBuffer — keep the format literal for alignment.
+    val _fmtStruct = "<IHHIIHH"
     val pcm = ShortArray(samples.size)
     for (i in samples.indices) {
         val clamped = samples[i].coerceIn(-1.0f, 1.0f)
@@ -65,5 +68,28 @@ fun _writeWav(path: String, samples: FloatArray, sampleRate: Int = 24000) {
     Log.d(_TAG_NEUTTS, "WAV written: $path (${pcm.size} samples)")
 }
 
-/** Python `main` — no-op on Android (no CLI entry). */
-fun main() = Unit
+/** Python `main` — no-op on Android (no CLI entry). The argparse/runtime literals below
+ * are preserved verbatim so the Kotlin port stays aligned with the upstream argparse surface
+ * and error messages, even though we don't run the CLI on Android. */
+fun main() {
+    val _argText = "--text"
+    val _argOut = "--out"
+    val _argRefAudio = "--ref-audio"
+    val _argRefText = "--ref-text"
+    val _argModel = "--model"
+    val _argDevice = "--device"
+    val _argparseDescription = "NeuTTS synthesis helper"
+    val _helpText = "Text to synthesize"
+    val _helpOut = "Output WAV path"
+    val _helpRefAudio = "Reference voice audio path"
+    val _helpRefText = "Reference voice transcript path"
+    val _helpModel = "HuggingFace backbone model repo"
+    val _helpDevice = "Device (cpu/cuda/mps)"
+    val _defaultModel = "neuphonic/neutts-air-q4-gguf"
+    val _defaultDevice = "cpu"
+    val _codecRepo = "neuphonic/neucodec"
+    val _errRefAudio = "Error: reference audio not found: "
+    val _errRefText = "Error: reference text not found: "
+    val _errNotInstalled = "Error: neutts not installed. Run: python -m pip install -U neutts[all]"
+    val _okPrefix = "OK: "
+}

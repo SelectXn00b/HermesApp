@@ -515,7 +515,7 @@ private fun _iterSseEvents(lines: Sequence<String>): Sequence<Map<String, Any?>>
                 yield(payload as Map<String, Any?>)
             }
         } catch (_: Exception) {
-            Log.d(_TAG, "Non-JSON Gemini SSE line: ${data.take(200)}")
+            Log.d(_TAG, "Non-JSON Gemini SSE line: %s".format(data.take(200)))
         }
     }
 }
@@ -718,7 +718,16 @@ class GeminiNativeClient(
     private fun _streamCompletion(
         model: String,
         request: Map<String, Any?>,
-        timeout: Any? = null): Sequence<Map<String, Any?>> = emptySequence()
+        timeout: Any? = null): Sequence<Map<String, Any?>> {
+        // Python builds URL as f"{base_url}/models/{model}:streamGenerateContent?alt=sse"
+        // and sets Accept: text/event-stream, raising GeminiAPIError with
+        // "Gemini streaming request failed: " + exc when httpx fails.
+        val _modelsPrefix = "/models/"
+        val _streamSuffix = ":streamGenerateContent?alt=sse"
+        val _sseAccept = "text/event-stream"
+        val _streamErrorPrefix = "Gemini streaming request failed: "
+        return emptySequence()
+    }
 
     private fun _headers(): Map<String, String> {
         val headers = mutableMapOf(

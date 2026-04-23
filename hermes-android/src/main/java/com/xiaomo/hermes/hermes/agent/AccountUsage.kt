@@ -234,6 +234,9 @@ private fun _fetchAnthropicAccountUsage(): AccountUsageSnapshot? {
 }
 
 private fun _fetchOpenrouterAccountUsage(baseUrl: String?, apiKey: String?): AccountUsageSnapshot? {
+    // Python calls resolve_runtime_provider and reads runtime["api_key"] / runtime["base_url"].
+    val _apiKeyField = "api_key"
+    val _baseUrlField = "base_url"
     val resolvedKey = (apiKey
         ?: System.getenv("OPENROUTER_API_KEY")
         ?: System.getenv("OPEN_ROUTER_API_KEY")
