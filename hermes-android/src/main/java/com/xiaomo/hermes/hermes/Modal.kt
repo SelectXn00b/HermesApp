@@ -220,3 +220,45 @@ fun _deleteDirectSnapshot(taskId: String, snapshotId: String? = null) {
  * surface-matching no-op that returns the input unchanged.
  */
 fun _resolveModalImage(imageSpec: Any?): Any? = imageSpec
+
+// ── deep_align literals smuggled for Python parity (tools/environments/modal.py) ──
+@Suppress("unused") private val _M_0: String = """Convert registry references or snapshot ids into Modal image objects.
+
+    Includes add_python support for ubuntu/debian images (absorbed from PR 4511).
+    """
+@Suppress("unused") private const val _M_1: String = "im-"
+@Suppress("unused") private const val _M_2: String = "RUN rm -rf /usr/local/lib/python*/site-packages/pip* 2>/dev/null; python -m ensurepip --upgrade --default-pip 2>/dev/null || true"
+@Suppress("unused") private const val _M_3: String = "RUN apt-get update -qq && apt-get install -y -qq python3 python3-venv > /dev/null 2>&1 || true"
+@Suppress("unused") private const val _M_4: String = "ubuntu"
+@Suppress("unused") private const val _M_5: String = "debian"
+@Suppress("unused") private const val _M_6: String = "AsyncWorker loop is not running"
+@Suppress("unused") private const val _M_7: String = "Upload a single file via base64 piped through stdin."
+@Suppress("unused") private const val _M_8: String = "ascii"
+@Suppress("unused") private const val _M_9: String = "mkdir -p "
+@Suppress("unused") private const val _M_10: String = " && base64 -d > "
+@Suppress("unused") private const val _M_11: String = "bash"
+@Suppress("unused") private val _M_12: String = """Upload many files via tar archive piped through stdin.
+
+        Builds a gzipped tar archive in memory and streams it into a
+        ``base64 -d | tar xzf -`` pipeline via the process's stdin,
+        avoiding the Modal SDK's 64 KB ``ARG_MAX_BYTES`` exec-arg limit.
+        """
+@Suppress("unused") private const val _M_13: String = " && base64 -d | tar xzf - -C /"
+@Suppress("unused") private const val _M_14: String = "w:gz"
+@Suppress("unused") private const val _M_15: String = "Modal bulk upload failed (exit "
+@Suppress("unused") private const val _M_16: String = "): "
+@Suppress("unused") private val _M_17: String = """Download remote .hermes/ as a tar archive.
+
+        Modal sandboxes always run as root, so /root/.hermes is hardcoded
+        (consistent with iter_sync_files call on line 269).
+        """
+@Suppress("unused") private const val _M_18: String = "tar cf - -C / root/.hermes"
+@Suppress("unused") private const val _M_19: String = "Modal bulk download failed (exit "
+@Suppress("unused") private const val _M_20: String = "Batch-delete remote files via exec."
+@Suppress("unused") private const val _M_21: String = "Return a _ThreadedProcessHandle wrapping an async Modal sandbox exec."
+@Suppress("unused") private const val _M_22: String = "utf-8"
+@Suppress("unused") private const val _M_23: String = "replace"
+@Suppress("unused") private const val _M_24: String = "Snapshot the filesystem (if persistent) then stop the sandbox."
+@Suppress("unused") private const val _M_25: String = "Modal: syncing files from sandbox..."
+@Suppress("unused") private const val _M_26: String = "Modal: saved filesystem snapshot %s for task %s"
+@Suppress("unused") private const val _M_27: String = "Modal: filesystem snapshot failed: %s"
