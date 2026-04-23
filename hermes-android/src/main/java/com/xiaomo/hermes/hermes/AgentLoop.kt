@@ -177,7 +177,7 @@ class HermesAgentLoop(
         private const val _TAG = "HermesAgentLoop"
 
         /** Thread pool for running sync tool calls. */
-        private val toolExecutor = Executors.newFixedThreadPool(128)
+        internal var toolExecutor: java.util.concurrent.ExecutorService = Executors.newFixedThreadPool(128)
     }
 
     private suspend fun emit(event: AgentEvent) {
@@ -479,8 +479,13 @@ class HermesAgentLoop(
     }
 }
 
-/** Python `resize_tool_pool` — stub. */
-fun resizeToolPool(newSize: Int) {}
+/** Replace the global tool executor with a new one of the given size. */
+fun resizeToolPool(newSize: Int) {
+    val old = HermesAgentLoop.toolExecutor
+    HermesAgentLoop.toolExecutor = java.util.concurrent.Executors.newFixedThreadPool(newSize)
+    old.shutdown()
+    android.util.Log.i("HermesAgentLoop", "Tool thread pool resized to $newSize workers")
+}
 
 /** Python `_extract_reasoning_from_message` — stub. */
 private fun _extractReasoningFromMessage(msg: Map<String, Any?>): String = ""
