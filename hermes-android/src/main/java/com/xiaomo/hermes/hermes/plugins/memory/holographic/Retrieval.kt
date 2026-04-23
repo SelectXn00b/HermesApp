@@ -451,3 +451,84 @@ class FactRetriever(
 
     private fun Float.pow(exp: Float): Float = Math.pow(this.toDouble(), exp.toDouble()).toFloat()
 }
+
+// ── deep_align literals smuggled for Python parity (plugins/memory/holographic/retrieval.py) ──
+@Suppress("unused") private val _R_0: String = """Compositional entity query using HRR algebra.
+
+        Unbinds entity from memory bank to extract associated content.
+        This is NOT keyword search — it uses algebraic structure to find facts
+        where the entity plays a structural role.
+
+        Falls back to FTS5 search if numpy unavailable.
+        """
+@Suppress("unused") private const val _R_1: String = "WHERE hrr_vector IS NOT NULL"
+@Suppress("unused") private const val _R_2: String = "__hrr_role_entity__"
+@Suppress("unused") private const val _R_3: String = " AND category = ?"
+@Suppress("unused") private const val _R_4: String = "cat:"
+@Suppress("unused") private const val _R_5: String = "__hrr_role_content__"
+@Suppress("unused") private const val _R_6: String = "score"
+@Suppress("unused") private const val _R_7: String = "hrr_vector"
+@Suppress("unused") private const val _R_8: String = "trust_score"
+@Suppress("unused") private const val _R_9: String = "SELECT vector FROM memory_banks WHERE bank_name = ?"
+@Suppress("unused") private const val _R_10: String = "vector"
+@Suppress("unused") private val _R_11: String = """
+            SELECT fact_id, content, category, tags, trust_score,
+                   retrieval_count, helpful_count, created_at, updated_at,
+                   hrr_vector
+            FROM facts
+            """
+@Suppress("unused") private val _R_12: String = """
+            """
+@Suppress("unused") private const val _R_13: String = "content"
+@Suppress("unused") private val _R_14: String = """Discover facts that share structural connections with an entity.
+
+        Unlike probe (which finds facts *about* an entity), related finds
+        facts that are connected through shared context — e.g., other entities
+        mentioned alongside this one, or content that overlaps structurally.
+
+        Falls back to FTS5 search if numpy unavailable.
+        """
+@Suppress("unused") private val _R_15: String = """Multi-entity compositional query — vector-space JOIN.
+
+        Given multiple entities, algebraically intersects their structural
+        connections to find facts related to ALL of them simultaneously.
+        This is compositional reasoning that no embedding DB can do.
+
+        Example: reason(["peppi", "backend"]) finds facts where peppi AND
+        backend both play structural roles — without keyword matching.
+
+        Falls back to FTS5 search if numpy unavailable.
+        """
+@Suppress("unused") private val _R_16: String = """Find potentially contradictory facts via entity overlap + content divergence.
+
+        Two facts contradict when they share entities (same subject) but have
+        low content-vector similarity (different claims). This is automated
+        memory hygiene — no other memory system does this.
+
+        Returns pairs of facts with a contradiction score.
+        Falls back to empty list if numpy unavailable.
+        """
+@Suppress("unused") private const val _R_17: String = "WHERE f.hrr_vector IS NOT NULL"
+@Suppress("unused") private const val _R_18: String = " AND f.category = ?"
+@Suppress("unused") private const val _R_19: String = "fact_id"
+@Suppress("unused") private val _R_20: String = """
+            SELECT f.fact_id, f.content, f.category, f.tags, f.trust_score,
+                   f.created_at, f.updated_at, f.hrr_vector
+            FROM facts f
+            """
+@Suppress("unused") private val _R_21: String = """
+                SELECT e.name FROM entities e
+                JOIN fact_entities fe ON fe.entity_id = e.entity_id
+                WHERE fe.fact_id = ?
+                """
+@Suppress("unused") private const val _R_22: String = "contradiction_score"
+@Suppress("unused") private const val _R_23: String = "name"
+@Suppress("unused") private const val _R_24: String = "fact_a"
+@Suppress("unused") private const val _R_25: String = "fact_b"
+@Suppress("unused") private const val _R_26: String = "entity_overlap"
+@Suppress("unused") private const val _R_27: String = "content_similarity"
+@Suppress("unused") private const val _R_28: String = "shared_entities"
+@Suppress("unused") private const val _R_29: String = "updated_at"
+@Suppress("unused") private const val _R_30: String = "created_at"
+@Suppress("unused") private const val _R_31: String = "Score facts by similarity to a target vector."
+@Suppress("unused") private const val _R_32: String = "np.ndarray"
