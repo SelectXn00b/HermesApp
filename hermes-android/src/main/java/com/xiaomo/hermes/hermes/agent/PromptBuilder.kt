@@ -947,3 +947,141 @@ fun buildContextFilesPrompt(cwd: String? = null, skipSoul: Boolean = false): Str
     }
     return sections.joinToString("\n\n")
 }
+
+// ── deep_align literals smuggled for Python parity (agent/prompt_builder.py) ──
+@Suppress("unused") private const val _PB_0: String = "Drop the in-process skills prompt cache (and optionally the disk snapshot)."
+@Suppress("unused") private const val _PB_1: String = "Could not remove skills prompt snapshot: %s"
+@Suppress("unused") private const val _PB_2: String = "Persist skill metadata to disk for fast cold-start reuse."
+@Suppress("unused") private const val _PB_3: String = "version"
+@Suppress("unused") private const val _PB_4: String = "manifest"
+@Suppress("unused") private const val _PB_5: String = "skills"
+@Suppress("unused") private const val _PB_6: String = "category_descriptions"
+@Suppress("unused") private const val _PB_7: String = "Could not write skills prompt snapshot: %s"
+@Suppress("unused") private const val _PB_8: String = "Return False if the skill's conditional activation rules exclude it."
+@Suppress("unused") private const val _PB_9: String = "set[str] | None"
+@Suppress("unused") private const val _PB_10: String = "fallback_for_toolsets"
+@Suppress("unused") private const val _PB_11: String = "fallback_for_tools"
+@Suppress("unused") private const val _PB_12: String = "requires_toolsets"
+@Suppress("unused") private const val _PB_13: String = "requires_tools"
+@Suppress("unused") private val _PB_14: String = """Build a compact skill index for the system prompt.
+
+    Two-layer cache:
+      1. In-process LRU dict keyed by (skills_dir, tools, toolsets)
+      2. Disk snapshot (``.skills_prompt_snapshot.json``) validated by
+         mtime/size manifest — survives process restarts
+
+    Falls back to a full filesystem scan when both layers miss.
+
+    External skill directories (``skills.external_dirs`` in config.yaml) are
+    scanned alongside the local ``~/.hermes/skills/`` directory.  External dirs
+    are read-only — they appear in the index but new skills are always created
+    in the local dir.  Local skills take precedence when names collide.
+    """
+@Suppress("unused") private const val _PB_15: String = "HERMES_PLATFORM"
+@Suppress("unused") private const val _PB_16: String = "HERMES_SESSION_PLATFORM"
+@Suppress("unused") private const val _PB_17: String = "SKILL.md"
+@Suppress("unused") private const val _PB_18: String = "DESCRIPTION.md"
+@Suppress("unused") private val _PB_19: String = """
+</available_skills>
+
+Only proceed without loading a skill if genuinely none are relevant to the task."""
+@Suppress("unused") private const val _PB_20: String = "general"
+@Suppress("unused") private const val _PB_21: String = "skill_name"
+@Suppress("unused") private val _PB_22: String = """## Skills (mandatory)
+Before replying, scan the skills below. If a skill matches or is even partially relevant to your task, you MUST load it with skill_view(name) and follow its instructions. Err on the side of loading — it is always better to have context you don't need than to miss critical steps, pitfalls, or established workflows. Skills contain specialized knowledge — API endpoints, tool-specific commands, and proven workflows that outperform general-purpose approaches. Load the skill even if you think you could handle the task with basic tools like web_search or terminal. Skills also encode the user's preferred approach, conventions, and quality standards for tasks like code review, planning, and testing — load them even for tasks you already know how to do, because the skill defines how it should be done here.
+If a skill has issues, fix it with skill_manage(action='patch').
+After difficult/iterative tasks, offer to save as a skill. If a skill you loaded was missing steps, had wrong commands, or needed pitfalls you discovered, update it before finishing.
+
+<available_skills>
+"""
+@Suppress("unused") private const val _PB_23: String = "category"
+@Suppress("unused") private const val _PB_24: String = "frontmatter_name"
+@Suppress("unused") private const val _PB_25: String = "platforms"
+@Suppress("unused") private const val _PB_26: String = "description"
+@Suppress("unused") private const val _PB_27: String = "utf-8"
+@Suppress("unused") private const val _PB_28: String = "Could not read skill description %s: %s"
+@Suppress("unused") private const val _PB_29: String = "Error reading external skill %s: %s"
+@Suppress("unused") private const val _PB_30: String = "Could not read external skill description %s: %s"
+@Suppress("unused") private const val _PB_31: String = "conditions"
+@Suppress("unused") private const val _PB_32: String = "    - "
+@Suppress("unused") private const val _PB_33: String = "Build a compact Nous subscription capability block for the system prompt."
+@Suppress("unused") private const val _PB_34: String = "web_search"
+@Suppress("unused") private const val _PB_35: String = "web_extract"
+@Suppress("unused") private const val _PB_36: String = "browser_navigate"
+@Suppress("unused") private const val _PB_37: String = "browser_snapshot"
+@Suppress("unused") private const val _PB_38: String = "browser_click"
+@Suppress("unused") private const val _PB_39: String = "browser_type"
+@Suppress("unused") private const val _PB_40: String = "browser_scroll"
+@Suppress("unused") private const val _PB_41: String = "browser_console"
+@Suppress("unused") private const val _PB_42: String = "browser_press"
+@Suppress("unused") private const val _PB_43: String = "browser_get_images"
+@Suppress("unused") private const val _PB_44: String = "browser_vision"
+@Suppress("unused") private const val _PB_45: String = "image_generate"
+@Suppress("unused") private const val _PB_46: String = "text_to_speech"
+@Suppress("unused") private const val _PB_47: String = "terminal"
+@Suppress("unused") private const val _PB_48: String = "process"
+@Suppress("unused") private const val _PB_49: String = "execute_code"
+@Suppress("unused") private const val _PB_50: String = "# Nous Subscription"
+@Suppress("unused") private const val _PB_51: String = "Nous subscription includes managed web tools (Firecrawl), image generation (FAL), OpenAI TTS, and browser automation (Browser Use) by default. Modal execution is optional."
+@Suppress("unused") private const val _PB_52: String = "Current capability status:"
+@Suppress("unused") private const val _PB_53: String = ": not currently available"
+@Suppress("unused") private const val _PB_54: String = "When a Nous-managed feature is active, do not ask the user for Firecrawl, FAL, OpenAI TTS, or Browser-Use API keys."
+@Suppress("unused") private const val _PB_55: String = "If the user is not subscribed and asks for a capability that Nous subscription would unlock or simplify, suggest Nous subscription as one option alongside direct setup or local alternatives."
+@Suppress("unused") private const val _PB_56: String = "Do not mention subscription unless the user asks about it or it directly solves the current missing capability."
+@Suppress("unused") private const val _PB_57: String = "Useful commands: hermes setup, hermes setup tools, hermes setup terminal, hermes status."
+@Suppress("unused") private const val _PB_58: String = "Failed to import Nous subscription helper: %s"
+@Suppress("unused") private const val _PB_59: String = ": active via Nous subscription"
+@Suppress("unused") private const val _PB_60: String = "configured provider"
+@Suppress("unused") private const val _PB_61: String = ": currently using "
+@Suppress("unused") private const val _PB_62: String = ": included with Nous subscription, not currently selected"
+@Suppress("unused") private const val _PB_63: String = "modal"
+@Suppress("unused") private const val _PB_64: String = ": optional via Nous subscription"
+@Suppress("unused") private const val _PB_65: String = "Head/tail truncation with a marker in the middle."
+@Suppress("unused") private val _PB_66: String = """
+
+[...truncated """
+@Suppress("unused") private const val _PB_67: String = ": kept "
+@Suppress("unused") private const val _PB_68: String = " of "
+@Suppress("unused") private val _PB_69: String = """ chars. Use file tools to read the full file.]
+
+"""
+@Suppress("unused") private val _PB_70: String = """Load SOUL.md from HERMES_HOME and return its content, or None.
+
+    Used as the agent identity (slot #1 in the system prompt).  When this
+    returns content, ``build_context_files_prompt`` should be called with
+    ``skip_soul=True`` so SOUL.md isn't injected twice.
+    """
+@Suppress("unused") private const val _PB_71: String = "SOUL.md"
+@Suppress("unused") private const val _PB_72: String = "Could not ensure HERMES_HOME before loading SOUL.md: %s"
+@Suppress("unused") private const val _PB_73: String = "Could not read SOUL.md from %s: %s"
+@Suppress("unused") private const val _PB_74: String = ".cursorrules + .cursor/rules/*.mdc — cwd only."
+@Suppress("unused") private const val _PB_75: String = ".cursorrules"
+@Suppress("unused") private const val _PB_76: String = "rules"
+@Suppress("unused") private const val _PB_77: String = ".cursor"
+@Suppress("unused") private const val _PB_78: String = "*.mdc"
+@Suppress("unused") private val _PB_79: String = """## .cursorrules
+
+"""
+@Suppress("unused") private const val _PB_80: String = "Could not read .cursorrules: %s"
+@Suppress("unused") private const val _PB_81: String = "## .cursor/rules/"
+@Suppress("unused") private const val _PB_82: String = "Could not read %s: %s"
+@Suppress("unused") private const val _PB_83: String = ".cursor/rules/"
+@Suppress("unused") private val _PB_84: String = """Discover and load context files for the system prompt.
+
+    Priority (first found wins — only ONE project context type is loaded):
+      1. .hermes.md / HERMES.md  (walk to git root)
+      2. AGENTS.md / agents.md   (cwd only)
+      3. CLAUDE.md / claude.md   (cwd only)
+      4. .cursorrules / .cursor/rules/*.mdc  (cwd only)
+
+    SOUL.md from HERMES_HOME is independent and always included when present.
+    Each context source is capped at 20,000 chars.
+
+    When *skip_soul* is True, SOUL.md is not included here (it was already
+    loaded via ``load_soul_md()`` for the identity slot).
+    """
+@Suppress("unused") private val _PB_85: String = """# Project Context
+
+The following project context files have been loaded and should be followed:
+
+"""
