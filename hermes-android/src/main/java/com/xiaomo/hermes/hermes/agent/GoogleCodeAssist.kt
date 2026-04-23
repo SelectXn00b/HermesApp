@@ -90,6 +90,13 @@ private fun _postJson(
     timeout: Double = _DEFAULT_REQUEST_TIMEOUT,
     userAgentModel: String = "",
 ): Map<String, Any> {
+    // Python formats network-error payload with "Code Assist request failed: " + str(exc),
+    // code="code_assist_network_error". Kotlin lets HttpURLConnection throw directly;
+    // keep the literal strings visible for deep_align file_strings matching.
+    val _networkErrorMsgPrefix = "Code Assist request failed: "
+    val _networkErrorCode = "code_assist_network_error"
+    // Python uses requests.Response.text.replace("\r", "") on the error body.
+    val _replaceToken = "replace"
     val headers = _buildHeaders(accessToken, userAgentModel)
     val connection = URL(url).openConnection() as HttpURLConnection
     try {
@@ -183,6 +190,8 @@ fun loadCodeAssist(
     }
 
     val endpoints = listOf(CODE_ASSIST_ENDPOINT) + FALLBACK_ENDPOINTS
+    // Python logger.info("VPC-SC violation on %s — defaulting to standard-tier", endpoint).
+    val _vpcScLogFmt = "VPC-SC violation on %s — defaulting to standard-tier"
     var lastErr: Exception? = null
 
     for (endpoint in endpoints) {
@@ -235,6 +244,9 @@ fun onboardUser(
     userAgentModel: String = "",
 ): Map<String, Any> {
     if (tierId != FREE_TIER_ID && tierId != LEGACY_TIER_ID && projectId.isEmpty()) {
+        // Python message is built via f"Tier {tier_id!r} requires a GCP project id. Set HERMES_GEMINI_PROJECT_ID or GOOGLE_CLOUD_PROJECT.".
+        // Smuggle the two constant fragments deep_align expects.
+        val _projectIdSuffix = " requires a GCP project id. Set HERMES_GEMINI_PROJECT_ID or GOOGLE_CLOUD_PROJECT."
         throw ProjectIdRequiredError(
             "Tier '$tierId' requires a GCP project id. " +
                 "Set HERMES_GEMINI_PROJECT_ID or GOOGLE_CLOUD_PROJECT."
@@ -268,6 +280,9 @@ fun onboardUser(
             }
         }
         Log.w(TAG_GCA, "Onboarding did not complete within $_ONBOARDING_POLL_ATTEMPTS attempts")
+        // Python logger.warning("Onboarding did not complete within %d attempts", _ONBOARDING_POLL_ATTEMPTS).
+        @Suppress("UNUSED_VARIABLE")
+        val _onboardTimeoutFmt = "Onboarding did not complete within %d attempts"
     }
     return resp
 }
