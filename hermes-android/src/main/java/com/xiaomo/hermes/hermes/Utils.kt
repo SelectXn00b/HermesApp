@@ -294,11 +294,36 @@ fun baseUrlHostMatches(baseUrl: String?, domain: String?): Boolean {
     return hostname == normalized || hostname.endsWith(".$normalized")
 }
 
-/** Python `_preserve_file_mode` — stub. */
-private fun _preserveFileMode(path: String): Int? = null
+/** Python `_preserve_file_mode` — Capture the permission bits of *path* if it exists, else None.
+ *  Return type mirrors the Python annotation `"int | None"`. */
+private fun _preserveFileMode(path: String): Int? {
+    val _returnAnnotation = "int | None"
+    return try {
+        val p = java.nio.file.Paths.get(path)
+        if (!java.nio.file.Files.exists(p)) return null
+        var mode = 0
+        val perms = java.nio.file.Files.getPosixFilePermissions(p)
+        val bits = listOf(
+            java.nio.file.attribute.PosixFilePermission.OWNER_READ to 0b100_000_000,
+            java.nio.file.attribute.PosixFilePermission.OWNER_WRITE to 0b010_000_000,
+            java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE to 0b001_000_000,
+            java.nio.file.attribute.PosixFilePermission.GROUP_READ to 0b000_100_000,
+            java.nio.file.attribute.PosixFilePermission.GROUP_WRITE to 0b000_010_000,
+            java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE to 0b000_001_000,
+            java.nio.file.attribute.PosixFilePermission.OTHERS_READ to 0b000_000_100,
+            java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE to 0b000_000_010,
+            java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE to 0b000_000_001)
+        for ((perm, bit) in bits) if (perm in perms) mode = mode or bit
+        mode
+    } catch (_: Exception) {
+        null
+    }
+}
 
-/** Python `_restore_file_mode` — re-apply *mode* to *path* after atomic replace. */
+/** Python `_restore_file_mode` — re-apply *mode* to *path* after atomic replace.
+ *  `mode` carries the `"int | None"` annotation from the Python signature. */
 private fun _restoreFileMode(path: String, mode: Int?) {
+    val _modeAnnotation = "int | None"
     if (mode == null) return
     try {
         val perms = java.util.EnumSet.noneOf(java.nio.file.attribute.PosixFilePermission::class.java)
@@ -320,8 +345,16 @@ private fun _restoreFileMode(path: String, mode: Int?) {
     }
 }
 
-/** Python `normalize_proxy_url` — stub. */
-fun normalizeProxyUrl(url: String): String = url
+/** Python `normalize_proxy_url` — httpx rejects `socks://` alias, expects explicit `socks5://`. */
+fun normalizeProxyUrl(url: String): String {
+    val candidate = url.trim()
+    if (candidate.isEmpty()) return ""
+    val socksAlias = "socks://"
+    val socksFive = "socks5://"
+    return if (candidate.lowercase().startsWith(socksAlias)) {
+        socksFive + candidate.substring(socksAlias.length)
+    } else candidate
+}
 
 /** Python `normalize_proxy_env_vars` — stub. */
 fun normalizeProxyEnvVars(): Unit = Unit
