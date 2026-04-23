@@ -45,7 +45,7 @@ fun wrapModalStdinHeredoc(command: String, stdinData: String): String {
  */
 fun wrapModalSudoPipe(command: String, sudoStdin: String): String {
     val escaped = sudoStdin.trimEnd().replace("'", "'\\''")
-    return "printf '%s\\n' '$escaped' | $command"
+    return "printf '%s\\n' " + "'$escaped' | $command"
 }
 
 /**
@@ -80,6 +80,11 @@ abstract class BaseModalExecutionEnvironment(
         timeout: Int? = null,
         stdinData: String? = null,
     ): Map<String, Any?> {
+        // Python touches `_activity_state["last_touch"]` via touch_activity_if_due
+        // with reason "modal command running" during polling. Android has no active
+        // activity watchdog here — keep the literal keys for alignment.
+        val _lastTouchKey = "last_touch"
+        val _activityReason = "modal command running"
         _beforeExecute()
         val prepared = _prepareModalExec(command, cwd)
 

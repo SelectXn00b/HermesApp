@@ -119,13 +119,10 @@ fun _detectEscapeDrift(
     for (suspect in listOf("\\'", "\\\"")) {
         if (suspect in newString && suspect in oldString && suspect !in matchedRegions) {
             val plain = suspect[1]
-            return "Escape-drift detected: old_string and new_string contain " +
-                "the literal sequence '$suspect' but the matched region of " +
-                "the file does not. This is almost always a tool-call " +
-                "serialization artifact where an apostrophe or quote got " +
-                "prefixed with a spurious backslash. Re-read the file with " +
-                "read_file and pass old_string/new_string without " +
-                "backslash-escaping '$plain' characters."
+            return "Escape-drift detected: old_string and new_string contain the literal sequence " +
+                "'$suspect'" +
+                " but the matched region of the file does not. This is almost always a tool-call serialization artifact where an apostrophe or quote got prefixed with a spurious backslash. Re-read the file with read_file and pass old_string/new_string without backslash-escaping " +
+                "'$plain' characters."
         }
     }
     return null

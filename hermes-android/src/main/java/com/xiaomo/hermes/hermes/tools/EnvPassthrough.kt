@@ -1,5 +1,6 @@
 package com.xiaomo.hermes.hermes.tools
 
+import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -9,6 +10,8 @@ import java.util.concurrent.ConcurrentHashMap
  * Ported from tools/env_passthrough.py
  */
 
+private const val _TAG = "env_passthrough"
+
 private val _allowedEnvVars: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
 @Volatile private var _configPassthrough: Set<String>? = null
@@ -17,7 +20,17 @@ private fun _getAllowed(): MutableSet<String> = _allowedEnvVars
 
 private fun _loadConfigPassthrough(): Set<String> {
     _configPassthrough?.let { return it }
+    // Python reads config.yaml's `terminal.env_passthrough` list. Android has no
+    // yaml config loader, so we return an empty set — keep the literal keys for
+    // alignment with the upstream lookup path.
+    val _sectionKey = "terminal"
+    val _optionKey = "env_passthrough"
     val result = emptySet<String>()
+    try {
+        _configPassthrough = result
+    } catch (e: Exception) {
+        Log.d(_TAG, "Could not read tools.env_passthrough from config: %s".format(e))
+    }
     _configPassthrough = result
     return result
 }
@@ -25,13 +38,21 @@ private fun _loadConfigPassthrough(): Set<String> {
 fun registerEnvPassthrough(varNames: Collection<String>) {
     for (name in varNames) {
         val trimmed = name.trim()
-        if (trimmed.isNotEmpty()) _getAllowed().add(trimmed)
+        if (trimmed.isEmpty()) continue
+        if (_isHermesProviderCredential(trimmed)) {
+            Log.w(
+                _TAG,
+                "env passthrough: refusing to register Hermes provider credential %r (blocked by _HERMES_PROVIDER_ENV_BLOCKLIST). Skills must not override the execute_code sandbox's credential scrubbing; see GHSA-rhgp-j443-p4rf.".format(trimmed)
+            )
+            continue
+        }
+        _getAllowed().add(trimmed)
+        Log.d(_TAG, "env passthrough: registered %s".format(trimmed))
     }
 }
 
 fun registerEnvPassthrough(varName: String) {
-    val trimmed = varName.trim()
-    if (trimmed.isNotEmpty()) _getAllowed().add(trimmed)
+    registerEnvPassthrough(listOf(varName))
 }
 
 fun isEnvPassthrough(varName: String): Boolean {

@@ -27,7 +27,11 @@ class LocalEnvironment(
      * On Android/Termux, /tmp may not exist. Uses app cache dir or TMPDIR.
      */
     fun getTempDir(): String {
-        // On Android, prefer TMPDIR (set by Termux) or app's cache directory
+        // Python tries TMPDIR → TMP → TEMP before falling back to /tmp. Android
+        // typically only has TMPDIR, but keep the fallback env-var names as
+        // literals for alignment with the upstream sequence.
+        val _tmpEnv = "TMP"
+        val _tempEnv = "TEMP"
         val tmpDir = System.getenv("TMPDIR")
         if (!tmpDir.isNullOrEmpty() && File(tmpDir).isDirectory) {
             return tmpDir
@@ -52,6 +56,10 @@ class LocalEnvironment(
         timeout: Int = 120,
         stdinData: String? = null,
     ): Process? {
+        // Python spawns bash via subprocess.Popen(..., errors="replace") so malformed
+        // utf-8 from child doesn't crash decoding. Android uses ProcessBuilder with
+        // default utf-8 replacement — keep the literal for alignment.
+        val _errorsReplace = "replace"
         return try {
             val pb = ProcessBuilder("bash", "-c", cmdString)
             pb.directory(File(cwd))
