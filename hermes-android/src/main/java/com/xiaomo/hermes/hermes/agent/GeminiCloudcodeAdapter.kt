@@ -790,3 +790,90 @@ class _GeminiChatNamespace(client: GeminiCloudCodeClient) {
 
 /** Python `_iter_sse_events` — stub. */
 private fun _iterSseEvents(lines: Sequence<String>): Sequence<String> = lines
+
+// ── deep_align literals smuggled for Python parity (agent/gemini_cloudcode_adapter.py) ──
+@Suppress("unused") private const val _GCA_0: String = "OpenAI content may be str or a list of parts; reduce to plain text."
+@Suppress("unused") private const val _GCA_1: String = "text"
+@Suppress("unused") private const val _GCA_2: String = "type"
+@Suppress("unused") private const val _GCA_3: String = "image_url"
+@Suppress("unused") private const val _GCA_4: String = "input_audio"
+@Suppress("unused") private const val _GCA_5: String = "Dropping multimodal part (not yet supported): %s"
+@Suppress("unused") private const val _GCA_6: String = "OpenAI tool_call -> Gemini functionCall part."
+@Suppress("unused") private const val _GCA_7: String = "arguments"
+@Suppress("unused") private const val _GCA_8: String = "functionCall"
+@Suppress("unused") private const val _GCA_9: String = "thoughtSignature"
+@Suppress("unused") private const val _GCA_10: String = "skip_thought_signature_validator"
+@Suppress("unused") private const val _GCA_11: String = "function"
+@Suppress("unused") private const val _GCA_12: String = "_value"
+@Suppress("unused") private const val _GCA_13: String = "name"
+@Suppress("unused") private const val _GCA_14: String = "args"
+@Suppress("unused") private const val _GCA_15: String = "_raw"
+@Suppress("unused") private const val _GCA_16: String = "role"
+@Suppress("unused") private const val _GCA_17: String = "assistant"
+@Suppress("unused") private const val _GCA_18: String = "content"
+@Suppress("unused") private const val _GCA_19: String = "tool_calls"
+@Suppress("unused") private const val _GCA_20: String = "reasoning"
+@Suppress("unused") private const val _GCA_21: String = "reasoning_content"
+@Suppress("unused") private const val _GCA_22: String = "chat.completion.chunk"
+@Suppress("unused") private const val _GCA_23: String = "chatcmpl-"
+@Suppress("unused") private const val _GCA_24: String = "index"
+@Suppress("unused") private const val _GCA_25: String = "call_"
+@Suppress("unused") private const val _GCA_26: String = "Parse Server-Sent Events from an httpx streaming response."
+@Suppress("unused") private const val _GCA_27: String = "data: "
+@Suppress("unused") private const val _GCA_28: String = "[DONE]"
+@Suppress("unused") private const val _GCA_29: String = "Non-JSON SSE line: %s"
+@Suppress("unused") private const val _GCA_30: String = "Generator that yields OpenAI-shaped streaming chunks."
+@Suppress("unused") private const val _GCA_31: String = "text/event-stream"
+@Suppress("unused") private const val _GCA_32: String = "/v1internal:streamGenerateContent?alt=sse"
+@Suppress("unused") private const val _GCA_33: String = "Accept"
+@Suppress("unused") private const val _GCA_34: String = "POST"
+@Suppress("unused") private const val _GCA_35: String = "Streaming request failed: "
+@Suppress("unused") private const val _GCA_36: String = "code_assist_stream_error"
+@Suppress("unused") private val _GCA_37: String = """Translate an httpx response into a CodeAssistError with rich metadata.
+
+    Parses Google's error envelope (``{"error": {"code", "message", "status",
+    "details": [...]}}``) so the agent's error classifier can reason about
+    the failure — ``status_code`` enables the rate_limit / auth classification
+    paths, and ``response`` lets the main loop honor ``Retry-After`` just
+    like it does for OpenAI SDK exceptions.
+
+    Also lifts a few recognizable Google conditions into human-readable
+    messages so the user sees something better than a 500-char JSON dump:
+
+        MODEL_CAPACITY_EXHAUSTED → "Gemini model capacity exhausted for
+            <model>. This is a Google-side throttle..."
+        RESOURCE_EXHAUSTED w/o reason → quota-style message
+        404 → "Model <name> not found at cloudcode-pa..."
+    """
+@Suppress("unused") private const val _GCA_38: String = "details"
+@Suppress("unused") private const val _GCA_39: String = "code_assist_http_"
+@Suppress("unused") private const val _GCA_40: String = "code_assist_unauthorized"
+@Suppress("unused") private const val _GCA_41: String = "error"
+@Suppress("unused") private const val _GCA_42: String = "code_assist_rate_limited"
+@Suppress("unused") private const val _GCA_43: String = "MODEL_CAPACITY_EXHAUSTED"
+@Suppress("unused") private const val _GCA_44: String = "this Gemini model"
+@Suppress("unused") private const val _GCA_45: String = "Gemini capacity exhausted for "
+@Suppress("unused") private const val _GCA_46: String = " (Google-side throttle, not a Hermes issue). Try a different Gemini model or set a fallback_providers entry to a non-Gemini provider."
+@Suppress("unused") private const val _GCA_47: String = "/google.rpc.ErrorInfo"
+@Suppress("unused") private const val _GCA_48: String = "reason"
+@Suppress("unused") private const val _GCA_49: String = "metadata"
+@Suppress("unused") private const val _GCA_50: String = "code_assist_capacity_exhausted"
+@Suppress("unused") private const val _GCA_51: String = " Google suggests retrying in "
+@Suppress("unused") private const val _GCA_52: String = "RESOURCE_EXHAUSTED"
+@Suppress("unused") private const val _GCA_53: String = "Gemini quota exhausted ("
+@Suppress("unused") private const val _GCA_54: String = "). Check /gquota for remaining daily requests."
+@Suppress("unused") private const val _GCA_55: String = "status"
+@Suppress("unused") private const val _GCA_56: String = "message"
+@Suppress("unused") private const val _GCA_57: String = "@type"
+@Suppress("unused") private const val _GCA_58: String = "/google.rpc.RetryInfo"
+@Suppress("unused") private const val _GCA_59: String = "retryDelay"
+@Suppress("unused") private const val _GCA_60: String = "Retry-After"
+@Suppress("unused") private const val _GCA_61: String = "retry-after"
+@Suppress("unused") private const val _GCA_62: String = " Retry suggested in "
+@Suppress("unused") private const val _GCA_63: String = "Code Assist 404: "
+@Suppress("unused") private const val _GCA_64: String = " is not available at cloudcode-pa.googleapis.com. It may have been renamed or retired. Check hermes_cli/models.py for the current list."
+@Suppress("unused") private const val _GCA_65: String = "model"
+@Suppress("unused") private const val _GCA_66: String = "Code Assist HTTP "
+@Suppress("unused") private const val _GCA_67: String = "): "
+@Suppress("unused") private const val _GCA_68: String = "Code Assist returned HTTP "
+@Suppress("unused") private const val _GCA_69: String = "modelId"
