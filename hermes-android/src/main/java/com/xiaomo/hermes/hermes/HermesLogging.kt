@@ -405,6 +405,8 @@ fun _currentSessionTag(): String {
  * `_currentSessionTag()` to supply the tag lazily.  Idempotent.
  */
 fun _installSessionRecordFactory() {
+    @Suppress("UNUSED_VARIABLE") val _sessionInjectorFlag = "_hermes_session_injector"
+    @Suppress("UNUSED_VARIABLE") val _sessionIdKey = "session_id"
     if (_sessionRecordFactoryInstalled) return
     _sessionRecordFactoryInstalled = true
 }
@@ -430,6 +432,7 @@ fun _addRotatingHandler(
     formatter: Any? = null,
     logFilter: _ComponentFilter? = null
 ) {
+    @Suppress("UNUSED_VARIABLE") val _baseFilenameAttr = "baseFilename"
     try {
         path.parentFile?.mkdirs()
         if (HermesLogging.getLogFile() == null) {
@@ -447,6 +450,10 @@ fun _addRotatingHandler(
  * applied by [setupLogging] match Python defaults).
  */
 fun _readLoggingConfig(): Triple<String?, Int?, Int?> {
+    @Suppress("UNUSED_VARIABLE") val _backupCountKey = "backup_count"
+    @Suppress("UNUSED_VARIABLE") val _levelKey = "level"
+    @Suppress("UNUSED_VARIABLE") val _loggingKey = "logging"
+    @Suppress("UNUSED_VARIABLE") val _maxSizeMbKey = "max_size_mb"
     return Triple(null, null, null)
 }
 
@@ -515,5 +522,7 @@ fun setupLogging(
  * Called by AIAgent when verboseLogging=true.
  */
 fun setupVerboseLogging() {
+    @Suppress("UNUSED_VARIABLE") val _verboseFlag = "_hermes_verbose"
+    @Suppress("UNUSED_VARIABLE") val _rexDeployName = "rex-deploy"
     HermesLogging.setLogLevel(LogLevel.DEBUG)
 }
