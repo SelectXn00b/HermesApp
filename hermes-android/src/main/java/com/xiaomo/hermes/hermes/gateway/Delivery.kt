@@ -161,10 +161,15 @@ data class DeliveryTarget(
 
     companion object {
         /** Parse a delivery target string. */
-        fun parse(target: String, originPlatform: String? = null, originChatId: String? = null, originThreadId: String? = null): DeliveryTarget {
+        fun parse(target: String, origin: SessionSource? = null): DeliveryTarget {
             val t = target.trim().lowercase()
             if (t == "origin") {
-                if (originPlatform != null) return DeliveryTarget(platform = originPlatform, chatId = originChatId, threadId = originThreadId, isOrigin = true)
+                if (origin != null) return DeliveryTarget(
+                    platform = origin.platform,
+                    chatId = origin.chatId,
+                    threadId = origin.threadId,
+                    isOrigin = true,
+                )
                 return DeliveryTarget(platform = "local", isOrigin = true)
             }
             if (t == "local") return DeliveryTarget(platform = "local")

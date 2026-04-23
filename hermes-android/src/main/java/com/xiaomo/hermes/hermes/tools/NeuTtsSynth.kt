@@ -66,4 +66,4 @@ fun _writeWav(path: String, samples: FloatArray, sampleRate: Int = 24000) {
 }
 
 /** Python `main` — no-op on Android (no CLI entry). */
-fun main(args: Array<String>) = Unit
+fun main() = Unit
