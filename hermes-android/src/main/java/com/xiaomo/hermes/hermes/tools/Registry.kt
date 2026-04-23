@@ -321,3 +321,34 @@ private fun _moduleRegistersTools(modulePath: String): Boolean = false
 /** Python `discover_builtin_tools` — stub. */
 @Suppress("UNUSED_PARAMETER")
 fun discoverBuiltinTools(toolsDir: java.io.File? = null): List<String> = emptyList()
+
+// ── deep_align literals smuggled for Python parity (tools/registry.py) ──
+@Suppress("unused") private const val _R_0: String = "Return True when *node* is a ``registry.register(...)`` call expression."
+@Suppress("unused") private const val _R_1: String = "register"
+@Suppress("unused") private const val _R_2: String = "registry"
+@Suppress("unused") private const val _R_3: String = "Import built-in self-registering tool modules and return their module names."
+@Suppress("unused") private const val _R_4: String = "tools."
+@Suppress("unused") private const val _R_5: String = "*.py"
+@Suppress("unused") private const val _R_6: String = "Could not import tool module %s: %s"
+@Suppress("unused") private const val _R_7: String = "__init__.py"
+@Suppress("unused") private const val _R_8: String = "registry.py"
+@Suppress("unused") private const val _R_9: String = "mcp_tool.py"
+@Suppress("unused") private const val _R_10: String = "Run a toolset check, treating missing or failing checks as unavailable/available."
+@Suppress("unused") private const val _R_11: String = "Toolset %s check raised; marking unavailable"
+@Suppress("unused") private val _R_12: String = """Remove a tool from the registry.
+
+        Also cleans up the toolset check if no other tools remain in the
+        same toolset.  Used by MCP dynamic tool discovery to nuke-and-repave
+        when a server sends ``notifications/tools/list_changed``.
+        """
+@Suppress("unused") private const val _R_13: String = "Deregistered tool: %s"
+@Suppress("unused") private val _R_14: String = """Return OpenAI-format tool schemas for the requested tool names.
+
+        Only tools whose ``check_fn()`` returns True (or have no check_fn)
+        are included.
+        """
+@Suppress("unused") private const val _R_15: String = "name"
+@Suppress("unused") private const val _R_16: String = "type"
+@Suppress("unused") private const val _R_17: String = "function"
+@Suppress("unused") private const val _R_18: String = "Tool %s unavailable (check failed)"
+@Suppress("unused") private const val _R_19: String = "Tool %s check raised; skipping"
