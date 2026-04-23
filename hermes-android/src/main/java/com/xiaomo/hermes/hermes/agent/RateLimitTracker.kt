@@ -131,7 +131,8 @@ class RateLimitTracker {
         } catch (e: Exception) {
             0L
         }
-    
+    }
+
     /** Check if any rate limit data exists for a provider. */
     fun hasData(provider: String): Boolean = limits.containsKey(provider)
 
@@ -147,16 +148,6 @@ class RateLimitTracker {
         val info = limits[provider] ?: return 0
         return maxOf(0, (info.resetAtMs - System.currentTimeMillis()) / 1000)
     }
-}
-
-
-    fun used(): Int {
-        return 0
-    }
-    fun ageSeconds(): Double {
-        return 0.0
-    }
-
 }
 
 data class RateLimitBucket(
