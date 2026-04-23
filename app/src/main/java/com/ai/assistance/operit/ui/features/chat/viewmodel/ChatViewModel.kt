@@ -28,7 +28,6 @@ import com.ai.assistance.operit.data.model.AITool
 import com.ai.assistance.operit.data.model.ChatHistory
 import com.ai.assistance.operit.data.model.ChatMessage
 import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.data.preferences.ApiPreferences
 import com.ai.assistance.operit.data.model.PromptFunctionType
 import com.ai.assistance.operit.data.model.ToolParameter
 import com.ai.assistance.operit.R
@@ -158,6 +157,9 @@ class ChatViewModel(private val context: Context) : ViewModel() {
     val apiProviderType: StateFlow<ApiProviderType> by lazy { apiConfigDelegate.apiProviderType }
     val isConfigured: StateFlow<Boolean> by lazy { apiConfigDelegate.isConfigured }
     val isApiConfigInitialized: StateFlow<Boolean> by lazy { apiConfigDelegate.isInitialized }
+    private val userHasConfiguredApi: StateFlow<Boolean> by lazy {
+        apiConfigDelegate.userHasConfiguredApi
+    }
 
     private val _shouldShowConfigDialog = MutableStateFlow(false)
     val shouldShowConfigDialog: StateFlow<Boolean> = _shouldShowConfigDialog.asStateFlow()
@@ -434,16 +436,16 @@ class ChatViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             combine(
                 isApiConfigInitialized,
-                apiKey,
                 apiProviderType,
-                apiEndpoint
-            ) { initialized, currentApiKey, currentProviderType, currentApiEndpoint ->
+                apiEndpoint,
+                userHasConfiguredApi
+            ) { initialized, currentProviderType, currentApiEndpoint, userConfigured ->
                 initialized &&
                     ApiProviderConfigs.requiresApiKey(
                         currentProviderType,
                         currentApiEndpoint
                     ) &&
-                    currentApiKey == ApiPreferences.DEFAULT_API_KEY
+                    !userConfigured
             }.collect { shouldShow ->
                 _shouldShowConfigDialog.value = shouldShow
             }

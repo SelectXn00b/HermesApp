@@ -88,7 +88,8 @@ object EndpointCompleter {
             }
 
             ApiProviderType.ANTHROPIC,
-            ApiProviderType.ANTHROPIC_GENERIC -> {
+            ApiProviderType.ANTHROPIC_GENERIC,
+            ApiProviderType.MIMO -> {
                 try {
                     val url = URL(trimmedEndpoint)
                     val path = url.path.removeSuffix("/")

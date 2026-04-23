@@ -126,10 +126,12 @@ class ApiPreferences private constructor(private val context: Context) {
         val USD_TO_CNY_EXCHANGE_RATE = floatPreferencesKey("usd_to_cny_exchange_rate")
 
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
+        val USER_HAS_CONFIGURED_API = booleanPreferencesKey("user_has_configured_api")
         val FEATURE_TOGGLES_JSON = stringPreferencesKey("feature_toggles_json")
         // Default values
         const val DEFAULT_FEATURE_TOGGLE_STATE = false
         const val DEFAULT_KEEP_SCREEN_ON = true
+        const val DEFAULT_USER_HAS_CONFIGURED_API = false
         // Keys for Thinking Mode and Thinking Guidance
         val ENABLE_THINKING_MODE = booleanPreferencesKey("enable_thinking_mode")
         val ENABLE_THINKING_GUIDANCE = booleanPreferencesKey("enable_thinking_guidance")
@@ -202,20 +204,9 @@ class ApiPreferences private constructor(private val context: Context) {
         const val DEFAULT_FEATURE_TOGGLES_JSON = "{}"
 
         // API 配置默认值
-        const val DEFAULT_API_ENDPOINT = "https://api.deepseek.com/v1/chat/completions"
-        const val DEFAULT_MODEL_NAME = "deepseek-chat"
-        private const val ENCODED_API_KEY = "c2stNmI4NTYyMjUzNmFjNDhjMDgwYzUwNDhhYjVmNWQxYmQ="
-        val DEFAULT_API_KEY: String by lazy { decodeApiKey(ENCODED_API_KEY) }
-
-        private fun decodeApiKey(encodedKey: String): String {
-            return try {
-                android.util.Base64.decode(encodedKey, android.util.Base64.NO_WRAP)
-                    .toString(Charsets.UTF_8)
-            } catch (e: Exception) {
-                com.ai.assistance.operit.util.AppLogger.e("ApiPreferences", "Failed to decode API key", e)
-                ""
-            }
-        }
+        const val DEFAULT_API_ENDPOINT = "https://api.xiaomimimo.com/anthropic"
+        const val DEFAULT_MODEL_NAME = "mimo-v2.5-pro"
+        val DEFAULT_API_KEY: String = com.ai.assistance.operit.BuildConfig.MIMO_API_KEY
     }
 
     @Serializable
@@ -278,6 +269,11 @@ class ApiPreferences private constructor(private val context: Context) {
     val keepScreenOnFlow: Flow<Boolean> =
             context.apiDataStore.data.map { preferences ->
                 preferences[KEEP_SCREEN_ON] ?: DEFAULT_KEEP_SCREEN_ON
+            }
+
+    val userHasConfiguredApiFlow: Flow<Boolean> =
+            context.apiDataStore.data.map { preferences ->
+                preferences[USER_HAS_CONFIGURED_API] ?: DEFAULT_USER_HAS_CONFIGURED_API
             }
 
     // Flow for Thinking Mode
@@ -377,6 +373,12 @@ class ApiPreferences private constructor(private val context: Context) {
     // Save Keep Screen On setting
     suspend fun saveKeepScreenOn(isEnabled: Boolean) {
         context.apiDataStore.edit { preferences -> preferences[KEEP_SCREEN_ON] = isEnabled }
+    }
+
+    suspend fun saveUserHasConfiguredApi(configured: Boolean) {
+        context.apiDataStore.edit { preferences ->
+            preferences[USER_HAS_CONFIGURED_API] = configured
+        }
     }
 
     // Save Thinking Mode setting

@@ -57,6 +57,7 @@ object ModelListFetcher {
                     ApiProviderType.OPENAI_GENERIC -> "${extractBaseUrl(apiEndpoint)}/v1/models"
                     ApiProviderType.ANTHROPIC,
                     ApiProviderType.ANTHROPIC_GENERIC -> "${extractBaseUrl(apiEndpoint)}/v1/models"
+                    ApiProviderType.MIMO -> "${extractBaseUrl(apiEndpoint)}/v1/models"
                     ApiProviderType.GOOGLE,
                     ApiProviderType.GEMINI_GENERIC -> {
                         // 对于Gemini API，直接使用提供的端点或默认端点

@@ -41,6 +41,10 @@ class ApiConfigDelegate(
     private val _isConfigured = MutableStateFlow(true) // 默认已配置
     val isConfigured: StateFlow<Boolean> = _isConfigured.asStateFlow()
 
+    private val _userHasConfiguredApi =
+            MutableStateFlow(ApiPreferences.DEFAULT_USER_HAS_CONFIGURED_API)
+    val userHasConfiguredApi: StateFlow<Boolean> = _userHasConfiguredApi.asStateFlow()
+
     private val _featureToggles = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val featureToggles: StateFlow<Map<String, Boolean>> = _featureToggles.asStateFlow()
 
@@ -215,6 +219,12 @@ class ApiConfigDelegate(
             }
         }
 
+        coroutineScope.launch {
+            apiPreferences.userHasConfiguredApiFlow.collect { configured ->
+                _userHasConfiguredApi.value = configured
+            }
+        }
+
         // Collect thinking mode setting
         coroutineScope.launch {
             apiPreferences.enableThinkingModeFlow.collect { enabled ->
@@ -345,6 +355,8 @@ class ApiConfigDelegate(
                 )
 
                 AppLogger.d(TAG, "API配置已保存到ModelConfigManager")
+
+                apiPreferences.saveUserHasConfiguredApi(true)
 
                 // 在IO线程上创建服务，避免阻塞
                 val enhancedAiService = withContext(Dispatchers.IO) {

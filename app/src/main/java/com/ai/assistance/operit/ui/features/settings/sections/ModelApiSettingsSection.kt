@@ -261,7 +261,7 @@ fun ModelApiSettingsSection(
         AppLogger.d("ModelApiSettingsSection", "API提供商改变")
         if (selectedApiProvider == ApiProviderType.OPENAI || selectedApiProvider == ApiProviderType.OPENAI_RESPONSES || selectedApiProvider == ApiProviderType.OPENAI_RESPONSES_GENERIC || selectedApiProvider == ApiProviderType.OPENAI_GENERIC || selectedApiProvider == ApiProviderType.GOOGLE
             || selectedApiProvider == ApiProviderType.GEMINI_GENERIC
-            || selectedApiProvider == ApiProviderType.ANTHROPIC || selectedApiProvider == ApiProviderType.ANTHROPIC_GENERIC || selectedApiProvider == ApiProviderType.MISTRAL
+            || selectedApiProvider == ApiProviderType.ANTHROPIC || selectedApiProvider == ApiProviderType.ANTHROPIC_GENERIC || selectedApiProvider == ApiProviderType.MIMO || selectedApiProvider == ApiProviderType.MISTRAL
             || selectedApiProvider == ApiProviderType.NVIDIA
             || selectedApiProvider == ApiProviderType.NOUS_PORTAL) {
             val inChina = LocationUtils.isDeviceInMainlandChina(context)
@@ -1015,6 +1015,7 @@ private fun getProviderDisplayName(provider: ApiProviderType, context: android.c
         ApiProviderType.OPENAI_GENERIC -> context.getString(R.string.provider_openai_generic)
         ApiProviderType.ANTHROPIC -> context.getString(R.string.provider_anthropic)
         ApiProviderType.ANTHROPIC_GENERIC -> context.getString(R.string.provider_anthropic_generic)
+        ApiProviderType.MIMO -> context.getString(R.string.provider_mimo)
         ApiProviderType.GOOGLE -> context.getString(R.string.provider_google)
         ApiProviderType.GEMINI_GENERIC -> context.getString(R.string.provider_gemini_generic)
         ApiProviderType.BAIDU -> context.getString(R.string.provider_baidu)
@@ -1628,6 +1629,7 @@ private fun getProviderColor(provider: ApiProviderType): androidx.compose.ui.gra
         ApiProviderType.OPENAI_GENERIC -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
         ApiProviderType.ANTHROPIC -> MaterialTheme.colorScheme.tertiary
         ApiProviderType.ANTHROPIC_GENERIC -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f)
+        ApiProviderType.MIMO -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.95f)
         ApiProviderType.GOOGLE -> MaterialTheme.colorScheme.secondary
         ApiProviderType.GEMINI_GENERIC -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f)
         ApiProviderType.BAIDU -> MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)

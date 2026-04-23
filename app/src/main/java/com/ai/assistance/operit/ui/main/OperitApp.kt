@@ -265,14 +265,15 @@ fun OperitApp(
     }
 
     // Fetch remote announcement when network becomes available.
-    LaunchedEffect(isNetworkAvailable) {
-        if (!isNetworkAvailable || remoteAnnouncement != null) return@LaunchedEffect
-
-        val announcement = remoteAnnouncementRepository.fetchDisplayableAnnouncement()
-        if (announcement != null && remoteAnnouncementPreferences.shouldShow(announcement.version)) {
-            remoteAnnouncement = announcement
-        }
-    }
+    // Hermes 裁剪：不再拉取/显示官方引流弹窗
+    // LaunchedEffect(isNetworkAvailable) {
+    //     if (!isNetworkAvailable || remoteAnnouncement != null) return@LaunchedEffect
+    //
+    //     val announcement = remoteAnnouncementRepository.fetchDisplayableAnnouncement()
+    //     if (announcement != null && remoteAnnouncementPreferences.shouldShow(announcement.version)) {
+    //         remoteAnnouncement = announcement
+    //     }
+    // }
 
     // Get FPS counter display setting
     val displayPreferencesManager = remember { DisplayPreferencesManager.getInstance(context) }
@@ -375,14 +376,15 @@ fun OperitApp(
             }
         }
 
-        remoteAnnouncement?.let { announcement ->
-            RemoteAnnouncementDialog(
-                title = announcement.title,
-                body = announcement.body,
-                acknowledgeText = announcement.acknowledgeText,
-                countdownSeconds = announcement.countdownSec,
-                onAcknowledge = { dismissRemoteAnnouncement() }
-            )
-        }
+        // Hermes 裁剪：官方引流弹窗已禁用
+        // remoteAnnouncement?.let { announcement ->
+        //     RemoteAnnouncementDialog(
+        //         title = announcement.title,
+        //         body = announcement.body,
+        //         acknowledgeText = announcement.acknowledgeText,
+        //         countdownSeconds = announcement.countdownSec,
+        //         onAcknowledge = { dismissRemoteAnnouncement() }
+        //     )
+        // }
     }
 }

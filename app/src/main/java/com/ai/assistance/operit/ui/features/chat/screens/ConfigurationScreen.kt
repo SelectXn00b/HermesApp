@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ai.assistance.operit.R
+import com.ai.assistance.operit.data.collects.ApiProviderConfigs
 import com.ai.assistance.operit.data.model.ApiProviderType
 import com.ai.assistance.operit.data.preferences.ApiPreferences
 import com.ai.assistance.operit.ui.features.chat.components.config.TokenInfoDialog
@@ -170,13 +171,19 @@ fun ConfigurationScreen(
                         Button(
                                 onClick = {
                                         if (hasEnteredToken) {
-                                                // 如果用户已输入token，直接保存配置
+                                                // 如果用户已输入token，直接保存为 OpenRouter 配置
                                                 onApiKeyChange(apiKeyInput)
                                                 onApiEndpointChange(
-                                                        ApiPreferences.DEFAULT_API_ENDPOINT
+                                                        ApiProviderConfigs.getDefaultApiEndpoint(
+                                                                ApiProviderType.OPENROUTER
+                                                        )
                                                 )
-                                                onModelNameChange(ApiPreferences.DEFAULT_MODEL_NAME)
-                                                onApiProviderTypeChange(ApiProviderType.DEEPSEEK)
+                                                onModelNameChange(
+                                                        ApiProviderConfigs.getDefaultModelName(
+                                                                ApiProviderType.OPENROUTER
+                                                        )
+                                                )
+                                                onApiProviderTypeChange(ApiProviderType.OPENROUTER)
                                                 onSaveConfig()
                                         } else {
                                                 // 否则显示获取token的对话框

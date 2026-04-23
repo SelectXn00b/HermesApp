@@ -627,8 +627,8 @@
     <string name="one_click_config_getting_key">Getting API key...</string>
     
     <!-- Token Info Dialog -->
-    <string name="token_info_title">Get DeepSeek API Token</string>
-    <string name="token_info_content">You will be directed to the DeepSeek API website. We integrate DeepSeek access because we consider it the most cost-effective API with powerful performance, various discounts, and disk caching to reduce usage costs.\n\nAPI access and token configuration are not related to the app developers, and we do not provide any services in this regard or earn any fees.\n\nFor your first token usage, we recommend starting with a small amount as it\'s usually sufficient.</string>
+    <string name="token_info_title">Get OpenRouter API Token</string>
+    <string name="token_info_content">You will be directed to the OpenRouter website. OpenRouter is a unified gateway that lets a single API key call many models (Claude / GPT / Gemini / Llama, etc.) on a pay-per-use basis.\n\nAPI access and token configuration are not related to the app developers, and we do not provide any services in this regard or earn any fees.\n\nWe recommend signing in on OpenRouter and topping up a small amount (e.g. $1) to try it out first.</string>
     <string name="token_info_cancel">Cancel</string>
     <string name="token_info_confirm">Get Token</string>
     
@@ -3726,6 +3726,7 @@
     <string name="provider_openai_responses_generic">OpenAI Responses (Generic)</string>
     <string name="provider_anthropic">Anthropic (Claude Series)</string>
     <string name="provider_anthropic_generic">Anthropic (Generic)</string>
+    <string name="provider_mimo">Xiaomi MiMo (Anthropic-compatible)</string>
     <string name="provider_google">Google (Gemini Series)</string>
     <string name="provider_gemini_generic">Gemini (Generic)</string>
     <string name="provider_baidu">Baidu (ERNIE Series)</string>

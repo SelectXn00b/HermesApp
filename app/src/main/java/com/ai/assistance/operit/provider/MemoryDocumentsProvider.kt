@@ -30,7 +30,7 @@ class MemoryDocumentsProvider : DocumentsProvider() {
 
     companion object {
         private const val TAG = "MemoryDocumentsProvider"
-        private const val AUTHORITY = "com.ai.assistance.operit.documents.memory"
+        private val AUTHORITY = com.ai.assistance.operit.BuildConfig.APPLICATION_ID + ".documents.memory"
         private const val ROOT_ID = "memory_root"
 
         private const val DOC_ID_ROOT = "root"

@@ -78,6 +78,7 @@ android {
 
         buildConfigField("String", "GITHUB_CLIENT_ID", "\"${localProperties.getProperty("GITHUB_CLIENT_ID")}\"")
         buildConfigField("String", "GITHUB_CLIENT_SECRET", "\"${localProperties.getProperty("GITHUB_CLIENT_SECRET")}\"")
+        buildConfigField("String", "MIMO_API_KEY", "\"${localProperties.getProperty("MIMO_API_KEY", "")}\"")
     }
 
     buildTypes {

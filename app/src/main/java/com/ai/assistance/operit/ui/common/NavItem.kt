@@ -2,6 +2,7 @@ package com.ai.assistance.operit.ui.common
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cloud
@@ -62,4 +63,6 @@ sealed class NavItem(val route: String, val titleResId: Int, val icon: ImageVect
         object Help : NavItem("help", R.string.nav_help, Icons.AutoMirrored.Filled.Help)
         object TokenConfig : NavItem("token_config", R.string.token_config, Icons.Default.Token)
         object Workflow : NavItem("workflow", R.string.nav_workflow, Icons.Default.AccountTree)
+        object ModelConfig :
+                NavItem("model_config", R.string.screen_title_model_config, Icons.Default.Api)
 }

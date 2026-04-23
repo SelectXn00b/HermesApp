@@ -49,6 +49,11 @@ object ApiProviderConfigs {
             defaultApiEndpoint = ""
         ),
         ProviderApiConfig(
+            providerType = ApiProviderType.MIMO,
+            defaultModelName = "mimo-v2.5-pro",
+            defaultApiEndpoint = "https://api.xiaomimimo.com/anthropic"
+        ),
+        ProviderApiConfig(
             providerType = ApiProviderType.GOOGLE,
             defaultModelName = "gemini-2.0-flash",
             defaultApiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models"

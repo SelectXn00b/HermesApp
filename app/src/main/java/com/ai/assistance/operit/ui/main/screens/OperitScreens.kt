@@ -1535,6 +1535,7 @@ object OperitRouter {
             NavItem.AssistantConfig -> Screen.AssistantConfig
             NavItem.Agreement -> Screen.Agreement
             NavItem.Workflow -> Screen.Workflow
+            NavItem.ModelConfig -> Screen.ModelConfig
             else -> Screen.AiChat
         }
     }

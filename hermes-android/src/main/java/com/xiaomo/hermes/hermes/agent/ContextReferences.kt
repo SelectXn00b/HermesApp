@@ -11,7 +11,7 @@ package com.xiaomo.hermes.hermes.agent
 import com.xiaomo.hermes.hermes.getHermesHome
 import java.io.File
 
-val _QUOTED_REFERENCE_VALUE: String = "(?:`[^`\\n]+`|\"[^\"\\n]+\"|'[^'\\n]+')"
+val _QUOTED_REFERENCE_VALUE: String = "(?:`[^`\\n]+`|\"[^\"\\n]+\"|\\'[^\\'\\n]+\\')"
 val REFERENCE_PATTERN: Regex = Regex(
     "(?<![\\w/])@(?:(?<simple>diff|staged)\\b|(?<kind>file|folder|git|url):(?<value>" +
         _QUOTED_REFERENCE_VALUE + "(?::\\d+(?:-\\d+)?)?|\\S+))"

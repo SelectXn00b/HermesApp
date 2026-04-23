@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.ai.assistance.operit.data.collects.ApiProviderConfigs
 import com.ai.assistance.operit.data.model.ApiProviderType
+import com.ai.assistance.operit.data.preferences.ApiPreferences
 import com.ai.assistance.operit.data.preferences.ModelConfigManager
 import com.ai.assistance.operit.util.AppLogger
 import kotlinx.coroutines.CoroutineScope
@@ -83,6 +84,8 @@ class ApiConfigReceiver : BroadcastReceiver() {
                     modelName = model,
                     apiProviderType = provider
                 )
+                ApiPreferences.getInstance(context.applicationContext)
+                    .saveUserHasConfiguredApi(true)
                 AppLogger.i(
                     TAG,
                     "Updated config '$configId': provider=$provider endpoint=$endpoint model=$model keyLen=${key.length}"

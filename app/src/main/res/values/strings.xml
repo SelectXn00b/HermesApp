@@ -620,8 +620,8 @@
     <string name="one_click_config_getting_key">正在获取API密钥...</string>
     
     <!-- Token Info Dialog -->
-    <string name="token_info_title">获取 DeepSeek API Token</string>
-    <string name="token_info_content">你将会前往DeepSeek API官网。我们内置DeepSeek官网访问，是因为我们认为其为国内使用性价比最高的API，不仅性能强悍，而且还有各种优惠和磁盘缓存降低使用成本。\n\nAPI的访问和Token的设置与软件开发者无关，我们不会提供这方面的任何服务，也不会赚取任何费用。\n\n第一次使用自己的token建议只充1元，完全够用。</string>
+    <string name="token_info_title">获取 OpenRouter API Token</string>
+    <string name="token_info_content">你将会前往 OpenRouter 官网。OpenRouter 是一个统一接入多家模型（Claude / GPT / Gemini / Llama 等）的聚合平台，一个 key 即可切换调用各类模型，按用量计费。\n\nAPI 的访问和 Token 的设置与软件开发者无关，我们不会提供这方面的任何服务，也不会赚取任何费用。\n\n建议先在 OpenRouter 登录后充值少量额度（例如 $1）试用。</string>
     <string name="token_info_cancel">取消</string>
     <string name="token_info_confirm">前往获取</string>
     
@@ -3635,6 +3635,7 @@
     <string name="provider_openai_responses_generic">OpenAI Responses通用</string>
     <string name="provider_anthropic">Anthropic (Claude系列)</string>
     <string name="provider_anthropic_generic">Anthropic通用</string>
+    <string name="provider_mimo">小米 MiMo (Anthropic 兼容)</string>
     <string name="provider_google">Google (Gemini系列)</string>
     <string name="provider_gemini_generic">Gemini通用</string>
     <string name="provider_baidu">百度 (文心一言系列)</string>
