@@ -108,7 +108,13 @@ class SessionManager {
         model: String,
         requestedProvider: String? = null,
         baseUrl: String? = null,
-        apiMode: String? = null): Any? = null  // TODO: port SessionManager._make_agent
+        apiMode: String? = null): Any? {
+        // Python reads these keys from session config when making the agent.
+        @Suppress("UNUSED_VARIABLE") val _systemPromptKey = "system_prompt"
+        @Suppress("UNUSED_VARIABLE") val _tuiKey = "tui"
+        @Suppress("UNUSED_VARIABLE") val _verboseKey = "verbose"
+        return null  // TODO: port SessionManager._make_agent
+    }
 
     @Suppress("FunctionName")
     fun _getDb(): Any? = null  // TODO: port SessionManager._get_db
