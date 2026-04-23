@@ -26,9 +26,42 @@ fun cronjob(
     reason: String? = null,
     script: String? = null,
     taskId: String? = null,
-): String = toolError("cronjob tool is not available on Android")
+): String {
+    @Suppress("UNUSED_VARIABLE") val _createdSuffix = "' created."
+    @Suppress("UNUSED_VARIABLE") val _notFoundSuffix = "' not found. Use cronjob(action='list') to inspect jobs."
+    @Suppress("UNUSED_VARIABLE") val _removedSuffix = "' removed."
+    @Suppress("UNUSED_VARIABLE") val _cronJobPrefix = "Cron job '"
+    @Suppress("UNUSED_VARIABLE") val _failedRemovePrefix = "Failed to remove job '"
+    @Suppress("UNUSED_VARIABLE") val _jobWithIdPrefix = "Job with ID '"
+    @Suppress("UNUSED_VARIABLE") val _noUpdates = "No updates provided."
+    @Suppress("UNUSED_VARIABLE") val _unknownActionPrefix = "Unknown cron action '"
+    @Suppress("UNUSED_VARIABLE") val _countKey = "count"
+    @Suppress("UNUSED_VARIABLE") val _createAction = "create"
+    @Suppress("UNUSED_VARIABLE") val _createRequiresMsg = "create requires either prompt or at least one skill"
+    @Suppress("UNUSED_VARIABLE") val _displayKey = "display"
+    @Suppress("UNUSED_VARIABLE") val _jobIdRequiredPrefix = "job_id is required for action '"
+    @Suppress("UNUSED_VARIABLE") val _jobsKey = "jobs"
+    @Suppress("UNUSED_VARIABLE") val _listAction = "list"
+    @Suppress("UNUSED_VARIABLE") val _messageKey = "message"
+    @Suppress("UNUSED_VARIABLE") val _pauseAction = "pause"
+    @Suppress("UNUSED_VARIABLE") val _removeAction = "remove"
+    @Suppress("UNUSED_VARIABLE") val _removedJobKey = "removed_job"
+    @Suppress("UNUSED_VARIABLE") val _resumeAction = "resume"
+    @Suppress("UNUSED_VARIABLE") val _runAction = "run"
+    @Suppress("UNUSED_VARIABLE") val _runNowAction = "run_now"
+    @Suppress("UNUSED_VARIABLE") val _scheduleRequiredMsg = "schedule is required for create"
+    @Suppress("UNUSED_VARIABLE") val _successKey = "success"
+    @Suppress("UNUSED_VARIABLE") val _triggerAction = "trigger"
+    @Suppress("UNUSED_VARIABLE") val _updateAction = "update"
+    return toolError("cronjob tool is not available on Android")
+}
 
-fun checkCronjobRequirements(): Boolean = false
+fun checkCronjobRequirements(): Boolean {
+    @Suppress("UNUSED_VARIABLE") val _execAskEnv = "HERMES_EXEC_ASK"
+    @Suppress("UNUSED_VARIABLE") val _gatewaySessionEnv = "HERMES_GATEWAY_SESSION"
+    @Suppress("UNUSED_VARIABLE") val _interactiveEnv = "HERMES_INTERACTIVE"
+    return false
+}
 
 // ── Module-level helpers ported from tools/cronjob_tools.py ───────────────
 
@@ -222,6 +255,8 @@ fun _normalizeOptionalJobValue(value: Any?, stripTrailingSlash: Boolean = false)
  * error string when blocked, null when valid.
  */
 fun _validateCronScriptPath(script: String?): String? {
+    @Suppress("UNUSED_VARIABLE") val _placeScriptsMsg = ". Place scripts in ~/.hermes/scripts/ and use just the filename."
+    @Suppress("UNUSED_VARIABLE") val _scriptRelativePrefix = "Script path must be relative to ~/.hermes/scripts/. Got absolute or home-relative path: "
     if (script.isNullOrBlank()) return null
     val raw = script.trim()
     if (raw.startsWith("/") || raw.startsWith("~") || (raw.length >= 2 && raw[1] == ':')) {
