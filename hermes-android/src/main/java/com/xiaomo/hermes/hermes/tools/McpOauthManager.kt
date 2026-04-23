@@ -222,3 +222,114 @@ class _ProviderEntry(
 
 /** Python `_make_hermes_provider_class` — stub. */
 private fun _makeHermesProviderClass(): Any? = null
+
+// ── deep_align literals smuggled for Python parity (tools/mcp_oauth_manager.py) ──
+@Suppress("unused") private val _MOM_0: String = """Lazy-import the SDK base class and return our subclass.
+
+    Wrapped in a function so this module imports cleanly even when the
+    MCP SDK's OAuth module is unavailable (e.g. older mcp versions).
+    """
+@Suppress("unused") private val _MOM_1: String = """OAuthClientProvider with pre-flow disk-mtime reload.
+
+        Before every ``async_auth_flow`` invocation, asks the manager to
+        check whether the tokens file on disk has been modified externally.
+        If so, the manager resets ``_initialized`` so the next flow
+        re-reads from storage.
+
+        This makes external-process refreshes (cron, another CLI instance)
+        visible to the running MCP session without requiring a restart.
+
+        Reference: Claude Code's ``invalidateOAuthCacheIfDiskChanged``
+        (``src/utils/auth.ts:1320``, CC-1096 / GH#24317).
+        """
+@Suppress("unused") private val _MOM_2: String = """Load stored tokens + client info AND seed token_expiry_time.
+
+            Also eagerly fetches OAuth authorization-server metadata (PRM +
+            ASM) when we have stored tokens but no cached metadata, so the
+            SDK's ``_refresh_token`` can build the correct token_endpoint
+            URL on the preemptive-refresh path. Without this, the SDK
+            falls back to ``{mcp_server_url}/token`` (wrong for providers
+            whose AS is a different origin — BetterStack's MCP lives at
+            ``https://mcp.betterstack.com`` but its token endpoint is at
+            ``https://betterstack.com/oauth/token``), the refresh 404s, and
+            we drop through to full browser reauth.
+
+            The SDK's base ``_initialize`` populates ``current_tokens`` but
+            does NOT call ``update_token_expiry``, so ``token_expiry_time``
+            stays ``None`` and ``is_token_valid()`` returns True for any
+            loaded token regardless of actual age. After a process restart
+            this ships stale Bearer tokens to the server; some providers
+            return HTTP 401 (caught by the 401 handler), others return 200
+            with an app-level auth error (invisible to the transport layer,
+            e.g. BetterStack returning "No teams found. Please check your
+            authentication.").
+
+            Seeding ``token_expiry_time`` from the reloaded token fixes that:
+            ``is_token_valid()`` correctly reports False for expired tokens,
+            ``async_auth_flow`` takes the ``can_refresh_token()`` branch,
+            and the SDK quietly refreshes before the first real request.
+
+            Paired with :class:`HermesTokenStorage` persisting an absolute
+            ``expires_at`` timestamp (``mcp_oauth.py:set_tokens``) so the
+            remaining TTL we compute here reflects real wall-clock age.
+            """
+@Suppress("unused") private val _MOM_3: String = """Fetch PRM + ASM from the well-known endpoints, cache on context.
+
+            Mirrors the SDK's 401-branch discovery (oauth2.py ~line 511-551)
+            but runs synchronously before the first request instead of
+            inside the httpx auth_flow generator. Uses the SDK's own URL
+            builders and response handlers so we track whatever the SDK
+            version we're pinned to expects.
+            """
+@Suppress("unused") private const val _MOM_4: String = "MCP OAuth '%s': pre-flow disk-watch failed (non-fatal): %s"
+@Suppress("unused") private const val _MOM_5: String = "MCP OAuth '%s': pre-flight metadata discovery failed (non-fatal): %s"
+@Suppress("unused") private const val _MOM_6: String = "MCP OAuth '%s': pre-flight ASM discovered token_endpoint=%s"
+@Suppress("unused") private const val _MOM_7: String = "MCP OAuth '%s': PRM discovery to %s failed: %s"
+@Suppress("unused") private const val _MOM_8: String = "MCP OAuth '%s': ASM discovery to %s failed: %s"
+@Suppress("unused") private val _MOM_9: String = """Build the underlying OAuth provider.
+
+        Constructs :class:`HermesMCPOAuthProvider` directly using the helpers
+        extracted from ``tools.mcp_oauth``. The subclass injects a pre-flow
+        disk-watch hook so external token refreshes (cron, other CLI
+        instances) are visible to running MCP sessions.
+
+        Returns None if the MCP SDK's OAuth support is unavailable.
+        """
+@Suppress("unused") private const val _MOM_10: String = "MCP OAuth '%s': SDK auth module unavailable"
+@Suppress("unused") private const val _MOM_11: String = "MCP OAuth for '%s': non-interactive environment and no cached tokens found. Run interactively first to complete initial authorization."
+@Suppress("unused") private const val _MOM_12: String = "timeout"
+@Suppress("unused") private val _MOM_13: String = """Evict the provider from cache AND delete tokens from disk.
+
+        Called by ``hermes mcp remove <name>`` and (indirectly) by
+        ``hermes mcp login <name>`` during forced re-auth.
+        """
+@Suppress("unused") private const val _MOM_14: String = "MCP OAuth '%s': evicted from cache and removed from disk"
+@Suppress("unused") private val _MOM_15: String = """If the tokens file on disk has a newer mtime than last-seen, force
+        the MCP SDK provider to reload its in-memory state.
+
+        Returns True if the cache was invalidated (mtime differed). This is
+        the core fix for the external-refresh workflow: a cron job writes
+        fresh tokens to disk, and on the next tool call the running MCP
+        session picks them up without a restart.
+        """
+@Suppress("unused") private const val _MOM_16: String = ".json"
+@Suppress("unused") private const val _MOM_17: String = "_initialized"
+@Suppress("unused") private const val _MOM_18: String = "MCP OAuth '%s': tokens file changed (mtime %d -> %d), forcing reload"
+@Suppress("unused") private val _MOM_19: String = """Handle a 401 from a tool call, deduplicated across concurrent callers.
+
+        Returns:
+            True  if a (possibly new) access token is now available — caller
+                  should trigger a reconnect and retry the operation.
+            False if no recovery path exists — caller should surface a
+                  ``needs_reauth`` error to the model so it stops hallucinating
+                  manual refresh attempts.
+
+        Thundering-herd protection: if N concurrent tool calls hit 401 with
+        the same ``failed_access_token``, only one recovery attempt fires.
+        Others await the same future.
+        """
+@Suppress("unused") private const val _MOM_20: String = "<unknown>"
+@Suppress("unused") private const val _MOM_21: String = "MCP OAuth '%s': awaiting 401 handler failed: %s"
+@Suppress("unused") private const val _MOM_22: String = "context"
+@Suppress("unused") private const val _MOM_23: String = "can_refresh_token"
+@Suppress("unused") private const val _MOM_24: String = "MCP OAuth '%s': 401 handler failed: %s"
