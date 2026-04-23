@@ -63,6 +63,8 @@ class AnthropicTransport : ProviderTransport() {
         val _contextLengthKey = "context_length"
         val _baseUrlKey = "base_url"
         val _fastModeKey = "fast_mode"
+        @Suppress("UNUSED_VARIABLE") val _reasoningConfigKey = "reasoning_config"
+        @Suppress("UNUSED_VARIABLE") val _toolChoiceKey = "tool_choice"
         TODO("Delegate to AnthropicAdapter.buildAnthropicKwargs — not yet ported to Kotlin")
     }
 
