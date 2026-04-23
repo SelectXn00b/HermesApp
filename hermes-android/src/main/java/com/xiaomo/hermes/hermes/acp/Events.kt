@@ -25,8 +25,9 @@ object Events {
      * Kotlin: launches a coroutine in the provided scope.
      */
     private fun _sendUpdate(
-        scope: CoroutineScope,
+        @Suppress("UNUSED_PARAMETER") conn: Any?,
         sessionId: String,
+        scope: CoroutineScope,
         update: Any
     ) {
         scope.launch {
@@ -55,8 +56,9 @@ object Events {
      * against the correct ACP tool call.
      */
     fun makeToolProgressCb(
-        scope: CoroutineScope,
+        conn: Any?,
         sessionId: String,
+        scope: CoroutineScope,
         toolCallIds: MutableMap<String, ArrayDeque<String>>,
         toolCallMeta: MutableMap<String, MutableMap<String, Any?>>
     ): (eventType: String, name: String?, preview: String?, args: Any?) -> Unit {
@@ -98,7 +100,7 @@ object Events {
                 toolCallMeta[tcId] = mutableMapOf("args" to parsedArgs, "snapshot" to snapshot)
 
                 val update = Tools.buildToolStart(tcId, name, parsedArgs)
-                _sendUpdate(scope, sessionId, update)
+                _sendUpdate(conn, sessionId, scope, update)
             }
         }
     }
@@ -111,15 +113,16 @@ object Events {
      * Create a thinking_callback for AIAgent.
      */
     fun makeThinkingCb(
-        scope: CoroutineScope,
-        sessionId: String
+        conn: Any?,
+        sessionId: String,
+        scope: CoroutineScope
     ): (text: String) -> Unit {
 
         return { text: String ->
             if (text.isNotEmpty()) {
                 // Python: acp.update_agent_thought_text(text)
                 val update = mapOf("type" to "agent_thought_text", "text" to text)
-                _sendUpdate(scope, sessionId, update)
+                _sendUpdate(conn, sessionId, scope, update)
             }
         }
     }
@@ -135,8 +138,9 @@ object Events {
      *     step_callback(api_call_count, prev_tools)
      */
     fun makeStepCb(
-        scope: CoroutineScope,
+        conn: Any?,
         sessionId: String,
+        scope: CoroutineScope,
         toolCallIds: MutableMap<String, ArrayDeque<String>>,
         toolCallMeta: MutableMap<String, MutableMap<String, Any?>>
     ): (apiCallCount: Int, prevTools: Any?) -> Unit {
@@ -172,7 +176,7 @@ object Events {
                             functionArgs = functionArgs ?: meta["args"] as? Map<String, Any?>,
                             snapshot = meta["snapshot"]
                         )
-                        _sendUpdate(scope, sessionId, update)
+                        _sendUpdate(conn, sessionId, scope, update)
                         if (queue.isEmpty()) {
                             toolCallIds.remove(toolName)
                         }
@@ -190,15 +194,16 @@ object Events {
      * Create a callback that streams agent response text to the editor.
      */
     fun makeMessageCb(
-        scope: CoroutineScope,
-        sessionId: String
+        conn: Any?,
+        sessionId: String,
+        scope: CoroutineScope
     ): (text: String) -> Unit {
 
         return { text: String ->
             if (text.isNotEmpty()) {
                 // Python: acp.update_agent_message_text(text)
                 val update = mapOf("type" to "agent_message_text", "text" to text)
-                _sendUpdate(scope, sessionId, update)
+                _sendUpdate(conn, sessionId, scope, update)
             }
         }
     }
