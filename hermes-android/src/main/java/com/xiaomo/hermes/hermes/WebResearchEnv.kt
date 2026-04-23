@@ -15,17 +15,26 @@ class WebResearchEnvConfig
 class WebResearchEnv {
 
     private var config = WebResearchEnvConfig()
+    private var _items: List<String> = emptyList()
+    private var _evalItems: List<String> = emptyList()
+    private var _index: Int = 0
 
     fun configInit() {
         config = WebResearchEnvConfig()
     }
 
     suspend fun setup() {
-        // Initialize research environment resources
+        val shuffled = SAMPLE_QUESTIONS.shuffled()
+        val split = maxOf(1, shuffled.size * 8 / 10)
+        _items = shuffled.subList(0, split)
+        _evalItems = shuffled.subList(split, shuffled.size)
     }
 
     suspend fun getNextItem(): Any? {
-        return null
+        if (_items.isEmpty()) throw RuntimeException("Dataset is empty. Did you call setup()?")
+        val item = _items[_index % _items.size]
+        _index += 1
+        return item
     }
 
     fun formatPrompt(item: String): String {
@@ -33,7 +42,8 @@ class WebResearchEnv {
     }
 
     suspend fun computeReward(item: String, result: String, ctx: String): Double {
-        return 0.0
+        val correctness = _llmJudge(item, item, result)
+        return correctness.coerceIn(0.0, 1.0)
     }
 
     suspend fun evaluate() {
