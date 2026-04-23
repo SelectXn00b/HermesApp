@@ -78,7 +78,7 @@ class Trajectory(
          */
         fun convertScratchpadToThink(content: String): String {
             if (content.isEmpty() || "<REASONING_SCRATCHPAD>" !in content) return content
-            return content.replace("<REASONING_SCRATCHPAD>", "</think>").replace("</REASONING_SCRATCHPAD>", "</think>")
+            return content.replace("<REASONING_SCRATCHPAD>", "<think>").replace("</REASONING_SCRATCHPAD>", "</think>")
         }
 
         /**
@@ -102,7 +102,10 @@ class Trajectory(
                 "completed" to completed)
             try {
                 java.io.File(file).appendText(gson.toJson(entry) + "\n")
-            } catch (_unused: Exception) {}
+                android.util.Log.i("trajectory", "Trajectory saved to %s".format(file))
+            } catch (e: Exception) {
+                android.util.Log.w("trajectory", "Failed to save trajectory: %s".format(e))
+            }
         }
     }
 }

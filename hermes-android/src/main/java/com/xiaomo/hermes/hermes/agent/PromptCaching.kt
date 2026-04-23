@@ -68,20 +68,69 @@ fun addCacheControlToMessages(messages: List<Map<String, Any>>): List<Map<String
 
 }
 
-/** Python `_apply_cache_marker` — stub. */
-@Suppress("UNUSED_PARAMETER")
+/** Python `_apply_cache_marker` — add cache_control to a single message. */
+@Suppress("UNCHECKED_CAST")
 private fun _applyCacheMarker(
     msg: MutableMap<String, Any?>,
     cacheMarker: Map<String, Any?>,
     nativeAnthropic: Boolean = false,
 ) {
-    msg["cache_control"] = cacheMarker
+    val role = msg["role"] as? String ?: ""
+    val content = msg["content"]
+
+    if (role == "tool") {
+        if (nativeAnthropic) {
+            msg["cache_control"] = cacheMarker
+        }
+        return
+    }
+
+    if (content == null || content == "") {
+        msg["cache_control"] = cacheMarker
+        return
+    }
+
+    if (content is String) {
+        msg["content"] = listOf(
+            mapOf("type" to "text", "text" to content, "cache_control" to cacheMarker)
+        )
+        return
+    }
+
+    if (content is List<*> && content.isNotEmpty()) {
+        val last = content.last()
+        if (last is MutableMap<*, *>) {
+            (last as MutableMap<String, Any?>)["cache_control"] = cacheMarker
+        }
+    }
 }
 
-/** Python `apply_anthropic_cache_control` — stub. */
-@Suppress("UNUSED_PARAMETER")
+/** Python `apply_anthropic_cache_control` — place up to 4 cache breakpoints. */
 fun applyAnthropicCacheControl(
     apiMessages: List<Map<String, Any?>>,
     cacheTtl: String = "5m",
     nativeAnthropic: Boolean = false,
-): List<Map<String, Any?>> = apiMessages
+): List<Map<String, Any?>> {
+    val messages = apiMessages.map { it.toMutableMap() }.toMutableList()
+    if (messages.isEmpty()) return messages
+
+    val marker = mutableMapOf<String, Any?>("type" to "ephemeral")
+    if (cacheTtl == "1h") {
+        marker["ttl"] = "1h"
+    }
+
+    var breakpointsUsed = 0
+
+    if (messages[0]["role"] == "system") {
+        _applyCacheMarker(messages[0], marker, nativeAnthropic = nativeAnthropic)
+        breakpointsUsed += 1
+    }
+
+    val remaining = 4 - breakpointsUsed
+    val nonSys = messages.indices.filter { messages[it]["role"] != "system" }
+    for (idx in nonSys.takeLast(remaining)) {
+        _applyCacheMarker(messages[idx], marker, nativeAnthropic = nativeAnthropic)
+    }
+
+    return messages
+}

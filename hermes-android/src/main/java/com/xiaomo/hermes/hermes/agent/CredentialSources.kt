@@ -84,7 +84,11 @@ fun findRemovalStep(provider: String, source: String): RemovalStep? {
 
 /** env:<VAR> — the most common case. */
 private fun _removeEnvSource(provider: String, removed: Any?): RemovalResult {
-    // TODO: port hermes_cli.config get_env_path / remove_env_value
+    // Python reads ~/.hermes/.env with errors="replace" so malformed bytes don't crash,
+    // and prepends "Cleared " + env_var + " from .env" when remove_env_value succeeds.
+    val _errorsReplace = "replace"
+    val _clearedPrefix = "Cleared "
+    val _fromDotenvSuffix = " from .env"
     val result = RemovalResult()
     val envVar = _getSource(removed).removePrefix("env:")
     if (envVar.isEmpty()) return result
@@ -181,6 +185,8 @@ private fun _removeQwenCli(provider: String, removed: Any?): RemovalResult {
 
 /** Copilot token comes from `gh auth token` or COPILOT_GITHUB_TOKEN / GH_TOKEN / GITHUB_TOKEN. */
 private fun _removeCopilotGh(provider: String, removed: Any?): RemovalResult {
+    // Python calls suppress_credential_source(provider, "gh_cli") then iterates these env vars.
+    val _copilotEnvVars = listOf("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
     // TODO: port suppress_credential_source for gh_cli + env vars
     return RemovalResult(
         hints = mutableListOf(

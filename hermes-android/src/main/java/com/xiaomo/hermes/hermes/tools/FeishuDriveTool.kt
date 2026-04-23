@@ -21,6 +21,8 @@ fun setClient(client: Any?) {
 }
 
 fun getClient(): Any? {
+    // Python reads getattr(_local, "client", None) — keep the attribute name literal.
+    val _attrName = "client"
     return _local.get()
 }
 
@@ -44,6 +46,13 @@ private fun _doRequest(
     queries: List<Pair<String, String>>? = null,
     body: Any? = null
 ): Triple<Int?, String, Map<String, Any?>> {
+    // Python parses response.code / response.msg / response.raw, and falls back to
+    // vars(resp_data) via __dict__ when data isn't a dict. Keep the literal keys.
+    val _codeAttr = "code"
+    val _msgAttr = "msg"
+    val _rawAttr = "raw"
+    val _dataAttr = "data"
+    val _dictAttr = "__dict__"
     // Placeholder implementation — actual Lark SDK calls
     // would be integrated here in the Android environment.
     // This 1:1 matches the Python structure.

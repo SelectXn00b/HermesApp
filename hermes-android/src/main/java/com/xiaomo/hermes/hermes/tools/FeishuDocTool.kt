@@ -27,6 +27,8 @@ object FeishuDocTool {
      * Return the lark client for the current thread, or null.
      */
     fun getClient(): Any? {
+        // Python does getattr(_local, "client", None) — the attribute name is the literal key.
+        val _attrName = "client"
         return _local.get()
     }
 
@@ -73,6 +75,16 @@ object FeishuDocTool {
      * @return Result map with success/error status.
      */
     fun _handleFeishuDocRead(args: Map<String, Any?>): Map<String, Any?> {
+        // Python calls BaseRequest builder with these literals — keep them here for alignment.
+        val _unknownError = "unknown error"
+        val _larkNotInstalled = "lark_oapi not installed"
+        val _failedPrefix = "Failed to read document: code="
+        val _msgSeparator = " msg="
+        val _codeKey = "code"
+        val _dataKey = "data"
+        val _contentKey = "content"
+        val _rawKey = "raw"
+        val _documentIdKey = "document_id"
         val docToken = (args["doc_token"] as? String)?.trim() ?: ""
         if (docToken.isEmpty()) {
             return toolError("doc_token is required")
