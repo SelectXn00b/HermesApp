@@ -147,7 +147,9 @@ fun browserCdp(
     safeTimeout = maxOf(1.0, minOf(safeTimeout, 300.0))
 
     val result: Map<String, Any?> = try {
-        _runBlockingCdp(endpoint, method, callParams, targetId, safeTimeout)
+        kotlinx.coroutines.runBlocking {
+            _cdpCall(endpoint, method, callParams, targetId, safeTimeout)
+        }
     } catch (exc: Exception) {
         Log.w(_TAG, "browser_cdp error: ${exc.message}")
         return toolError(
@@ -161,18 +163,6 @@ fun browserCdp(
         "result" to result)
     if (targetId != null) payload["target_id"] = targetId
     return JSONObject(payload).toString()
-}
-
-/** Async-from-sync bridge (matches homeassistant_tool.py pattern). */
-private fun _runBlockingCdp(
-    endpoint: String,
-    method: String,
-    params: Map<String, Any?>,
-    targetId: String?,
-    timeout: Double): Map<String, Any?> {
-    return kotlinx.coroutines.runBlocking {
-        _cdpCall(endpoint, method, params, targetId, timeout)
-    }
 }
 
 // ---------------------------------------------------------------------------
