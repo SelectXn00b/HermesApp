@@ -98,6 +98,7 @@ class MistralToolCallParser : ToolCallParser() {
                     toolCalls.add(
                         ParsedToolCall(
                             id = _generateMistralId(),
+                            type = "function",
                             name = toolName,
                             arguments = _parseArgsToMap(argsStr),
                             rawArguments = argsStr
@@ -130,6 +131,7 @@ class MistralToolCallParser : ToolCallParser() {
                         toolCalls.add(
                             ParsedToolCall(
                                 id = _generateMistralId(),
+                                type = "function",
                                 name = name,
                                 arguments = _parseArgsToMap(argsStr),
                                 rawArguments = argsStr
@@ -158,6 +160,7 @@ class MistralToolCallParser : ToolCallParser() {
                                 toolCalls.add(
                                     ParsedToolCall(
                                         id = _generateMistralId(),
+                                        type = "function",
                                         name = name,
                                         arguments = _parseArgsToMap(argsStr),
                                         rawArguments = argsStr

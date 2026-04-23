@@ -17,7 +17,7 @@ class DeepSeekV31ToolCallParser : ToolCallParser() {
         val m = PATTERN.matcher(response)
         while (m.find()) {
             val c = m.group(1) ?: continue
-            calls.add(ParsedToolCall(id="call_${UUID.randomUUID().toString().take(8)}", name=c.trim(), arguments=emptyMap()))
+            calls.add(ParsedToolCall(id="call_${UUID.randomUUID().toString().take(8)}", type="function", name=c.trim(), arguments=emptyMap()))
         }
         return ParseResult(content=response, toolCalls=calls)
     }

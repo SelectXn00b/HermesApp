@@ -52,7 +52,8 @@ data class ParsedToolCall(
     val id: String,
     val name: String,
     val arguments: Map<String, Any>,
-    val rawArguments: String? = null  // 原始参数字符串
+    val rawArguments: String? = null,  // 原始参数字符串
+    val type: String = "function"
 )
 
 /**

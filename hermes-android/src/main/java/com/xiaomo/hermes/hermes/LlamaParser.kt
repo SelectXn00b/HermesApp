@@ -87,6 +87,7 @@ class LlamaToolCallParser : ToolCallParser() {
                     toolCalls.add(
                         ParsedToolCall(
                             id = "call_${UUID.randomUUID().toString().take(8)}",
+                            type = "function",
                             name = name,
                             arguments = argsMap,
                             rawArguments = argsStr

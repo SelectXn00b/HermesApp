@@ -36,6 +36,7 @@ open class HermesToolCallParser : ToolCallParser() {
                 while (keys.hasNext()) { val k = keys.next(); argsMap[k] = arguments.get(k) }
                 toolCalls.add(ParsedToolCall(
                     id = "call_${UUID.randomUUID().toString().take(8)}",
+                    type = "function",
                     name = name,
                     arguments = argsMap,
                     rawArguments = arguments.toString()
