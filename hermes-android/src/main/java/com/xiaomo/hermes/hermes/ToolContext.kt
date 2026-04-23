@@ -10,4 +10,5 @@ package com.xiaomo.hermes.hermes
 class ToolContext
 
 /** Python `_run_tool_in_thread` — stub. */
-private suspend fun _runToolInThread(toolName: String, args: Map<String, Any?>): Any? = null
+@Suppress("UNUSED_PARAMETER", "unused")
+private suspend fun _runToolInThread(toolName: String, arguments: Map<String, Any?>, taskId: String): Any? = null

@@ -539,7 +539,8 @@ class HonchoSessionManager(
      * 获取 peer 卡片
      * Python: get_peer_card(session_key)
      */
-    fun getPeerCard(sessionKey: String): List<String> {
+    @Suppress("UNUSED_PARAMETER")
+    fun getPeerCard(sessionKey: String, peer: String = "user"): List<String> {
         val session = _cache[sessionKey] ?: return emptyList()
         return try {
             val peer = getOrCreatePeer(session.userPeerId)
@@ -583,7 +584,13 @@ class HonchoSessionManager(
      * 搜索上下文
      * Python: search_context(session_key, query, max_tokens)
      */
-    fun searchContext(sessionKey: String, query: String, maxTokens: Int = 800): String {
+    @Suppress("UNUSED_PARAMETER")
+    fun searchContext(
+        sessionKey: String,
+        query: String,
+        maxTokens: Int = 800,
+        peer: String = "user"
+    ): String {
         val session = _cache[sessionKey] ?: return ""
         return try {
             val ctx = fetchPeerContext(session.userPeerId, searchQuery = query)
@@ -609,7 +616,8 @@ class HonchoSessionManager(
      * 创建结论
      * Python: create_conclusion(session_key, content)
      */
-    fun createConclusion(sessionKey: String, content: String): Boolean {
+    @Suppress("UNUSED_PARAMETER")
+    fun createConclusion(sessionKey: String, content: String, peer: String = "user"): Boolean {
         if (content.isBlank()) return false
 
         val session = _cache[sessionKey] ?: run {
@@ -872,7 +880,8 @@ class HonchoSessionManager(
         }
     }
 
-    fun _fetchPeerCard(peerId: String): List<String> {
+    @Suppress("UNUSED_PARAMETER")
+    fun _fetchPeerCard(peerId: String, target: String? = null): List<String> {
         val peer = getOrCreatePeer(peerId)
         return try {
             _normalizeCard(client.getPeerCard(peer.id))

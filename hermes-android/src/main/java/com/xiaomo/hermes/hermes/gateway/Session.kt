@@ -864,7 +864,8 @@ class SessionManager(
     }
 
     /** Fetch a peer card directly from the peer object. */
-    fun _fetchPeerCard(peerId: String): List<String> {
+    @Suppress("UNUSED_PARAMETER")
+    fun _fetchPeerCard(peerId: String, target: String? = null): List<String> {
         val peer = _peers[peerId] as? Map<*, *> ?: return emptyList()
         val card = peer["card"] ?: return emptyList()
         return _normalizeCard(card)
@@ -884,13 +885,20 @@ class SessionManager(
     }
 
     /** Fetch the user peer's card — a curated list of key facts. */
-    fun getPeerCard(sessionKey: String): List<String> {
+    @Suppress("UNUSED_PARAMETER")
+    fun getPeerCard(sessionKey: String, peer: String = "user"): List<String> {
         val userPeerId = "${_sanitizeId(sessionKey)}_user"
         return _fetchPeerCard(userPeerId)
     }
 
     /** Semantic search over Honcho session context. */
-    fun searchContext(sessionKey: String, query: String, maxTokens: Int = 800): String {
+    @Suppress("UNUSED_PARAMETER")
+    fun searchContext(
+        sessionKey: String,
+        query: String,
+        maxTokens: Int = 800,
+        peer: String = "user"
+    ): String {
         val history = _histories[sessionKey] ?: return ""
         val lowerQuery = query.lowercase()
         val matches = mutableListOf<String>()
@@ -910,7 +918,8 @@ class SessionManager(
     }
 
     /** Write a conclusion about the user back to Honcho. */
-    fun createConclusion(sessionKey: String, content: String): Boolean {
+    @Suppress("UNUSED_PARAMETER")
+    fun createConclusion(sessionKey: String, content: String, peer: String = "user"): Boolean {
         try {
             val dir = File(sessionsDir, "conclusions")
             dir.mkdirs()

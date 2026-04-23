@@ -357,7 +357,11 @@ fun browserNavigate(url: String, taskId: String? = null): String {
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun browserSnapshot(full: Boolean = false, taskId: String? = null): String {
+fun browserSnapshot(
+    full: Boolean = false,
+    taskId: String? = null,
+    userTask: String? = null
+): String {
     // TODO: port ariaSnapshot fetch + summarize.
     return JSONObject(mapOf("error" to "browser_snapshot not available on Android")).toString()
 }

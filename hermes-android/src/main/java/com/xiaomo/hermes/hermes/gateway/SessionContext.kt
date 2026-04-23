@@ -73,7 +73,7 @@ fun setSessionVars(
 /**
  * Python `clear_session_vars` — mark all session context variables as explicitly cleared.
  */
-fun clearSessionVars() {
+fun clearSessionVars(@Suppress("UNUSED_PARAMETER") tokens: List<Any?>? = null) {
     SESSION_PLATFORM.set("")
     SESSION_CHAT_ID.set("")
     SESSION_CHAT_NAME.set("")

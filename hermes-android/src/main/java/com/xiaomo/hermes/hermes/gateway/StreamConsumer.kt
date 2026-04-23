@@ -859,7 +859,8 @@ class GatewayStreamConsumer(
      * Returns true if the text was successfully delivered (sent or edited),
      * false otherwise.
      */
-    suspend fun _sendOrEdit(text: String): Boolean {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _sendOrEdit(text: String, finalize: Boolean = false): Boolean {
         var cleaned = _cleanForDisplay(text)
 
         // Check for cursor-only / whitespace-only content

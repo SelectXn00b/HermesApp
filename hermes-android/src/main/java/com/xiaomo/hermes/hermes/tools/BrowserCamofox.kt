@@ -42,7 +42,7 @@ fun _ensureTab(sessionId: String, url: String? = null): String? = null
 fun _dropSession(sessionId: String) { /* Android stub */ }
 
 /** Soft cleanup — close dangling tabs without killing the session. */
-suspend fun camofoxSoftCleanup(): String =
+suspend fun camofoxSoftCleanup(taskId: String? = null): String =
     toolError("Camofox is not available on Android")
 
 // ── Low-level HTTP helpers (all return error-shaped maps on Android) ──
@@ -76,8 +76,11 @@ fun _delete(
 suspend fun camofoxNavigate(url: String, sessionId: String? = null): String =
     toolError("Camofox is not available on Android")
 
-suspend fun camofoxSnapshot(sessionId: String? = null): String =
-    toolError("Camofox is not available on Android")
+suspend fun camofoxSnapshot(
+    full: Boolean = false,
+    taskId: String? = null,
+    userTask: String? = null
+): String = toolError("Camofox is not available on Android")
 
 suspend fun camofoxClick(
     selector: String,
@@ -111,9 +114,10 @@ suspend fun camofoxGetImages(
 ): String = toolError("Camofox is not available on Android")
 
 suspend fun camofoxVision(
-    prompt: String,
-    sessionId: String? = null
+    question: String,
+    annotate: Boolean = false,
+    taskId: String? = null
 ): String = toolError("Camofox is not available on Android")
 
-suspend fun camofoxConsole(sessionId: String? = null): String =
+suspend fun camofoxConsole(clear: Boolean = false, taskId: String? = null): String =
     toolError("Camofox is not available on Android")

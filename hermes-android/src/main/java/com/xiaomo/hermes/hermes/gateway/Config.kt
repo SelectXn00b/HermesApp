@@ -235,7 +235,11 @@ data class GatewayConfig(
         platforms[platform]?.homeChannel
 
     /** Get reset policy. */
-    fun getResetPolicy(): SessionResetPolicy = sessionResetPolicy
+    @Suppress("UNUSED_PARAMETER")
+    fun getResetPolicy(
+        platform: Platform? = null,
+        sessionType: String? = null
+    ): SessionResetPolicy = sessionResetPolicy
 
     /** Get unauthorized DM behavior for a platform. */
     fun getUnauthorizedDmBehavior(platform: Platform?): String = unauthorizedDmBehavior

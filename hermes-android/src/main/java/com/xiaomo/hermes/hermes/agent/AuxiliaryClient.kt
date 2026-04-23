@@ -1043,7 +1043,12 @@ fun _isConnectionError(exc: Throwable): Boolean {
     return "connection" in msg || "timed out" in msg || "network" in msg
 }
 
-fun _tryPaymentFallback(exc: Throwable, chainIdx: Int = 0): Pair<Any?, String?> = null to null
+@Suppress("UNUSED_PARAMETER")
+fun _tryPaymentFallback(
+    failedProvider: String,
+    task: String? = null,
+    reason: String = "payment error",
+): Triple<Any?, String?, String> = Triple(null, null, reason)
 
 fun _resolveAuto(mainRuntime: Map<String, Any?>? = null): Pair<Any?, String?> = null to null
 
