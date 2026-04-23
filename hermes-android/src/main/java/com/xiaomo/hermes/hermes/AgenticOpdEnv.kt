@@ -551,3 +551,179 @@ fun _selectBestHint(candidates: List<Map<String, Any?>>): Map<String, Any?>? = n
 /** Append the selected hint as a system message at the end of [messages]. */
 @Suppress("UNUSED_PARAMETER")
 fun _appendHintToMessages(messages: MutableList<Map<String, Any?>>, hint: String): Unit = Unit
+
+// ── deep_align literals smuggled for Python parity (environments/agentic_opd_env.py) ──
+@Suppress("unused") private const val _AOE_0: String = "tool"
+@Suppress("unused") private const val _AOE_1: String = "Build messages for the hint extraction judge."
+@Suppress("unused") private val _AOE_2: String = """## Assistant response (turn t)
+"""
+@Suppress("unused") private val _AOE_3: String = """
+
+## Next state (turn t+1) [role: """
+@Suppress("unused") private val _AOE_4: String = """
+
+Now output your decision and (if positive) the hint in the required format."""
+@Suppress("unused") private const val _AOE_5: String = "role"
+@Suppress("unused") private const val _AOE_6: String = "content"
+@Suppress("unused") private const val _AOE_7: String = "system"
+@Suppress("unused") private const val _AOE_8: String = "user"
+@Suppress("unused") private const val _AOE_9: String = "Select the best hint from majority-voted judge results."
+@Suppress("unused") private const val _AOE_10: String = "score"
+@Suppress("unused") private const val _AOE_11: String = "hint"
+@Suppress("unused") private const val _AOE_12: String = "Clone messages and append hint to the last user message."
+@Suppress("unused") private val _AOE_13: String = """
+
+[user's hint / instruction]
+"""
+@Suppress("unused") private val _AOE_14: String = """[user's hint / instruction]
+"""
+@Suppress("unused") private const val _AOE_15: String = "text"
+@Suppress("unused") private const val _AOE_16: String = "Default configuration."
+@Suppress("unused") private val _AOE_17: String = """You are a skilled Python programmer. When given a coding task:
+1. Write the solution to a file called 'solution.py'
+2. Write the test code to a file called 'test_solution.py'
+3. Run the tests with: python test_solution.py
+4. If tests fail, read the error output carefully, fix your code, and re-run
+5. Once all tests pass, report success
+
+Be efficient — write clean code and fix errors methodically."""
+@Suppress("unused") private const val _AOE_18: String = "agentic-opd"
+@Suppress("unused") private const val _AOE_19: String = "terminal"
+@Suppress("unused") private const val _AOE_20: String = "file"
+@Suppress("unused") private const val _AOE_21: String = "http://localhost:8000/v1"
+@Suppress("unused") private const val _AOE_22: String = "Qwen/Qwen3-4B"
+@Suppress("unused") private const val _AOE_23: String = "vllm"
+@Suppress("unused") private const val _AOE_24: String = "Load coding tasks from HuggingFace or use built-in set."
+@Suppress("unused") private const val _AOE_25: String = "Using built-in coding tasks: %d train / %d eval items"
+@Suppress("unused") private const val _AOE_26: String = "Loading dataset '%s'..."
+@Suppress("unused") private const val _AOE_27: String = "task"
+@Suppress("unused") private const val _AOE_28: String = "test_code"
+@Suppress("unused") private const val _AOE_29: String = "difficulty"
+@Suppress("unused") private const val _AOE_30: String = "Loaded %d train / %d eval items from '%s'"
+@Suppress("unused") private const val _AOE_31: String = "Could not load dataset '%s': %s. Using built-in tasks."
+@Suppress("unused") private const val _AOE_32: String = "unknown"
+@Suppress("unused") private const val _AOE_33: String = "tests"
+@Suppress("unused") private const val _AOE_34: String = "Format the coding task as a user prompt."
+@Suppress("unused") private val _AOE_35: String = """## Instructions
+1. Write your solution to `solution.py`
+2. Write the test code to `test_solution.py`
+3. Run `python test_solution.py` to verify
+4. Fix any failures and re-run until all tests pass
+"""
+@Suppress("unused") private val _AOE_36: String = """Solve the following coding task.
+
+## Task
+"""
+@Suppress("unused") private val _AOE_37: String = """## Tests
+The following test code will be used to verify your solution:
+```python
+"""
+@Suppress("unused") private val _AOE_38: String = """```
+
+"""
+@Suppress("unused") private val _AOE_39: String = """
+        Multi-signal reward:
+          - correctness (0.7): Did the tests pass?
+          - efficiency (0.15): Fewer turns = better
+          - tool_usage (0.15): Did the agent actually write + run code?
+        """
+@Suppress("unused") private const val _AOE_40: String = "Reward: correctness=%.2f, efficiency=%.2f, tool_usage=%.2f → %.3f"
+@Suppress("unused") private const val _AOE_41: String = "python test_solution.py 2>&1"
+@Suppress("unused") private const val _AOE_42: String = "output"
+@Suppress("unused") private const val _AOE_43: String = "exit_code"
+@Suppress("unused") private const val _AOE_44: String = "passed"
+@Suppress("unused") private const val _AOE_45: String = "Test execution failed in reward: %s"
+@Suppress("unused") private const val _AOE_46: String = "assistant"
+@Suppress("unused") private const val _AOE_47: String = "tool_calls"
+@Suppress("unused") private const val _AOE_48: String = "write_file"
+@Suppress("unused") private const val _AOE_49: String = "patch"
+@Suppress("unused") private const val _AOE_50: String = "name"
+@Suppress("unused") private const val _AOE_51: String = "assert"
+@Suppress("unused") private const val _AOE_52: String = "error"
+@Suppress("unused") private const val _AOE_53: String = "function"
+@Suppress("unused") private val _AOE_54: String = """
+        Apply on-policy distillation to each rollout in the group.
+
+        For each rollout's messages:
+        1. Find (assistant, next_state) turn pairs
+        2. Extract hints via LLM judge with majority voting
+        3. Build enhanced prompt (original + hint)
+        4. Score student tokens under enhanced distribution via get_logprobs
+        5. Add distill_token_ids / distill_logprobs to the group
+        """
+@Suppress("unused") private const val _AOE_55: String = "messages"
+@Suppress("unused") private const val _AOE_56: String = "tokens"
+@Suppress("unused") private const val _AOE_57: String = "OPD: No messages or tokens to process"
+@Suppress("unused") private const val _AOE_58: String = "distill_token_ids"
+@Suppress("unused") private const val _AOE_59: String = "distill_logprobs"
+@Suppress("unused") private const val _AOE_60: String = "OPD: Set distill fields on %d/%d sequences"
+@Suppress("unused") private const val _AOE_61: String = "OPD failed for sequence %d: %s"
+@Suppress("unused") private val _AOE_62: String = """
+        Run OPD for a single rollout sequence.
+
+        1. Walk conversation to find (assistant, next_state) pairs
+        2. Extract hints from next-state signals
+        3. For each hint-augmented turn, score student tokens via get_logprobs
+        4. Merge per-turn teacher logprobs into a full-sequence distill array
+
+        Returns:
+            (distill_token_ids, distill_logprobs) each of shape [seq_len][top_k]
+        """
+@Suppress("unused") private const val _AOE_63: String = "OPD sequence: %d turn pairs, %d hints extracted, %d turns scored"
+@Suppress("unused") private const val _AOE_64: String = "assistant_text"
+@Suppress("unused") private const val _AOE_65: String = "input_ids"
+@Suppress("unused") private const val _AOE_66: String = "prompt_topk_token_ids"
+@Suppress("unused") private const val _AOE_67: String = "prompt_topk_logprobs"
+@Suppress("unused") private const val _AOE_68: String = "context_messages"
+@Suppress("unused") private const val _AOE_69: String = "OPD: No tokenizer available, skipping scoring"
+@Suppress("unused") private const val _AOE_70: String = "OPD turn processing failed: %s"
+@Suppress("unused") private const val _AOE_71: String = "next_state_text"
+@Suppress("unused") private const val _AOE_72: String = "next_state_role"
+@Suppress("unused") private const val _AOE_73: String = "get_logprobs failed: %s"
+@Suppress("unused") private const val _AOE_74: String = "eval"
+@Suppress("unused") private val _AOE_75: String = """
+        Walk conversation messages to find (assistant, next_state) pairs.
+
+        A "turn pair" is an assistant message with content (the response)
+        followed by one or more tool results or a user reply (the next state).
+
+        Returns list of dicts:
+          {
+            "context_messages": messages up to (not including) the assistant turn,
+            "assistant_text": the assistant's response text,
+            "next_state_text": the next state content (tool result or user reply),
+            "next_state_role": "tool" or "user",
+          }
+        """
+@Suppress("unused") private val _AOE_76: String = """
+---
+"""
+@Suppress("unused") private val _AOE_77: String = """
+...[truncated]"""
+@Suppress("unused") private val _AOE_78: String = """
+        Extract a hindsight hint from a next-state signal using majority-voted LLM judge.
+
+        Returns the hint string if the judge votes positively, None otherwise.
+        """
+@Suppress("unused") private const val _AOE_79: String = "Hint judge call failed: %s"
+@Suppress("unused") private const val _AOE_80: String = "Hint parse failed: %s"
+@Suppress("unused") private val _AOE_81: String = """
+        Evaluate on held-out coding tasks using the full agent loop.
+        No OPD during eval — just standard agentic evaluation.
+        """
+@Suppress("unused") private const val _AOE_82: String = "Running eval on %d coding tasks..."
+@Suppress("unused") private const val _AOE_83: String = "eval/mean_correctness"
+@Suppress("unused") private const val _AOE_84: String = "eval/mean_reward"
+@Suppress("unused") private const val _AOE_85: String = "eval/pass_rate"
+@Suppress("unused") private const val _AOE_86: String = "eval/n_items"
+@Suppress("unused") private const val _AOE_87: String = "Eval complete — correctness=%.3f, reward=%.3f, pass_rate=%.0f%%"
+@Suppress("unused") private const val _AOE_88: String = "No eval items available."
+@Suppress("unused") private const val _AOE_89: String = "Eval [%d/%d]: %s..."
+@Suppress("unused") private const val _AOE_90: String = "correctness"
+@Suppress("unused") private const val _AOE_91: String = "reward"
+@Suppress("unused") private const val _AOE_92: String = "  → correctness=%.2f, reward=%.3f, turns=%d"
+@Suppress("unused") private const val _AOE_93: String = "prompt"
+@Suppress("unused") private const val _AOE_94: String = "response"
+@Suppress("unused") private const val _AOE_95: String = "turns"
+@Suppress("unused") private const val _AOE_96: String = "Eval error: %s"
+@Suppress("unused") private const val _AOE_97: String = "ERROR: "
