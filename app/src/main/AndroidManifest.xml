@@ -160,7 +160,7 @@
         <!-- Workspace Documents Provider for SAF -->
         <provider
             android:name=".provider.WorkspaceDocumentsProvider"
-            android:authorities="com.ai.assistance.operit.documents.workspace"
+            android:authorities="${applicationId}.documents.workspace"
             android:exported="true"
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS">
@@ -171,7 +171,7 @@
 
         <provider
             android:name=".provider.MemoryDocumentsProvider"
-            android:authorities="com.ai.assistance.operit.documents.memory"
+            android:authorities="${applicationId}.documents.memory"
             android:exported="true"
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS">
@@ -368,6 +368,15 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="com.ai.assistance.operit.EXTERNAL_CHAT" />
+            </intent-filter>
+        </receiver>
+
+        <!-- adb 配置 API key 入口，Release 也保留 -->
+        <receiver
+            android:name=".integrations.intent.ApiConfigReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.ai.assistance.operit.SET_API_KEY" />
             </intent-filter>
         </receiver>
 
