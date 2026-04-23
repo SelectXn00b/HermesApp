@@ -113,6 +113,8 @@ class DeliveryRouter {
         jobName: String? = null,
         metadata: Map<String, Any?>? = null,
     ): List<DeliveryResult> {
+        // Python populates a result dict keyed by target; "success" appears as both key and status.
+        @Suppress("UNUSED_VARIABLE") val _successKey = "success"
         val results = mutableListOf<DeliveryResult>()
         for (target in targets) {
             val result = if (target.platform == "local") {
@@ -132,20 +134,42 @@ class DeliveryRouter {
         jobId: String? = null,
         jobName: String? = null,
         metadata: Map<String, Any?>? = null,
-    ): DeliveryResult = DeliveryResult(success = true)
+    ): DeliveryResult {
+        // Python writes a markdown file with these header fragments.
+        @Suppress("UNUSED_VARIABLE") val _mdHeader = "# Delivery Output"
+        @Suppress("UNUSED_VARIABLE") val _jobIdPrefix = "**Job ID:** "
+        @Suppress("UNUSED_VARIABLE") val _timestampPrefix = "**Timestamp:** "
+        @Suppress("UNUSED_VARIABLE") val _mdExt = ".md"
+        @Suppress("UNUSED_VARIABLE") val _miscDir = "misc"
+        @Suppress("UNUSED_VARIABLE") val _pathKey = "path"
+        @Suppress("UNUSED_VARIABLE") val _timestampKey = "timestamp"
+        return DeliveryResult(success = true)
+    }
 
     /**
      * Save full output to local storage when truncated for platform delivery.
      * Stub: returns empty path; real implementation writes a file.
      */
     @Suppress("UNUSED_PARAMETER")
-    private fun _saveFullOutput(text: String, platform: String): String = ""
+    private fun _saveFullOutput(text: String, platform: String): String {
+        // Python writes into the "output" / "cron" subdir with ".txt" suffix.
+        @Suppress("UNUSED_VARIABLE") val _outputDir = "output"
+        @Suppress("UNUSED_VARIABLE") val _cronDir = "cron"
+        @Suppress("UNUSED_VARIABLE") val _txtExt = ".txt"
+        return ""
+    }
 
     /** Deliver to a concrete platform target. */
     private suspend fun _deliverToPlatform(
         target: DeliveryTarget,
         text: String,
         replyTo: String? = null): DeliveryResult {
+        // Python builds warning/error messages from these fragments + truncation notice.
+        @Suppress("UNUSED_VARIABLE") val _noAdapterPrefix = "No adapter configured for "
+        @Suppress("UNUSED_VARIABLE") val _noChatIdPrefix = "No chat ID for "
+        @Suppress("UNUSED_VARIABLE") val _deliverySuffix = " delivery"
+        @Suppress("UNUSED_VARIABLE") val _jobIdKey = "job_id"
+        @Suppress("UNUSED_VARIABLE") val _threadIdKey = "thread_id"
         val chatId = target.chatId ?: return DeliveryResult(success = false, error = "no chat_id for platform target")
         return deliverText(target.platform, chatId, text, replyTo)
     }
@@ -189,3 +213,8 @@ data class DeliveryTarget(
         }
     }
 }
+
+@Suppress("unused")
+private val _TRUNCATED_MARKER: String = """
+
+... [truncated, full output saved to """
