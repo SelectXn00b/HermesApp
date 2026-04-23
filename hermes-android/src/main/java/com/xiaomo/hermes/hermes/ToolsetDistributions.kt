@@ -219,3 +219,7 @@ fun printDistributionInfo(distributionName: String) {
         println("     • ${toolset.padEnd(15)} : ${prob.toString().padStart(3)}% chance")
     }
 }
+
+@Suppress("unused")
+private val _DIST_HEADER: String = """
+📊 Distribution: """
