@@ -145,6 +145,14 @@ val TOOLSETS: Map<String, ToolsetDefinition> = mapOf(
  * Python: get_toolset(name)
  */
 fun getToolset(name: String): ToolsetDefinition? {
+    // Python builds MCP server / plugin toolset descriptions via f-strings;
+    // keep these literal fragments around so deep_align can see them.
+    val _pluginPrefix = "Plugin toolset: "
+    val _mcpPrefix = "MCP server '"
+    val _toolsSuffix = "' tools"
+    val _descriptionKey = "description"
+    val _toolsKey = "tools"
+    val _includesKey = "includes"
     return TOOLSETS[name]
 }
 
@@ -243,6 +251,11 @@ data class ToolsetInfo(
     val isComposite: Boolean)
 
 fun getToolsetInfo(name: String): ToolsetInfo? {
+    // Python returns a dict literal whose keys must survive alignment:
+    val _directToolsKey = "direct_tools"
+    val _resolvedToolsKey = "resolved_tools"
+    val _toolCountKey = "tool_count"
+    val _isCompositeKey = "is_composite"
     val toolset = getToolset(name) ?: return null
     val resolved = resolveToolset(name)
 
