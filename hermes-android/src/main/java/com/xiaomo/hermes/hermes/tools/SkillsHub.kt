@@ -985,7 +985,18 @@ class SkillsShSource : SkillSource() {
     }
 
     fun _extractSecurityAudits(html: String, identifier: String): Map<String, Any?> {
-        return emptyMap() // Security audits not extracted on Android
+        val audits = mutableMapOf<String, Any?>()
+        for (audit in listOf("agent-trust-hub", "socket", "snyk")) {
+            val idx = html.indexOf("/security/$audit")
+            if (idx == -1) continue
+            val window = html.substring(idx, minOf(idx + 500, html.length))
+            val match = Regex("(Pass|Warn|Fail)", RegexOption.IGNORE_CASE).find(window)
+            if (match != null) {
+                val raw = match.groupValues[1]
+                audits[audit] = raw.substring(0, 1).uppercase() + raw.substring(1).lowercase()
+            }
+        }
+        return audits
     }
 
     fun _stripHtml(value: String): String {
