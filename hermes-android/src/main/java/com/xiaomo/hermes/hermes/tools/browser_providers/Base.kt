@@ -22,9 +22,7 @@ abstract class CloudBrowserProvider {
      * Return true when all required env vars / credentials are present.
      * Called at tool-registration time to gate availability. Must be cheap.
      */
-    open fun isConfigured(): Boolean {
-        return false
-    }
+    open fun isConfigured(): Boolean = false
 
     /**
      * Create a cloud browser session and return session metadata.
@@ -41,9 +39,7 @@ abstract class CloudBrowserProvider {
      * Release / terminate a cloud session by its provider session ID.
      * Returns true on success, false on failure. Should not raise.
      */
-    open fun closeSession(sessionId: String): Boolean {
-        return false
-    }
+    open fun closeSession(sessionId: String): Boolean = false
 
     /**
      * Best-effort session teardown during process exit.
