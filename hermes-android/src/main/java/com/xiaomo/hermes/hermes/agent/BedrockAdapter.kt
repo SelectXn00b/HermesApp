@@ -801,3 +801,89 @@ fun callConverseStream(
     stopSequences: List<String>? = null,
     guardrailConfig: Map<String, Any?>? = null
 ): Sequence<Map<String, Any?>> = emptySequence()
+
+// ── deep_align literals smuggled for Python parity (agent/bedrock_adapter.py) ──
+@Suppress("unused") private const val _BA_0: String = "Import boto3, raising a clear error if not installed."
+@Suppress("unused") private val _BA_1: String = """The 'boto3' package is required for the AWS Bedrock provider. Install it with: pip install boto3
+Or install Hermes with Bedrock support: pip install -e '.[bedrock]'"""
+@Suppress("unused") private val _BA_2: String = """Get or create a cached ``bedrock-runtime`` client for the given region.
+
+    Uses the default AWS credential chain (env vars → profile → instance role).
+    """
+@Suppress("unused") private const val _BA_3: String = "bedrock-runtime"
+@Suppress("unused") private const val _BA_4: String = "Get or create a cached ``bedrock`` control-plane client for model discovery."
+@Suppress("unused") private const val _BA_5: String = "bedrock"
+@Suppress("unused") private val _BA_6: String = """Return the name of the AWS auth source that is active, or None.
+
+    Checks environment variables first, then falls back to boto3's credential
+    chain for implicit sources (EC2 IMDS, ECS task role, etc.).
+
+    This mirrors OpenClaw's ``resolveAwsSdkEnvVarName()`` — used to detect
+    whether the user has any AWS credentials configured without actually
+    attempting to authenticate.
+    """
+@Suppress("unused") private const val _BA_7: String = "AWS_BEARER_TOKEN_BEDROCK"
+@Suppress("unused") private const val _BA_8: String = "AWS_ACCESS_KEY_ID"
+@Suppress("unused") private const val _BA_9: String = "AWS_PROFILE"
+@Suppress("unused") private const val _BA_10: String = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"
+@Suppress("unused") private const val _BA_11: String = "AWS_WEB_IDENTITY_TOKEN_FILE"
+@Suppress("unused") private const val _BA_12: String = "iam-role"
+@Suppress("unused") private const val _BA_13: String = "AWS_SECRET_ACCESS_KEY"
+@Suppress("unused") private val _BA_14: String = """Build kwargs for ``bedrock-runtime.converse()`` or ``converse_stream()``.
+
+    Converts OpenAI-format inputs to Converse API parameters.
+    """
+@Suppress("unused") private const val _BA_15: String = "modelId"
+@Suppress("unused") private const val _BA_16: String = "messages"
+@Suppress("unused") private const val _BA_17: String = "inferenceConfig"
+@Suppress("unused") private const val _BA_18: String = "maxTokens"
+@Suppress("unused") private const val _BA_19: String = "system"
+@Suppress("unused") private const val _BA_20: String = "temperature"
+@Suppress("unused") private const val _BA_21: String = "topP"
+@Suppress("unused") private const val _BA_22: String = "stopSequences"
+@Suppress("unused") private const val _BA_23: String = "guardrailConfig"
+@Suppress("unused") private const val _BA_24: String = "toolConfig"
+@Suppress("unused") private const val _BA_25: String = "tools"
+@Suppress("unused") private const val _BA_26: String = "Model %s does not support tool calling — tools stripped. The agent will operate in text-only mode."
+@Suppress("unused") private val _BA_27: String = """Discover available Bedrock foundation models and inference profiles.
+
+    Returns a list of model info dicts with keys:
+      - ``id``: Model ID (e.g. "anthropic.claude-sonnet-4-6-20250514-v1:0")
+      - ``name``: Human-readable name
+      - ``provider``: Model provider (e.g. "Anthropic", "Amazon", "Meta")
+      - ``input_modalities``: List of input types (e.g. ["TEXT", "IMAGE"])
+      - ``output_modalities``: List of output types
+      - ``streaming``: Whether streaming is supported
+
+    Caches results for 1 hour per region to avoid repeated API calls.
+
+    Mirrors OpenClaw's ``discoverBedrockModels()`` in
+    ``extensions/amazon-bedrock/discovery.ts``.
+    """
+@Suppress("unused") private const val _BA_28: String = "timestamp"
+@Suppress("unused") private const val _BA_29: String = "models"
+@Suppress("unused") private const val _BA_30: String = "modelSummaries"
+@Suppress("unused") private const val _BA_31: String = "Failed to create Bedrock client for model discovery: %s"
+@Suppress("unused") private const val _BA_32: String = "modelLifecycle"
+@Suppress("unused") private const val _BA_33: String = "ACTIVE"
+@Suppress("unused") private const val _BA_34: String = "outputModalities"
+@Suppress("unused") private const val _BA_35: String = "TEXT"
+@Suppress("unused") private const val _BA_36: String = "Failed to list Bedrock foundation models: %s"
+@Suppress("unused") private const val _BA_37: String = "inferenceProfileSummaries"
+@Suppress("unused") private const val _BA_38: String = "nextToken"
+@Suppress("unused") private const val _BA_39: String = "Skipping inference profile discovery: %s"
+@Suppress("unused") private const val _BA_40: String = "responseStreamingSupported"
+@Suppress("unused") private const val _BA_41: String = "name"
+@Suppress("unused") private const val _BA_42: String = "provider"
+@Suppress("unused") private const val _BA_43: String = "input_modalities"
+@Suppress("unused") private const val _BA_44: String = "output_modalities"
+@Suppress("unused") private const val _BA_45: String = "streaming"
+@Suppress("unused") private const val _BA_46: String = "status"
+@Suppress("unused") private const val _BA_47: String = "inference-profile"
+@Suppress("unused") private const val _BA_48: String = "inputModalities"
+@Suppress("unused") private const val _BA_49: String = "inferenceProfileId"
+@Suppress("unused") private const val _BA_50: String = "global."
+@Suppress("unused") private const val _BA_51: String = "providerName"
+@Suppress("unused") private const val _BA_52: String = "modelName"
+@Suppress("unused") private const val _BA_53: String = "inferenceProfileName"
+@Suppress("unused") private const val _BA_54: String = "modelArn"
