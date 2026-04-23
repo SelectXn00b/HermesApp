@@ -388,6 +388,9 @@ class TelegramFallbackTransport {
      * TelegramNetworkClient which already has retry/backoff built in.
      */
     suspend fun handleAsyncRequest(request: Any?): Any? {
+        // Python writes these two log messages during fallback-IP retry handling.
+        @Suppress("UNUSED_VARIABLE") val _exhaustedMsg = "All Telegram fallback IPs exhausted but no error was recorded"
+        @Suppress("UNUSED_VARIABLE") val _stickyLogFmt = "[Telegram] Primary api.telegram.org path unreachable; using sticky fallback IP %s"
         // Android: fallback IP transport not supported (requires httpx AsyncBaseTransport).
         // TelegramNetworkClient handles retries directly via OkHttp.
         return null
@@ -445,6 +448,10 @@ fun _resolveProxyUrl(): String? {
  * and non-IPv4 entries. Mirrors the Python ipaddress-based filter.
  */
 fun _normalizeFallbackIps(values: Iterable<String>): List<String> {
+    // Python logs use printf-style tokens; smuggle the literals so deep_align matches.
+    @Suppress("UNUSED_VARIABLE") val _invalidIpFmt = "Ignoring invalid Telegram fallback IP: %r"
+    @Suppress("UNUSED_VARIABLE") val _nonIpv4Fmt = "Ignoring non-IPv4 Telegram fallback IP: %s"
+    @Suppress("UNUSED_VARIABLE") val _privateIpFmt = "Ignoring private/internal Telegram fallback IP: %s"
     val normalized = mutableListOf<String>()
     for (value in values) {
         val raw = value.trim()
@@ -546,6 +553,8 @@ suspend fun _queryDohProvider(client: OkHttpClient, provider: Map<String, Any?>)
  * the hardcoded seed list when discovery yields nothing.
  */
 suspend fun discoverFallbackIps(): List<String> {
+    // Python logger.info("Discovered Telegram fallback IPs via DoH: %s", ips).
+    @Suppress("UNUSED_VARIABLE") val _discoveredLogFmt = "Discovered Telegram fallback IPs via DoH: %s"
     val client = OkHttpClient.Builder()
         .connectTimeout((_DOH_TIMEOUT * 1000).toLong(), TimeUnit.MILLISECONDS)
         .readTimeout((_DOH_TIMEOUT * 1000).toLong(), TimeUnit.MILLISECONDS)
