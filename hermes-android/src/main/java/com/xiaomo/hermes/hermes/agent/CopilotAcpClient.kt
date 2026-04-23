@@ -136,19 +136,17 @@ class CopilotACPClient(
                 .start()
         } catch (e: java.io.IOException) {
             throw RuntimeException(
-                "Could not start Copilot ACP command '$_acpCommand'. " +
-                    "Install GitHub Copilot CLI or set HERMES_COPILOT_ACP_COMMAND/COPILOT_CLI_PATH.",
+                "Could not start Copilot ACP command '" + _acpCommand +
+                    "'. Install GitHub Copilot CLI or set HERMES_COPILOT_ACP_COMMAND/COPILOT_CLI_PATH.",
                 e,
             )
         }
 
-        val stdin = proc.outputStream ?: run {
+        val stdin = proc.outputStream
+        val stdout = proc.inputStream
+        if (stdin == null || stdout == null) {
             proc.destroyForcibly()
-            throw RuntimeException("Copilot ACP process did not expose stdin pipe.")
-        }
-        val stdout = proc.inputStream ?: run {
-            proc.destroyForcibly()
-            throw RuntimeException("Copilot ACP process did not expose stdout pipe.")
+            throw RuntimeException("Copilot ACP process did not expose stdin/stdout pipes.")
         }
         val stderr = proc.errorStream
 
@@ -336,6 +334,11 @@ class CopilotACPClient(
             }
             "fs/write_text_file" -> try {
                 val path = _ensurePathWithinCwd((params["path"] as? String).orEmpty(), cwd)
+                if (com.xiaomo.hermes.hermes.agent.isWriteDenied(path.toString())) {
+                    throw SecurityException(
+                        "Write denied: '$path' is a protected system/credential file."
+                    )
+                }
                 path.parentFile?.mkdirs()
                 path.writeText((params["content"] as? String).orEmpty())
                 mapOf(
@@ -477,7 +480,8 @@ fun _formatMessagesAsPrompt(
         }
         if (specs.isNotEmpty()) {
             sections.add(
-                "Available tools (OpenAI function schema). When using a tool, emit ONLY <tool_call>{...}</tool_call> with one JSON object containing id/type/function{name,arguments}. arguments must be a JSON string.\n" +
+                """Available tools (OpenAI function schema). When using a tool, emit ONLY <tool_call>{...}</tool_call> with one JSON object containing id/type/function{name,arguments}. arguments must be a JSON string.
+""" +
                     com.xiaomo.hermes.hermes.gson.toJson(specs))
         }
     }
@@ -500,7 +504,9 @@ fun _formatMessagesAsPrompt(
         transcript.add("$label:\n$rendered")
     }
     if (transcript.isNotEmpty()) {
-        sections.add("Conversation transcript:\n\n" + transcript.joinToString("\n\n"))
+        sections.add("""Conversation transcript:
+
+""" + transcript.joinToString("\n\n"))
     }
     sections.add("Continue the conversation from the latest user request.")
     return sections.filter { it.isNotBlank() }.joinToString("\n\n") { it.trim() }
