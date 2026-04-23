@@ -982,3 +982,255 @@ class HonchoSessionManager(
 
 /** Python `_ASYNC_SHUTDOWN` — sentinel used to signal async shutdown requests. */
 private val _ASYNC_SHUTDOWN: Any = Any()
+
+// ── deep_align literals smuggled for Python parity (plugins/memory/honcho/session.py) ──
+@Suppress("unused") private val _S_0: String = """
+        Get an existing session or create a new one.
+
+        Args:
+            key: Session key (usually channel:chat_id).
+
+        Returns:
+            The session.
+        """
+@Suppress("unused") private const val _S_1: String = "Local session cache hit: %s"
+@Suppress("unused") private const val _S_2: String = "hermes-assistant"
+@Suppress("unused") private const val _S_3: String = "assistant"
+@Suppress("unused") private const val _S_4: String = "user"
+@Suppress("unused") private const val _S_5: String = "default"
+@Suppress("unused") private const val _S_6: String = "role"
+@Suppress("unused") private const val _S_7: String = "content"
+@Suppress("unused") private const val _S_8: String = "timestamp"
+@Suppress("unused") private const val _S_9: String = "_synced"
+@Suppress("unused") private const val _S_10: String = "user-"
+@Suppress("unused") private const val _S_11: String = "Background daemon thread: drains the async write queue."
+@Suppress("unused") private const val _S_12: String = "Honcho async write failed, retrying once: %s"
+@Suppress("unused") private const val _S_13: String = "Honcho async write failed, retrying once"
+@Suppress("unused") private const val _S_14: String = "Honcho async write retry failed, dropping batch"
+@Suppress("unused") private const val _S_15: String = "Honcho async writer error: %s"
+@Suppress("unused") private const val _S_16: String = "Honcho async write retry failed, dropping batch: %s"
+@Suppress("unused") private val _S_17: String = """
+        Query Honcho's dialectic endpoint about a peer.
+
+        Runs an LLM on Honcho's backend against the target peer's full
+        representation. Higher latency than context() — callers run this in
+        a background thread (see HonchoMemoryProvider) to avoid blocking.
+
+        Args:
+            session_key: The session key to query against.
+            query: Natural language question.
+            reasoning_level: Override the configured default (dialecticReasoningLevel).
+                             Only honored when dialecticDynamic is true.
+                             If None or dialecticDynamic is false, uses the configured default.
+            peer: Which peer to query — "user" (default) or "ai".
+
+        Returns:
+            Honcho's synthesized answer, or empty string on failure.
+        """
+@Suppress("unused") private const val _S_18: String = "Honcho dialectic query failed: %s"
+@Suppress("unused") private val _S_19: String = """
+        Fire get_prefetch_context in a background thread, caching the result.
+
+        Non-blocking. Consumed next turn via pop_context_result(). This avoids
+        a synchronous HTTP round-trip blocking every response.
+        """
+@Suppress("unused") private const val _S_20: String = "honcho-context-prefetch"
+@Suppress("unused") private val _S_21: String = """
+        Pre-fetch user and AI peer context from Honcho.
+
+        Fetches peer_representation and peer_card for both peers, plus the
+        session summary when available. search_query is intentionally omitted
+        — it would only affect additional excerpts that this code does not
+        consume, and passing the raw message exposes conversation content in
+        server access logs.
+
+        Args:
+            session_key: The session key to get context for.
+            user_message: Unused; kept for call-site compatibility.
+
+        Returns:
+            Dictionary with 'representation', 'card', 'ai_representation',
+            'ai_card', and optionally 'summary' keys.
+        """
+@Suppress("unused") private const val _S_22: String = "representation"
+@Suppress("unused") private const val _S_23: String = "card"
+@Suppress("unused") private const val _S_24: String = "ai_representation"
+@Suppress("unused") private const val _S_25: String = "ai_card"
+@Suppress("unused") private const val _S_26: String = "Failed to fetch session summary from Honcho: %s"
+@Suppress("unused") private const val _S_27: String = "Failed to fetch user context from Honcho: %s"
+@Suppress("unused") private const val _S_28: String = "Failed to fetch AI peer context from Honcho: %s"
+@Suppress("unused") private const val _S_29: String = "summary"
+@Suppress("unused") private val _S_30: String = """
+        Upload local session history to Honcho as a file.
+
+        Used when Honcho activates mid-conversation to preserve prior context.
+
+        Args:
+            session_key: The session key (e.g., "telegram:123456").
+            messages: Local messages (dicts with role, content, timestamp).
+
+        Returns:
+            True if upload succeeded, False otherwise.
+        """
+@Suppress("unused") private const val _S_31: String = "No local session cached for '%s', skipping migration"
+@Suppress("unused") private const val _S_32: String = "No Honcho session cached for '%s', skipping migration"
+@Suppress("unused") private const val _S_33: String = "Migrated %d local messages to Honcho for %s"
+@Suppress("unused") private const val _S_34: String = "Failed to upload local history to Honcho for %s: %s"
+@Suppress("unused") private const val _S_35: String = "prior_history.txt"
+@Suppress("unused") private const val _S_36: String = "text/plain"
+@Suppress("unused") private const val _S_37: String = "source"
+@Suppress("unused") private const val _S_38: String = "count"
+@Suppress("unused") private const val _S_39: String = "local_jsonl"
+@Suppress("unused") private val _S_40: String = """
+        Upload MEMORY.md and USER.md to Honcho as files.
+
+        Used when Honcho activates on an instance that already has locally
+        consolidated memory. Backwards compatible -- skips if files don't exist.
+
+        Args:
+            session_key: The session key to associate files with.
+            memory_dir: Path to the memories directory (~/.hermes/memories/).
+
+        Returns:
+            True if at least one file was uploaded, False otherwise.
+        """
+@Suppress("unused") private const val _S_41: String = "No local session cached for '%s', skipping memory migration"
+@Suppress("unused") private const val _S_42: String = "No Honcho session cached for '%s', skipping memory migration"
+@Suppress("unused") private const val _S_43: String = "MEMORY.md"
+@Suppress("unused") private const val _S_44: String = "consolidated_memory.md"
+@Suppress("unused") private const val _S_45: String = "Long-term agent notes and preferences"
+@Suppress("unused") private const val _S_46: String = "USER.md"
+@Suppress("unused") private const val _S_47: String = "user_profile.md"
+@Suppress("unused") private const val _S_48: String = "User profile and preferences"
+@Suppress("unused") private const val _S_49: String = "SOUL.md"
+@Suppress("unused") private const val _S_50: String = "agent_soul.md"
+@Suppress("unused") private const val _S_51: String = "Agent persona and identity configuration"
+@Suppress("unused") private val _S_52: String = """<prior_memory_file>
+<context>
+This file was consolidated from local conversations BEFORE Honcho was activated.
+"""
+@Suppress("unused") private val _S_53: String = """. Treat as foundational context for this user.
+</context>
+
+"""
+@Suppress("unused") private val _S_54: String = """
+</prior_memory_file>
+"""
+@Suppress("unused") private const val _S_55: String = "Uploaded %s to Honcho for %s (%s peer)"
+@Suppress("unused") private const val _S_56: String = "Failed to upload %s to Honcho: %s"
+@Suppress("unused") private const val _S_57: String = "utf-8"
+@Suppress("unused") private const val _S_58: String = "original_file"
+@Suppress("unused") private const val _S_59: String = "target_peer"
+@Suppress("unused") private const val _S_60: String = "local_memory"
+@Suppress("unused") private val _S_61: String = """Fetch a peer card directly from the peer object.
+
+        This avoids relying on session.context(), which can return an empty
+        peer_card for per-session messaging sessions even when the peer itself
+        has a populated card.
+        """
+@Suppress("unused") private const val _S_62: String = "get_card"
+@Suppress("unused") private val _S_63: String = """Fetch full session context from Honcho including summary.
+
+        Uses the session-level context() API which returns summary,
+        peer_representation, peer_card, and messages.
+        """
+@Suppress("unused") private const val _S_64: String = "recent_messages"
+@Suppress("unused") private const val _S_65: String = "Session context fetch failed: %s"
+@Suppress("unused") private const val _S_66: String = "peer_id"
+@Suppress("unused") private const val _S_67: String = "unknown"
+@Suppress("unused") private val _S_68: String = """
+        Fetch a peer card — a curated list of key facts.
+
+        Fast, no LLM reasoning. Returns raw structured facts Honcho has
+        inferred about the target peer (name, role, preferences, patterns).
+        Empty list if unavailable.
+        """
+@Suppress("unused") private const val _S_69: String = "Failed to fetch peer card from Honcho: %s"
+@Suppress("unused") private val _S_70: String = """
+        Semantic search over Honcho session context.
+
+        Returns raw excerpts ranked by relevance to the query. No LLM
+        reasoning — cheaper and faster than dialectic_query. Good for
+        factual lookups where the model will do its own synthesis.
+
+        Args:
+            session_key: Session to search against.
+            query: Search query for semantic matching.
+            max_tokens: Token budget for returned content.
+            peer: Peer alias or explicit peer ID to search about.
+
+        Returns:
+            Relevant context excerpts as a string, or empty string if none.
+        """
+@Suppress("unused") private const val _S_71: String = "Honcho search_context failed: %s"
+@Suppress("unused") private val _S_72: String = """Write a conclusion about a target peer back to Honcho.
+
+        Conclusions are facts a peer observes about another peer or itself —
+        preferences, corrections, clarifications, and project context.
+        They feed into the target peer's card and representation.
+
+        Args:
+            session_key: Session to associate the conclusion with.
+            content: The conclusion text.
+            peer: Peer alias or explicit peer ID. "user" is the default alias.
+
+        Returns:
+            True on success, False on failure.
+        """
+@Suppress("unused") private const val _S_73: String = "No session cached for '%s', skipping conclusion"
+@Suppress("unused") private const val _S_74: String = "Created conclusion about %s for %s: %s"
+@Suppress("unused") private const val _S_75: String = "Could not resolve conclusion peer '%s' for session '%s'"
+@Suppress("unused") private const val _S_76: String = "Failed to create conclusion: %s"
+@Suppress("unused") private const val _S_77: String = "session_id"
+@Suppress("unused") private val _S_78: String = """Update a peer's card.
+
+        Args:
+            session_key: Session key for peer resolution.
+            card: New peer card as list of fact strings.
+            peer: Peer alias or explicit peer ID.
+
+        Returns:
+            Updated card on success, None on failure.
+        """
+@Suppress("unused") private const val _S_79: String = "Updated peer card for %s (%d facts)"
+@Suppress("unused") private const val _S_80: String = "Could not resolve peer '%s' for set_peer_card in session '%s'"
+@Suppress("unused") private const val _S_81: String = "Failed to set peer card: %s"
+@Suppress("unused") private const val _S_82: String = "manual"
+@Suppress("unused") private val _S_83: String = """
+        Seed the AI peer's Honcho representation from text content.
+
+        Useful for priming AI identity from SOUL.md, exported chats, or
+        any structured description. The content is sent as an assistant
+        peer message so Honcho's reasoning model can incorporate it.
+
+        Args:
+            session_key: The session key to associate with.
+            content: The identity/persona content to seed.
+            source: Metadata tag for the source (e.g. "soul_md", "export").
+
+        Returns:
+            True on success, False on failure.
+        """
+@Suppress("unused") private const val _S_84: String = "No session cached for '%s', skipping AI seed"
+@Suppress("unused") private const val _S_85: String = "No Honcho session cached for '%s', skipping AI seed"
+@Suppress("unused") private val _S_86: String = """<ai_identity_seed>
+<source>"""
+@Suppress("unused") private val _S_87: String = """</source>
+
+"""
+@Suppress("unused") private val _S_88: String = """
+</ai_identity_seed>"""
+@Suppress("unused") private const val _S_89: String = "Seeded AI identity from '%s' into %s"
+@Suppress("unused") private const val _S_90: String = "Failed to seed AI identity: %s"
+@Suppress("unused") private val _S_91: String = """
+        Fetch the AI peer's current Honcho representation.
+
+        Returns:
+            Dict with 'representation' and 'card' keys, empty strings if unavailable.
+        """
+@Suppress("unused") private const val _S_92: String = "Failed to fetch AI representation: %s"
+@Suppress("unused") private const val _S_93: String = "List all cached sessions."
+@Suppress("unused") private const val _S_94: String = "key"
+@Suppress("unused") private const val _S_95: String = "created_at"
+@Suppress("unused") private const val _S_96: String = "updated_at"
+@Suppress("unused") private const val _S_97: String = "message_count"
