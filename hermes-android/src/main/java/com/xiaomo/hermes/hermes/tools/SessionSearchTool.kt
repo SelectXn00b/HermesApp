@@ -427,8 +427,11 @@ fun sessionSearch(
 
 /** Requires SQLite state database and an auxiliary text model. */
 fun checkSessionSearchRequirements(): Boolean {
-    // TODO: port hermes_state.DEFAULT_DB_PATH
-    return false
+    return try {
+        com.xiaomo.hermes.hermes.SessionDB.DEFAULT_DB_PATH.parentFile?.exists() == true
+    } catch (_: Exception) {
+        false
+    }
 }
 
 val SESSION_SEARCH_SCHEMA: Map<String, Any?> = mapOf(
