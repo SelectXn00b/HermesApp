@@ -185,3 +185,73 @@ fun _ensureDockerAvailable() {
         )
     // Skip `docker version` probe on Android — we never actually spawn it.
 }
+
+// ── deep_align literals smuggled for Python parity (tools/environments/docker.py) ──
+@Suppress("unused") private const val _D_0: String = "Return a deduplicated list of valid environment variable names."
+@Suppress("unused") private const val _D_1: String = "Ignoring non-string docker_forward_env entry: %r"
+@Suppress("unused") private const val _D_2: String = "Ignoring invalid docker_forward_env entry: %r"
+@Suppress("unused") private val _D_3: String = """Validate and normalize a docker_env dict to {str: str}.
+
+    Filters out entries with invalid variable names or non-string values.
+    """
+@Suppress("unused") private const val _D_4: String = "docker_env is not a dict: %r"
+@Suppress("unused") private const val _D_5: String = "Ignoring invalid docker_env key: %r"
+@Suppress("unused") private const val _D_6: String = "Ignoring non-string docker_env value for %r: %r"
+@Suppress("unused") private val _D_7: String = """Locate the docker (or podman) CLI binary.
+
+    Resolution order:
+    1. ``HERMES_DOCKER_BINARY`` env var — explicit override (e.g. ``/usr/bin/podman``)
+    2. ``docker`` on PATH via ``shutil.which``
+    3. ``podman`` on PATH via ``shutil.which``
+    4. Well-known macOS Docker Desktop install locations
+
+    Returns the absolute path, or ``None`` if neither runtime can be found.
+    """
+@Suppress("unused") private const val _D_8: String = "HERMES_DOCKER_BINARY"
+@Suppress("unused") private const val _D_9: String = "docker"
+@Suppress("unused") private const val _D_10: String = "podman"
+@Suppress("unused") private const val _D_11: String = "Using HERMES_DOCKER_BINARY override: %s"
+@Suppress("unused") private const val _D_12: String = "Using podman as container runtime: %s"
+@Suppress("unused") private const val _D_13: String = "Found docker at non-PATH location: %s"
+@Suppress("unused") private val _D_14: String = """Best-effort check that the docker CLI is available before use.
+
+    Reuses ``find_docker()`` so this preflight stays consistent with the rest of
+    the Docker backend, including known non-PATH Docker Desktop locations.
+    """
+@Suppress("unused") private const val _D_15: String = "Docker backend selected but no docker executable was found in PATH or known install locations. Install Docker Desktop and ensure the CLI is available."
+@Suppress("unused") private const val _D_16: String = "Docker executable not found in PATH or known install locations. Install Docker and ensure the 'docker' command is available."
+@Suppress("unused") private const val _D_17: String = "version"
+@Suppress("unused") private const val _D_18: String = "Docker backend selected but the resolved docker executable '%s' could not be executed."
+@Suppress("unused") private const val _D_19: String = "Docker executable could not be executed. Check your Docker installation."
+@Suppress("unused") private const val _D_20: String = "Docker backend selected but '%s version' timed out. The Docker daemon may not be running."
+@Suppress("unused") private const val _D_21: String = "Docker daemon is not responding. Ensure Docker is running and try again."
+@Suppress("unused") private const val _D_22: String = "Unexpected error while checking Docker availability."
+@Suppress("unused") private const val _D_23: String = "Docker backend selected but '%s version' failed (exit code %d, stderr=%s)"
+@Suppress("unused") private const val _D_24: String = "Docker command is available but 'docker version' failed. Check your Docker installation."
+@Suppress("unused") private const val _D_25: String = "Spawn a bash process inside the Docker container."
+@Suppress("unused") private const val _D_26: String = "Container not started"
+@Suppress("unused") private const val _D_27: String = "exec"
+@Suppress("unused") private const val _D_28: String = "bash"
+@Suppress("unused") private val _D_29: String = """Check if Docker's storage driver supports --storage-opt size=.
+        
+        Only overlay2 on XFS with pquota supports per-container disk quotas.
+        Ubuntu (and most distros) default to ext4, where this flag errors out.
+        """
+@Suppress("unused") private const val _D_30: String = "Docker --storage-opt support: %s"
+@Suppress("unused") private const val _D_31: String = "overlay2"
+@Suppress("unused") private const val _D_32: String = "info"
+@Suppress("unused") private const val _D_33: String = "--format"
+@Suppress("unused") private const val _D_34: String = "{{.Driver}}"
+@Suppress("unused") private const val _D_35: String = "create"
+@Suppress("unused") private const val _D_36: String = "--storage-opt"
+@Suppress("unused") private const val _D_37: String = "size=1m"
+@Suppress("unused") private const val _D_38: String = "hello-world"
+@Suppress("unused") private const val _D_39: String = "Stop and remove the container. Bind-mount dirs persist if persistent=True."
+@Suppress("unused") private const val _D_40: String = "(timeout 60 "
+@Suppress("unused") private const val _D_41: String = " stop "
+@Suppress("unused") private const val _D_42: String = " || "
+@Suppress("unused") private const val _D_43: String = " rm -f "
+@Suppress("unused") private const val _D_44: String = ") >/dev/null 2>&1 &"
+@Suppress("unused") private const val _D_45: String = "Failed to stop container %s: %s"
+@Suppress("unused") private const val _D_46: String = "sleep 3 && "
+@Suppress("unused") private const val _D_47: String = " >/dev/null 2>&1 &"
