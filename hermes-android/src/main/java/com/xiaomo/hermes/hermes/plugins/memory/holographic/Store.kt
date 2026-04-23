@@ -603,3 +603,24 @@ class MemoryStore(
         }
     }
 }
+
+@Suppress("unused")
+private val _SQL_LINK_FACT_ENTITY: String = """
+            INSERT OR IGNORE INTO fact_entities (fact_id, entity_id)
+            VALUES (?, ?)
+            """
+
+@Suppress("unused")
+private val _SQL_INSERT_FACT: String = """
+                    INSERT INTO facts (content, category, tags, trust_score)
+                    VALUES (?, ?, ?, ?)
+                    """
+
+@Suppress("unused")
+private val _SQL_UPDATE_FEEDBACK: String = """
+                UPDATE facts
+                SET trust_score    = ?,
+                    helpful_count  = helpful_count + ?,
+                    updated_at     = CURRENT_TIMESTAMP
+                WHERE fact_id = ?
+                """
