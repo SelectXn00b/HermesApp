@@ -281,42 +281,46 @@ fun _checkFileReqs(): Boolean {
 }
 
 fun _handleReadFile(
-    path: String,
-    offset: Int = 1,
-    limit: Int = 500,
-    taskId: String = "default",
+    args: Map<String, Any?>,
 ): String {
-    val ops = _getFileOps(taskId)
+    val tid = (args["task_id"] as? String) ?: "default"
+    val path = (args["path"] as? String) ?: ""
+    val offset = (args["offset"] as? Int) ?: 1
+    val limit = (args["limit"] as? Int) ?: 500
+    val ops = _getFileOps(tid)
     return readFileTool(path, offset, limit, ops)
 }
 
 fun _handleWriteFile(
-    path: String,
-    content: String,
-    taskId: String = "default",
+    args: Map<String, Any?>,
 ): String {
-    val ops = _getFileOps(taskId)
+    val tid = (args["task_id"] as? String) ?: "default"
+    val path = (args["path"] as? String) ?: ""
+    val content = (args["content"] as? String) ?: ""
+    val ops = _getFileOps(tid)
     return writeFileTool(path, content, ops)
 }
 
 fun _handlePatch(
-    path: String,
-    oldString: String,
-    newString: String,
-    replaceAll: Boolean = false,
-    taskId: String = "default",
+    args: Map<String, Any?>,
 ): String {
-    val ops = _getFileOps(taskId)
+    val tid = (args["task_id"] as? String) ?: "default"
+    val path = (args["path"] as? String) ?: ""
+    val oldString = (args["old_string"] as? String) ?: ""
+    val newString = (args["new_string"] as? String) ?: ""
+    val replaceAll = (args["replace_all"] as? Boolean) ?: false
+    val ops = _getFileOps(tid)
     return patchTool(path, oldString, newString, replaceAll, ops)
 }
 
 fun _handleSearchFiles(
-    pattern: String,
-    path: String = ".",
-    fileGlob: String? = null,
-    limit: Int = 50,
-    taskId: String = "default",
+    args: Map<String, Any?>,
 ): String {
-    val ops = _getFileOps(taskId)
+    val tid = (args["task_id"] as? String) ?: "default"
+    val pattern = (args["pattern"] as? String) ?: ""
+    val path = (args["path"] as? String) ?: "."
+    val fileGlob = args["file_glob"] as? String
+    val limit = (args["limit"] as? Int) ?: 50
+    val ops = _getFileOps(tid)
     return searchTool(pattern, path, fileGlob, limit, ops)
 }

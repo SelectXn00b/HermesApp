@@ -597,11 +597,23 @@ private fun translateStreamEvent(
  * Kotlin caller passes status code, body, and headers (Python's httpx.Response
  * is unavailable; we accept the decomposed fields).
  */
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "UNUSED_PARAMETER")
 private fun geminiHttpError(
-    status: Int,
-    bodyText: String,
-    headers: Map<String, String> = emptyMap()): GeminiAPIError {
+    response: Any?): GeminiAPIError {
+    val status: Int = when (response) {
+        is Map<*, *> -> ((response["statusCode"] as? Int) ?: (response["status_code"] as? Int) ?: (response["status"] as? Int)) ?: 0
+        else -> 0
+    }
+    val bodyText: String = when (response) {
+        is Map<*, *> -> (response["bodyText"] as? String) ?: (response["body_text"] as? String) ?: (response["body"] as? String) ?: ""
+        is String -> response
+        else -> ""
+    }
+    @Suppress("UNCHECKED_CAST")
+    val headers: Map<String, String> = when (response) {
+        is Map<*, *> -> (response["headers"] as? Map<String, String>) ?: emptyMap()
+        else -> emptyMap()
+    }
     var bodyJson: Map<String, Any?> = emptyMap()
     if (bodyText.isNotEmpty()) {
         try {

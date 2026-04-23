@@ -111,11 +111,8 @@ fun generateHermesToolsModule(
 
 fun executeCode(
     code: String,
-    language: String = "python",
+    taskId: String? = null,
     enabledTools: List<String>? = null,
-    timeout: Int = DEFAULT_TIMEOUT,
-    maxToolCalls: Int = DEFAULT_MAX_TOOL_CALLS,
-    taskId: String = "default",
 ): String = toolError("code_execution tool is not available on Android")
 
 // ── RPC helpers (Android: no-ops / fallbacks) ───────────────────────────
@@ -150,11 +147,8 @@ fun _rpcPollLoop(
 
 fun _executeRemote(
     code: String,
-    language: String = "python",
-    enabledTools: List<String>? = null,
-    timeout: Int = DEFAULT_TIMEOUT,
-    maxToolCalls: Int = DEFAULT_MAX_TOOL_CALLS,
-    taskId: String = "default",
+    taskId: String?,
+    enabledTools: List<String>?,
 ): String = toolError("code_execution tool is not available on Android")
 
 fun _killProcessGroup(proc: Any?, escalate: Boolean = false) {
