@@ -56,10 +56,12 @@ import java.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.ai.assistance.operit.data.mcp.MCPRepository
+import com.ai.assistance.operit.data.preferences.ApiPreferences
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -100,6 +102,9 @@ class MainActivity : ComponentActivity() {
 
     // 是否已完成初始检查
     private var initialChecksDone = false
+
+    // API key 是否已配置好（决定启动落地页）
+    private var userHasConfiguredApi = false
 
     // 存储待处理的分享文件URIs
     private var pendingSharedFileUris: List<Uri>? = null
@@ -350,10 +355,14 @@ class MainActivity : ComponentActivity() {
             // 2. 检查权限级别设置
             checkPermissionLevelSet()
 
-            // 3. 在协议已接受且无需权限引导时，启动插件加载
-            if (!showPermissionGuide && agreementPreferences.isAgreementAccepted()) {
-                startPluginLoading()
-            }
+            // 3. Hermes 裁剪：直接启动插件加载，不再等待协议/权限引导
+            startPluginLoading()
+
+            // 4. 读取 API 配置状态，决定启动落地页
+            userHasConfiguredApi = runCatching {
+                ApiPreferences.getInstance(applicationContext)
+                    .userHasConfiguredApiFlow.first()
+            }.getOrDefault(false)
 
             // 标记完成初始检查
             initialChecksDone = true
@@ -608,65 +617,28 @@ class MainActivity : ComponentActivity() {
                         // 在这里可以放置一个加载指示器，或者一个空白屏幕
                         // 为了简单起见，我们暂时留空，因为检查过程很快
                     } else {
-                        // 检查是否需要显示用户协议
-                        if (!agreementPreferences.isAgreementAccepted()) {
-                            AgreementScreen(
-                                    onAgreementAccepted = {
-                                        agreementPreferences.setAgreementAccepted(true)
-                                        // 协议接受后，检查权限级别设置
-                                        lifecycleScope.launch {
-                                            // 确保使用非阻塞方式更新UI
-                                            delay(300) // 短暂延迟确保UI状态更新
-                                            checkPermissionLevelSet()
-                                            if (!showPermissionGuide) {
-                                                startPluginLoading()
-                                            }
-                                            // 重新设置应用内容
-                                            setAppContent()
-                                        }
-                                    }
-                            )
-                        }
-                        // 检查是否需要显示权限引导界面
-                        else if (showPermissionGuide) {
-                            PermissionGuideScreen(
-                                    onComplete = {
-                                        showPermissionGuide = false
-                                        // 权限设置完成后，启动插件加载并更新内容
-                                        startPluginLoading()
-                                        setAppContent()
-                                    }
-                            )
-                        }
-                        // 显示主应用界面
-                        else {
-                            // 处理待处理的分享文件
-                            processPendingSharedFiles()
-                            processPendingSharedLinks()
-                            val shortcutNavItem = if (!showPreferencesGuide) pendingShortcutNavItem else null
-                            val shortcutNavRequestId =
-                                if (!showPreferencesGuide) pendingShortcutRequestId else 0L
-                            val initialNavItem = when {
-                                showPreferencesGuide -> NavItem.UserPreferencesGuide
-                                shortcutNavItem != null -> shortcutNavItem
-                                else -> NavItem.AiChat
-                            }
+                        // Hermes 裁剪：跳过用户协议 / 权限引导 / 偏好引导。
+                        // 已配置 API key 时直接进入对话界面，否则落到 API 设置界面。
+                        processPendingSharedFiles()
+                        processPendingSharedLinks()
+                        val shortcutNavItem = pendingShortcutNavItem
+                        val shortcutNavRequestId = pendingShortcutRequestId
+                        val initialNavItem = shortcutNavItem
+                            ?: if (userHasConfiguredApi) NavItem.AiChat else NavItem.ModelConfig
 
-                            CompositionLocalProvider(LocalPluginLoadingState provides pluginLoadingState) {
-                                // 主应用界面 (始终存在于底层)
-                                OperitApp(
-                                        initialNavItem = initialNavItem,
-                                        toolHandler = toolHandler,
-                                        shortcutNavRequest = shortcutNavItem,
-                                        shortcutNavRequestId = shortcutNavRequestId,
-                                        onShortcutNavHandled = { handledRequestId ->
-                                            if (pendingShortcutRequestId == handledRequestId) {
-                                                pendingShortcutNavItem = null
-                                                pendingShortcutRequestId = 0L
-                                            }
+                        CompositionLocalProvider(LocalPluginLoadingState provides pluginLoadingState) {
+                            OperitApp(
+                                    initialNavItem = initialNavItem,
+                                    toolHandler = toolHandler,
+                                    shortcutNavRequest = shortcutNavItem,
+                                    shortcutNavRequestId = shortcutNavRequestId,
+                                    onShortcutNavHandled = { handledRequestId ->
+                                        if (pendingShortcutRequestId == handledRequestId) {
+                                            pendingShortcutNavItem = null
+                                            pendingShortcutRequestId = 0L
                                         }
-                                )
-                            }
+                                    }
+                            )
                         }
                     }
                     // 插件加载界面 (带有淡出效果) - 始终在最上层

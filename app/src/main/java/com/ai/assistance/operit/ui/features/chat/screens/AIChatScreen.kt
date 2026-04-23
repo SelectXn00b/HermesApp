@@ -1566,12 +1566,8 @@ private fun ChatInputBottomBar(
 
                 val chatId = latestCurrentChatId.value
                 if (chatId.isNullOrBlank()) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.chat_please_create_new_chat),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                    return@launch
+                    actualViewModel.createNewChat()
+                    actualViewModel.currentChatId.first { !it.isNullOrBlank() }
                 }
 
                 focusManager.clearFocus()
@@ -1619,14 +1615,17 @@ private fun ChatInputBottomBar(
         onRequestAutoScrollToBottom,
     ) {
         {
+            focusManager.clearFocus()
             if (currentChatId.isNullOrBlank()) {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.chat_please_create_new_chat),
-                    Toast.LENGTH_SHORT,
-                ).show()
+                coroutineScope.launch {
+                    actualViewModel.createNewChat()
+                    actualViewModel.currentChatId.first { !it.isNullOrBlank() }
+                    actualViewModel.sendUserMessage()
+                    actualViewModel.resetAttachmentPanelState()
+                    onRequestAutoScrollToBottom()
+                }
+                Unit
             } else {
-                focusManager.clearFocus()
                 actualViewModel.sendUserMessage()
                 actualViewModel.resetAttachmentPanelState()
                 onRequestAutoScrollToBottom()
