@@ -320,8 +320,11 @@ fun _selectLocalTimeline(
     return timeline.subList(start, end)
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun _selectWholeTimeline(
-    timeline: List<Triple<String, String, Boolean>>
+    timeline: List<Triple<String, String, Boolean>>,
+    currentIndex: Int = -1,
+    nearestSelfIndex: Int = -1,
 ): List<Triple<String, String, Boolean>> {
     if (timeline.size <= _WHOLE_TIMELINE_LIMIT) return timeline
     return timeline.takeLast(_WHOLE_TIMELINE_LIMIT)

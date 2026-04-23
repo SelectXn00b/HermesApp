@@ -1118,7 +1118,14 @@ fun _getCachedClient(
     vision: Boolean = false
 ): Pair<Any?, String?> = null to null
 
-fun _resolveTaskProviderModel(task: String): Pair<String, String> = "" to ""
+@Suppress("UNUSED_PARAMETER")
+fun _resolveTaskProviderModel(
+    task: String? = null,
+    provider: String? = null,
+    model: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+): Pair<String, String> = "" to ""
 
 fun _getAuxiliaryTaskConfig(task: String): Map<String, Any?> = emptyMap()
 

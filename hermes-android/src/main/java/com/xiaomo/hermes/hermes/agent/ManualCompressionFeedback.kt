@@ -45,4 +45,10 @@ class NoOpCompressionFeedback : ManualCompressionFeedback {
 }
 
 /** Python `summarize_manual_compression` — stub. */
-fun summarizeManualCompression(messages: List<Map<String, Any?>>): String = ""
+@Suppress("UNUSED_PARAMETER")
+fun summarizeManualCompression(
+    beforeMessages: List<Map<String, Any?>>,
+    afterMessages: List<Map<String, Any?>>,
+    beforeTokens: Int,
+    afterTokens: Int,
+): String = ""

@@ -105,6 +105,7 @@ private fun _writeFile(name: String, filePath: String, fileContent: String): Map
 private fun _removeFile(name: String, filePath: String): Map<String, Any> =
     mapOf("error" to "skill_manage is not available on Android")
 
+@Suppress("UNUSED_PARAMETER")
 fun skillManage(
     action: String,
     name: String? = null,
@@ -112,4 +113,7 @@ fun skillManage(
     category: String? = null,
     filePath: String? = null,
     fileContent: String? = null,
+    oldString: String? = null,
+    newString: String? = null,
+    replaceAll: Boolean = false,
 ): String = toolError("skill_manage is not available on Android")

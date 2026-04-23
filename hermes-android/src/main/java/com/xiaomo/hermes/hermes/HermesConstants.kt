@@ -210,7 +210,8 @@ fun getHermesHome(): File {
 /**
  * 获取 HEROES_DIR (inside HERMES_HOME)
  */
-fun getHermesDir(): File {
+@Suppress("UNUSED_PARAMETER")
+fun getHermesDir(newSubpath: String = "", oldName: String = ""): File {
     return getHermesHome()
 }
 

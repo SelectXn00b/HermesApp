@@ -1065,4 +1065,9 @@ suspend fun main(
     }
 }
 /** Python `_effective_temperature_for_model` — stub. */
-private fun _effectiveTemperatureForModel(model: String): Double = 0.0
+@Suppress("UNUSED_PARAMETER")
+private fun _effectiveTemperatureForModel(
+    model: String,
+    requestedTemperature: Double = 0.0,
+    baseUrl: String? = null,
+): Double = 0.0

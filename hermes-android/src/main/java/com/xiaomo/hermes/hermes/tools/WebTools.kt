@@ -103,7 +103,15 @@ suspend fun webExtractTool(
     minLength: Int = DEFAULT_MIN_LENGTH_FOR_SUMMARIZATION,
 ): String = toolError("web_extract tool is not available on Android")
 
-suspend fun webCrawlTool(vararg args: Any?): String =
+@Suppress("UNUSED_PARAMETER")
+suspend fun webCrawlTool(
+    url: String,
+    instructions: String? = null,
+    depth: String = "basic",
+    useLlmProcessing: Boolean = true,
+    model: String? = null,
+    minLength: Int = DEFAULT_MIN_LENGTH_FOR_SUMMARIZATION,
+): String =
     toolError("web_crawl tool is not available on Android")
 
 fun checkFirecrawlApiKey(): Boolean = false
@@ -121,9 +129,13 @@ suspend fun processContentWithLlm(
 /** Drive one call to the auxiliary summarizer LLM. Android stub. */
 @Suppress("UNUSED_PARAMETER")
 private suspend fun _callSummarizerLlm(
-    prompt: String,
-    model: String? = null,
-): String = ""
+    content: String,
+    contextStr: String,
+    model: String?,
+    maxTokens: Int = 20000,
+    isChunk: Boolean = false,
+    chunkInfo: String = "",
+): String? = null
 
 /** Chunk oversized content and summarize each part. Android stub. */
 @Suppress("UNUSED_PARAMETER")

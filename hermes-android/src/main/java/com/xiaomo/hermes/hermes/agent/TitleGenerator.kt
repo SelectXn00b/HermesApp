@@ -88,8 +88,19 @@ suspend fun generateTitle(userMessage: String, assistantResponse: String, timeou
 
 /** Auto-title a session if it has enough content and no title yet. */
 @Suppress("UNUSED_PARAMETER")
-suspend fun autoTitleSession(sessionKey: String, messages: List<Map<String, Any?>>): String? = null
+suspend fun autoTitleSession(
+    sessionDb: Any?,
+    sessionId: String,
+    userMessage: String,
+    assistantResponse: String,
+): String? = null
 
 /** Optionally run auto_title_session based on current session state. */
 @Suppress("UNUSED_PARAMETER")
-suspend fun maybeAutoTitle(sessionKey: String, messages: List<Map<String, Any?>>): String? = null
+suspend fun maybeAutoTitle(
+    sessionDb: Any?,
+    sessionId: String,
+    userMessage: String,
+    assistantResponse: String,
+    conversationHistory: List<Map<String, Any?>>,
+): String? = null

@@ -546,4 +546,11 @@ private fun _expandUserHome(raw: String): String {
 }
 
 /** Python `preprocess_context_references` — stub. */
-fun preprocessContextReferences(text: String): String = text
+@Suppress("UNUSED_PARAMETER")
+fun preprocessContextReferences(
+    message: String,
+    cwd: String = "",
+    contextLength: Int = 0,
+    urlFetcher: ((String) -> String)? = null,
+    allowedRoot: String? = null,
+): String = message

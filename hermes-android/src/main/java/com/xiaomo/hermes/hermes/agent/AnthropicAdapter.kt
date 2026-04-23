@@ -733,11 +733,9 @@ fun _refreshOauthToken(creds: Map<String, Any?>): String? {
         val accessToken = (refreshed["access_token"] as? String)?.trim().orEmpty()
         if (accessToken.isEmpty()) return null
         _writeClaudeCodeCredentials(
-            mapOf(
-                "accessToken" to accessToken,
-                "refreshToken" to (refreshed["refresh_token"] as? String ?: refreshToken),
-                "expiresAt" to (refreshed["expires_at_ms"] as? Number ?: 0L)
-            )
+            accessToken,
+            (refreshed["refresh_token"] as? String) ?: refreshToken,
+            (refreshed["expires_at_ms"] as? Number)?.toLong() ?: 0L,
         )
         accessToken
     } catch (_: Exception) {
@@ -745,7 +743,13 @@ fun _refreshOauthToken(creds: Map<String, Any?>): String? {
     }
 }
 
-fun _writeClaudeCodeCredentials(creds: Map<String, Any?>): Boolean {
+@Suppress("UNUSED_PARAMETER")
+fun _writeClaudeCodeCredentials(
+    accessToken: String,
+    refreshToken: String,
+    expiresAtMs: Long,
+    scopes: List<String>? = null,
+): Boolean {
     // Android: 我们不写 ~/.claude/.credentials.json。调用者若需要持久化，
     // 走 AnthropicOAuthManager 的 DataStore。
     return false

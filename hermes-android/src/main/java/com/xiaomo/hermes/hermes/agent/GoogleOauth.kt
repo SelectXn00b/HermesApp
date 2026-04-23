@@ -718,9 +718,14 @@ fun startOauthFlow(
  * Headless "paste the code here" fallback. Android has no TTY prompt;
  * returns null so callers fall back to UI-driven flow.
  */
+@Suppress("UNUSED_PARAMETER")
 fun _pasteModeLogin(
-    clientId: String? = null,
-    clientSecret: String? = null,
+    verifier: String,
+    challenge: String,
+    state: String,
+    clientId: String,
+    clientSecret: String,
+    projectId: String,
 ): GoogleCredentials? = null
 
 /** Prompt the user to paste an authorization code. No TTY on Android. */
