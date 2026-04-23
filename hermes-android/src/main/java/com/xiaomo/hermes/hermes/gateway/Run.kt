@@ -650,9 +650,7 @@ class GatewayRunner(
     /** Background task that periodically retries connecting failed platforms. */
     suspend fun _platformReconnectWatcher(){ /* void */ }
     /** Inner handler that runs under the _running_agents sentinel guard. */
-    suspend fun _handleMessageWithAgent(event: Any?, source: Any?, _quickKey: String): Any? {
-        return null
-    }
+    suspend fun _handleMessageWithAgent(event: Any?, source: Any?, _quickKey: String): Any? = null
     /** Resolve current model config and return a formatted info block. */
     fun _formatSessionInfo(): String = buildString {
         val model = resolveGatewayModel()
@@ -803,9 +801,7 @@ class GatewayRunner(
         return "✅ Home channel set to this chat."
     }
     /** Extract Discord guild_id from the raw message object. */
-    fun _getGuildId(event: MessageEvent): Int? {
-        return null
-    }
+    fun _getGuildId(event: MessageEvent): Int? = null
     /** Handle /voice [on|off|tts|channel|leave|status] command. */
     suspend fun _handleVoiceCommand(event: MessageEvent): String {
         return "🎤 Voice commands are not supported on Android."
@@ -821,9 +817,7 @@ class GatewayRunner(
     /** Called by the adapter when a voice channel times out. */
     fun _handleVoiceTimeoutCleanup(chatId: String){ /* void */ }
     /** Decide whether the runner should send a TTS voice reply. */
-    fun _shouldSendVoiceReply(event: MessageEvent, response: String, agentMessages: Any?, alreadySent: Boolean = false): Boolean {
-        return false
-    }
+    fun _shouldSendVoiceReply(event: MessageEvent, response: String, agentMessages: Any?, alreadySent: Boolean = false): Boolean = false
     /** Generate TTS audio and send as a voice message before the text reply. */
     suspend fun _sendVoiceReply(event: MessageEvent, text: String){ /* void */ }
     /** Restore session context variables to their pre-handler values. */
@@ -831,13 +825,9 @@ class GatewayRunner(
         // Android does not use contextvars; no-op
     }
     /** Auto-analyze user-attached images with the vision tool and prepend */
-    suspend fun _enrichMessageWithVision(userText: String, imagePaths: List<String>): String {
-        return ""
-    }
+    suspend fun _enrichMessageWithVision(userText: String, imagePaths: List<String>): String = ""
     /** Auto-transcribe user voice/audio messages using the configured STT provider */
-    suspend fun _enrichMessageWithTranscription(userText: String, audioPaths: List<String>): String {
-        return ""
-    }
+    suspend fun _enrichMessageWithTranscription(userText: String, audioPaths: List<String>): String = ""
     /** Inject a watch-pattern notification as a synthetic message event. */
     suspend fun _injectWatchNotification(synthText: String, originalEvent: Any?): Unit {
         Log.d(_TAG, "Watch notification: $synthText")
@@ -1387,9 +1377,7 @@ class GatewayRunner(
     }
 
     /** Check if an update finished and notify user — not applicable on Android. */
-    suspend fun _sendUpdateNotification(): Boolean {
-        return false
-    }
+    suspend fun _sendUpdateNotification(): Boolean = false
 
     /** Notify the chat that initiated /restart that the gateway is back. */
     suspend fun _sendRestartNotification() {
