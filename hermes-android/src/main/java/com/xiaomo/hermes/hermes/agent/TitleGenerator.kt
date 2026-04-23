@@ -80,7 +80,7 @@ class TitleGenerator {
 // ── Module-level aligned with agent/title_generator.py ───────────────────
 
 /** Prompt used to instruct the model to write a session title. */
-const val _TITLE_PROMPT: String = "Generate a short, descriptive title (max 6 words) for this conversation."
+const val _TITLE_PROMPT: String = "Generate a short, descriptive title (3-7 words) for a conversation that starts with the following exchange. The title should capture the main topic or intent. Return ONLY the title text, nothing else. No quotes, no punctuation at the end, no prefixes."
 
 /** Generate a title for the given conversation (stub). */
 @Suppress("UNUSED_PARAMETER")

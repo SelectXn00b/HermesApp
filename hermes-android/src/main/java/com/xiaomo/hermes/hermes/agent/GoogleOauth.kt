@@ -79,11 +79,24 @@ val _CLIENT_SECRET_SHAPE: Regex = Regex("""(GOCSPX-[A-Za-z0-9_-]{20,})""")
 val _HEADLESS_ENV_VARS: List<String> = listOf("SSH_CONNECTION", "SSH_CLIENT", "SSH_TTY", "HERMES_HEADLESS")
 
 const val _SUCCESS_PAGE: String = """<!doctype html>
-<html><body><h1>Hermes login complete</h1>
-<p>You can close this window and return to the terminal.</p></body></html>"""
+<html><head><meta charset="utf-8"><title>Hermes — signed in</title>
+<style>
+body { font: 16px/1.5 system-ui, sans-serif; margin: 10vh auto; max-width: 32rem; text-align: center; color: #222; }
+h1 { color: #1a7f37; } p { color: #555; }
+</style></head>
+<body><h1>Signed in to Google.</h1>
+<p>You can close this tab and return to your terminal.</p></body></html>
+"""
 
 const val _ERROR_PAGE: String = """<!doctype html>
-<html><body><h1>Hermes login failed</h1><p>{message}</p></body></html>"""
+<html><head><meta charset="utf-8"><title>Hermes — sign-in failed</title>
+<style>
+body {{ font: 16px/1.5 system-ui, sans-serif; margin: 10vh auto; max-width: 32rem; text-align: center; color: #222; }}
+h1 {{ color: #b42318; }} p {{ color: #555; }}
+</style></head>
+<body><h1>Sign-in failed</h1><p>{message}</p>
+<p>Return to your terminal — Hermes will walk you through a manual paste fallback.</p></body></html>
+"""
 
 // =============================================================================
 // Error type
