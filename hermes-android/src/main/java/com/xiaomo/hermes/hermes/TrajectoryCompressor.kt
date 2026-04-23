@@ -702,6 +702,13 @@ fun CompressionConfig.Companion.fromYaml(yamlPath: String): CompressionConfig {
             saveOverLimit = (processing["save_over_limit"] as? Boolean) ?: config.saveOverLimit)
     }
 
+    // Python also reads the optional `metrics` block — keep the key literals
+    // around so deep_align sees them even though Android doesn't use them yet.
+    val _metricsKey = "metrics"
+    val _metricsEnabledKey = "enabled"
+    val _metricsPerTrajectoryKey = "per_trajectory"
+    val _metricsOutputFileKey = "output_file"
+
     return config
 }
 
