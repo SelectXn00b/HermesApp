@@ -34,7 +34,7 @@ const val STANDARD_TIER_ID = "standard-tier"
 
 private const val _GEMINI_CLI_USER_AGENT = "google-api-nodejs-client/9.15.1 (gzip)"
 private const val _X_GOOG_API_CLIENT = "gl-node/24.0.0"
-private const val _DEFAULT_REQUEST_TIMEOUT = 30_000 // ms
+private const val _DEFAULT_REQUEST_TIMEOUT: Double = 30.0
 private const val _ONBOARDING_POLL_ATTEMPTS = 12
 private const val _ONBOARDING_POLL_INTERVAL_MS = 5_000L
 
@@ -87,7 +87,7 @@ private fun _postJson(
     url: String,
     body: Map<String, Any>,
     accessToken: String,
-    timeout: Int = _DEFAULT_REQUEST_TIMEOUT,
+    timeout: Double = _DEFAULT_REQUEST_TIMEOUT,
     userAgentModel: String = "",
 ): Map<String, Any> {
     val headers = _buildHeaders(accessToken, userAgentModel)
@@ -95,8 +95,8 @@ private fun _postJson(
     try {
         connection.requestMethod = "POST"
         connection.doOutput = true
-        connection.connectTimeout = timeout
-        connection.readTimeout = timeout
+        connection.connectTimeout = (timeout * 1000).toInt()
+        connection.readTimeout = (timeout * 1000).toInt()
         for ((k, v) in headers) {
             connection.setRequestProperty(k, v)
         }
@@ -374,4 +374,4 @@ fun resolveProjectContext(
 }
 
 /** Python `_ONBOARDING_POLL_INTERVAL_SECONDS` — seconds between onboarding status polls. */
-private const val _ONBOARDING_POLL_INTERVAL_SECONDS: Double = 2.0
+private const val _ONBOARDING_POLL_INTERVAL_SECONDS: Double = 5.0
