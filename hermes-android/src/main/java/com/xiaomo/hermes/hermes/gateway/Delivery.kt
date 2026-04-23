@@ -105,16 +105,20 @@ class DeliveryRouter {
      * Deliver a message to one or more targets.
      * Mirrors Python's DeliveryRouter.deliver.
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun deliver(
+        content: String,
         targets: List<DeliveryTarget>,
-        text: String,
-        replyTo: String? = null): List<DeliveryResult> {
+        jobId: String? = null,
+        jobName: String? = null,
+        metadata: Map<String, Any?>? = null,
+    ): List<DeliveryResult> {
         val results = mutableListOf<DeliveryResult>()
         for (target in targets) {
             val result = if (target.platform == "local") {
-                _deliverLocal(text)
+                _deliverLocal(content, jobId, jobName, metadata)
             } else {
-                _deliverToPlatform(target, text, replyTo)
+                _deliverToPlatform(target, content, null)
             }
             results.add(result)
         }
@@ -123,8 +127,12 @@ class DeliveryRouter {
 
     /** Deliver to the local (headless) target — no-op stub. */
     @Suppress("UNUSED_PARAMETER")
-    private fun _deliverLocal(text: String): DeliveryResult =
-        DeliveryResult(success = true)
+    private fun _deliverLocal(
+        content: String,
+        jobId: String? = null,
+        jobName: String? = null,
+        metadata: Map<String, Any?>? = null,
+    ): DeliveryResult = DeliveryResult(success = true)
 
     /**
      * Save full output to local storage when truncated for platform delivery.

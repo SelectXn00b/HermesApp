@@ -122,7 +122,12 @@ class GatewayRunner(
      *
      * Disconnects all platform adapters and persists sessions.
      */
-    suspend fun stop() {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun stop(
+        restart: Boolean = false,
+        detachedRestart: Boolean = false,
+        serviceRestart: Boolean = false,
+    ) {
         if (!isRunning.getAndSet(false)) {
             return
         }
@@ -195,7 +200,7 @@ class GatewayRunner(
         }
 
         // Set up message handler
-        adapter.messageHandler = { event -> _handleMessage(event, adapter) }
+        adapter.messageHandler = { event -> _handleMessage(event) }
 
         // Connect
         val connected = adapter.connect()
@@ -210,7 +215,8 @@ class GatewayRunner(
     /**
      * Handle an incoming message from a platform adapter.
      */
-    private suspend fun _handleMessage(event: MessageEvent, adapter: BasePlatformAdapter) {
+    private suspend fun _handleMessage(event: MessageEvent) {
+        val platformName = event.source.platform
         // Acquire session semaphore
         if (!_sessionSemaphore.tryAcquire()) {
             Log.w(_TAG, "Max concurrent sessions reached, dropping message")
@@ -221,7 +227,7 @@ class GatewayRunner(
             // Get or create session
             val session = sessionStore.getOrCreate(
                 sessionKey = event.sessionKey,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId,
                 chatName = event.source.chatName,
@@ -234,14 +240,14 @@ class GatewayRunner(
             session.isProcessing = true
             session.processingStartedAt = System.currentTimeMillis()
             status.processingSessions++
-            status.countersFor(adapter.name).recordReceived()
+            status.countersFor(platformName).recordReceived()
 
             // Run pre-validate hooks
             val preValidateResult = hookPipeline.run(
                 HookEvent.PRE_VALIDATE,
                 sessionKey = session.sessionKey,
                 text = event.text,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             if (preValidateResult is HookResult.Halt) {
@@ -254,7 +260,7 @@ class GatewayRunner(
                 HookEvent.POST_VALIDATE,
                 sessionKey = session.sessionKey,
                 text = event.text,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             if (postValidateResult is HookResult.Halt) {
@@ -267,7 +273,7 @@ class GatewayRunner(
                 HookEvent.PRE_AGENT,
                 sessionKey = session.sessionKey,
                 text = event.text,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             if (preAgentResult is HookResult.Halt) {
@@ -287,7 +293,7 @@ class GatewayRunner(
                 HookEvent.POST_AGENT,
                 sessionKey = session.sessionKey,
                 text = responseText,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             val finalResponse = when (postAgentResult) {
@@ -304,7 +310,7 @@ class GatewayRunner(
                 HookEvent.PRE_SEND,
                 sessionKey = session.sessionKey,
                 text = finalResponse,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
             val sendText = when (preSendResult) {
@@ -318,16 +324,16 @@ class GatewayRunner(
 
             // Send response
             val result = deliveryRouter.deliverText(
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 text = sendText,
                 replyTo = event.message_id)
 
             // Record send
             if (result.success) {
-                status.countersFor(adapter.name).recordSent()
+                status.countersFor(platformName).recordSent()
             } else {
-                status.countersFor(adapter.name).recordError()
+                status.countersFor(platformName).recordError()
                 Log.w(_TAG, "Failed to send response: ${result.error}")
             }
 
@@ -336,7 +342,7 @@ class GatewayRunner(
                 HookEvent.POST_SEND,
                 sessionKey = session.sessionKey,
                 text = sendText,
-                platform = adapter.name,
+                platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
 
@@ -629,7 +635,12 @@ class GatewayRunner(
         return buildSessionKey(source.platform, source.chatId, source.userId)
     }
     /** Resolve model/runtime for a session, honoring session-scoped /model overrides. */
-    fun _resolveSessionAgentRuntime(sessionKey: String? = null): Pair<String, Map<String, Any?>> {
+    @Suppress("UNUSED_PARAMETER")
+    fun _resolveSessionAgentRuntime(
+        source: SessionSource? = null,
+        sessionKey: String? = null,
+        userConfig: Map<String, Any?>? = null,
+    ): Pair<String, Map<String, Any?>> {
         val model = config.defaultModel.ifEmpty {
             System.getenv("HERMES_MODEL") ?: "default"
         }
@@ -1092,7 +1103,8 @@ class GatewayRunner(
     @Volatile private var _restartTaskStarted = false
 
     /** Initiate a gateway restart. Returns false if already in progress. */
-    fun requestRestart(): Boolean {
+    @Suppress("UNUSED_PARAMETER")
+    fun requestRestart(detached: Boolean = false, viaService: Boolean = false): Boolean {
         if (_restartTaskStarted) return false
         _restartRequested = true
         _restartTaskStarted = true
@@ -1144,7 +1156,12 @@ class GatewayRunner(
 
     /** Prepare inbound event text for the agent — applies sender attribution,
      *  document notes, and reply context injection. */
-    suspend fun _prepareInboundMessageText(): String? {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _prepareInboundMessageText(
+        event: MessageEvent,
+        source: SessionSource,
+        history: List<Map<String, Any?>>,
+    ): String? {
         // On Android, message preprocessing is simpler — no vision/STT/@ expansion
         return null
     }
@@ -1614,19 +1631,34 @@ class GatewayRunner(
     }
 
     /** Interrupt any running agent for [sessionKey] and wipe session state. */
-    suspend fun _interruptAndClearSession(sessionKey: String, reason: String) {
+    @Suppress("UNUSED_PARAMETER")
+    suspend fun _interruptAndClearSession(
+        sessionKey: String,
+        source: SessionSource,
+        interruptReason: String,
+        invalidationReason: String,
+        releaseRunningState: Boolean = true,
+    ) {
         _invalidateSessionRunGeneration(sessionKey)
         /* Android stub — Python tears down the running agent + clears state. */
     }
 
     /** Dispatch a resolved event to the real agent loop. Android stub. */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun _runAgent(
-        sessionKey: String,
-        event: Any?,
-        agentKwargs: Map<String, Any?>? = null
-    ): Any? {
+        message: String,
+        contextPrompt: String,
+        history: List<Map<String, Any?>>,
+        source: SessionSource,
+        sessionId: String,
+        sessionKey: String? = null,
+        runGeneration: Int? = null,
+        _interruptDepth: Int = 0,
+        eventMessageId: String? = null,
+        channelPrompt: String? = null,
+    ): Map<String, Any?> {
         /* Android routes through HermesAgentLoop outside this class. */
-        return null
+        return emptyMap()
     }
 }
 
@@ -1825,10 +1857,21 @@ fun _parseSessionKey(sessionKey: String): Pair<String, String> {
 }
 
 /** Start a cron ticker thread — Android returns an inert handle. */
-fun _startCronTicker(): Any? = null
+@Suppress("UNUSED_PARAMETER")
+fun _startCronTicker(
+    stopEvent: Any? = null,
+    adapters: Any? = null,
+    loop: Any? = null,
+    interval: Int = 60,
+): Any? = null
 
 /** Bootstrap entry: connect adapters and run the gateway loop. Android stub. */
-suspend fun startGateway(config: Map<String, Any?>? = null): Int = 0
+@Suppress("UNUSED_PARAMETER")
+suspend fun startGateway(
+    config: Map<String, Any?>? = null,
+    replace: Boolean = false,
+    verbosity: Int? = 0,
+): Int = 0
 
 /** CLI entrypoint — maps to ``python -m hermes.gateway.run``. Android: no-op. */
 fun main() { /* Android: gateway is embedded, not launched from CLI. */ }

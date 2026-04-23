@@ -1062,11 +1062,16 @@ fun _normalizeResolvedModel(modelName: String?, provider: String): String? {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun resolveProviderClient(
     provider: String? = null,
     model: String? = null,
+    asyncMode: Boolean = false,
+    rawCodex: Boolean = false,
+    explicitBaseUrl: String? = null,
+    explicitApiKey: String? = null,
+    apiMode: String? = null,
     mainRuntime: Map<String, Any?>? = null,
-    vision: Boolean = false
 ): Triple<Any?, String?, String?> = Triple(null, null, null)
 
 fun getTextAuxiliaryClient(task: String = "", mainRuntime: Map<String, Any?>? = null): Any? = null
@@ -1089,9 +1094,13 @@ fun _strictVisionBackendAvailable(provider: String): Boolean = false
 
 fun getAvailableVisionBackends(): List<String> = emptyList()
 
+@Suppress("UNUSED_PARAMETER")
 fun resolveVisionProviderClient(
     provider: String? = null,
-    model: String? = null
+    model: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+    asyncMode: Boolean = false,
 ): Triple<Any?, String?, String?> = Triple(null, null, null)
 
 fun getAuxiliaryExtraBody(): Map<String, Any?> = emptyMap()
@@ -1112,10 +1121,15 @@ fun _compatModel(client: Any?, model: String?, cachedDefault: String?): String? 
     return model ?: cachedDefault
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun _getCachedClient(
     provider: String,
     model: String? = null,
-    vision: Boolean = false
+    asyncMode: Boolean = false,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+    apiMode: String? = null,
+    mainRuntime: Map<String, Any?>? = null,
 ): Pair<Any?, String?> = null to null
 
 @Suppress("UNUSED_PARAMETER")
@@ -1162,30 +1176,46 @@ fun _convertOpenaiImagesToAnthropic(messages: List<Map<String, Any?>>): List<Map
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun _buildCallKwargs(
-    task: String,
     provider: String,
     model: String,
     messages: List<Map<String, Any?>>,
-    extra: Map<String, Any?> = emptyMap()
+    temperature: Double? = null,
+    maxTokens: Int? = null,
+    tools: List<Map<String, Any?>>? = null,
+    timeout: Double = 30.0,
+    extraBody: Map<String, Any?>? = null,
+    baseUrl: String? = null,
 ): Map<String, Any?> {
     val kwargs = mutableMapOf<String, Any?>(
         "model" to model,
         "messages" to messages
     )
-    val t = _fixedTemperatureForModel(model, provider)
+    val t = _fixedTemperatureForModel(model, provider) ?: temperature
     if (t != null) kwargs["temperature"] = t
-    kwargs.putAll(_getTaskExtraBody(task))
-    kwargs.putAll(extra)
+    if (maxTokens != null) kwargs["max_tokens"] = maxTokens
+    if (tools != null) kwargs["tools"] = tools
+    if (extraBody != null) kwargs.putAll(extraBody)
     return kwargs
 }
 
 fun _validateLlmResponse(response: Any?, task: String? = null): Any? = response
 
+@Suppress("UNUSED_PARAMETER")
 fun callLlm(
-    task: String,
-    messages: List<Map<String, Any?>>,
-    extra: Map<String, Any?> = emptyMap()
+    task: String? = null,
+    provider: String? = null,
+    model: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+    mainRuntime: Map<String, Any?>? = null,
+    messages: List<Map<String, Any?>> = emptyList(),
+    temperature: Double? = null,
+    maxTokens: Int? = null,
+    tools: List<Map<String, Any?>>? = null,
+    timeout: Double? = null,
+    extraBody: Map<String, Any?>? = null,
 ): Any? {
     auxiliaryLogger.debug("callLlm($task) — Android auxiliary client not wired; returning null")
     return null
@@ -1207,10 +1237,19 @@ fun extractContentOrReasoning(response: Any?): String {
     return content?.toString() ?: ""
 }
 
+@Suppress("UNUSED_PARAMETER")
 suspend fun asyncCallLlm(
-    task: String,
-    messages: List<Map<String, Any?>>,
-    extra: Map<String, Any?> = emptyMap()
+    task: String? = null,
+    provider: String? = null,
+    model: String? = null,
+    baseUrl: String? = null,
+    apiKey: String? = null,
+    messages: List<Map<String, Any?>> = emptyList(),
+    temperature: Double? = null,
+    maxTokens: Int? = null,
+    tools: List<Map<String, Any?>>? = null,
+    timeout: Double? = null,
+    extraBody: Map<String, Any?>? = null,
 ): Any? {
     auxiliaryLogger.debug("asyncCallLlm($task) — Android auxiliary client not wired; returning null")
     return null

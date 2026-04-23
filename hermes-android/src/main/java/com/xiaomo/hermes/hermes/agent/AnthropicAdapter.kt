@@ -959,18 +959,21 @@ fun convertMessagesToAnthropic(
     return system to out
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun buildAnthropicKwargs(
     model: String,
     messages: List<Map<String, Any?>>,
-    tools: List<Map<String, Any?>>? = null,
-    maxTokens: Int? = null,
-    temperature: Double? = null,
-    topP: Double? = null,
-    topK: Int? = null,
-    effort: String? = null,
-    extra: Map<String, Any?> = emptyMap()
+    tools: List<Map<String, Any?>>?,
+    maxTokens: Int?,
+    reasoningConfig: Map<String, Any?>?,
+    toolChoice: String? = null,
+    isOauth: Boolean = false,
+    preserveDots: Boolean = false,
+    contextLength: Int? = null,
+    baseUrl: String? = null,
+    fastMode: Boolean = false,
 ): Map<String, Any?> {
-    val normalizedModel = normalizeModelName(model)
+    val normalizedModel = normalizeModelName(model, preserveDots = preserveDots)
     val (system, anthMessages) = convertMessagesToAnthropic(messages, normalizedModel)
     val kwargs = mutableMapOf<String, Any?>(
         "model" to normalizedModel,
@@ -979,11 +982,8 @@ fun buildAnthropicKwargs(
     )
     if (!system.isNullOrEmpty()) kwargs["system"] = system
     if (!tools.isNullOrEmpty()) kwargs["tools"] = convertToolsToAnthropic(tools)
-    if (!_forbidsSamplingParams(normalizedModel)) {
-        if (temperature != null) kwargs["temperature"] = temperature
-        if (topP != null) kwargs["top_p"] = topP
-        if (topK != null) kwargs["top_k"] = topK
-    }
+    if (!toolChoice.isNullOrEmpty()) kwargs["tool_choice"] = mapOf("type" to toolChoice)
+    val effort = reasoningConfig?.get("effort") as? String
     if (!effort.isNullOrEmpty() && _supportsAdaptiveThinking(normalizedModel)) {
         var mappedEffort = ADAPTIVE_EFFORT_MAP[effort] ?: effort
         if (mappedEffort == "xhigh" && !_supportsXhighEffort(normalizedModel)) {
@@ -991,7 +991,6 @@ fun buildAnthropicKwargs(
         }
         kwargs["output_config"] = mapOf("effort" to mappedEffort)
     }
-    kwargs.putAll(extra)
     return kwargs
 }
 
