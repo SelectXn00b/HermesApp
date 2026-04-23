@@ -215,9 +215,8 @@ class InMemoryMemoryProvider : MemoryProvider {
 
     /** Handle a tool call for one of this provider's tools.
      *  InMemory exposes no tools, so this always throws. */
-    override fun handleToolCall(toolName: String, args: Map<String, Any>, kwargs: Any): String {
+    override fun handleToolCall(toolName: String, args: Map<String, Any>, kwargs: Any): String =
         throw NotImplementedError("Provider builtin does not handle tool $toolName")
-    }
 
     /** Clean shutdown — flush queues, close connections. */
     override fun shutdown() {
