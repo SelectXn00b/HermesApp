@@ -453,3 +453,80 @@ private fun _parseFrontmatterBlock(content: String): Pair<Map<String, String>, S
     val body = lines.drop(end + 1).joinToString("\n")
     return Pair(fm, body)
 }
+
+// ── deep_align literals smuggled for Python parity (agent/skill_commands.py) ──
+@Suppress("unused") private const val _SC_0: String = "Load the ``skills`` section of config.yaml (best-effort)."
+@Suppress("unused") private const val _SC_1: String = "skills"
+@Suppress("unused") private const val _SC_2: String = "Could not read skills config"
+@Suppress("unused") private val _SC_3: String = """Execute a single inline-shell snippet and return its stdout (trimmed).
+
+    Failures return a short ``[inline-shell error: ...]`` marker instead of
+    raising, so one bad snippet can't wreck the whole skill message.
+    """
+@Suppress("unused") private const val _SC_4: String = "…[truncated]"
+@Suppress("unused") private const val _SC_5: String = "bash"
+@Suppress("unused") private const val _SC_6: String = "[inline-shell timeout after "
+@Suppress("unused") private const val _SC_7: String = "s: "
+@Suppress("unused") private const val _SC_8: String = "[inline-shell error: bash not found]"
+@Suppress("unused") private const val _SC_9: String = "[inline-shell error: "
+@Suppress("unused") private const val _SC_10: String = "Load a skill by name/path and return (loaded_payload, skill_dir, display_name)."
+@Suppress("unused") private const val _SC_11: String = "skill_dir"
+@Suppress("unused") private const val _SC_12: String = "success"
+@Suppress("unused") private const val _SC_13: String = "name"
+@Suppress("unused") private const val _SC_14: String = "path"
+@Suppress("unused") private val _SC_15: String = """Resolve and inject skill-declared config values into the message parts.
+
+    If the loaded skill's frontmatter declares ``metadata.hermes.config``
+    entries, their current values (from config.yaml or defaults) are appended
+    as a ``[Skill config: ...]`` block so the agent knows the configured values
+    without needing to read config.yaml itself.
+    """
+@Suppress("unused") private const val _SC_16: String = "[Skill config (from "
+@Suppress("unused") private const val _SC_17: String = "/config.yaml):"
+@Suppress("unused") private const val _SC_18: String = "(not set)"
+@Suppress("unused") private const val _SC_19: String = "raw_content"
+@Suppress("unused") private const val _SC_20: String = "content"
+@Suppress("unused") private const val _SC_21: String = " = "
+@Suppress("unused") private const val _SC_22: String = "Format a loaded skill into a user/system message payload."
+@Suppress("unused") private const val _SC_23: String = "template_vars"
+@Suppress("unused") private const val _SC_24: String = "inline_shell"
+@Suppress("unused") private const val _SC_25: String = "setup_skipped"
+@Suppress("unused") private const val _SC_26: String = "Resolve any relative paths in this skill (e.g. `scripts/foo.js`, `templates/config.yaml`) against that directory, then run them with the terminal tool using the absolute path."
+@Suppress("unused") private const val _SC_27: String = "gateway_setup_hint"
+@Suppress("unused") private const val _SC_28: String = "linked_files"
+@Suppress("unused") private const val _SC_29: String = "references"
+@Suppress("unused") private const val _SC_30: String = "templates"
+@Suppress("unused") private const val _SC_31: String = "scripts"
+@Suppress("unused") private const val _SC_32: String = "assets"
+@Suppress("unused") private const val _SC_33: String = "[This skill has supporting files:]"
+@Suppress("unused") private const val _SC_34: String = "[Skill directory: "
+@Suppress("unused") private const val _SC_35: String = "[Skill setup note: Required environment setup was skipped. Continue loading the skill and explain any reduced functionality if it matters.]"
+@Suppress("unused") private val _SC_36: String = """
+Load any of these with skill_view(name=""""
+@Suppress("unused") private const val _SC_37: String = "\", file_path=\"<path>\"), or run scripts directly by absolute path (e.g. `node "
+@Suppress("unused") private const val _SC_38: String = "/scripts/foo.js`)."
+@Suppress("unused") private const val _SC_39: String = "The user has provided the following instruction alongside the skill invocation: "
+@Suppress("unused") private const val _SC_40: String = "[Runtime note: "
+@Suppress("unused") private const val _SC_41: String = "inline_shell_timeout"
+@Suppress("unused") private const val _SC_42: String = "setup_needed"
+@Suppress("unused") private const val _SC_43: String = "setup_note"
+@Suppress("unused") private const val _SC_44: String = "  ->  "
+@Suppress("unused") private const val _SC_45: String = "[Skill setup note: "
+@Suppress("unused") private val _SC_46: String = """Build the user message content for a skill slash command invocation.
+
+    Args:
+        cmd_key: The command key including leading slash (e.g., "/gif-search").
+        user_instruction: Optional text the user typed after the command.
+
+    Returns:
+        The formatted message string, or None if the skill wasn't found.
+    """
+@Suppress("unused") private const val _SC_47: String = "[SYSTEM: The user has invoked the \""
+@Suppress("unused") private const val _SC_48: String = "\" skill, indicating they want you to follow its instructions. The full skill content is loaded below.]"
+@Suppress("unused") private const val _SC_49: String = "[Failed to load skill: "
+@Suppress("unused") private val _SC_50: String = """Load one or more skills for session-wide CLI preloading.
+
+    Returns (prompt_text, loaded_skill_names, missing_identifiers).
+    """
+@Suppress("unused") private const val _SC_51: String = "[SYSTEM: The user launched this CLI session with the \""
+@Suppress("unused") private const val _SC_52: String = "\" skill preloaded. Treat its instructions as active guidance for the duration of this session unless the user overrides them.]"
