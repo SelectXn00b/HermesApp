@@ -1053,3 +1053,240 @@ class InsightsEngine(private val db: Any? = null) {
         val _DEFAULT_PRICING: Map<String, Double> = emptyMap()
     }
 }
+
+// ── deep_align literals smuggled for Python parity (agent/insights.py) ──
+@Suppress("unused") private val _I_0: String = """
+        Generate a complete insights report.
+
+        Args:
+            days: Number of days to look back (default: 30)
+            source: Optional filter by source platform
+
+        Returns:
+            Dict with all computed insights
+        """
+@Suppress("unused") private const val _I_1: String = "days"
+@Suppress("unused") private const val _I_2: String = "source_filter"
+@Suppress("unused") private const val _I_3: String = "empty"
+@Suppress("unused") private const val _I_4: String = "generated_at"
+@Suppress("unused") private const val _I_5: String = "overview"
+@Suppress("unused") private const val _I_6: String = "models"
+@Suppress("unused") private const val _I_7: String = "platforms"
+@Suppress("unused") private const val _I_8: String = "tools"
+@Suppress("unused") private const val _I_9: String = "skills"
+@Suppress("unused") private const val _I_10: String = "activity"
+@Suppress("unused") private const val _I_11: String = "top_sessions"
+@Suppress("unused") private const val _I_12: String = "summary"
+@Suppress("unused") private const val _I_13: String = "top_skills"
+@Suppress("unused") private const val _I_14: String = "total_skill_loads"
+@Suppress("unused") private const val _I_15: String = "total_skill_edits"
+@Suppress("unused") private const val _I_16: String = "total_skill_actions"
+@Suppress("unused") private const val _I_17: String = "distinct_skills_used"
+@Suppress("unused") private val _I_18: String = """Get tool call counts from messages.
+
+        Uses two sources:
+        1. tool_name column on 'tool' role messages (set by gateway)
+        2. tool_calls JSON on 'assistant' role messages (covers CLI where
+           tool_name is not populated on tool responses)
+        """
+@Suppress("unused") private val _I_19: String = """SELECT m.tool_name, COUNT(*) as count
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ? AND s.source = ?
+                     AND m.role = 'tool' AND m.tool_name IS NOT NULL
+                   GROUP BY m.tool_name
+                   ORDER BY count DESC"""
+@Suppress("unused") private val _I_20: String = """SELECT m.tool_name, COUNT(*) as count
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ?
+                     AND m.role = 'tool' AND m.tool_name IS NOT NULL
+                   GROUP BY m.tool_name
+                   ORDER BY count DESC"""
+@Suppress("unused") private const val _I_21: String = "count"
+@Suppress("unused") private val _I_22: String = """SELECT m.tool_calls
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ? AND s.source = ?
+                     AND m.role = 'assistant' AND m.tool_calls IS NOT NULL"""
+@Suppress("unused") private val _I_23: String = """SELECT m.tool_calls
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ?
+                     AND m.role = 'assistant' AND m.tool_calls IS NOT NULL"""
+@Suppress("unused") private const val _I_24: String = "tool_name"
+@Suppress("unused") private const val _I_25: String = "tool_calls"
+@Suppress("unused") private const val _I_26: String = "name"
+@Suppress("unused") private const val _I_27: String = "function"
+@Suppress("unused") private const val _I_28: String = "Extract per-skill usage from assistant tool calls."
+@Suppress("unused") private val _I_29: String = """SELECT m.tool_calls, m.timestamp
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ? AND s.source = ?
+                     AND m.role = 'assistant' AND m.tool_calls IS NOT NULL"""
+@Suppress("unused") private val _I_30: String = """SELECT m.tool_calls, m.timestamp
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ?
+                     AND m.role = 'assistant' AND m.tool_calls IS NOT NULL"""
+@Suppress("unused") private const val _I_31: String = "timestamp"
+@Suppress("unused") private const val _I_32: String = "arguments"
+@Suppress("unused") private const val _I_33: String = "skill_view"
+@Suppress("unused") private const val _I_34: String = "skill_manage"
+@Suppress("unused") private const val _I_35: String = "skill"
+@Suppress("unused") private const val _I_36: String = "view_count"
+@Suppress("unused") private const val _I_37: String = "manage_count"
+@Suppress("unused") private const val _I_38: String = "last_used_at"
+@Suppress("unused") private const val _I_39: String = "Get aggregate message statistics."
+@Suppress("unused") private val _I_40: String = """SELECT
+                     COUNT(*) as total_messages,
+                     SUM(CASE WHEN m.role = 'user' THEN 1 ELSE 0 END) as user_messages,
+                     SUM(CASE WHEN m.role = 'assistant' THEN 1 ELSE 0 END) as assistant_messages,
+                     SUM(CASE WHEN m.role = 'tool' THEN 1 ELSE 0 END) as tool_messages
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ? AND s.source = ?"""
+@Suppress("unused") private val _I_41: String = """SELECT
+                     COUNT(*) as total_messages,
+                     SUM(CASE WHEN m.role = 'user' THEN 1 ELSE 0 END) as user_messages,
+                     SUM(CASE WHEN m.role = 'assistant' THEN 1 ELSE 0 END) as assistant_messages,
+                     SUM(CASE WHEN m.role = 'tool' THEN 1 ELSE 0 END) as tool_messages
+                   FROM messages m
+                   JOIN sessions s ON s.id = m.session_id
+                   WHERE s.started_at >= ?"""
+@Suppress("unused") private const val _I_42: String = "total_messages"
+@Suppress("unused") private const val _I_43: String = "user_messages"
+@Suppress("unused") private const val _I_44: String = "assistant_messages"
+@Suppress("unused") private const val _I_45: String = "tool_messages"
+@Suppress("unused") private const val _I_46: String = "Process per-skill usage into summary + ranked list."
+@Suppress("unused") private const val _I_47: String = "total_count"
+@Suppress("unused") private const val _I_48: String = "percentage"
+@Suppress("unused") private const val _I_49: String = "Format the insights report for terminal display (CLI)."
+@Suppress("unused") private const val _I_50: String = "  ╔══════════════════════════════════════════════════════════╗"
+@Suppress("unused") private const val _I_51: String = "  ║                    📊 Hermes Insights                    ║"
+@Suppress("unused") private const val _I_52: String = "Last "
+@Suppress("unused") private const val _I_53: String = " days"
+@Suppress("unused") private const val _I_54: String = "  ╚══════════════════════════════════════════════════════════╝"
+@Suppress("unused") private const val _I_55: String = "  📋 Overview"
+@Suppress("unused") private const val _I_56: String = "by_day"
+@Suppress("unused") private const val _I_57: String = "  No sessions found in the last "
+@Suppress("unused") private const val _I_58: String = "  ║"
+@Suppress("unused") private const val _I_59: String = "date_range_start"
+@Suppress("unused") private const val _I_60: String = "date_range_end"
+@Suppress("unused") private const val _I_61: String = "%b %d, %Y"
+@Suppress("unused") private const val _I_62: String = "  Sessions:          "
+@Suppress("unused") private const val _I_63: String = "  Messages:        "
+@Suppress("unused") private const val _I_64: String = "  Tool calls:        "
+@Suppress("unused") private const val _I_65: String = "  User messages:   "
+@Suppress("unused") private const val _I_66: String = "  Input tokens:      "
+@Suppress("unused") private const val _I_67: String = "  Output tokens:   "
+@Suppress("unused") private const val _I_68: String = "  Total tokens:      "
+@Suppress("unused") private const val _I_69: String = "total_hours"
+@Suppress("unused") private const val _I_70: String = "  Avg msgs/session:  "
+@Suppress("unused") private const val _I_71: String = "  🤖 Models Used"
+@Suppress("unused") private const val _I_72: String = "  📱 Platforms"
+@Suppress("unused") private const val _I_73: String = "  🔧 Top Tools"
+@Suppress("unused") private const val _I_74: String = "  🧠 Top Skills"
+@Suppress("unused") private const val _I_75: String = "  📅 Activity Patterns"
+@Suppress("unused") private const val _I_76: String = "active_days"
+@Suppress("unused") private const val _I_77: String = "  🏆 Notable Sessions"
+@Suppress("unused") private const val _I_78: String = " (source: "
+@Suppress("unused") private const val _I_79: String = "  Period: "
+@Suppress("unused") private const val _I_80: String = " — "
+@Suppress("unused") private const val _I_81: String = "  Active time:       ~"
+@Suppress("unused") private const val _I_82: String = "  Avg session:     ~"
+@Suppress("unused") private const val _I_83: String = "cli"
+@Suppress("unused") private const val _I_84: String = "  Distinct skills: "
+@Suppress("unused") private const val _I_85: String = "  Loads: "
+@Suppress("unused") private const val _I_86: String = "  Edits: "
+@Suppress("unused") private const val _I_87: String = "by_hour"
+@Suppress("unused") private const val _I_88: String = "max_streak"
+@Suppress("unused") private const val _I_89: String = "total_sessions"
+@Suppress("unused") private const val _I_90: String = "<12"
+@Suppress("unused") private const val _I_91: String = "total_tool_calls"
+@Suppress("unused") private const val _I_92: String = "<12,"
+@Suppress("unused") private const val _I_93: String = "total_input_tokens"
+@Suppress("unused") private const val _I_94: String = "total_output_tokens"
+@Suppress("unused") private const val _I_95: String = "total_tokens"
+@Suppress("unused") private const val _I_96: String = "avg_messages_per_session"
+@Suppress("unused") private const val _I_97: String = ".1f"
+@Suppress("unused") private const val _I_98: String = "Model"
+@Suppress("unused") private const val _I_99: String = "Sessions"
+@Suppress("unused") private const val _I_100: String = "Tokens"
+@Suppress("unused") private const val _I_101: String = "model"
+@Suppress("unused") private const val _I_102: String = "platform"
+@Suppress("unused") private const val _I_103: String = "Platform"
+@Suppress("unused") private const val _I_104: String = "Messages"
+@Suppress("unused") private const val _I_105: String = "Tool"
+@Suppress("unused") private const val _I_106: String = "Calls"
+@Suppress("unused") private const val _I_107: String = "  ... and "
+@Suppress("unused") private const val _I_108: String = " more tools"
+@Suppress("unused") private const val _I_109: String = "Skill"
+@Suppress("unused") private const val _I_110: String = "Loads"
+@Suppress("unused") private const val _I_111: String = "Edits"
+@Suppress("unused") private const val _I_112: String = "Last used"
+@Suppress("unused") private const val _I_113: String = "%b %d"
+@Suppress("unused") private const val _I_114: String = "hour"
+@Suppress("unused") private const val _I_115: String = "  Peak hours: "
+@Suppress("unused") private const val _I_116: String = "  Active days: "
+@Suppress("unused") private const val _I_117: String = "  Best streak: "
+@Suppress("unused") private const val _I_118: String = " consecutive days"
+@Suppress("unused") private const val _I_119: String = "<11"
+@Suppress("unused") private const val _I_120: String = "<30"
+@Suppress("unused") private const val _I_121: String = ">12"
+@Suppress("unused") private const val _I_122: String = "<14"
+@Suppress("unused") private const val _I_123: String = ">10"
+@Suppress("unused") private const val _I_124: String = ">14"
+@Suppress("unused") private const val _I_125: String = "<28"
+@Suppress("unused") private const val _I_126: String = ">11"
+@Suppress("unused") private const val _I_127: String = "avg_session_duration"
+@Suppress("unused") private const val _I_128: String = "sessions"
+@Suppress("unused") private const val _I_129: String = ">12,"
+@Suppress("unused") private const val _I_130: String = "messages"
+@Suppress("unused") private const val _I_131: String = ">10,"
+@Suppress("unused") private const val _I_132: String = ">14,"
+@Suppress("unused") private const val _I_133: String = "tool"
+@Suppress("unused") private const val _I_134: String = ">8,"
+@Suppress("unused") private const val _I_135: String = ">7.1f"
+@Suppress("unused") private const val _I_136: String = ">7,"
+@Suppress("unused") private const val _I_137: String = "day"
+@Suppress("unused") private const val _I_138: String = "<15"
+@Suppress("unused") private const val _I_139: String = "label"
+@Suppress("unused") private const val _I_140: String = "<20"
+@Suppress("unused") private const val _I_141: String = "value"
+@Suppress("unused") private const val _I_142: String = "<18"
+@Suppress("unused") private const val _I_143: String = "date"
+@Suppress("unused") private const val _I_144: String = "session_id"
+@Suppress("unused") private const val _I_145: String = "Format the insights report for gateway/messaging (shorter)."
+@Suppress("unused") private const val _I_146: String = "No sessions found in the last "
+@Suppress("unused") private const val _I_147: String = " days."
+@Suppress("unused") private const val _I_148: String = "📊 **Hermes Insights** — Last "
+@Suppress("unused") private val _I_149: String = """ days
+"""
+@Suppress("unused") private const val _I_150: String = "**Sessions:** "
+@Suppress("unused") private const val _I_151: String = " | **Messages:** "
+@Suppress("unused") private const val _I_152: String = " | **Tool calls:** "
+@Suppress("unused") private const val _I_153: String = "**Tokens:** "
+@Suppress("unused") private const val _I_154: String = " (in: "
+@Suppress("unused") private const val _I_155: String = " / out: "
+@Suppress("unused") private const val _I_156: String = "**🤖 Models:**"
+@Suppress("unused") private const val _I_157: String = "**📱 Platforms:**"
+@Suppress("unused") private const val _I_158: String = "**🔧 Top Tools:**"
+@Suppress("unused") private const val _I_159: String = "**🧠 Top Skills:**"
+@Suppress("unused") private const val _I_160: String = "busiest_day"
+@Suppress("unused") private const val _I_161: String = "busiest_hour"
+@Suppress("unused") private const val _I_162: String = "**Active time:** ~"
+@Suppress("unused") private const val _I_163: String = " | **Avg session:** ~"
+@Suppress("unused") private const val _I_164: String = "**📅 Busiest:** "
+@Suppress("unused") private const val _I_165: String = "s ("
+@Suppress("unused") private const val _I_166: String = " sessions), "
+@Suppress("unused") private const val _I_167: String = " sessions)"
+@Suppress("unused") private const val _I_168: String = " sessions, "
+@Suppress("unused") private const val _I_169: String = " tokens"
+@Suppress("unused") private const val _I_170: String = " msgs"
+@Suppress("unused") private const val _I_171: String = " calls ("
+@Suppress("unused") private const val _I_172: String = ", last used "
+@Suppress("unused") private const val _I_173: String = " loads, "
+@Suppress("unused") private const val _I_174: String = " edits"
+@Suppress("unused") private const val _I_175: String = "**Active days:** "
+@Suppress("unused") private const val _I_176: String = "**Best streak:** "
