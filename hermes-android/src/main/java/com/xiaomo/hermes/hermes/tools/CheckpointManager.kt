@@ -11,11 +11,17 @@ object CheckpointManager {
 
     private const val _TAG = "CheckpointManager"
 
-    /** Per-turn dedup: set of directories already checkpointed this turn. */
-    private val _checkpointedDirs: MutableSet<String> = mutableSetOf()
+    /** Master switch (from config / CLI flag). */
+    var enabled: Boolean = false
 
     /** Maximum number of snapshots to keep per directory. */
     var maxSnapshots: Int = 50
+
+    /** Per-turn dedup: set of directories already checkpointed this turn. */
+    private val _checkpointedDirs: MutableSet<String> = mutableSetOf()
+
+    /** Lazy git probe. */
+    private var _gitAvailable: Boolean? = null
 
     /** Reset per-turn dedup.  Call at the start of each agent iteration. */
     fun newTurn(): Unit {
@@ -23,11 +29,82 @@ object CheckpointManager {
     }
     /** Take a checkpoint if enabled and not already done this turn. */
     fun ensureCheckpoint(workingDir: String, reason: String = "auto"): Boolean {
-        return false
+        if (!enabled) return false
+
+        if (_gitAvailable == null) {
+            val pathEnv = System.getenv("PATH") ?: ""
+            val sep = if (System.getProperty("os.name")?.lowercase()?.contains("windows") == true) ";" else ":"
+            var found: String? = null
+            for (dir in pathEnv.split(sep)) {
+                if (dir.isEmpty()) continue
+                val candidate = File(dir, "git")
+                if (candidate.canExecute()) { found = candidate.absolutePath; break }
+                val candidateExe = File(dir, "git.exe")
+                if (candidateExe.canExecute()) { found = candidateExe.absolutePath; break }
+            }
+            _gitAvailable = found != null
+            if (_gitAvailable == false) {
+                Log.d(_TAG, "Checkpoints disabled: git not found")
+            }
+        }
+        if (_gitAvailable == false) return false
+
+        val absDir = _normalizePath(workingDir).absolutePath
+
+        val home = System.getProperty("user.home") ?: ""
+        if (absDir == "/" || absDir == home) {
+            Log.d(_TAG, "Checkpoint skipped: directory too broad ($absDir)")
+            return false
+        }
+
+        if (absDir in _checkpointedDirs) return false
+        _checkpointedDirs.add(absDir)
+
+        return try {
+            _take(absDir, reason)
+        } catch (e: Exception) {
+            Log.d(_TAG, "Checkpoint failed (non-fatal): ${e.message}")
+            false
+        }
     }
     /** List available checkpoints for a directory. */
     fun listCheckpoints(workingDir: String): List<Map<String, Any?>> {
-        return emptyList()
+        val absDir = _normalizePath(workingDir).absolutePath
+        val shadow = _shadowRepoPath(absDir)
+
+        if (!File(shadow, "HEAD").exists()) return emptyList()
+
+        val (ok, stdout, _) = _runGit(
+            listOf("log", "--format=%H|%h|%aI|%s", "-n", maxSnapshots.toString()),
+            shadow.absolutePath, absDir
+        )
+
+        if (!ok || stdout.isEmpty()) return emptyList()
+
+        val results = mutableListOf<Map<String, Any?>>()
+        for (line in stdout.lines()) {
+            val parts = line.split("|", limit = 4)
+            if (parts.size == 4) {
+                val entry: MutableMap<String, Any?> = mutableMapOf(
+                    "hash" to parts[0],
+                    "short_hash" to parts[1],
+                    "timestamp" to parts[2],
+                    "reason" to parts[3],
+                    "files_changed" to 0,
+                    "insertions" to 0,
+                    "deletions" to 0,
+                )
+                val (statOk, statOut, _) = _runGit(
+                    listOf("diff", "--shortstat", "${parts[0]}~1", parts[0]),
+                    shadow.absolutePath, absDir,
+                )
+                if (statOk && statOut.isNotEmpty()) {
+                    _parseShortstat(statOut, entry)
+                }
+                results.add(entry)
+            }
+        }
+        return results
     }
     /** Parse git --shortstat output into entry dict. */
     fun _parseShortstat(statLine: String, entry: MutableMap<String, Any?>) {
@@ -40,19 +117,175 @@ object CheckpointManager {
     }
     /** Show diff between a checkpoint and the current working tree. */
     fun diff(workingDir: String, commitHash: String): Map<String, Any?> {
-        throw NotImplementedError("diff")
+        _validateCommitHash(commitHash)?.let {
+            return mapOf("success" to false, "error" to it)
+        }
+
+        val absDir = _normalizePath(workingDir).absolutePath
+        val shadow = _shadowRepoPath(absDir)
+
+        if (!File(shadow, "HEAD").exists()) {
+            return mapOf("success" to false, "error" to "No checkpoints exist for this directory")
+        }
+
+        val (ok, _, _) = _runGit(listOf("cat-file", "-t", commitHash), shadow.absolutePath, absDir)
+        if (!ok) {
+            return mapOf("success" to false, "error" to "Checkpoint '$commitHash' not found")
+        }
+
+        _runGit(listOf("add", "-A"), shadow.absolutePath, absDir, timeout = 60)
+
+        val (okStat, statOut, _) = _runGit(
+            listOf("diff", "--stat", commitHash, "--cached"),
+            shadow.absolutePath, absDir,
+        )
+
+        val (okDiff, diffOut, _) = _runGit(
+            listOf("diff", commitHash, "--cached", "--no-color"),
+            shadow.absolutePath, absDir,
+        )
+
+        _runGit(listOf("reset", "HEAD", "--quiet"), shadow.absolutePath, absDir)
+
+        if (!okStat && !okDiff) {
+            return mapOf("success" to false, "error" to "Could not generate diff")
+        }
+
+        return mapOf(
+            "success" to true,
+            "stat" to if (okStat) statOut else "",
+            "diff" to if (okDiff) diffOut else "",
+        )
     }
     /** Restore files to a checkpoint state. */
     fun restore(workingDir: String, commitHash: String, filePath: String? = null): Map<String, Any?> {
-        throw NotImplementedError("restore")
+        _validateCommitHash(commitHash)?.let {
+            return mapOf("success" to false, "error" to it)
+        }
+
+        val absDir = _normalizePath(workingDir).absolutePath
+
+        if (filePath != null) {
+            _validateFilePath(filePath, absDir)?.let {
+                return mapOf("success" to false, "error" to it)
+            }
+        }
+
+        val shadow = _shadowRepoPath(absDir)
+
+        if (!File(shadow, "HEAD").exists()) {
+            return mapOf("success" to false, "error" to "No checkpoints exist for this directory")
+        }
+
+        val (ok, _, err) = _runGit(listOf("cat-file", "-t", commitHash), shadow.absolutePath, absDir)
+        if (!ok) {
+            return mapOf(
+                "success" to false,
+                "error" to "Checkpoint '$commitHash' not found",
+                "debug" to err.ifEmpty { null },
+            )
+        }
+
+        _take(absDir, "pre-rollback snapshot (restoring to ${commitHash.take(8)})")
+
+        val restoreTarget = filePath ?: "."
+        val (ok2, _, err2) = _runGit(
+            listOf("checkout", commitHash, "--", restoreTarget),
+            shadow.absolutePath, absDir, timeout = 60,
+        )
+
+        if (!ok2) {
+            return mapOf(
+                "success" to false,
+                "error" to "Restore failed: $err2",
+                "debug" to err2.ifEmpty { null },
+            )
+        }
+
+        val (ok3, reasonOut, _) = _runGit(
+            listOf("log", "--format=%s", "-1", commitHash),
+            shadow.absolutePath, absDir,
+        )
+        val reason = if (ok3) reasonOut else "unknown"
+
+        val result: MutableMap<String, Any?> = mutableMapOf(
+            "success" to true,
+            "restored_to" to commitHash.take(8),
+            "reason" to reason,
+            "directory" to absDir,
+        )
+        if (filePath != null) {
+            result["file"] = filePath
+        }
+        return result
     }
     /** Resolve a file path to its working directory for checkpointing. */
     fun getWorkingDirForPath(filePath: String): String {
-        return ""
+        val path = _normalizePath(filePath)
+        val candidate = if (path.isDirectory) path else path.parentFile ?: path
+
+        val markers = setOf(
+            ".git", "pyproject.toml", "package.json", "Cargo.toml",
+            "go.mod", "Makefile", "pom.xml", ".hg", "Gemfile"
+        )
+        var check: File = candidate
+        while (true) {
+            val parent = check.parentFile ?: break
+            if (parent == check) break
+            if (markers.any { File(check, it).exists() }) {
+                return check.absolutePath
+            }
+            check = parent
+        }
+
+        return candidate.absolutePath
     }
     /** Take a snapshot.  Returns True on success. */
     fun _take(workingDir: String, reason: String): Boolean {
-        return false
+        val shadow = _shadowRepoPath(workingDir)
+
+        val err = _initShadowRepo(shadow, workingDir)
+        if (err != null) {
+            Log.d(_TAG, "Checkpoint init failed: $err")
+            return false
+        }
+
+        if (_dirFileCount(workingDir) > _MAX_FILES) {
+            Log.d(_TAG, "Checkpoint skipped: >$_MAX_FILES files in $workingDir")
+            return false
+        }
+
+        val (ok, _, addErr) = _runGit(
+            listOf("add", "-A"), shadow.absolutePath, workingDir, timeout = 60,
+        )
+        if (!ok) {
+            Log.d(_TAG, "Checkpoint git-add failed: $addErr")
+            return false
+        }
+
+        val (diffOk, _, _) = _runGit(
+            listOf("diff", "--cached", "--quiet"),
+            shadow.absolutePath, workingDir,
+        )
+        if (diffOk) {
+            Log.d(_TAG, "Checkpoint skipped: no changes in $workingDir")
+            return false
+        }
+
+        val (commitOk, _, commitErr) = _runGit(
+            listOf("commit", "-m", reason, "--allow-empty-message", "--no-gpg-sign"),
+            shadow.absolutePath, workingDir, timeout = 60,
+        )
+        if (!commitOk) {
+            Log.d(_TAG, "Checkpoint commit failed: $commitErr")
+            return false
+        }
+
+        Log.d(_TAG, "Checkpoint taken in $workingDir: $reason")
+
+        _prune(shadow.absolutePath, workingDir)
+
+        return true
     }
 
     /**
