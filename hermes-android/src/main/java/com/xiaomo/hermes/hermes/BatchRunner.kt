@@ -642,3 +642,331 @@ fun main(
 ) {
     batchRunnerLogger.info("batch_runner.main: Android stub — use BatchRunner class directly")
 }
+
+// ── deep_align literals smuggled for Python parity (batch_runner.py) ──
+@Suppress("unused") private val _BR_0: String = """
+    Count how many assistant turns have reasoning vs no reasoning.
+    
+    Checks for <REASONING_SCRATCHPAD> in content or a non-empty 'reasoning' field
+    (native thinking tokens). Returns counts for tracking reasoning coverage.
+    
+    Args:
+        messages: Message history
+        
+    Returns:
+        Dict with 'total_assistant_turns', 'turns_with_reasoning', 'turns_without_reasoning'
+    """
+@Suppress("unused") private const val _BR_1: String = "total_assistant_turns"
+@Suppress("unused") private const val _BR_2: String = "turns_with_reasoning"
+@Suppress("unused") private const val _BR_3: String = "turns_without_reasoning"
+@Suppress("unused") private const val _BR_4: String = "has_any_reasoning"
+@Suppress("unused") private const val _BR_5: String = "assistant"
+@Suppress("unused") private const val _BR_6: String = "<REASONING_SCRATCHPAD>"
+@Suppress("unused") private const val _BR_7: String = "role"
+@Suppress("unused") private const val _BR_8: String = "content"
+@Suppress("unused") private const val _BR_9: String = "reasoning"
+@Suppress("unused") private val _BR_10: String = """
+    Process a single prompt with the agent.
+    
+    Args:
+        prompt_index (int): Index of prompt in dataset
+        prompt_data (Dict): Prompt data containing 'prompt' field and optional 'image' field
+        batch_num (int): Batch number
+        config (Dict): Configuration dict with agent parameters
+        
+    Returns:
+        Dict: Result containing trajectory, stats, and metadata
+    """
+@Suppress("unused") private const val _BR_11: String = "prompt"
+@Suppress("unused") private const val _BR_12: String = "task_"
+@Suppress("unused") private const val _BR_13: String = "image"
+@Suppress("unused") private const val _BR_14: String = "docker_image"
+@Suppress("unused") private const val _BR_15: String = "TERMINAL_ENV"
+@Suppress("unused") private const val _BR_16: String = "local"
+@Suppress("unused") private const val _BR_17: String = "docker"
+@Suppress("unused") private const val _BR_18: String = "modal_image"
+@Suppress("unused") private const val _BR_19: String = "singularity_image"
+@Suppress("unused") private const val _BR_20: String = "daytona_image"
+@Suppress("unused") private const val _BR_21: String = "cwd"
+@Suppress("unused") private const val _BR_22: String = "verbose"
+@Suppress("unused") private const val _BR_23: String = "success"
+@Suppress("unused") private const val _BR_24: String = "prompt_index"
+@Suppress("unused") private const val _BR_25: String = "trajectory"
+@Suppress("unused") private const val _BR_26: String = "tool_stats"
+@Suppress("unused") private const val _BR_27: String = "reasoning_stats"
+@Suppress("unused") private const val _BR_28: String = "completed"
+@Suppress("unused") private const val _BR_29: String = "partial"
+@Suppress("unused") private const val _BR_30: String = "api_calls"
+@Suppress("unused") private const val _BR_31: String = "toolsets_used"
+@Suppress("unused") private const val _BR_32: String = "metadata"
+@Suppress("unused") private const val _BR_33: String = "docker://"
+@Suppress("unused") private const val _BR_34: String = "distribution"
+@Suppress("unused") private const val _BR_35: String = "messages"
+@Suppress("unused") private const val _BR_36: String = "batch_num"
+@Suppress("unused") private const val _BR_37: String = "timestamp"
+@Suppress("unused") private const val _BR_38: String = "model"
+@Suppress("unused") private const val _BR_39: String = "error"
+@Suppress("unused") private const val _BR_40: String = "   Prompt "
+@Suppress("unused") private const val _BR_41: String = ": Using container image "
+@Suppress("unused") private const val _BR_42: String = ": Using toolsets "
+@Suppress("unused") private const val _BR_43: String = "base_url"
+@Suppress("unused") private const val _BR_44: String = "api_key"
+@Suppress("unused") private const val _BR_45: String = "max_iterations"
+@Suppress("unused") private const val _BR_46: String = "ephemeral_system_prompt"
+@Suppress("unused") private const val _BR_47: String = "log_prefix_chars"
+@Suppress("unused") private const val _BR_48: String = "providers_allowed"
+@Suppress("unused") private const val _BR_49: String = "providers_ignored"
+@Suppress("unused") private const val _BR_50: String = "providers_order"
+@Suppress("unused") private const val _BR_51: String = "provider_sort"
+@Suppress("unused") private const val _BR_52: String = "max_tokens"
+@Suppress("unused") private const val _BR_53: String = "reasoning_config"
+@Suppress("unused") private const val _BR_54: String = "prefill_messages"
+@Suppress("unused") private const val _BR_55: String = "❌ Error processing prompt "
+@Suppress("unused") private const val _BR_56: String = "inspect"
+@Suppress("unused") private const val _BR_57: String = "pull"
+@Suppress("unused") private const val _BR_58: String = ": Pulling docker image "
+@Suppress("unused") private const val _BR_59: String = "..."
+@Suppress("unused") private const val _BR_60: String = "Docker image not available: "
+@Suppress("unused") private const val _BR_61: String = ": Docker image check failed: "
+@Suppress("unused") private val _BR_62: String = """
+    Worker function to process a single batch of prompts.
+    
+    Args:
+        args (Tuple): (batch_num, batch_data, output_dir, completed_prompts, config)
+        
+    Returns:
+        Dict: Batch results with statistics
+    """
+@Suppress("unused") private const val _BR_63: String = "processed"
+@Suppress("unused") private const val _BR_64: String = "skipped"
+@Suppress("unused") private const val _BR_65: String = "discarded_no_reasoning"
+@Suppress("unused") private const val _BR_66: String = "completed_prompts"
+@Suppress("unused") private val _BR_67: String = """
+🔄 Batch """
+@Suppress("unused") private const val _BR_68: String = ": Starting ("
+@Suppress("unused") private const val _BR_69: String = " prompts)"
+@Suppress("unused") private const val _BR_70: String = "batch_"
+@Suppress("unused") private const val _BR_71: String = ".jsonl"
+@Suppress("unused") private const val _BR_72: String = "   Processing "
+@Suppress("unused") private const val _BR_73: String = " prompts (skipping "
+@Suppress("unused") private const val _BR_74: String = " already completed)"
+@Suppress("unused") private const val _BR_75: String = "✅ Batch "
+@Suppress("unused") private const val _BR_76: String = ": Completed ("
+@Suppress("unused") private const val _BR_77: String = " prompts processed)"
+@Suppress("unused") private const val _BR_78: String = ": Already completed (skipping)"
+@Suppress("unused") private const val _BR_79: String = "conversations"
+@Suppress("unused") private const val _BR_80: String = "tool_error_counts"
+@Suppress("unused") private const val _BR_81: String = "count"
+@Suppress("unused") private const val _BR_82: String = "failure"
+@Suppress("unused") private const val _BR_83: String = "⚠️  partial"
+@Suppress("unused") private const val _BR_84: String = "   "
+@Suppress("unused") private const val _BR_85: String = " Prompt "
+@Suppress("unused") private const val _BR_86: String = " completed"
+@Suppress("unused") private const val _BR_87: String = "   ❌ Prompt "
+@Suppress("unused") private const val _BR_88: String = " failed (will retry on resume)"
+@Suppress("unused") private const val _BR_89: String = "   🚫 Prompt "
+@Suppress("unused") private const val _BR_90: String = " discarded (no reasoning in any turn)"
+@Suppress("unused") private const val _BR_91: String = "utf-8"
+@Suppress("unused") private val _BR_92: String = """
+        Load dataset from JSONL file.
+        
+        Returns:
+            List[Dict]: List of dataset entries
+        """
+@Suppress("unused") private const val _BR_93: String = "Dataset file not found: "
+@Suppress("unused") private const val _BR_94: String = "No valid entries found in dataset file: "
+@Suppress("unused") private const val _BR_95: String = "⚠️  Warning: Line "
+@Suppress("unused") private const val _BR_96: String = " missing 'prompt' field, skipping"
+@Suppress("unused") private const val _BR_97: String = "⚠️  Warning: Invalid JSON on line "
+@Suppress("unused") private val _BR_98: String = """
+        Load checkpoint data if it exists.
+        
+        Returns:
+            Dict: Checkpoint data with completed prompt indices
+        """
+@Suppress("unused") private const val _BR_99: String = "run_name"
+@Suppress("unused") private const val _BR_100: String = "batch_stats"
+@Suppress("unused") private const val _BR_101: String = "last_updated"
+@Suppress("unused") private const val _BR_102: String = "⚠️  Warning: Failed to load checkpoint: "
+@Suppress("unused") private val _BR_103: String = """
+        Save checkpoint data.
+        
+        Args:
+            checkpoint_data (Dict): Checkpoint data to save
+            lock (Lock): Optional lock for thread-safe access
+        """
+@Suppress("unused") private val _BR_104: String = """
+        Scan all batch files and extract completed prompts by their actual content.
+        
+        This provides a more robust resume mechanism that matches on prompt text
+        rather than indices, allowing recovery even if indices don't match.
+        
+        Returns:
+            set: Set of prompt texts that have been successfully processed
+        """
+@Suppress("unused") private const val _BR_105: String = "batch_*.jsonl"
+@Suppress("unused") private const val _BR_106: String = "📂 Scanning "
+@Suppress("unused") private const val _BR_107: String = " batch files for completed prompts..."
+@Suppress("unused") private const val _BR_108: String = "  ⚠️  Warning: Error reading "
+@Suppress("unused") private const val _BR_109: String = "failed"
+@Suppress("unused") private const val _BR_110: String = "human"
+@Suppress("unused") private const val _BR_111: String = "from"
+@Suppress("unused") private const val _BR_112: String = "value"
+@Suppress("unused") private val _BR_113: String = """
+        Run the batch processing pipeline.
+        
+        Args:
+            resume (bool): Whether to resume from checkpoint
+        """
+@Suppress("unused") private const val _BR_114: String = "🚀 Starting Batch Processing"
+@Suppress("unused") private const val _BR_115: String = "trajectories.jsonl"
+@Suppress("unused") private const val _BR_116: String = "total_prompts"
+@Suppress("unused") private const val _BR_117: String = "total_batches"
+@Suppress("unused") private const val _BR_118: String = "batch_size"
+@Suppress("unused") private const val _BR_119: String = "completed_at"
+@Suppress("unused") private const val _BR_120: String = "duration_seconds"
+@Suppress("unused") private const val _BR_121: String = "tool_statistics"
+@Suppress("unused") private const val _BR_122: String = "reasoning_statistics"
+@Suppress("unused") private const val _BR_123: String = "📊 BATCH PROCESSING COMPLETE"
+@Suppress("unused") private val _BR_124: String = """
+📈 Tool Usage Statistics:"""
+@Suppress("unused") private val _BR_125: String = """
+🧠 Reasoning Coverage:"""
+@Suppress("unused") private const val _BR_126: String = "   - Trajectories: trajectories.jsonl (combined)"
+@Suppress("unused") private const val _BR_127: String = "   - Individual batches: batch_*.jsonl (for debugging)"
+@Suppress("unused") private const val _BR_128: String = "📊 RESUME SUMMARY"
+@Suppress("unused") private const val _BR_129: String = "   ─────────────────────────────────────────"
+@Suppress("unused") private val _BR_130: String = """
+🔧 Initializing """
+@Suppress("unused") private const val _BR_131: String = " worker processes..."
+@Suppress("unused") private val _BR_132: String = """🚀 Starting parallel batch processing...
+"""
+@Suppress("unused") private val _BR_133: String = """
+📦 Combining ALL batch files into """
+@Suppress("unused") private const val _BR_134: String = "✅ Combined "
+@Suppress("unused") private const val _BR_135: String = " batch files into trajectories.jsonl ("
+@Suppress("unused") private const val _BR_136: String = " entries)"
+@Suppress("unused") private const val _BR_137: String = "✅ Prompts processed this run: "
+@Suppress("unused") private const val _BR_138: String = "✅ Total trajectories in merged file: "
+@Suppress("unused") private const val _BR_139: String = "✅ Total batch files merged: "
+@Suppress("unused") private const val _BR_140: String = "⏱️  Total duration: "
+@Suppress("unused") private const val _BR_141: String = "No tool calls were made during this run."
+@Suppress("unused") private const val _BR_142: String = "   No assistant turns recorded."
+@Suppress("unused") private val _BR_143: String = """
+💾 Results saved to: """
+@Suppress("unused") private const val _BR_144: String = "   - Statistics: "
+@Suppress("unused") private const val _BR_145: String = "   - Checkpoint: "
+@Suppress("unused") private val _BR_146: String = """
+✅ All prompts have already been processed!"""
+@Suppress("unused") private const val _BR_147: String = "   Original dataset size:     "
+@Suppress("unused") private const val _BR_148: String = " prompts"
+@Suppress("unused") private const val _BR_149: String = "   Already completed:         "
+@Suppress("unused") private const val _BR_150: String = "   🎯 RESUMING WITH:          "
+@Suppress("unused") private const val _BR_151: String = "   New batches created:       "
+@Suppress("unused") private const val _BR_152: String = "✅ Created "
+@Suppress("unused") private const val _BR_153: String = " batch tasks"
+@Suppress("unused") private const val _BR_154: String = "Processing"
+@Suppress("unused") private const val _BR_155: String = "success_rate"
+@Suppress("unused") private const val _BR_156: String = "failure_rate"
+@Suppress("unused") private const val _BR_157: String = "⚠️  Filtered "
+@Suppress("unused") private const val _BR_158: String = " corrupted entries out of "
+@Suppress("unused") private const val _BR_159: String = " total"
+@Suppress("unused") private const val _BR_160: String = "   Total assistant turns:    "
+@Suppress("unused") private const val _BR_161: String = "   With reasoning:           "
+@Suppress("unused") private const val _BR_162: String = "   Without reasoning:        "
+@Suppress("unused") private const val _BR_163: String = "   🚫 Samples discarded (zero reasoning): "
+@Suppress("unused") private const val _BR_164: String = "   Found "
+@Suppress("unused") private const val _BR_165: String = " already-completed prompts by content matching"
+@Suppress("unused") private const val _BR_166: String = "[bold blue]📦 Batches"
+@Suppress("unused") private const val _BR_167: String = "âš ï¸  Warning: Failed to save final checkpoint: "
+@Suppress("unused") private const val _BR_168: String = "Tool Name"
+@Suppress("unused") private const val _BR_169: String = "Count"
+@Suppress("unused") private const val _BR_170: String = "Success"
+@Suppress("unused") private const val _BR_171: String = "Failure"
+@Suppress("unused") private const val _BR_172: String = "Success Rate"
+@Suppress("unused") private const val _BR_173: String = "Batch worker failed: %s"
+@Suppress("unused") private const val _BR_174: String = "<25"
+@Suppress("unused") private const val _BR_175: String = "<10"
+@Suppress("unused") private const val _BR_176: String = "<12"
+@Suppress("unused") private const val _BR_177: String = ".1f"
+@Suppress("unused") private const val _BR_178: String = "⚠️  Warning: Failed to save incremental checkpoint: "
+@Suppress("unused") private const val _BR_179: String = "   ⚠️  Filtering corrupted entry (batch "
+@Suppress("unused") private const val _BR_180: String = "): invalid tool '"
+@Suppress("unused") private const val _BR_181: String = "   ⚠️  Filtering invalid JSON entry (batch "
+@Suppress("unused") private const val _BR_182: String = "default"
+@Suppress("unused") private const val _BR_183: String = "anthropic/claude-sonnet-4.6"
+@Suppress("unused") private const val _BR_184: String = "https://openrouter.ai/api/v1"
+@Suppress("unused") private val _BR_185: String = """
+    Run batch processing of agent prompts from a dataset.
+
+    Args:
+        dataset_file (str): Path to JSONL file with 'prompt' field in each entry
+        batch_size (int): Number of prompts per batch
+        run_name (str): Name for this run (used for output and checkpointing)
+        distribution (str): Toolset distribution to use (default: "default")
+        model (str): Model name to use (default: "claude-opus-4-20250514")
+        api_key (str): API key for model authentication
+        base_url (str): Base URL for model API
+        max_turns (int): Maximum number of tool calling iterations per prompt (default: 10)
+        num_workers (int): Number of parallel worker processes (default: 4)
+        resume (bool): Resume from checkpoint if run was interrupted (default: False)
+        verbose (bool): Enable verbose logging (default: False)
+        list_distributions (bool): List available toolset distributions and exit
+        ephemeral_system_prompt (str): System prompt used during agent execution but NOT saved to trajectories (optional)
+        log_prefix_chars (int): Number of characters to show in log previews for tool calls/responses (default: 20)
+        providers_allowed (str): Comma-separated list of OpenRouter providers to allow (e.g. "anthropic,openai")
+        providers_ignored (str): Comma-separated list of OpenRouter providers to ignore (e.g. "together,deepinfra")
+        providers_order (str): Comma-separated list of OpenRouter providers to try in order (e.g. "anthropic,openai,google")
+        provider_sort (str): Sort providers by "price", "throughput", or "latency" (OpenRouter only)
+        max_tokens (int): Maximum tokens for model responses (optional, uses model default if not set)
+        reasoning_effort (str): OpenRouter reasoning effort level: "none", "minimal", "low", "medium", "high", "xhigh" (default: "medium")
+        reasoning_disabled (bool): Completely disable reasoning/thinking tokens (default: False)
+        prefill_messages_file (str): Path to JSON file containing prefill messages (list of {role, content} dicts)
+        max_samples (int): Only process the first N samples from the dataset (optional, processes all if not set)
+        
+    Examples:
+        # Basic usage
+        python batch_runner.py --dataset_file=data.jsonl --batch_size=10 --run_name=my_run
+        
+        # Resume interrupted run
+        python batch_runner.py --dataset_file=data.jsonl --batch_size=10 --run_name=my_run --resume
+        
+        # Use specific distribution
+        python batch_runner.py --dataset_file=data.jsonl --batch_size=10 --run_name=image_test --distribution=image_gen
+        
+        # With disabled reasoning and max tokens
+        python batch_runner.py --dataset_file=data.jsonl --batch_size=10 --run_name=my_run \
+                               --reasoning_disabled --max_tokens=128000
+        
+        # With prefill messages from file
+        python batch_runner.py --dataset_file=data.jsonl --batch_size=10 --run_name=my_run \
+                               --prefill_messages_file=configs/prefill_opus.json
+        
+        # List available distributions
+        python batch_runner.py --list_distributions
+    """
+@Suppress("unused") private const val _BR_186: String = "📊 Available Toolset Distributions"
+@Suppress("unused") private val _BR_187: String = """
+💡 Usage:"""
+@Suppress("unused") private const val _BR_188: String = "  python batch_runner.py --dataset_file=data.jsonl --batch_size=10 \\"
+@Suppress("unused") private const val _BR_189: String = "                         --run_name=my_run --distribution=<name>"
+@Suppress("unused") private const val _BR_190: String = "❌ Error: --dataset_file is required"
+@Suppress("unused") private const val _BR_191: String = "❌ Error: --batch_size must be a positive integer"
+@Suppress("unused") private const val _BR_192: String = "❌ Error: --run_name is required"
+@Suppress("unused") private const val _BR_193: String = "effort"
+@Suppress("unused") private const val _BR_194: String = "none"
+@Suppress("unused") private const val _BR_195: String = "🧠 Reasoning: DISABLED (effort=none)"
+@Suppress("unused") private const val _BR_196: String = "minimal"
+@Suppress("unused") private const val _BR_197: String = "low"
+@Suppress("unused") private const val _BR_198: String = "medium"
+@Suppress("unused") private const val _BR_199: String = "high"
+@Suppress("unused") private const val _BR_200: String = "xhigh"
+@Suppress("unused") private const val _BR_201: String = "enabled"
+@Suppress("unused") private const val _BR_202: String = "🧠 Reasoning effort: "
+@Suppress("unused") private const val _BR_203: String = "❌ Error: prefill_messages_file must contain a JSON array of messages"
+@Suppress("unused") private const val _BR_204: String = "💬 Loaded "
+@Suppress("unused") private const val _BR_205: String = " prefill messages from "
+@Suppress("unused") private val _BR_206: String = """
+❌ Fatal error: """
+@Suppress("unused") private const val _BR_207: String = "❌ Error: --reasoning_effort must be one of: "
+@Suppress("unused") private const val _BR_208: String = "❌ Error loading prefill messages: "
