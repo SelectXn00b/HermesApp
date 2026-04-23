@@ -111,11 +111,11 @@ class BrowserUseProvider {
 
 // ── Module-level aligned with tools/browser_providers/browser_use.py ──────
 
-/** Managed-mode base URL (stub — real URL hits browser-use cloud). */
-const val _BASE_URL: String = ""
+/** Managed-mode base URL. */
+const val _BASE_URL: String = "https://api.browser-use.com/api/v3"
 
 /** Default per-session timeout for managed-mode sessions, minutes. */
-const val _DEFAULT_MANAGED_TIMEOUT_MINUTES: Int = 15
+const val _DEFAULT_MANAGED_TIMEOUT_MINUTES: Int = 5
 
 /** Default proxy country-code for managed-mode sessions. */
 const val _DEFAULT_MANAGED_PROXY_COUNTRY_CODE: String = "us"

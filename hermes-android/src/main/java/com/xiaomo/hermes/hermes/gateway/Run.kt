@@ -1449,7 +1449,7 @@ class GatewayRunner(
         }
     }
 
-    private val _AGENT_CACHE_IDLE_TTL_SECS = 3600L // 1 hour
+    private val _AGENT_CACHE_IDLE_TTL_SECS: Double = 3600.0 // 1 hour
 
     /** Evict cached agents idle longer than the TTL. Returns the number evicted. */
     fun _sweepIdleCachedAgents(): Int {
@@ -1462,7 +1462,7 @@ class GatewayRunner(
                     val lastMsg = try {
                         Instant.parse(session.lastMessageAt).toEpochMilli()
                     } catch (_: Exception) { 0L }
-                    if (now - lastMsg > _AGENT_CACHE_IDLE_TTL_SECS * 1000) {
+                    if (now - lastMsg > (_AGENT_CACHE_IDLE_TTL_SECS * 1000).toLong()) {
                         toEvict.add(key)
                     }
                 }
