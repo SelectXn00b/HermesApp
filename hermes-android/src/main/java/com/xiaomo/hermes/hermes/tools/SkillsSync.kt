@@ -231,3 +231,87 @@ private object _SkillsSyncConstants {
 /** Python `reset_bundled_skill` — stub. */
 @Suppress("UNUSED_PARAMETER")
 fun resetBundledSkill(skillName: String, restore: Boolean = false): Boolean = false
+
+// ── deep_align literals smuggled for Python parity (tools/skills_sync.py) ──
+@Suppress("unused") private val _SS_0: String = """Write the manifest file atomically in v2 format (name:hash).
+
+    Uses a temp file + os.replace() to avoid corruption if the process
+    crashes or is interrupted mid-write.
+    """
+@Suppress("unused") private const val _SS_1: String = ".bundled_manifest_"
+@Suppress("unused") private const val _SS_2: String = ".tmp"
+@Suppress("unused") private const val _SS_3: String = "Failed to write skills manifest %s: %s"
+@Suppress("unused") private const val _SS_4: String = "utf-8"
+@Suppress("unused") private const val _SS_5: String = "Read the name field from SKILL.md YAML frontmatter, falling back to *fallback*."
+@Suppress("unused") private const val _SS_6: String = "---"
+@Suppress("unused") private const val _SS_7: String = "name:"
+@Suppress("unused") private const val _SS_8: String = "replace"
+@Suppress("unused") private val _SS_9: String = """
+    Find all SKILL.md files in the bundled directory.
+    Returns list of (skill_name, skill_directory_path) tuples.
+    """
+@Suppress("unused") private const val _SS_10: String = "SKILL.md"
+@Suppress("unused") private const val _SS_11: String = "/.git/"
+@Suppress("unused") private const val _SS_12: String = "/.github/"
+@Suppress("unused") private const val _SS_13: String = "/.hub/"
+@Suppress("unused") private val _SS_14: String = """
+    Sync bundled skills into ~/.hermes/skills/ using the manifest.
+
+    Returns:
+        dict with keys: copied (list), updated (list), skipped (int),
+                        user_modified (list), cleaned (list), total_bundled (int)
+    """
+@Suppress("unused") private const val _SS_15: String = "DESCRIPTION.md"
+@Suppress("unused") private const val _SS_16: String = "copied"
+@Suppress("unused") private const val _SS_17: String = "updated"
+@Suppress("unused") private const val _SS_18: String = "skipped"
+@Suppress("unused") private const val _SS_19: String = "user_modified"
+@Suppress("unused") private const val _SS_20: String = "cleaned"
+@Suppress("unused") private const val _SS_21: String = "total_bundled"
+@Suppress("unused") private const val _SS_22: String = "Could not copy %s: %s"
+@Suppress("unused") private const val _SS_23: String = ".bak"
+@Suppress("unused") private const val _SS_24: String = "  + "
+@Suppress("unused") private const val _SS_25: String = "  ! Failed to copy "
+@Suppress("unused") private const val _SS_26: String = "  ~ "
+@Suppress("unused") private const val _SS_27: String = " (user-modified, skipping)"
+@Suppress("unused") private const val _SS_28: String = "  ↑ "
+@Suppress("unused") private const val _SS_29: String = " (updated)"
+@Suppress("unused") private const val _SS_30: String = "  ! Failed to update "
+@Suppress("unused") private val _SS_31: String = """
+    Reset a bundled skill's manifest tracking so future syncs work normally.
+
+    When a user edits a bundled skill, subsequent syncs mark it as
+    ``user_modified`` and skip it forever — even if the user later copies
+    the bundled version back into place, because the manifest still holds
+    the *old* origin hash. This function breaks that loop.
+
+    Args:
+        name: The skill name (matches the manifest key / skill frontmatter name).
+        restore: If True, also delete the user's copy in SKILLS_DIR and let
+                 the next sync re-copy the current bundled version. If False
+                 (default), only clear the manifest entry — the user's
+                 current copy is preserved but future updates work again.
+
+    Returns:
+        dict with keys:
+          - ok: bool, whether the reset succeeded
+          - action: one of "manifest_cleared", "restored", "not_in_manifest",
+                    "bundled_missing"
+          - message: human-readable description
+          - synced: dict from sync_skills() if a sync was triggered, else None
+    """
+@Suppress("unused") private const val _SS_32: String = "restored"
+@Suppress("unused") private const val _SS_33: String = "action"
+@Suppress("unused") private const val _SS_34: String = "message"
+@Suppress("unused") private const val _SS_35: String = "synced"
+@Suppress("unused") private const val _SS_36: String = "not_in_manifest"
+@Suppress("unused") private const val _SS_37: String = "Restored '"
+@Suppress("unused") private const val _SS_38: String = "' from bundled source."
+@Suppress("unused") private const val _SS_39: String = "manifest_cleared"
+@Suppress("unused") private const val _SS_40: String = "' is not a tracked bundled skill. Nothing to reset. (Hub-installed skills use `hermes skills uninstall`.)"
+@Suppress("unused") private const val _SS_41: String = "bundled_missing"
+@Suppress("unused") private const val _SS_42: String = "' (no prior user copy, re-copied from bundled)."
+@Suppress("unused") private const val _SS_43: String = "Cleared manifest entry for '"
+@Suppress("unused") private const val _SS_44: String = "'. Future `hermes update` runs will re-baseline against your current copy and accept upstream changes."
+@Suppress("unused") private const val _SS_45: String = "' has no bundled source — manifest entry cleared but cannot restore from bundled (skill was removed upstream)."
+@Suppress("unused") private const val _SS_46: String = "' but could not delete user copy at "
