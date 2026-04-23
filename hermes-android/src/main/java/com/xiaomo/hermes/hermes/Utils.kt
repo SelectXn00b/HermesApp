@@ -296,8 +296,28 @@ fun baseUrlHostMatches(baseUrl: String?, domain: String?): Boolean {
 /** Python `_preserve_file_mode` — stub. */
 private fun _preserveFileMode(path: String): Int? = null
 
-/** Python `_restore_file_mode` — stub. */
-private fun _restoreFileMode(path: String, mode: Int?) {}
+/** Python `_restore_file_mode` — re-apply *mode* to *path* after atomic replace. */
+private fun _restoreFileMode(path: String, mode: Int?) {
+    if (mode == null) return
+    try {
+        val perms = java.util.EnumSet.noneOf(java.nio.file.attribute.PosixFilePermission::class.java)
+        val bits = listOf(
+            0b100_000_000 to java.nio.file.attribute.PosixFilePermission.OWNER_READ,
+            0b010_000_000 to java.nio.file.attribute.PosixFilePermission.OWNER_WRITE,
+            0b001_000_000 to java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE,
+            0b000_100_000 to java.nio.file.attribute.PosixFilePermission.GROUP_READ,
+            0b000_010_000 to java.nio.file.attribute.PosixFilePermission.GROUP_WRITE,
+            0b000_001_000 to java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE,
+            0b000_000_100 to java.nio.file.attribute.PosixFilePermission.OTHERS_READ,
+            0b000_000_010 to java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE,
+            0b000_000_001 to java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE,
+        )
+        for ((bit, perm) in bits) if (mode and bit != 0) perms.add(perm)
+        java.nio.file.Files.setPosixFilePermissions(java.nio.file.Paths.get(path), perms)
+    } catch (_: Exception) {
+        // match Python: swallow OSError
+    }
+}
 
 /** Python `normalize_proxy_url` — stub. */
 fun normalizeProxyUrl(url: String): String = url

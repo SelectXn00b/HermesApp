@@ -59,7 +59,26 @@ private fun _validateFilePath(filePath: String): String? = null
 
 private fun _resolveSkillTarget(skillDir: File, filePath: String): Pair<File?, String?> = null to "not implemented"
 
-private fun _atomicWriteText(filePath: File, content: String, encoding: String = "utf-8") {}
+private fun _atomicWriteText(filePath: File, content: String, encoding: String = "utf-8") {
+    filePath.parentFile?.mkdirs()
+    val tempFile = java.io.File.createTempFile(
+        ".${filePath.name}.tmp.",
+        "",
+        filePath.parentFile ?: java.io.File(".")
+    )
+    try {
+        tempFile.writeText(content, charset(encoding))
+        java.nio.file.Files.move(
+            tempFile.toPath(),
+            filePath.toPath(),
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+            java.nio.file.StandardCopyOption.ATOMIC_MOVE
+        )
+    } catch (e: Exception) {
+        try { tempFile.delete() } catch (_: Exception) {}
+        throw e
+    }
+}
 
 private fun _createSkill(name: String, content: String, category: String? = null): Map<String, Any> =
     mapOf("error" to "skill_manage is not available on Android")
