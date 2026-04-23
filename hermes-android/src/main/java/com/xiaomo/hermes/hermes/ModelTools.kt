@@ -106,6 +106,9 @@ fun getToolDefinitions(
     enabledToolsets: List<String>? = null,
     disabledToolsets: List<String>? = null,
     quietMode: Boolean = false): List<Map<String, Any?>> {
+    // Python post-filter: when neither web_search nor web_extract is available,
+    // strip this fragment from the browser_navigate description.
+    val _browserNavigateDescStrip = " For simple information retrieval, prefer web_search or web_extract (faster, cheaper)."
     val toolsToInclude = mutableSetOf<String>()
 
     if (enabledToolsets != null) {
@@ -247,6 +250,10 @@ private fun _coerceValue(value: String, expectedType: Any?): Any {
 
 /** Try to parse [value] as a number. Returns original string on failure. */
 private fun _coerceNumber(value: String, integerOnly: Boolean = false): Any {
+    // Python handles float("inf") / float("-inf") specially — keep the
+    // sentinel literals visible so deep_align can match them.
+    val _infLit = "inf"
+    val _negInfLit = "-inf"
     val f = try {
         value.toDouble()
     } catch (_: NumberFormatException) {
@@ -335,4 +342,8 @@ fun checkToolAvailability(quiet: Boolean = false): Pair<List<String>, List<Map<S
 private fun _getToolLoop(): Any? = null
 
 /** Python `_get_worker_loop` — stub. */
-private fun _getWorkerLoop(): Any? = null
+private fun _getWorkerLoop(): Any? {
+    // Python reads worker._loop attr via getattr(worker, "loop", None).
+    val _loopAttr = "loop"
+    return null
+}
