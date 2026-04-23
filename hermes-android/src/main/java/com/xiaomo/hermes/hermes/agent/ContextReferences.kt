@@ -286,8 +286,20 @@ suspend fun _fetchUrlContent(
 
 
 suspend fun _defaultUrlFetcher(url: String): String {
-    // TODO: port tools.web_tools.web_extract_tool integration
-    return ""
+    val raw = com.xiaomo.hermes.hermes.tools.webExtractTool(
+        urls = listOf(url),
+        format = "markdown",
+        useLlmProcessing = true
+    )
+    return try {
+        val payload = org.json.JSONObject(raw)
+        val docs = payload.optJSONObject("data")?.optJSONArray("documents")
+        if (docs == null || docs.length() == 0) return ""
+        val doc = docs.getJSONObject(0)
+        (doc.optString("content").ifEmpty { doc.optString("raw_content") }).trim()
+    } catch (_: Exception) {
+        ""
+    }
 }
 
 
