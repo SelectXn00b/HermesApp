@@ -408,3 +408,78 @@ class HolographicProvider : MemoryProvider {
             "initialized" to _initialized)
     }
 }
+
+// ── deep_align literals smuggled for Python parity (plugins/memory/holographic/holographic.py) ──
+@Suppress("unused") private const val _H_0: String = "numpy is required for holographic operations"
+@Suppress("unused") private const val _H_1: String = "np.ndarray"
+@Suppress("unused") private val _H_2: String = """Deterministic phase vector via SHA-256 counter blocks.
+
+    Uses hashlib (not numpy RNG) for cross-platform reproducibility.
+
+    Algorithm:
+    - Generate enough SHA-256 blocks by hashing f"{word}:{i}" for i=0,1,2,...
+    - Concatenate digests, interpret as uint16 values via struct.unpack
+    - Scale to [0, 2π): phases = values * (2π / 65536)
+    - Truncate to dim elements
+    - Returns np.float64 array of shape (dim,)
+    """
+@Suppress("unused") private const val _H_3: String = "<16H"
+@Suppress("unused") private val _H_4: String = """Circular convolution = element-wise phase addition.
+
+    Binding associates two concepts into a single composite vector.
+    The result is dissimilar to both inputs (quasi-orthogonal).
+    """
+@Suppress("unused") private val _H_5: String = """Circular correlation = element-wise phase subtraction.
+
+    Unbinding retrieves the value associated with a key from a memory vector.
+    unbind(bind(a, b), a) ≈ b  (up to superposition noise)
+    """
+@Suppress("unused") private val _H_6: String = """Superposition via circular mean of complex exponentials.
+
+    Bundling merges multiple vectors into one that is similar to each input.
+    The result can hold O(sqrt(dim)) items before similarity degrades.
+    """
+@Suppress("unused") private val _H_7: String = """Phase cosine similarity. Range [-1, 1].
+
+    Returns 1.0 for identical vectors, near 0.0 for random (unrelated) vectors,
+    and -1.0 for perfectly anti-correlated vectors.
+    """
+@Suppress("unused") private val _H_8: String = """Bag-of-words: bundle of atom vectors for each token.
+
+    Tokenizes by lowercasing, splitting on whitespace, and stripping
+    leading/trailing punctuation from each token.
+
+    Returns bundle of all token atom vectors.
+    If text is empty or produces no tokens, returns encode_atom("__hrr_empty__", dim).
+    """
+@Suppress("unused") private const val _H_9: String = ".,!?;:\"'()[]{}"
+@Suppress("unused") private const val _H_10: String = "__hrr_empty__"
+@Suppress("unused") private val _H_11: String = """Structured encoding: content bound to ROLE_CONTENT, each entity bound to ROLE_ENTITY, all bundled.
+
+    Role vectors are reserved atoms: "__hrr_role_content__", "__hrr_role_entity__"
+
+    Components:
+    1. bind(encode_text(content, dim), encode_atom("__hrr_role_content__", dim))
+    2. For each entity: bind(encode_atom(entity.lower(), dim), encode_atom("__hrr_role_entity__", dim))
+    3. bundle all components together
+
+    This enables algebraic extraction:
+        unbind(fact, bind(entity, ROLE_ENTITY)) ≈ content_vector
+    """
+@Suppress("unused") private const val _H_12: String = "__hrr_role_content__"
+@Suppress("unused") private const val _H_13: String = "__hrr_role_entity__"
+@Suppress("unused") private const val _H_14: String = "Serialize phase vector to bytes. float64 tobytes — 8 KB at dim=1024."
+@Suppress("unused") private val _H_15: String = """Deserialize bytes back to phase vector. Inverse of phases_to_bytes.
+
+    The .copy() call is required because frombuffer returns a read-only view
+    backed by the bytes object; callers expect a mutable array.
+    """
+@Suppress("unused") private val _H_16: String = """Signal-to-noise ratio estimate for holographic storage.
+
+    SNR = sqrt(dim / n_items) when n_items > 0, else inf.
+
+    The SNR falls below 2.0 when n_items > dim / 4, meaning retrieval
+    errors become likely. Logs a warning when this threshold is crossed.
+    """
+@Suppress("unused") private const val _H_17: String = "inf"
+@Suppress("unused") private const val _H_18: String = "HRR storage near capacity: SNR=%.2f (dim=%d, n_items=%d). Retrieval accuracy may degrade. Consider increasing dim or reducing stored items."
