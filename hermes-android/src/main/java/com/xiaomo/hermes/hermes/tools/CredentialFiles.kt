@@ -78,8 +78,8 @@ fun iterCacheFiles(
     containerBase: String = "/root/.hermes",
 ): Sequence<Map<String, String>> = emptySequence()
 
-/** Clear all registered credential files. Android: no-op. */
-fun clearCredentialFiles() {}
+/** Clear all registered credential files. Android: no-op (registry is per-call). */
+fun clearCredentialFiles() = _getRegistered().clear()
 
 /** Get or create the registered credential-files dict for the current session.
  *  Android stub: returns a fresh empty map each call (no ContextVar equivalent). */
