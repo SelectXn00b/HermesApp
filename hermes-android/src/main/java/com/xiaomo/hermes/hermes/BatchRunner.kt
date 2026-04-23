@@ -88,14 +88,14 @@ class BatchRunner(
         }
 
         outputDir.mkdirs()
-        dataset = loadDataset()
+        dataset = _loadDataset()
 
         if (maxSamples != null && maxSamples < dataset.size) {
             dataset = dataset.take(maxSamples)
             batchRunnerLogger.info("Truncated dataset to $maxSamples samples")
         }
 
-        batches = createBatches()
+        batches = _createBatches()
 
         batchRunnerLogger.info("Batch Runner initialized:")
         batchRunnerLogger.info("  Dataset: ${datasetFile.name} (${dataset.size} prompts)")
@@ -113,7 +113,7 @@ class BatchRunner(
         val completedPromptTexts = mutableSetOf<String>()
 
         if (resume) {
-            completedPromptTexts.addAll(scanCompletedPromptsByContent())
+            completedPromptTexts.addAll(_scanCompletedPromptsByContent())
             if (completedPromptTexts.isNotEmpty()) {
                 batchRunnerLogger.info("Resuming: ${completedPromptTexts.size} already completed")
             }
@@ -163,7 +163,10 @@ class BatchRunner(
                         totalReasoningStats["turnsWithoutReasoning"]!!.addAndGet(result.reasoningStats.turnsWithoutReasoning)
 
                         // 保存 checkpoint
-                        saveCheckpoint(result)
+                        _saveCheckpoint(mapOf(
+                            "runName" to runName,
+                            "completedPrompts" to result.completedPrompts,
+                        ))
                     } finally {
                         semaphore.release()
                     }
@@ -283,70 +286,6 @@ class BatchRunner(
 
     // ── 工具方法 ──────────────────────────────────────────────────────────
 
-    private fun loadDataset(): List<Map<String, Any>> {
-        if (!datasetFile.exists()) {
-            throw IllegalStateException("Dataset file not found: ${datasetFile.absolutePath}")
-        }
-
-        return datasetFile.readLines()
-            .filter { it.isNotBlank() }
-            .mapNotNull { line ->
-                try {
-                    val type = object : TypeToken<Map<String, Any>>() {}.type
-                    val entry: Map<String, Any> = batchRunnerGson.fromJson(line, type)
-                    if (entry.containsKey("prompt")) entry else null
-                } catch (e: Exception) {
-                    null
-                }
-            }
-    }
-
-    private fun createBatches(): List<List<Pair<Int, Map<String, Any>>>> {
-        return dataset.chunked(batchSize).mapIndexed { batchIndex, chunk ->
-            chunk.mapIndexed { index, entry ->
-                (batchIndex * batchSize + index) to entry
-            }
-        }
-    }
-
-    private fun scanCompletedPromptsByContent(): Set<String> {
-        val completed = mutableSetOf<String>()
-        val batchFiles = outputDir.listFiles()
-            ?.filter { it.name.startsWith("batch_") && it.extension == "jsonl" }
-            ?.sorted()
-            ?: return completed
-
-        for (file in batchFiles) {
-            file.readLines().forEach { line ->
-                if (line.isBlank()) return@forEach
-                try {
-                    val entry = batchRunnerGson.fromJson(line, Map::class.java) as Map<*, *>
-                    val conversations = entry["conversations"] as? List<Map<*, *>> ?: return@forEach
-                    for (msg in conversations) {
-                        if (msg["from"] == "human") {
-                            val prompt = msg["value"] as? String
-                            if (prompt != null && prompt.isNotBlank()) {
-                                completed.add(prompt.trim())
-                            }
-                            break
-                        }
-                    }
-                } catch (e: Exception) {
-                    // skip
-                }
-            }
-        }
-        return completed
-    }
-
-    private fun saveCheckpoint(result: BatchResult) {
-        val checkpoint = mutableMapOf<String, Any>(
-            "runName" to runName,
-            "completedPrompts" to result.completedPrompts,
-            "lastUpdated" to java.time.Instant.now().toString())
-        checkpointFile.writeText(batchRunnerGson.toJson(checkpoint), Charsets.UTF_8)
-    }
-
     private fun saveTrajectory(
         batchNum: Int,
         promptIndex: Int,
@@ -411,27 +350,125 @@ class BatchRunner(
 
     /** Load dataset from JSONL file. */
     fun _loadDataset(): List<Map<String, Any>> {
-        return emptyList()
+        if (!datasetFile.exists()) {
+            throw IllegalStateException("Dataset file not found: ${datasetFile.absolutePath}")
+        }
+        val ds = datasetFile.readLines()
+            .filter { it.isNotBlank() }
+            .mapNotNull { line ->
+                try {
+                    val type = object : TypeToken<Map<String, Any>>() {}.type
+                    val entry: Map<String, Any> = batchRunnerGson.fromJson(line, type)
+                    if (entry.containsKey("prompt")) entry else null
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        if (ds.isEmpty()) {
+            throw IllegalStateException("No valid entries found in dataset file: ${datasetFile.absolutePath}")
+        }
+        return ds
     }
+
     /** Split dataset into batches with indices. */
     fun _createBatches(): List<List<Pair<Int, Map<String, Any>>>> {
-        return emptyList()
+        return dataset.chunked(batchSize).mapIndexed { batchIndex, chunk ->
+            chunk.mapIndexed { index, entry ->
+                (batchIndex * batchSize + index) to entry
+            }
+        }
     }
+
     /** Load checkpoint data if it exists. */
     fun _loadCheckpoint(): Map<String, Any> {
-        return emptyMap()
+        val empty = mapOf<String, Any>(
+            "runName" to runName,
+            "completedPrompts" to emptyList<Int>(),
+            "batchStats" to emptyMap<String, Any>(),
+            "lastUpdated" to "",
+        )
+        if (!checkpointFile.exists()) return empty
+        return try {
+            val type = object : TypeToken<Map<String, Any>>() {}.type
+            batchRunnerGson.fromJson<Map<String, Any>>(checkpointFile.readText(Charsets.UTF_8), type)
+        } catch (e: Exception) {
+            batchRunnerLogger.warning("Failed to load checkpoint: ${e.message}")
+            empty
+        }
     }
+
     /** Save checkpoint data. */
-    fun _saveCheckpoint(checkpointData: Map<String, Any>, lock: Any?? = null): Any? {
+    fun _saveCheckpoint(checkpointData: Map<String, Any>, lock: Any? = null): Any? {
+        val out = checkpointData.toMutableMap()
+        out["lastUpdated"] = java.time.Instant.now().toString()
+        val tmp = File(checkpointFile.absolutePath + ".tmp")
+        tmp.writeText(batchRunnerGson.toJson(out), Charsets.UTF_8)
+        synchronized(lock ?: checkpointFile) {
+            if (checkpointFile.exists()) checkpointFile.delete()
+            tmp.renameTo(checkpointFile)
+        }
         return null
     }
+
     /** Scan all batch files and extract completed prompts by their actual content. */
-    fun _scanCompletedPromptsByContent(): Any? {
-        return null
+    fun _scanCompletedPromptsByContent(): Set<String> {
+        val completed = mutableSetOf<String>()
+        val batchFiles = outputDir.listFiles()
+            ?.filter { it.name.startsWith("batch_") && it.extension == "jsonl" }
+            ?.sorted()
+            ?: return completed
+        for (file in batchFiles) {
+            try {
+                file.readLines().forEach { line ->
+                    if (line.isBlank()) return@forEach
+                    try {
+                        val entry = batchRunnerGson.fromJson(line, Map::class.java) as Map<*, *>
+                        if (entry["failed"] as? Boolean == true) return@forEach
+                        val conversations = entry["conversations"] as? List<*> ?: return@forEach
+                        for (msg in conversations) {
+                            val m = msg as? Map<*, *> ?: continue
+                            if (m["from"] == "human") {
+                                val prompt = (m["value"] as? String)?.trim()
+                                if (!prompt.isNullOrEmpty()) completed.add(prompt)
+                                break
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // skip malformed line
+                    }
+                }
+            } catch (e: Exception) {
+                batchRunnerLogger.warning("Error reading ${file.name}: ${e.message}")
+            }
+        }
+        return completed
     }
+
     /** Filter the dataset to exclude prompts that have already been completed. */
-    fun _filterDatasetByCompleted(completedPrompts: Any?): Pair<List<Map<String, Any?>>, List<Int>> {
-        throw NotImplementedError("_filterDatasetByCompleted")
+    fun _filterDatasetByCompleted(
+        completedPrompts: Set<String>
+    ): Pair<List<Pair<Int, Map<String, Any>>>, List<Int>> {
+        val filtered = mutableListOf<Pair<Int, Map<String, Any>>>()
+        val skipped = mutableListOf<Int>()
+        for ((idx, entry) in dataset.withIndex()) {
+            var promptText = (entry["prompt"] as? String)?.trim().orEmpty()
+            if (promptText.isEmpty()) {
+                val conversations = entry["conversations"] as? List<*>
+                if (conversations != null) {
+                    for (msg in conversations) {
+                        val m = msg as? Map<*, *> ?: continue
+                        val role = m["role"] ?: m["from"]
+                        if (role == "user" || role == "human") {
+                            promptText = ((m["content"] ?: m["value"]) as? String)?.trim().orEmpty()
+                            break
+                        }
+                    }
+                }
+            }
+            if (promptText in completedPrompts) skipped.add(idx)
+            else filtered.add(idx to entry)
+        }
+        return filtered to skipped
     }
 
 }
@@ -481,12 +518,58 @@ fun _normalizeToolErrorCounts(toolErrorCounts: Map<String, Int?>?): Map<String, 
 
 /**
  * Walk a conversation and build a per-tool stats table
- * (count/success/failure per tool name).  Android-stub returns empty map.
+ * (count/success/failure per tool name).
  */
 fun _extractToolStats(
     messages: List<Map<String, Any?>>
 ): Map<String, Map<String, Int>> {
-    return emptyMap()
+    val toolStats = mutableMapOf<String, MutableMap<String, Int>>()
+    val toolCallsMap = mutableMapOf<String, String>()
+
+    for (msg in messages) {
+        val role = msg["role"] as? String
+        if (role == "assistant") {
+            val toolCalls = msg["tool_calls"] as? List<*> ?: continue
+            for (tc in toolCalls) {
+                val tcMap = tc as? Map<*, *> ?: continue
+                val fn = tcMap["function"] as? Map<*, *> ?: continue
+                val toolName = fn["name"] as? String ?: continue
+                val tcId = tcMap["id"] as? String ?: continue
+                val stats = toolStats.getOrPut(toolName) {
+                    mutableMapOf("count" to 0, "success" to 0, "failure" to 0)
+                }
+                stats["count"] = (stats["count"] ?: 0) + 1
+                toolCallsMap[tcId] = toolName
+            }
+        } else if (role == "tool") {
+            val tcId = msg["tool_call_id"] as? String ?: ""
+            val content = msg["content"]
+            var isSuccess = true
+            try {
+                val contentJson: Any? = when (content) {
+                    is String -> batchRunnerGson.fromJson(content, Any::class.java)
+                    else -> content
+                }
+                if (contentJson is Map<*, *>) {
+                    if (contentJson["error"] != null) isSuccess = false
+                    val inner = contentJson["content"] as? Map<*, *>
+                    if (inner != null && inner["error"] != null) isSuccess = false
+                    if (contentJson["success"] == false) isSuccess = false
+                }
+            } catch (e: Exception) {
+                val s = content as? String
+                if (s.isNullOrEmpty()) isSuccess = false
+                else if (s.trim().lowercase().startsWith("error:")) isSuccess = false
+            }
+            val toolName = toolCallsMap[tcId] ?: continue
+            val stats = toolStats.getOrPut(toolName) {
+                mutableMapOf("count" to 0, "success" to 0, "failure" to 0)
+            }
+            if (isSuccess) stats["success"] = (stats["success"] ?: 0) + 1
+            else stats["failure"] = (stats["failure"] ?: 0) + 1
+        }
+    }
+    return toolStats
 }
 
 /**
