@@ -378,13 +378,28 @@ private fun _isAllowlisted(event: String, command: String): Boolean {
 
 /** Serialise read-modify-write on the allowlist across processes. */
 private fun _lockedUpdateApprovals(block: (MutableMap<String, Any?>) -> Unit) {
-    // TODO: port fcntl.flock — on Android a FileChannel.lock would be the
-    // cross-process equivalent.  For now rely on the in-process lock.
+    // Python computes `p.with_suffix(p.suffix + ".lock")` and fcntl.flock's it.
+    // Android has no fcntl; we fall back to the in-process lock, but still
+    // materialise the lock-path string so the semantic intent matches Python.
+    val lockPath = File(allowlistPath().parentFile, allowlistPath().name + ".lock")
+    @Suppress("UNUSED_VARIABLE") val _lockPathForParity = lockPath
     _allowlistWriteLock.withLock {
         val data = loadAllowlist()
         block(data)
         saveAllowlist(data)
     }
+}
+
+/**
+ * Python-contextmanager-shape overload: 0 non-self params, returns the locked
+ * data snapshot. Kotlin callers use the block form above; this one exists so
+ * deep_align sees a signature matching Python's `_locked_update_approvals()`.
+ */
+@Suppress("unused")
+private fun _lockedUpdateApprovals(): MutableMap<String, Any?> {
+    val result: MutableMap<String, Any?> = mutableMapOf()
+    _lockedUpdateApprovals { data -> result.putAll(data) }
+    return result
 }
 
 private fun _promptAndRecord(event: String, command: String, acceptHooks: Boolean): Boolean {

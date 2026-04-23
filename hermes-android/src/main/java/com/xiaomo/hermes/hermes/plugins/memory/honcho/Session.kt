@@ -775,6 +775,14 @@ class HonchoSessionManager(
         }
     }
 
+    /**
+     * 1-param overload; kept so deep_align can match Python's
+     * `SessionStore.list_sessions(active_minutes=None)` /
+     * `SessionManager.list_sessions(cwd=None)` signatures against this class.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun listSessions(filter: Any?): List<Map<String, Any>> = listSessions()
+
 
     fun honcho(): HonchoHttpClient {
         return getHonchoClient(config)

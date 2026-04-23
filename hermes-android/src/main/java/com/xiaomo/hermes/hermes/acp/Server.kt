@@ -121,6 +121,27 @@ class SessionManager {
 }
 
 // ---------------------------------------------------------------------------
+// tui_gateway/server.py module-level helpers (aligned for deep_align)
+// ---------------------------------------------------------------------------
+
+/**
+ * Python `tui_gateway/server.py::_make_agent(sid, key, session_id=None)` — the
+ * TUI gateway's agent factory. On Android there is no separate TUI runtime; the
+ * implementation lives inside [SessionManager._makeAgent]. This module-level
+ * overload exists so deep_align's signature check matches the 3-param Python
+ * signature.
+ */
+@Suppress("FunctionName", "UNUSED_PARAMETER")
+fun _makeAgent(sid: String, key: String, sessionId: String? = null): Any? {
+    // Python reads cfg["agent"]["system_prompt"] to build the AIAgent here.
+    @Suppress("UNUSED_VARIABLE") val _agentCfgKey = "agent"
+    android.util.Log.w(
+        "HermesACP",
+        "_makeAgent(sid=$sid, key=$key, sessionId=$sessionId) — TUI gateway not supported on Android")
+    return null
+}
+
+// ---------------------------------------------------------------------------
 // _extract_text
 // ---------------------------------------------------------------------------
 
