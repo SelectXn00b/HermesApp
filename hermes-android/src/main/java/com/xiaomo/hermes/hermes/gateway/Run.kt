@@ -1800,7 +1800,7 @@ fun _platformConfigKey(platform: String, chatId: String? = null): String {
 }
 
 /** Load gateway YAML/JSON config — Android returns empty map (injected). */
-fun _loadGatewayConfig(path: String? = null): Map<String, Any?> = emptyMap()
+fun _loadGatewayConfig(): Map<String, Any?> = emptyMap()
 
 /** Parse "platform:chatId" session key into (platform, chatId). */
 fun _parseSessionKey(sessionKey: String): Pair<String, String> {

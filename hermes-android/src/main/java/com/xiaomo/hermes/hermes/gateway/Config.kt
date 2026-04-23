@@ -7,6 +7,7 @@ package com.xiaomo.hermes.hermes.gateway
  */
 
 import android.util.Log
+import com.xiaomo.hermes.hermes.getHermesHome
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -321,7 +322,8 @@ private val _jsonValueToKotlin: (Any?) -> Any? = { value ->
 }
 
 /** Load gateway configuration from the default location. */
-fun loadGatewayConfig(hermesHome: String): GatewayConfig {
+fun loadGatewayConfig(): GatewayConfig {
+    val hermesHome = getHermesHome().absolutePath
     val configFile = File(hermesHome, "config.json")
     val config = if (configFile.exists()) {
         try {

@@ -21,7 +21,8 @@ private fun _getBundledDir(): File {
     return File(getHermesHome(), "bundled_skills")
 }
 
-private fun _readManifest(manifestFile: File): Map<String, String> {
+private fun _readManifest(): Map<String, String> {
+    val manifestFile = File(_SkillsSyncConstants.SKILLS_DIR, ".bundled_manifest")
     if (!manifestFile.exists()) return emptyMap()
     return try {
         manifestFile.readLines(Charsets.UTF_8)
@@ -36,7 +37,8 @@ private fun _readManifest(manifestFile: File): Map<String, String> {
     }
 }
 
-private fun _writeManifest(manifestFile: File, entries: Map<String, String>) {
+private fun _writeManifest(entries: Map<String, String>) {
+    val manifestFile = File(_SkillsSyncConstants.SKILLS_DIR, ".bundled_manifest")
     try {
         manifestFile.parentFile?.mkdirs()
         val data = entries.entries
@@ -108,11 +110,9 @@ private fun _dirHash(directory: File): String {
 /**
  * Sync bundled skills into the target directory using the manifest.
  */
-fun syncSkills(
-    bundledDir: File,
-    targetDir: File,
-    manifestFile: File,
-    quiet: Boolean = true): Map<String, Any> {
+fun syncSkills(quiet: Boolean = false): Map<String, Any> {
+    val bundledDir = _getBundledDir()
+    val targetDir = _SkillsSyncConstants.SKILLS_DIR
     if (!bundledDir.exists()) {
         return mapOf(
             "copied" to emptyList<String>(),
@@ -124,7 +124,7 @@ fun syncSkills(
     }
 
     targetDir.mkdirs()
-    val manifest = _readManifest(manifestFile).toMutableMap()
+    val manifest = _readManifest().toMutableMap()
     val bundledSkills = _discoverBundledSkills(bundledDir)
     val bundledNames = bundledSkills.map { it.first }.toSet()
 
@@ -200,7 +200,7 @@ fun syncSkills(
         manifest.remove(name)
     }
 
-    _writeManifest(manifestFile, manifest)
+    _writeManifest(manifest)
 
     return mapOf(
         "copied" to copied,

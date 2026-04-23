@@ -169,10 +169,7 @@ fun _makeCallbackHandler(): Pair<Any?, MutableMap<String, Any?>> = null to mutab
 suspend fun _redirectHandler(authUrl: String) { /* Android stub */ }
 
 /** Wait for the OAuth callback to arrive. Android: returns null immediately. */
-suspend fun _waitForCallback(
-    state: MutableMap<String, Any?>,
-    timeoutSec: Int = 300
-): Map<String, Any?>? = null
+suspend fun _waitForCallback(): Map<String, Any?>? = null
 
 /** Resolve the redirect callback port from config (default: find free port). */
 fun _configureCallbackPort(cfg: Map<String, Any?>?): Int {

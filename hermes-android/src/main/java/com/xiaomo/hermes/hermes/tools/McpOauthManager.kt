@@ -221,4 +221,4 @@ class _ProviderEntry(
 )
 
 /** Python `_make_hermes_provider_class` — stub. */
-private fun _makeHermesProviderClass(serverName: String): Any? = null
+private fun _makeHermesProviderClass(): Any? = null

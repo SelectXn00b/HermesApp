@@ -246,8 +246,11 @@ fun getSessionStats(sessionDir: java.io.File): SessionStats? {
 // ── Module-level aligned with hermes_time.py ─────────────────────────────
 
 /** Resolve a timezone name alias to its canonical zone id. */
-@Suppress("UNUSED_PARAMETER")
-fun _resolveTimezoneName(name: String?): String? = name
+fun _resolveTimezoneName(): String? {
+    val env = System.getenv("HERMES_TIMEZONE")?.trim()
+    if (!env.isNullOrEmpty()) return env
+    return null
+}
 
 /** Look up a java.time.ZoneId for the given name (Android ZoneInfo replacement). */
 fun _getZoneinfo(name: String?): java.time.ZoneId = try {
@@ -256,9 +259,9 @@ fun _getZoneinfo(name: String?): java.time.ZoneId = try {
 } catch (_: Exception) { java.time.ZoneId.systemDefault() }
 
 /** Resolve the configured Hermes timezone. */
-fun getTimezone(name: String? = null): java.time.ZoneId =
-    _getZoneinfo(_resolveTimezoneName(name))
+fun getTimezone(): java.time.ZoneId =
+    _getZoneinfo(_resolveTimezoneName())
 
 /** Current wall-clock time in the configured timezone. */
-fun now(tz: String? = null): java.time.ZonedDateTime =
-    java.time.ZonedDateTime.now(getTimezone(tz))
+fun now(): java.time.ZonedDateTime =
+    java.time.ZonedDateTime.now(getTimezone())
