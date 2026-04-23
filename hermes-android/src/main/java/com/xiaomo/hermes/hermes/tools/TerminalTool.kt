@@ -120,7 +120,18 @@ private fun _getEnvConfig(): Map<String, Any?> = emptyMap()
 
 private fun _getModalBackendState(modalMode: Any? = null): Map<String, Any?> = emptyMap()
 
-private fun _createEnvironment(envType: String, image: String, cwd: String, timeout: Int): Any? = null
+@Suppress("UNUSED_PARAMETER")
+private fun _createEnvironment(
+    envType: String,
+    image: String,
+    cwd: String,
+    timeout: Int,
+    sshConfig: Map<String, Any?>? = null,
+    containerConfig: Map<String, Any?>? = null,
+    localConfig: Map<String, Any?>? = null,
+    taskId: String = "default",
+    hostCwd: String? = null,
+): Any? = null
 
 private fun _cleanupInactiveEnvs(lifetimeSeconds: Int = 300): Unit = Unit
 

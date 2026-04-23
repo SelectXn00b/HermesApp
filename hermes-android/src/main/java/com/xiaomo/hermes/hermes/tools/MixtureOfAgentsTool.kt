@@ -46,7 +46,12 @@ private fun _constructAggregatorPrompt(systemPrompt: String, responses: List<Str
 /**
  * Main MoA entry — not implemented on Android; returns an error payload.
  */
-fun mixtureOfAgentsTool(userPrompt: String): String {
+@Suppress("UNUSED_PARAMETER")
+fun mixtureOfAgentsTool(
+    userPrompt: String,
+    referenceModels: List<String>? = null,
+    aggregatorModel: String? = null,
+): String {
     return _moaGson.toJson(mapOf(
         "error" to "MixtureOfAgents is not available on Android: requires OpenRouter async client."))
 }
@@ -61,7 +66,20 @@ fun getMoaConfiguration(): Map<String, Any> = mapOf(
     "min_successful_references" to MIN_SUCCESSFUL_REFERENCES)
 
 /** Python `_run_reference_model_safe` — stub. */
-private suspend fun _runReferenceModelSafe(prompt: String): String = ""
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _runReferenceModelSafe(
+    model: String,
+    userPrompt: String,
+    temperature: Double = REFERENCE_TEMPERATURE,
+    maxTokens: Int = 32000,
+    maxRetries: Int = 6,
+): Triple<String, String, Boolean> = Triple(model, "", false)
 
 /** Python `_run_aggregator_model` — stub. */
-private suspend fun _runAggregatorModel(prompt: String, references: List<String>): String = ""
+@Suppress("UNUSED_PARAMETER")
+private suspend fun _runAggregatorModel(
+    systemPrompt: String,
+    userPrompt: String,
+    temperature: Double = AGGREGATOR_TEMPERATURE,
+    maxTokens: Int? = null,
+): String = ""

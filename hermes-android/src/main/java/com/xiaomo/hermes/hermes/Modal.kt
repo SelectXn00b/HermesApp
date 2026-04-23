@@ -120,7 +120,13 @@ class ModalEnvironment(
      * Run a bash command in the Modal sandbox via _ThreadedProcessHandle.
      * On Android, Modal SDK is not available.
      */
-    fun _runBash(cmdString: String): Any? {
+    @Suppress("UNUSED_PARAMETER")
+    fun _runBash(
+        cmdString: String,
+        login: Boolean = false,
+        timeout: Int = 120,
+        stdinData: String? = null,
+    ): Any? {
         Log.d(_TAG, "runBash: Modal SDK not available on Android")
         return null
     }

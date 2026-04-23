@@ -47,7 +47,12 @@ private fun _buildServicePayload(
     data: Map<String, Any?>? = null,
 ): Map<String, Any?> = emptyMap()
 
-private fun _parseServiceResponse(vararg args: Any?): Map<String, Any?> = emptyMap()
+@Suppress("UNUSED_PARAMETER")
+private fun _parseServiceResponse(
+    domain: String,
+    service: String,
+    result: Any?,
+): Map<String, Any?> = emptyMap()
 
 private fun _runAsync(coro: Any?): Any? = null
 
@@ -79,8 +84,12 @@ private suspend fun _asyncGetState(args: Map<String, Any?>): String =
 
 /** Async call-service helper (Python `_async_call_service`). Android stub. */
 @Suppress("UNUSED_PARAMETER")
-private suspend fun _asyncCallService(args: Map<String, Any?>): String =
-    toolError("Home Assistant tool is not available on Android")
+private suspend fun _asyncCallService(
+    domain: String,
+    service: String,
+    entityId: String? = null,
+    data: Map<String, Any?>? = null,
+): String = toolError("Home Assistant tool is not available on Android")
 
 /** Async list-services helper (Python `_async_list_services`). Android stub. */
 @Suppress("UNUSED_PARAMETER")

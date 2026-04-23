@@ -45,7 +45,13 @@ class LocalEnvironment(
      * Spawn a local bash process to run cmdString.
      * On Android, uses ProcessBuilder with process group isolation.
      */
-    fun _runBash(cmdString: String): Process? {
+    @Suppress("UNUSED_PARAMETER")
+    fun _runBash(
+        cmdString: String,
+        login: Boolean = false,
+        timeout: Int = 120,
+        stdinData: String? = null,
+    ): Process? {
         return try {
             val pb = ProcessBuilder("bash", "-c", cmdString)
             pb.directory(File(cwd))

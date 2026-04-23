@@ -59,14 +59,18 @@ fun writeFileTool(
  * Patch a file using fuzzy find-and-replace.
  * Ported from file_tools.py :: patch_tool (replace mode)
  */
+@Suppress("UNUSED_PARAMETER")
 fun patchTool(
-    path: String,
-    oldString: String,
-    newString: String,
+    mode: String = "replace",
+    path: String? = null,
+    oldString: String? = null,
+    newString: String? = null,
     replaceAll: Boolean = false,
-    ops: FileOperations? = null): String {
-    val fileOps = ops ?: ShellFileOperations()
-    val result = fileOps.patchReplace(path, oldString, newString, replaceAll)
+    patch: String? = null,
+    taskId: String = "default",
+): String {
+    val fileOps = _getFileOps(taskId)
+    val result = fileOps.patchReplace(path ?: "", oldString ?: "", newString ?: "", replaceAll)
     return if (result.success) {
         val resp = mutableMapOf<String, Any>("success" to true)
         if (result.diff.isNotEmpty()) resp["diff"] = result.diff
@@ -81,13 +85,19 @@ fun patchTool(
  * Search for content in files.
  * Ported from file_tools.py :: search_tool
  */
+@Suppress("UNUSED_PARAMETER")
 fun searchTool(
     pattern: String,
+    target: String = "content",
     path: String = ".",
     fileGlob: String? = null,
     limit: Int = 50,
-    ops: FileOperations? = null): String {
-    val fileOps = ops ?: ShellFileOperations()
+    offset: Int = 0,
+    outputMode: String = "content",
+    context: Int = 0,
+    taskId: String = "default",
+): String {
+    val fileOps = _getFileOps(taskId)
     val result = fileOps.search(pattern, path, fileGlob = fileGlob, limit = limit)
     return _fileToolsGson.toJson(result.toDict())
 }
@@ -309,12 +319,13 @@ fun _handlePatch(
     args: Map<String, Any?>,
 ): String {
     val tid = (args["task_id"] as? String) ?: "default"
-    val path = (args["path"] as? String) ?: ""
-    val oldString = (args["old_string"] as? String) ?: ""
-    val newString = (args["new_string"] as? String) ?: ""
+    val mode = (args["mode"] as? String) ?: "replace"
+    val path = args["path"] as? String
+    val oldString = args["old_string"] as? String
+    val newString = args["new_string"] as? String
     val replaceAll = (args["replace_all"] as? Boolean) ?: false
-    val ops = _getFileOps(tid)
-    return patchTool(path, oldString, newString, replaceAll, ops)
+    val patch = args["patch"] as? String
+    return patchTool(mode, path, oldString, newString, replaceAll, patch, tid)
 }
 
 fun _handleSearchFiles(
@@ -322,9 +333,12 @@ fun _handleSearchFiles(
 ): String {
     val tid = (args["task_id"] as? String) ?: "default"
     val pattern = (args["pattern"] as? String) ?: ""
+    val target = (args["target"] as? String) ?: "content"
     val path = (args["path"] as? String) ?: "."
     val fileGlob = args["file_glob"] as? String
     val limit = (args["limit"] as? Int) ?: 50
-    val ops = _getFileOps(tid)
-    return searchTool(pattern, path, fileGlob, limit, ops)
+    val offset = (args["offset"] as? Int) ?: 0
+    val outputMode = (args["output_mode"] as? String) ?: "content"
+    val context = (args["context"] as? Int) ?: 0
+    return searchTool(pattern, target, path, fileGlob, limit, offset, outputMode, context, tid)
 }

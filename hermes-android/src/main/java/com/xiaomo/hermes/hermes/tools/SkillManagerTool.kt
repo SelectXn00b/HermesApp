@@ -86,7 +86,14 @@ private fun _createSkill(name: String, content: String, category: String? = null
 private fun _editSkill(name: String, content: String): Map<String, Any> =
     mapOf("error" to "skill_manage is not available on Android")
 
-private fun _patchSkill(vararg args: Any?): Map<String, Any> =
+@Suppress("UNUSED_PARAMETER")
+private fun _patchSkill(
+    name: String,
+    oldString: String,
+    newString: String,
+    filePath: String? = null,
+    replaceAll: Boolean = false,
+): Map<String, Any> =
     mapOf("error" to "skill_manage is not available on Android")
 
 private fun _deleteSkill(name: String): Map<String, Any> =

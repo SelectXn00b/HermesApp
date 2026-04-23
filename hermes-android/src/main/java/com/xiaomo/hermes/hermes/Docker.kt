@@ -39,7 +39,13 @@ class DockerEnvironment(
      * Uses `docker exec` to run commands in the running container.
      * On Android, Docker is not available.
      */
-    fun _runBash(cmdString: String): Any? {
+    @Suppress("UNUSED_PARAMETER")
+    fun _runBash(
+        cmdString: String,
+        login: Boolean = false,
+        timeout: Int = 120,
+        stdinData: String? = null,
+    ): Any? {
         // Android stub: Docker execution requires a Docker daemon
         Log.d(_TAG, "runBash: Docker not available on Android")
         return null

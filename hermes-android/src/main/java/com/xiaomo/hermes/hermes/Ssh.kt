@@ -123,7 +123,13 @@ class SSHEnvironment(
      * Spawn an SSH process that runs bash on the remote host.
      * On Android, subprocess spawning is limited. This is a stub.
      */
-    fun _runBash(cmdString: String): Any? {
+    @Suppress("UNUSED_PARAMETER")
+    fun _runBash(
+        cmdString: String,
+        login: Boolean = false,
+        timeout: Int = 120,
+        stdinData: String? = null,
+    ): Any? {
         // Android stub: would use JSch to execute remote commands
         Log.d(_TAG, "runBash: command execution (stub)")
         return null

@@ -43,7 +43,13 @@ class SingularityEnvironment(
      * Uses `singularity exec instance://name bash -c cmd`.
      * On Android, Singularity is not available.
      */
-    fun _runBash(cmdString: String): Any? {
+    @Suppress("UNUSED_PARAMETER")
+    fun _runBash(
+        cmdString: String,
+        login: Boolean = false,
+        timeout: Int = 120,
+        stdinData: String? = null,
+    ): Any? {
         Log.d(_TAG, "runBash: Singularity not available on Android")
         return null
     }
