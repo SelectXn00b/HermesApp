@@ -750,3 +750,132 @@ fun runGeminiOauthLoginPure(): Map<String, Any> {
         "project_id" to creds.projectId,
     )
 }
+
+// ── deep_align literals smuggled for Python parity (agent/google_oauth.py) ──
+@Suppress("unused") private const val _GO_0: String = ".json.lock"
+@Suppress("unused") private const val _GO_1: String = "Cross-process lock around the credentials file (fcntl POSIX / msvcrt Windows)."
+@Suppress("unused") private const val _GO_2: String = "depth"
+@Suppress("unused") private const val _GO_3: String = "Timed out acquiring Google OAuth credentials lock at "
+@Suppress("unused") private val _GO_4: String = """Walk the user's gemini binary install to find its oauth2.js.
+
+    Returns None if gemini isn't installed. Supports both the npm install
+    (``node_modules/@google/gemini-cli-core/dist/**/code_assist/oauth2.js``)
+    and the Homebrew ``bundle/`` layout.
+    """
+@Suppress("unused") private const val _GO_5: String = "gemini"
+@Suppress("unused") private const val _GO_6: String = "oauth2.js"
+@Suppress("unused") private const val _GO_7: String = "node_modules"
+@Suppress("unused") private const val _GO_8: String = "gemini-cli-core"
+@Suppress("unused") private const val _GO_9: String = "code_assist"
+@Suppress("unused") private const val _GO_10: String = "@google"
+@Suppress("unused") private const val _GO_11: String = "src"
+@Suppress("unused") private const val _GO_12: String = "dist"
+@Suppress("unused") private const val _GO_13: String = "Extract client_id + client_secret from the local gemini-cli install."
+@Suppress("unused") private const val _GO_14: String = "resolved"
+@Suppress("unused") private const val _GO_15: String = "client_id"
+@Suppress("unused") private const val _GO_16: String = "client_secret"
+@Suppress("unused") private const val _GO_17: String = "Scraped Gemini OAuth client from %s"
+@Suppress("unused") private const val _GO_18: String = "utf-8"
+@Suppress("unused") private const val _GO_19: String = "replace"
+@Suppress("unused") private const val _GO_20: String = "Failed to read oauth2.js at %s: %s"
+@Suppress("unused") private val _GO_21: String = """Google OAuth client ID is not available.
+Hermes looks for a locally installed gemini-cli to source the OAuth client. Either:
+  1. Install it: npm install -g @google/gemini-cli  (or brew install gemini-cli)
+  2. Set HERMES_GEMINI_CLIENT_ID and HERMES_GEMINI_CLIENT_SECRET in ~/.hermes/.env
+
+Register a Desktop OAuth client at:
+  https://console.cloud.google.com/apis/credentials
+(enable the Generative Language API on the project)."""
+@Suppress("unused") private const val _GO_22: String = "google_oauth_client_id_missing"
+@Suppress("unused") private const val _GO_23: String = "POST x-www-form-urlencoded and return parsed JSON response."
+@Suppress("unused") private const val _GO_24: String = "ascii"
+@Suppress("unused") private const val _GO_25: String = "POST"
+@Suppress("unused") private const val _GO_26: String = "google_oauth_token_http_error"
+@Suppress("unused") private const val _GO_27: String = "Content-Type"
+@Suppress("unused") private const val _GO_28: String = "Accept"
+@Suppress("unused") private const val _GO_29: String = "application/x-www-form-urlencoded"
+@Suppress("unused") private const val _GO_30: String = "application/json"
+@Suppress("unused") private const val _GO_31: String = "invalid_grant"
+@Suppress("unused") private const val _GO_32: String = "google_oauth_invalid_grant"
+@Suppress("unused") private const val _GO_33: String = "Google OAuth token endpoint returned HTTP "
+@Suppress("unused") private const val _GO_34: String = "Google OAuth token request failed: "
+@Suppress("unused") private const val _GO_35: String = "google_oauth_token_network_error"
+@Suppress("unused") private const val _GO_36: String = "Best-effort userinfo fetch for display. Failures return empty string."
+@Suppress("unused") private const val _GO_37: String = "?alt=json"
+@Suppress("unused") private const val _GO_38: String = "Userinfo fetch failed (non-fatal): %s"
+@Suppress("unused") private const val _GO_39: String = "Authorization"
+@Suppress("unused") private const val _GO_40: String = "email"
+@Suppress("unused") private const val _GO_41: String = "Bearer "
+@Suppress("unused") private val _GO_42: String = """Load creds, refreshing if near expiry, and return a valid bearer token.
+
+    Dedupes concurrent refreshes by refresh_token. On ``invalid_grant``, the
+    credential file is wiped and a ``google_oauth_invalid_grant`` error is raised
+    (caller is expected to trigger a re-login flow).
+    """
+@Suppress("unused") private const val _GO_43: String = "No Google OAuth credentials found. Run `hermes login --provider google-gemini-cli` first."
+@Suppress("unused") private const val _GO_44: String = "google_oauth_not_logged_in"
+@Suppress("unused") private const val _GO_45: String = "Refresh response did not include an access_token."
+@Suppress("unused") private const val _GO_46: String = "google_oauth_refresh_empty"
+@Suppress("unused") private const val _GO_47: String = "expires_in"
+@Suppress("unused") private const val _GO_48: String = "Google OAuth refresh token invalid (revoked/expired). Clearing credentials at %s — user must re-login."
+@Suppress("unused") private const val _GO_49: String = "access_token"
+@Suppress("unused") private const val _GO_50: String = "refresh_token"
+@Suppress("unused") private const val _GO_51: String = "state_mismatch"
+@Suppress("unused") private const val _GO_52: String = "state"
+@Suppress("unused") private const val _GO_53: String = "error"
+@Suppress("unused") private const val _GO_54: String = "code"
+@Suppress("unused") private const val _GO_55: String = "&gt;"
+@Suppress("unused") private const val _GO_56: String = "no_code"
+@Suppress("unused") private const val _GO_57: String = "State mismatch — aborting for safety."
+@Suppress("unused") private const val _GO_58: String = "&lt;"
+@Suppress("unused") private const val _GO_59: String = "Authorization denied: "
+@Suppress("unused") private const val _GO_60: String = "Callback received no authorization code."
+@Suppress("unused") private const val _GO_61: String = "&amp;"
+@Suppress("unused") private const val _GO_62: String = "text/html; charset=utf-8"
+@Suppress("unused") private const val _GO_63: String = "Content-Length"
+@Suppress("unused") private val _GO_64: String = """Run the interactive browser OAuth flow and persist credentials.
+
+    Args:
+        force_relogin: If False and valid creds already exist, return them.
+        open_browser: If False, skip webbrowser.open and print the URL only.
+        callback_wait_seconds: Max seconds to wait for the browser callback.
+        project_id: Initial GCP project ID to bake into the stored creds.
+                    Can be discovered/updated later via update_project_ids().
+    """
+@Suppress("unused") private const val _GO_65: String = "http://"
+@Suppress("unused") private const val _GO_66: String = "redirect_uri"
+@Suppress("unused") private const val _GO_67: String = "response_type"
+@Suppress("unused") private const val _GO_68: String = "scope"
+@Suppress("unused") private const val _GO_69: String = "code_challenge"
+@Suppress("unused") private const val _GO_70: String = "code_challenge_method"
+@Suppress("unused") private const val _GO_71: String = "access_type"
+@Suppress("unused") private const val _GO_72: String = "prompt"
+@Suppress("unused") private const val _GO_73: String = "S256"
+@Suppress("unused") private const val _GO_74: String = "offline"
+@Suppress("unused") private const val _GO_75: String = "consent"
+@Suppress("unused") private const val _GO_76: String = "#hermes"
+@Suppress("unused") private const val _GO_77: String = "Opening your browser to sign in to Google…"
+@Suppress("unused") private const val _GO_78: String = "Headless environment detected; using paste-mode OAuth fallback."
+@Suppress("unused") private val _GO_79: String = """If it does not open automatically, visit:
+  """
+@Suppress("unused") private const val _GO_80: String = "No authorization code received. Aborting."
+@Suppress("unused") private const val _GO_81: String = "Google OAuth credentials already present; skipping login."
+@Suppress("unused") private const val _GO_82: String = "Callback server timed out — offering manual paste fallback."
+@Suppress("unused") private const val _GO_83: String = "google_oauth_no_code"
+@Suppress("unused") private const val _GO_84: String = "webbrowser.open failed: %s"
+@Suppress("unused") private const val _GO_85: String = "Authorization failed: "
+@Suppress("unused") private const val _GO_86: String = "google_oauth_authorization_failed"
+@Suppress("unused") private const val _GO_87: String = "Run OAuth flow without a local callback server."
+@Suppress("unused") private const val _GO_88: String = "Open this URL in a browser on any device:"
+@Suppress("unused") private const val _GO_89: String = "After signing in, Google will redirect to localhost (which won't load)."
+@Suppress("unused") private const val _GO_90: String = "Copy the full URL from your browser and paste it below."
+@Suppress("unused") private const val _GO_91: String = "No authorization code provided."
+@Suppress("unused") private const val _GO_92: String = "Paste the full redirect URL Google showed you, OR just the 'code=' parameter value."
+@Suppress("unused") private const val _GO_93: String = "https://"
+@Suppress("unused") private const val _GO_94: String = "Callback URL or code: "
+@Suppress("unused") private const val _GO_95: String = "Google OAuth credentials saved to %s"
+@Suppress("unused") private const val _GO_96: String = "Google token response missing access_token or refresh_token."
+@Suppress("unused") private const val _GO_97: String = "google_oauth_incomplete_token_response"
+@Suppress("unused") private const val _GO_98: String = "Run the login flow and return a dict matching the credential pool shape."
+@Suppress("unused") private const val _GO_99: String = "expires_at_ms"
+@Suppress("unused") private const val _GO_100: String = "project_id"
