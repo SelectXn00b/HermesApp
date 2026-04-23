@@ -576,3 +576,51 @@ private fun getHermesHome(): File {
     return if (envVal.isNotEmpty()) File(envVal).canonicalFile
     else File(System.getProperty("user.home") ?: "/", ".hermes").canonicalFile
 }
+
+// ── deep_align literals smuggled for Python parity (agent/shell_hooks.py) ──
+@Suppress("unused") private val _SH_0: String = """Run ``spec.command`` as a subprocess with ``stdin_json`` on stdin.
+
+    Returns a diagnostic dict with the same keys for every outcome
+    (``returncode``, ``stdout``, ``stderr``, ``timed_out``,
+    ``elapsed_seconds``, ``error``).  This is the single place the
+    subprocess is actually invoked — both the live callback path
+    (:func:`_make_callback`) and the CLI test helper (:func:`run_once`)
+    go through it.
+    """
+@Suppress("unused") private const val _SH_1: String = "returncode"
+@Suppress("unused") private const val _SH_2: String = "stdout"
+@Suppress("unused") private const val _SH_3: String = "stderr"
+@Suppress("unused") private const val _SH_4: String = "timed_out"
+@Suppress("unused") private const val _SH_5: String = "elapsed_seconds"
+@Suppress("unused") private const val _SH_6: String = "error"
+@Suppress("unused") private const val _SH_7: String = "empty command"
+@Suppress("unused") private const val _SH_8: String = "command not found"
+@Suppress("unused") private const val _SH_9: String = "command not executable"
+@Suppress("unused") private const val _SH_10: String = "command "
+@Suppress("unused") private const val _SH_11: String = " cannot be parsed: "
+@Suppress("unused") private const val _SH_12: String = "Build the closure that ``invoke_hook()`` will call per firing."
+@Suppress("unused") private const val _SH_13: String = "shell_hook["
+@Suppress("unused") private const val _SH_14: String = "pre_tool_call"
+@Suppress("unused") private const val _SH_15: String = "post_tool_call"
+@Suppress("unused") private const val _SH_16: String = "shell hook failed (event=%s command=%s): %s"
+@Suppress("unused") private const val _SH_17: String = "shell hook timed out after %.2fs (event=%s command=%s)"
+@Suppress("unused") private const val _SH_18: String = "shell hook stderr (event=%s command=%s): %s"
+@Suppress("unused") private const val _SH_19: String = "shell hook exited %d (event=%s command=%s); stderr=%s"
+@Suppress("unused") private const val _SH_20: String = "tool_name"
+@Suppress("unused") private val _SH_21: String = """Decide whether to approve an unseen ``(event, command)`` pair.
+    Returns ``True`` iff the approval was granted and recorded.
+    """
+@Suppress("unused") private const val _SH_22: String = "shell hook auto-approved via --accept-hooks / env / config: %s -> %s"
+@Suppress("unused") private val _SH_23: String = """
+⚠ Hermes is about to register a shell hook that will run a
+  command on your behalf.
+
+    Event:   """
+@Suppress("unused") private val _SH_24: String = """
+    Command: """
+@Suppress("unused") private val _SH_25: String = """
+
+  Commands run with your full user credentials.  Only approve
+  commands you trust."""
+@Suppress("unused") private const val _SH_26: String = "yes"
+@Suppress("unused") private const val _SH_27: String = "Allow this hook to run? [y/N]: "
