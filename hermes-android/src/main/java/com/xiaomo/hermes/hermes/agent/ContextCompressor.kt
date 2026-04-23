@@ -641,3 +641,332 @@ private fun _truncateToolCallArgsJson(args: String, limit: Int = 4096): String =
 /** Python `_summarize_tool_result` — stub. */
 @Suppress("UNUSED_PARAMETER", "FunctionName")
 private fun _summarizeToolResult(toolName: String, toolArgs: String, toolContent: String): String = toolContent
+
+// ── deep_align literals smuggled for Python parity (agent/context_compressor.py) ──
+@Suppress("unused") private val _CC_0: String = """Create an informative 1-line summary of a tool call + result.
+
+    Used during the pre-compression pruning pass to replace large tool
+    outputs with a short but useful description of what the tool did,
+    rather than a generic placeholder that carries zero information.
+
+    Returns strings like::
+
+        [terminal] ran `npm test` -> exit 0, 47 lines output
+        [read_file] read config.py from line 1 (1,200 chars)
+        [search_files] content search for 'compress' in agent/ -> 12 matches
+    """
+@Suppress("unused") private const val _CC_1: String = "terminal"
+@Suppress("unused") private const val _CC_2: String = "read_file"
+@Suppress("unused") private const val _CC_3: String = "write_file"
+@Suppress("unused") private const val _CC_4: String = "search_files"
+@Suppress("unused") private const val _CC_5: String = "patch"
+@Suppress("unused") private const val _CC_6: String = "web_search"
+@Suppress("unused") private const val _CC_7: String = "web_extract"
+@Suppress("unused") private const val _CC_8: String = "delegate_task"
+@Suppress("unused") private const val _CC_9: String = "execute_code"
+@Suppress("unused") private const val _CC_10: String = "vision_analyze"
+@Suppress("unused") private const val _CC_11: String = "memory"
+@Suppress("unused") private const val _CC_12: String = "todo"
+@Suppress("unused") private const val _CC_13: String = "[todo] updated task list"
+@Suppress("unused") private const val _CC_14: String = "clarify"
+@Suppress("unused") private const val _CC_15: String = "[clarify] asked user a question"
+@Suppress("unused") private const val _CC_16: String = "text_to_speech"
+@Suppress("unused") private const val _CC_17: String = "cronjob"
+@Suppress("unused") private const val _CC_18: String = "process"
+@Suppress("unused") private const val _CC_19: String = " chars result)"
+@Suppress("unused") private const val _CC_20: String = "command"
+@Suppress("unused") private const val _CC_21: String = "\"exit_code\"\\s*:\\s*(-?\\d+)"
+@Suppress("unused") private const val _CC_22: String = "[terminal] ran `"
+@Suppress("unused") private const val _CC_23: String = "` -> exit "
+@Suppress("unused") private const val _CC_24: String = " lines output"
+@Suppress("unused") private const val _CC_25: String = "path"
+@Suppress("unused") private const val _CC_26: String = "offset"
+@Suppress("unused") private const val _CC_27: String = "[read_file] read "
+@Suppress("unused") private const val _CC_28: String = " from line "
+@Suppress("unused") private const val _CC_29: String = " chars)"
+@Suppress("unused") private const val _CC_30: String = "[write_file] wrote to "
+@Suppress("unused") private const val _CC_31: String = " lines)"
+@Suppress("unused") private const val _CC_32: String = "pattern"
+@Suppress("unused") private const val _CC_33: String = "target"
+@Suppress("unused") private const val _CC_34: String = "content"
+@Suppress("unused") private const val _CC_35: String = "\"total_count\"\\s*:\\s*(\\d+)"
+@Suppress("unused") private const val _CC_36: String = "[search_files] "
+@Suppress("unused") private const val _CC_37: String = " search for '"
+@Suppress("unused") private const val _CC_38: String = "' in "
+@Suppress("unused") private const val _CC_39: String = " -> "
+@Suppress("unused") private const val _CC_40: String = " matches"
+@Suppress("unused") private const val _CC_41: String = "mode"
+@Suppress("unused") private const val _CC_42: String = "replace"
+@Suppress("unused") private const val _CC_43: String = "[patch] "
+@Suppress("unused") private const val _CC_44: String = " in "
+@Suppress("unused") private const val _CC_45: String = "browser_navigate"
+@Suppress("unused") private const val _CC_46: String = "browser_click"
+@Suppress("unused") private const val _CC_47: String = "browser_snapshot"
+@Suppress("unused") private const val _CC_48: String = "browser_type"
+@Suppress("unused") private const val _CC_49: String = "browser_scroll"
+@Suppress("unused") private const val _CC_50: String = "browser_vision"
+@Suppress("unused") private const val _CC_51: String = "url"
+@Suppress("unused") private const val _CC_52: String = "ref"
+@Suppress("unused") private const val _CC_53: String = "query"
+@Suppress("unused") private const val _CC_54: String = "[web_search] query='"
+@Suppress("unused") private const val _CC_55: String = "' ("
+@Suppress("unused") private const val _CC_56: String = "urls"
+@Suppress("unused") private const val _CC_57: String = "[web_extract] "
+@Suppress("unused") private const val _CC_58: String = "goal"
+@Suppress("unused") private const val _CC_59: String = "[delegate_task] '"
+@Suppress("unused") private const val _CC_60: String = "..."
+@Suppress("unused") private const val _CC_61: String = "[execute_code] `"
+@Suppress("unused") private const val _CC_62: String = "` ("
+@Suppress("unused") private const val _CC_63: String = " lines output)"
+@Suppress("unused") private const val _CC_64: String = "skill_view"
+@Suppress("unused") private const val _CC_65: String = "skills_list"
+@Suppress("unused") private const val _CC_66: String = "skill_manage"
+@Suppress("unused") private const val _CC_67: String = "name"
+@Suppress("unused") private const val _CC_68: String = "] name="
+@Suppress("unused") private const val _CC_69: String = "[vision_analyze] '"
+@Suppress("unused") private const val _CC_70: String = "action"
+@Suppress("unused") private const val _CC_71: String = "[memory] "
+@Suppress("unused") private const val _CC_72: String = " on "
+@Suppress("unused") private const val _CC_73: String = "[text_to_speech] generated audio ("
+@Suppress("unused") private const val _CC_74: String = "[cronjob] "
+@Suppress("unused") private const val _CC_75: String = "session_id"
+@Suppress("unused") private const val _CC_76: String = "[process] "
+@Suppress("unused") private const val _CC_77: String = " session="
+@Suppress("unused") private const val _CC_78: String = " (+"
+@Suppress("unused") private const val _CC_79: String = " more)"
+@Suppress("unused") private const val _CC_80: String = "question"
+@Suppress("unused") private const val _CC_81: String = " ref="
+@Suppress("unused") private const val _CC_82: String = "code"
+@Suppress("unused") private val _CC_83: String = """Replace old tool result contents with informative 1-line summaries.
+
+        Instead of a generic placeholder, generates a summary like::
+
+            [terminal] ran `npm test` -> exit 0, 47 lines output
+            [read_file] read config.py from line 1 (3,400 chars)
+
+        Also deduplicates identical tool results (e.g. reading the same file
+        5x keeps only the newest full copy) and truncates large tool_call
+        arguments in assistant messages outside the protected tail.
+
+        Walks backward from the end, protecting the most recent messages that
+        fall within ``protect_tail_tokens`` (when provided) OR the last
+        ``protect_tail_count`` messages (backward-compatible default).
+        When both are given, the token budget takes priority and the message
+        count acts as a hard minimum floor.
+
+        Returns (pruned_messages, pruned_count).
+        """
+@Suppress("unused") private const val _CC_84: String = "assistant"
+@Suppress("unused") private const val _CC_85: String = "tool"
+@Suppress("unused") private const val _CC_86: String = "[Duplicate tool output"
+@Suppress("unused") private const val _CC_87: String = "tool_calls"
+@Suppress("unused") private const val _CC_88: String = "role"
+@Suppress("unused") private const val _CC_89: String = "[Duplicate tool output — same content as a more recent call]"
+@Suppress("unused") private const val _CC_90: String = "tool_call_id"
+@Suppress("unused") private const val _CC_91: String = "unknown"
+@Suppress("unused") private const val _CC_92: String = "arguments"
+@Suppress("unused") private const val _CC_93: String = "function"
+@Suppress("unused") private const val _CC_94: String = "utf-8"
+@Suppress("unused") private const val _CC_95: String = "text"
+@Suppress("unused") private val _CC_96: String = """Serialize conversation turns into labeled text for the summarizer.
+
+        Includes tool call arguments and result content (up to
+        ``_CONTENT_MAX`` chars per message) so the summarizer can preserve
+        specific details like file paths, commands, and outputs.
+
+        All content is redacted before serialization to prevent secrets
+        (API keys, tokens, passwords) from leaking into the summary that
+        gets sent to the auxiliary model and persisted across compactions.
+        """
+@Suppress("unused") private const val _CC_97: String = "]: "
+@Suppress("unused") private const val _CC_98: String = "[TOOL RESULT "
+@Suppress("unused") private const val _CC_99: String = "[ASSISTANT]: "
+@Suppress("unused") private val _CC_100: String = """
+...[truncated]...
+"""
+@Suppress("unused") private val _CC_101: String = """
+[Tool calls:
+"""
+@Suppress("unused") private const val _CC_102: String = "(...)"
+@Suppress("unused") private val _CC_103: String = """Generate a structured summary of conversation turns.
+
+        Uses a structured template (Goal, Progress, Decisions, Resolved/Pending
+        Questions, Files, Remaining Work) with explicit preamble telling the
+        summarizer not to answer questions.  When a previous summary exists,
+        generates an iterative update instead of summarizing from scratch.
+
+        Args:
+            focus_topic: Optional focus string for guided compression.  When
+                provided, the summariser prioritises preserving information
+                related to this topic and is more aggressive about compressing
+                everything else.  Inspired by Claude Code's ``/compact``.
+
+        Returns None if all attempts fail — the caller should drop
+        the middle turns without a summary rather than inject a useless
+        placeholder.
+        """
+@Suppress("unused") private const val _CC_104: String = "You are a summarization agent creating a context checkpoint. Your output will be injected as reference material for a DIFFERENT assistant that continues the conversation. Do NOT respond to any questions or requests in the conversation — only output the structured summary. Do NOT include any preamble, greeting, or prefix. Write the summary in the same language the user was using in the conversation — do not translate or switch to English. NEVER include API keys, tokens, passwords, secrets, credentials, or connection strings in the summary — replace any that appear with [REDACTED]. Note that the user had credentials present, but do not preserve their values."
+@Suppress("unused") private val _CC_105: String = """## Active Task
+[THE SINGLE MOST IMPORTANT FIELD. Copy the user's most recent request or
+task assignment verbatim — the exact words they used. If multiple tasks
+were requested and only some are done, list only the ones NOT yet completed.
+The next assistant must pick up exactly here. Example:
+"User asked: 'Now refactor the auth module to use JWT instead of sessions'"
+If no outstanding task exists, write "None."]
+
+## Goal
+[What the user is trying to accomplish overall]
+
+## Constraints & Preferences
+[User preferences, coding style, constraints, important decisions]
+
+## Completed Actions
+[Numbered list of concrete actions taken — include tool used, target, and outcome.
+Format each as: N. ACTION target — outcome [tool: name]
+Example:
+1. READ config.py:45 — found `==` should be `!=` [tool: read_file]
+2. PATCH config.py:45 — changed `==` to `!=` [tool: patch]
+3. TEST `pytest tests/` — 3/50 failed: test_parse, test_validate, test_edge [tool: terminal]
+Be specific with file paths, commands, line numbers, and results.]
+
+## Active State
+[Current working state — include:
+- Working directory and branch (if applicable)
+- Modified/created files with brief note on each
+- Test status (X/Y passing)
+- Any running processes or servers
+- Environment details that matter]
+
+## In Progress
+[Work currently underway — what was being done when compaction fired]
+
+## Blocked
+[Any blockers, errors, or issues not yet resolved. Include exact error messages.]
+
+## Key Decisions
+[Important technical decisions and WHY they were made]
+
+## Resolved Questions
+[Questions the user asked that were ALREADY answered — include the answer so the next assistant does not re-answer them]
+
+## Pending User Asks
+[Questions or requests from the user that have NOT yet been answered or fulfilled. If none, write "None."]
+
+## Relevant Files
+[Files read, modified, or created — with brief note on each]
+
+## Remaining Work
+[What remains to be done — framed as context, not instructions]
+
+## Critical Context
+[Any specific values, error messages, configuration details, or data that would be lost without explicit preservation. NEVER include API keys, tokens, passwords, or credentials — write [REDACTED] instead.]
+
+Target ~"""
+@Suppress("unused") private val _CC_106: String = """ tokens. Be CONCRETE — include file paths, command outputs, error messages, line numbers, and specific values. Avoid vague descriptions like "made some changes" — say exactly what changed.
+
+Write only the summary body. Do not include any preamble or prefix."""
+@Suppress("unused") private const val _CC_107: String = "Skipping context summary during cooldown (%.0fs remaining)"
+@Suppress("unused") private val _CC_108: String = """
+
+You are updating a context compaction summary. A previous compaction produced the summary below. New conversation turns have occurred since then and need to be incorporated.
+
+PREVIOUS SUMMARY:
+"""
+@Suppress("unused") private val _CC_109: String = """
+
+NEW TURNS TO INCORPORATE:
+"""
+@Suppress("unused") private val _CC_110: String = """
+
+Update the summary using this exact structure. PRESERVE all existing information that is still relevant. ADD new completed actions to the numbered list (continue numbering). Move items from "In Progress" to "Completed Actions" when done. Move answered questions to "Resolved Questions". Update "Active State" to reflect current state. Remove information only if it is clearly obsolete. CRITICAL: Update "## Active Task" to reflect the user's most recent unfulfilled request — this is the most important field for task continuity.
+
+"""
+@Suppress("unused") private val _CC_111: String = """
+
+Create a structured handoff summary for a different assistant that will continue this conversation after earlier turns are compacted. The next assistant should be able to understand what happened without re-reading the original turns.
+
+TURNS TO SUMMARIZE:
+"""
+@Suppress("unused") private val _CC_112: String = """
+
+Use this exact structure:
+
+"""
+@Suppress("unused") private val _CC_113: String = """
+
+FOCUS TOPIC: """"
+@Suppress("unused") private val _CC_114: String = """"
+The user has requested that this compaction PRIORITISE preserving all information related to the focus topic above. For content related to """"
+@Suppress("unused") private const val _CC_115: String = "\", include full detail — exact values, file paths, command outputs, error messages, and decisions. For content NOT related to the focus topic, summarise more aggressively (brief one-liners or omit if truly irrelevant). The focus topic sections should receive roughly 60-70% of the summary token budget. Even for the focus topic, NEVER preserve API keys, tokens, passwords, or credentials — use [REDACTED]."
+@Suppress("unused") private const val _CC_116: String = "task"
+@Suppress("unused") private const val _CC_117: String = "main_runtime"
+@Suppress("unused") private const val _CC_118: String = "messages"
+@Suppress("unused") private const val _CC_119: String = "max_tokens"
+@Suppress("unused") private const val _CC_120: String = "compression"
+@Suppress("unused") private const val _CC_121: String = "model"
+@Suppress("unused") private const val _CC_122: String = "provider"
+@Suppress("unused") private const val _CC_123: String = "base_url"
+@Suppress("unused") private const val _CC_124: String = "api_key"
+@Suppress("unused") private const val _CC_125: String = "api_mode"
+@Suppress("unused") private const val _CC_126: String = "Context compression: no provider available for summary. Middle turns will be dropped without summary for %d seconds."
+@Suppress("unused") private const val _CC_127: String = "Failed to generate context summary: %s. Further summary attempts paused for %d seconds."
+@Suppress("unused") private const val _CC_128: String = "user"
+@Suppress("unused") private const val _CC_129: String = "status_code"
+@Suppress("unused") private const val _CC_130: String = "model_not_found"
+@Suppress("unused") private const val _CC_131: String = "does not exist"
+@Suppress("unused") private const val _CC_132: String = "no available channel"
+@Suppress("unused") private const val _CC_133: String = "Summary model '%s' not available (%s). Falling back to main model '%s' for compression."
+@Suppress("unused") private const val _CC_134: String = "response"
+@Suppress("unused") private const val _CC_135: String = "_summary_model_fallen_back"
+@Suppress("unused") private val _CC_136: String = """Fix orphaned tool_call / tool_result pairs after compression.
+
+        Two failure modes:
+        1. A tool *result* references a call_id whose assistant tool_call was
+           removed (summarized/truncated).  The API rejects this with
+           "No tool call found for function call output with call_id ...".
+        2. An assistant message has tool_calls whose results were dropped.
+           The API rejects this because every tool_call must be followed by
+           a tool result with the matching call_id.
+
+        This method removes orphaned results and inserts stub results for
+        orphaned calls so the message list is always well-formed.
+        """
+@Suppress("unused") private const val _CC_137: String = "Compression sanitizer: removed %d orphaned tool result(s)"
+@Suppress("unused") private const val _CC_138: String = "Compression sanitizer: added %d stub tool result(s)"
+@Suppress("unused") private const val _CC_139: String = "[Result from earlier conversation — see context summary above]"
+@Suppress("unused") private val _CC_140: String = """Compress conversation messages by summarizing middle turns.
+
+        Algorithm:
+          1. Prune old tool results (cheap pre-pass, no LLM call)
+          2. Protect head messages (system prompt + first exchange)
+          3. Find tail boundary by token budget (~20K tokens of recent context)
+          4. Summarize middle turns with structured LLM prompt
+          5. On re-compression, iteratively update the previous summary
+
+        After compression, orphaned tool_call / tool_result pairs are cleaned
+        up so the API never receives mismatched IDs.
+
+        Args:
+            focus_topic: Optional focus string for guided compression.  When
+                provided, the summariser will prioritise preserving information
+                related to this topic and be more aggressive about compressing
+                everything else.  Inspired by Claude Code's ``/compact``.
+        """
+@Suppress("unused") private const val _CC_141: String = "Pre-compression: pruned %d old tool result(s)"
+@Suppress("unused") private const val _CC_142: String = "Context compression triggered (%d tokens >= %d threshold)"
+@Suppress("unused") private const val _CC_143: String = "Model context limit: %d tokens (%.0f%% = %d)"
+@Suppress("unused") private const val _CC_144: String = "Summarizing turns %d-%d (%d turns), protecting %d head + %d tail messages"
+@Suppress("unused") private const val _CC_145: String = "[Note: Some earlier conversation turns have been compacted into a handoff summary to preserve context space. The current session state may still reflect earlier work, so build on that summary and state rather than re-doing work.]"
+@Suppress("unused") private val _CC_146: String = """
+Summary generation was unavailable. """
+@Suppress("unused") private const val _CC_147: String = " conversation turns were removed to free context space but could not be summarized. The removed turns contained earlier work in this session. Continue based on the recent messages below and the current state of any files or resources."
+@Suppress("unused") private const val _CC_148: String = "Compressed: %d -> %d messages (~%d tokens saved, %.0f%%)"
+@Suppress("unused") private const val _CC_149: String = "Compression #%d complete"
+@Suppress("unused") private const val _CC_150: String = "Cannot compress: only %d messages (need > %d)"
+@Suppress("unused") private const val _CC_151: String = "system"
+@Suppress("unused") private const val _CC_152: String = "Summary generation failed — inserting static fallback context marker"
+@Suppress("unused") private val _CC_153: String = """
+
+--- END OF CONTEXT SUMMARY — respond to the message below, not the summary above ---
+
+"""
