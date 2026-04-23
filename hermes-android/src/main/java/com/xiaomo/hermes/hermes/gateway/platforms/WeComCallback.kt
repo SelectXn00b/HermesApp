@@ -24,7 +24,9 @@ class WecomCallbackAdapter(
         return false
     }
 
-    override suspend fun disconnect() {}
+    override suspend fun disconnect() {
+        markDisconnected()
+    }
 
 
     override suspend fun send(chatId: String, content: String, replyTo: String?, metadata: JSONObject?): SendResult =
