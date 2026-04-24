@@ -22,7 +22,7 @@
             android:pathData="M10,4c0,5.52 -4.48,10 -10,10S-10,9.52 -10,4h-2c0,6.18 4.56,11.27 10.5,11.93V22h2v-6.07C6.44,15.27 11,10.18 11,4H10z"/>
     </group>
     
-    <!-- 文字 "Operit" -->
+    <!-- 文字 "Hermes" -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M30,75h50v3h-50z"/>

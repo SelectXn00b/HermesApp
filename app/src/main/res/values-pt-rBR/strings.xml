@@ -497,7 +497,7 @@
     <string name="danger_zone">Área de perigo</string>
     <string name="chat_statistics">Estatísticas do histórico de bate-papo</string>
     <string name="current_chats">Existem atualmente %1$d registros de bate-papo</string>
-    <string name="backup_location">O arquivo de backup é salvo na pasta "Downloads/Operit/backup"</string>
+    <string name="backup_location">O arquivo de backup é salvo na pasta "Downloads/Hermes/backup"</string>
     <string name="faq_backup">Perguntas frequentes</string>
     <string name="history_filter_role_card">Classificado por cartão de personagem</string>
     <string name="history_filter_role_card_desc">Classificação de três níveis de cartão de personagem-pasta-conversa</string>
@@ -526,7 +526,7 @@
     <string name="about_description">Hermes é um aplicativo assistente inteligente que pode ajudar os usuários a usar os dispositivos com mais eficiência, fornecendo análise de interface, diálogo de chat e outras funções.</string>
     <string name="about_developer">Desenvolvedor: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Contate-nos: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/SelectXn00b/HermesApp"&gt;GitHub: https://github.com/SelectXn00b/HermesApp&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Hermes. Todos os direitos reservados.</string>
     <string name="star_on_github">Clique em uma estrela no GitHub</string>
     <string name="update_log">Registro de alterações</string>
@@ -583,7 +583,7 @@
     <string name="free_usage_first_tip">Esta é a primeira vez que você usa, você precisa esperar 1 dia antes de poder usá-lo novamente ~</string>
     <string name="free_usage_later_tip">Você tem que ter cuidado ao trocar a lã. Você precisa esperar mais %1$d dias antes de continuar cortando(๑•̀ㅂ•́)و✧</string>
     <string name="plugin_skip">pular sobre</string>
-    <string name="plugin_app_name">OPERAÇÃO</string>
+    <string name="plugin_app_name">HERMES</string>
     <string name="plugin_status">Iniciado: %1$d / %2$d</string>
     <string name="plugin_loading_status_title">Status de carregamento do plug-in</string>
     <string name="plugin_loading_success">Carregando com sucesso</string>
@@ -3583,9 +3583,9 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="import_color_qr">Importar código multidimensional</string>
     <string name="scan_color_qr">Digitalize o código QR</string>
     <string name="tavern_json">Taverna JSON</string>
-    <string name="export_tavern_json_desc">Exporte para .json e salve em Download/Operit/exports</string>
+    <string name="export_tavern_json_desc">Exporte para .json e salve em Download/Hermes/exports</string>
     <string name="tavern_png">Bar PNG</string>
-    <string name="export_tavern_png_desc">Exporte como uma imagem que pode ser importada para a taverna e salva em Download/Operit/exports</string>
+    <string name="export_tavern_png_desc">Exporte como uma imagem que pode ser importada para a taverna e salva em Download/Hermes/exports</string>
     <string name="image_read_error">Não é possível ler a imagem</string>
     <string name="image_parse_error">Não foi possível analisar a imagem</string>
     <string name="color_qr_not_recognized">Incapaz de reconhecer o código multidimensional de cores</string>
@@ -3771,7 +3771,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="mcp_issue_body_title_install_info">## Informações de instalação</string>
     <string name="mcp_issue_body_repo_address">**Endereço do armazém:** %1$s</string>
     <string name="mcp_issue_body_title_install_method">### Método de instalação</string>
-    <string name="mcp_issue_body_install_step1">1. Clique em "Importar" na página de configuração do Operit MCP</string>
+    <string name="mcp_issue_body_install_step1">1. Clique em "Importar" na página de configuração do Hermes MCP</string>
     <string name="mcp_issue_body_install_step2">2. Selecione "Importar do armazém"</string>
     <string name="mcp_issue_body_install_step3">3. Insira o endereço do armazém: `%1$s`</string>
     <string name="mcp_issue_body_install_step4">4. Defina o nome do plug-in e clique em Importar</string>
@@ -3786,12 +3786,12 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="mcp_publish_body_section_quick_install">## ⚡ Instalação rápida</string>
     <string name="mcp_publish_body_section_install_method">## 📦 Método de instalação</string>
     <string name="mcp_publish_body_method_repo_import_title">### Método 1: Importar do armazém</string>
-    <string name="mcp_publish_body_method_repo_import_step1">1. Abra a página de configuração do Operit MCP</string>
+    <string name="mcp_publish_body_method_repo_import_step1">1. Abra a página de configuração do Hermes MCP</string>
     <string name="mcp_publish_body_method_repo_import_step2">2. Clique em "Importar" → "Importar do armazém"</string>
     <string name="mcp_publish_body_method_repo_import_step3">3. Insira o endereço do armazém: `%1$s`</string>
     <string name="mcp_publish_body_method_repo_import_step4">4. Configure o nome do plug-in e importe-o</string>
     <string name="mcp_publish_body_method_config_import_title">### Método 2: importação de configuração</string>
-    <string name="mcp_publish_body_method_config_import_step1">1. Abra a página de configuração do Operit MCP</string>
+    <string name="mcp_publish_body_method_config_import_step1">1. Abra a página de configuração do Hermes MCP</string>
     <string name="mcp_publish_body_method_config_import_step2">2. Clique em "Importar" → "Importar configuração"</string>
     <string name="mcp_publish_body_method_config_import_step3">3. Cole a seguinte configuração:</string>
     <string name="mcp_publish_body_section_tech_info">## 🛠️Informações Técnicas</string>
@@ -4407,7 +4407,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="backup_room_db_restart_later">mais tarde</string>
     <string name="backup_room_db_last_success">Último backup bem-sucedido: %1$s</string>
     <string name="backup_room_db_last_error">Último erro: %1$s</string>
-    <string name="backup_files_location_hint">提示：备份文件保存在 Download/Operit 文件夹</string>
+    <string name="backup_files_location_hint">提示：备份文件保存在 Download/Hermes 文件夹</string>
     <string name="backup_raw_snapshot_title">Backup de instantâneo de arquivo (experimental)</string>
     <string name="backup_raw_snapshot_subtitle">Backup e recuperação compactados gerais em unidades de arquivos/diretórios</string>
     <string name="backup_raw_snapshot_desc">Arquivos/shared_prefs/datastore/databases no diretório de dados interno do aplicativo serão empacotados (o ambiente do terminal Linux é muito grande e não tem backup por padrão). A restauração substituirá os dados atuais e exigirá a reinicialização do aplicativo para ter efeito. Alguns dados criptografados podem não estar disponíveis após alterar/reinstalar o dispositivo.</string>
@@ -4461,7 +4461,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="backup_faq_why">Por que fazer backup de dados?</string>
     <string name="backup_faq_why_answer">Fazer backup do seu histórico de bate-papo pode evitar que seu conteúdo importante seja perdido quando aplicativos são desinstalados ou dados são perdidos. Backups regulares são um bom hábito!</string>
     <string name="backup_faq_where">Onde os arquivos exportados são salvos?</string>
-    <string name="backup_faq_where_answer">O arquivo de backup exportado será salvo na pasta "Downloads/Operit" do seu telefone. O nome do arquivo contém o tipo de dados exportados, data e hora.</string>
+    <string name="backup_faq_where_answer">O arquivo de backup exportado será salvo na pasta "Downloads/Hermes" do seu telefone. O nome do arquivo contém o tipo de dados exportados, data e hora.</string>
     <string name="backup_faq_duplicate">Os dados duplicados aparecerão após a importação?</string>
     <string name="backup_faq_duplicate_answer">O sistema julgará com base no ID do registro, e os registros com o mesmo ID serão atualizados em vez de serem importados repetidamente. Registros com IDs diferentes serão adicionados como novos registros.</string>
     <string name="backup_select_export_format">Selecione o formato de exportação</string>
@@ -4490,7 +4490,7 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="backup_export_result_success">Exportado com sucesso para: %1$s</string>
     <string name="backup_character_cards_title">cartão de personagem</string>
     <string name="backup_character_cards_subtitle">Fazendo backup e restaurando configurações de cartões de personagem</string>
-    <string name="backup_character_cards_current_count">Atualmente existem %1$d cartas de personagem no total. O arquivo exportado será salvo na pasta "Downloads/Operit".</string>
+    <string name="backup_character_cards_current_count">Atualmente existem %1$d cartas de personagem no total. O arquivo exportado será salvo na pasta "Downloads/Hermes".</string>
     <string name="backup_character_card_count">cartão de personagem</string>
     <string name="backup_character_card_files">cartão de personagem</string>
     <string name="backup_character_cards_export_result_success">%1$d cartões de personagem foram exportados com sucesso para:\n%2$s</string>

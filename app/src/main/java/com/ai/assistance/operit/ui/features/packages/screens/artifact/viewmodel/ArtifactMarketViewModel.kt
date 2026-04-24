@@ -880,7 +880,7 @@ class ArtifactMarketViewModel(
         return when (stage) {
             PublishProgressStage.IDLE -> null
             PublishProgressStage.VALIDATING -> "正在校验本地条目"
-            PublishProgressStage.ENSURING_REPO -> "正在检查 OperitForge 仓库"
+            PublishProgressStage.ENSURING_REPO -> "正在检查 HermesForge 仓库"
             PublishProgressStage.CREATING_RELEASE -> "正在创建或更新 GitHub Release"
             PublishProgressStage.UPLOADING_ASSET -> "正在上传发布资源"
             PublishProgressStage.REGISTERING_MARKET -> "正在登记市场条目"

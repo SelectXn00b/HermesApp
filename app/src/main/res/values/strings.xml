@@ -542,7 +542,7 @@
     <string name="danger_zone">危险区域</string>
     <string name="chat_statistics">聊天记录统计</string>
     <string name="current_chats">当前共有 %1$d 条聊天记录</string>
-    <string name="backup_location">备份文件保存在「下载/Operit/backup」文件夹中</string>
+    <string name="backup_location">备份文件保存在「下载/Hermes/backup」文件夹中</string>
     <string name="faq_backup">常见问题</string>
     <string name="history_filter_role_card">按角色卡分类</string>
     <string name="history_filter_role_card_desc">角色卡-文件夹-对话三级分类</string>
@@ -577,7 +577,7 @@
     <string name="about_description">墨思是一个智能助手应用，能够帮助用户更高效地使用设备，提供界面分析、聊天对话等功能。</string>
     <string name="about_developer">开发者: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">联系我们: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/SelectXn00b/HermesApp"&gt;GitHub: https://github.com/SelectXn00b/HermesApp&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 墨思. 保留所有权利。</string>
     <string name="star_on_github">在 GitHub 点个 Star</string>
     <string name="update_log">更新日志</string>
@@ -646,7 +646,7 @@
     
     <!-- Plugin Loading Screen -->
     <string name="plugin_skip">跳过</string>
-    <string name="plugin_app_name">OPERIT</string>
+    <string name="plugin_app_name">HERMES</string>
     <string name="plugin_status">已启动: %1$d / %2$d</string>
     <string name="plugin_loading_status_title">插件加载状态</string>
     <string name="plugin_loading_success">加载成功</string>
@@ -1288,7 +1288,7 @@
     <string name="overlay_permission">悬浮窗权限</string>
     <string name="battery_optimization">电池优化豁免</string>
     <string name="location_permission">位置权限</string>
-    <string name="operit_terminal">墨思终端</string>
+    <string name="operit_terminal">OperitTerminal</string>
     
     <!-- 权限级别描述 -->
     <string name="permission_level_standard">标准权限</string>
@@ -3986,9 +3986,9 @@
     <string name="import_color_qr">导入多维码</string>
     <string name="scan_color_qr">扫描多维码</string>
     <string name="tavern_json">酒馆 JSON</string>
-    <string name="export_tavern_json_desc">导出为 .json 并保存到 Download/Operit/exports</string>
+    <string name="export_tavern_json_desc">导出为 .json 并保存到 Download/Hermes/exports</string>
     <string name="tavern_png">酒馆 PNG</string>
-    <string name="export_tavern_png_desc">导出为可导入酒馆的图片，并保存到 Download/Operit/exports</string>
+    <string name="export_tavern_png_desc">导出为可导入酒馆的图片，并保存到 Download/Hermes/exports</string>
     <string name="image_read_error">无法读取图片</string>
     <string name="image_parse_error">无法解析图片</string>
     <string name="color_qr_not_recognized">无法识别彩色多维码</string>
@@ -4175,7 +4175,7 @@
     <string name="screen_title_market">市场</string>
     <string name="screen_title_artifact_manage">管理脚本与工具包</string>
     <string name="screen_title_artifact_publish">发布脚本或工具包</string>
-    <string name="artifact_publish_info_description">条目会先上传到您自己的 OperitForge 发布仓库，再根据类型自动登记到脚本市场或工具包市场。请确认内容、版本和兼容范围准确无误。</string>
+    <string name="artifact_publish_info_description">条目会先上传到您自己的 HermesForge 发布仓库，再根据类型自动登记到脚本市场或工具包市场。请确认内容、版本和兼容范围准确无误。</string>
     <string name="artifact_edit_info_description">您正在编辑已发布条目的信息。更新后会覆盖市场仓库中对应 Issue 的元数据。</string>
     <string name="need_login_before_publish_artifact">发布前需要先登录 GitHub。</string>
     <string name="local_artifact_entry">本地条目</string>
@@ -4193,10 +4193,10 @@
     <string name="publish_failed_title">发布失败</string>
     <string name="retry_market_registration">重试市场登记</string>
     <string name="update_to_market">更新到市场</string>
-    <string name="create_operit_forge_title">创建 OperitForge？</string>
-    <string name="create_operit_forge_message">这是你第一次直连发布。墨思 需要先在你的 GitHub 账号下创建公开仓库 `OperitForge`。</string>
+    <string name="create_operit_forge_title">创建 HermesForge？</string>
+    <string name="create_operit_forge_message">这是你第一次直连发布。墨思 需要先在你的 GitHub 账号下创建公开仓库 `HermesForge`。</string>
     <string name="confirm_create_public_forge_title">确认创建公开仓库</string>
-    <string name="confirm_create_public_forge_message">请再次确认，现在创建公开仓库 `OperitForge`。后续发布都会复用这个仓库。</string>
+    <string name="confirm_create_public_forge_message">请再次确认，现在创建公开仓库 `HermesForge`。后续发布都会复用这个仓库。</string>
     <string name="create_and_publish">创建并发布</string>
     <string name="artifact_type_script">脚本</string>
     <string name="artifact_type_package">工具包</string>
@@ -4269,9 +4269,9 @@
     <string name="confirm_skill_git_import_deployment">我已确认该 Skill 可以通过软件的 Git 仓库导入方式正常安装并使用</string>
     <string name="skill_publish_success_message">您的 Skill 已成功发布到市场，等待审核通过后即可被其他用户发现和使用。</string>
     <string name="skill_update_success_message">您的 Skill 信息已成功更新。</string>
-    <string name="script_publish_info_description">脚本会先上传到您自己的 OperitForge 发布仓库，再将元数据登记到 OperitScriptMarket。请确认脚本内容、版本和描述准确无误。</string>
+    <string name="script_publish_info_description">脚本会先上传到您自己的 HermesForge 发布仓库，再将元数据登记到 OperitScriptMarket。请确认脚本内容、版本和描述准确无误。</string>
     <string name="script_edit_info_description">您正在编辑已发布脚本的信息。更新后会覆盖市场仓库中对应 Issue 的元数据。</string>
-    <string name="package_publish_info_description">工具包会先上传到您自己的 OperitForge 发布仓库，再将元数据登记到 OperitPackageMarket。请确认工具包内容、版本和描述准确无误。</string>
+    <string name="package_publish_info_description">工具包会先上传到您自己的 HermesForge 发布仓库，再将元数据登记到 OperitPackageMarket。请确认工具包内容、版本和描述准确无误。</string>
     <string name="package_edit_info_description">您正在编辑已发布工具包的信息。更新后会覆盖市场仓库中对应 Issue 的元数据。</string>
     <string name="script_publish_success_message">您的脚本已成功发布到市场。</string>
     <string name="script_update_success_message">您的脚本信息已成功更新。</string>
@@ -4340,7 +4340,7 @@
     <string name="mcp_issue_body_title_install_info">## 安装信息</string>
     <string name="mcp_issue_body_repo_address">**仓库地址:** %1$s</string>
     <string name="mcp_issue_body_title_install_method">### 安装方式</string>
-    <string name="mcp_issue_body_install_step1">1. 在 Operit MCP 配置页面点击「导入」</string>
+    <string name="mcp_issue_body_install_step1">1. 在 墨思 MCP 配置页面点击「导入」</string>
     <string name="mcp_issue_body_install_step2">2. 选择「从仓库导入」</string>
     <string name="mcp_issue_body_install_step3">3. 输入仓库地址: `%1$s`</string>
     <string name="mcp_issue_body_install_step4">4. 设置插件名称并点击导入</string>
@@ -4356,12 +4356,12 @@
     <string name="mcp_publish_body_section_quick_install">## ⚡ 快速安装</string>
     <string name="mcp_publish_body_section_install_method">## 📦 安装方式</string>
     <string name="mcp_publish_body_method_repo_import_title">### 方式一：从仓库导入</string>
-    <string name="mcp_publish_body_method_repo_import_step1">1. 打开 Operit MCP 配置页面</string>
+    <string name="mcp_publish_body_method_repo_import_step1">1. 打开 墨思 MCP 配置页面</string>
     <string name="mcp_publish_body_method_repo_import_step2">2. 点击「导入」→「从仓库导入」</string>
     <string name="mcp_publish_body_method_repo_import_step3">3. 输入仓库地址：`%1$s`</string>
     <string name="mcp_publish_body_method_repo_import_step4">4. 配置插件名称并导入</string>
     <string name="mcp_publish_body_method_config_import_title">### 方式二：配置导入</string>
-    <string name="mcp_publish_body_method_config_import_step1">1. 打开 Operit MCP 配置页面</string>
+    <string name="mcp_publish_body_method_config_import_step1">1. 打开 墨思 MCP 配置页面</string>
     <string name="mcp_publish_body_method_config_import_step2">2. 点击「导入」→「配置导入」</string>
     <string name="mcp_publish_body_method_config_import_step3">3. 粘贴以下配置：</string>
     <string name="mcp_publish_body_section_tech_info">## 🛠️ 技术信息</string>
@@ -5088,7 +5088,7 @@
     <string name="backup_room_db_restart_later">稍后</string>
     <string name="backup_room_db_last_success">上次成功备份：%1$s</string>
     <string name="backup_room_db_last_error">上次错误：%1$s</string>
-    <string name="backup_files_location_hint">提示：备份文件保存在 Download/Operit 文件夹</string>
+    <string name="backup_files_location_hint">提示：备份文件保存在 Download/Hermes 文件夹</string>
 
     <string name="backup_raw_snapshot_title">文件快照备份（实验）</string>
     <string name="backup_raw_snapshot_subtitle">以文件/目录为单位的整体压缩备份与恢复</string>
@@ -5148,7 +5148,7 @@
     <string name="backup_faq_why">为什么要备份数据？</string>
     <string name="backup_faq_why_answer">备份聊天记录可以防止应用卸载或数据丢失时，您的重要内容丢失。定期备份是个好习惯！</string>
     <string name="backup_faq_where">导出的文件保存在哪里？</string>
-    <string name="backup_faq_where_answer">导出的备份文件会保存在您手机的「下载/Operit」文件夹中，文件名包含导出的数据类型、日期和时间。</string>
+    <string name="backup_faq_where_answer">导出的备份文件会保存在您手机的「下载/Hermes」文件夹中，文件名包含导出的数据类型、日期和时间。</string>
     <string name="backup_faq_duplicate">导入后会出现重复的数据吗？</string>
     <string name="backup_faq_duplicate_answer">系统会根据记录ID判断，相同ID的记录会被更新而不是重复导入。不同ID的记录会作为新记录添加。</string>
     
@@ -5183,7 +5183,7 @@
 
     <string name="backup_character_cards_title">角色卡</string>
     <string name="backup_character_cards_subtitle">备份与恢复角色卡配置</string>
-    <string name="backup_character_cards_current_count">当前共有 %1$d 个角色卡。导出的文件会保存在「下载/Operit」文件夹中。</string>
+    <string name="backup_character_cards_current_count">当前共有 %1$d 个角色卡。导出的文件会保存在「下载/Hermes」文件夹中。</string>
     <string name="backup_character_card_count">角色卡</string>
     <string name="backup_character_card_files">角色卡</string>
 

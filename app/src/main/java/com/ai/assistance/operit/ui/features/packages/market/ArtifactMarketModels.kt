@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
 const val OPERIT_MARKET_OWNER = "AAswordman"
-const val OPERIT_FORGE_REPO_NAME = "OperitForge"
+const val OPERIT_FORGE_REPO_NAME = "HermesForge"
 
 private const val ARTIFACT_MARKET_JSON_PREFIX = "<!-- operit-market-json: "
 private const val ARTIFACT_MARKET_PARSER_VERSION = "forge-v2"
@@ -264,7 +264,7 @@ fun buildPublishReleaseDescriptor(
         releaseName = "${descriptor.displayName} v${descriptor.version}",
         releaseBody =
             buildString {
-                appendLine("${descriptor.type.titleLabel} artifact published by OperitForge.")
+                appendLine("${descriptor.type.titleLabel} artifact published by HermesForge.")
                 appendLine()
                 appendLine("Display name: ${descriptor.displayName}")
                 appendLine("Normalized id: ${descriptor.normalizedId}")

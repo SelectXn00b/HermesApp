@@ -195,7 +195,7 @@ class GitHubForgePublishService(
 
         val failureMessage = existingRepo.exceptionOrNull()?.message.orEmpty()
         if (!failureMessage.contains("HTTP 404")) {
-            return Result.failure(existingRepo.exceptionOrNull() ?: Exception("Failed to load OperitForge"))
+            return Result.failure(existingRepo.exceptionOrNull() ?: Exception("Failed to load HermesForge"))
         }
 
         if (!allowCreateForgeRepo) {
@@ -204,7 +204,7 @@ class GitHubForgePublishService(
 
         return githubApiService.createRepository(
             name = OPERIT_FORGE_REPO_NAME,
-            description = "Operit publish-only artifact repository for release assets.",
+            description = "Hermes publish-only artifact repository for release assets.",
             isPrivate = false,
             autoInit = true
         ).map { repo ->
@@ -225,10 +225,10 @@ class GitHubForgePublishService(
             owner = owner,
             repo = repo,
             path = "README.md",
-            message = "Initialize OperitForge repository",
+            message = "Initialize HermesForge repository",
             textContent =
                 buildString {
-                    appendLine("# OperitForge")
+                    appendLine("# HermesForge")
                     appendLine()
                     appendLine("This repository stores release assets published from Operit.")
                 }

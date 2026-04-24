@@ -59,7 +59,7 @@
     <string name="danger_zone">Zona peligrosa</string>
     <string name="chat_statistics">Estadísticas del historial de chat</string>
     <string name="current_chats">Actualmente hay %1$d registros de chat</string>
-    <string name="backup_location">Los archivos de copia de seguridad se guardan en la carpeta "Descargas/Operit"</string>
+    <string name="backup_location">Los archivos de copia de seguridad se guardan en la carpeta "Descargas/Hermes"</string>
     <string name="faq_backup">Preguntas frecuentes</string>
 
     <string name="lock_chat">Bloquear chat</string>
@@ -88,7 +88,7 @@
     <string name="about_description">Hermes es una aplicación de asistente inteligente que ayuda a los usuarios a utilizar sus dispositivos de manera más eficiente, proporcionando funciones como análisis de interfaz y chat.</string>
     <string name="about_developer">Desarrollador: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Contáctenos: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/SelectXn00b/HermesApp"&gt;GitHub: https://github.com/SelectXn00b/HermesApp&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Hermes. Todos los derechos reservados.</string>
 
     <!-- AI Chat Screen -->

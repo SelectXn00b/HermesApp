@@ -499,7 +499,7 @@
     <string name="about_description">Hermes adalah aplikasi asisten cerdas yang membantu pengguna menggunakan perangkat dengan lebih efisien, menyediakan analisis antarmuka, percakapan obrolan, dan fungsi lainnya.</string>
     <string name="about_developer">Pengembang: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
     <string name="about_contact">Hubungi kami: aaswordsman@foxmail.com</string>
-    <string name="about_website">&lt;a href="https://github.com/AAswordman/Operit"&gt;GitHub: https://github.com/AAswordman/Operit&lt;/a&gt;</string>
+    <string name="about_website">&lt;a href="https://github.com/SelectXn00b/HermesApp"&gt;GitHub: https://github.com/SelectXn00b/HermesApp&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Hermes. Hak cipta dilindungi undang-undang.</string>
     <string name="star_on_github">Beri Bintang di GitHub</string>
     <string name="update_log">Catatan Pembaruan</string>
@@ -551,7 +551,7 @@
     <string name="danger_zone">Zona Berbahaya</string>
     <string name="chat_statistics">Statistik Riwayat Obrolan</string>
     <string name="current_chats">Saat ini ada %1$d riwayat obrolan</string>
-    <string name="backup_location">File cadangan disimpan di folder "Download/Operit/backup"</string>
+    <string name="backup_location">File cadangan disimpan di folder "Download/Hermes/backup"</string>
     <string name="faq_backup">Pertanyaan Umum</string>
     <string name="history_filter_role_card">Kategorikan Berdasarkan Kartu Karakter</string>
     <string name="history_filter_role_card_desc">Klasifikasi tiga tingkat: Kartu Karakter - Folder - Percakapan</string>
@@ -762,7 +762,7 @@
     <string name="free_usage_first_tip">Ini adalah penggunaan pertama, setelahnya perlu menunggu 1 hari untuk bisa digunakan lagi～</string>
     <string name="free_usage_later_tip">Mengambil keuntungan juga harus ada batasnya, perlu menunggu %1$d hari lagi untuk melanjutkan (๑•̀ㅂ•́)و✧</string>
     <string name="plugin_skip">Lewati</string>
-    <string name="plugin_app_name">OPERIT</string>
+    <string name="plugin_app_name">HERMES</string>
     <string name="plugin_status">Sudah dimulai: %1$d / %2$d</string>
     <string name="plugin_loading_status_title">Status Pemuatan Plugin</string>
     <string name="plugin_loading_success">Pemuatan berhasil</string>
@@ -1014,7 +1014,7 @@
     <string name="overlay_permission">Izin Overlay</string>
     <string name="battery_optimization">Pengecualian Optimasi Baterai</string>
     <string name="location_permission">Izin Lokasi</string>
-    <string name="operit_terminal">Terminal Hermes</string>
+    <string name="operit_terminal">OperitTerminal</string>
     <string name="permission_level_standard">Izin Standar</string>
     <string name="permission_level_accessibility">Izin Aksesibilitas</string>
     <string name="permission_level_admin">Izin Administrator</string>
@@ -3546,9 +3546,9 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="import_color_qr">Impor kode multi-dimensi</string>
     <string name="scan_color_qr">Pindai kode multi-dimensi</string>
     <string name="tavern_json">JSON Tavern</string>
-    <string name="export_tavern_json_desc">Ekspor sebagai .json dan simpan ke Download/Operit/exports</string>
+    <string name="export_tavern_json_desc">Ekspor sebagai .json dan simpan ke Download/Hermes/exports</string>
     <string name="tavern_png">PNG Tavern</string>
-    <string name="export_tavern_png_desc">Ekspor sebagai gambar yang dapat diimpor ke Tavern, dan simpan ke Download/Operit/exports</string>
+    <string name="export_tavern_png_desc">Ekspor sebagai gambar yang dapat diimpor ke Tavern, dan simpan ke Download/Hermes/exports</string>
     <string name="image_read_error">Tidak dapat membaca gambar</string>
     <string name="image_parse_error">Tidak dapat mengurai gambar</string>
     <string name="color_qr_not_recognized">Tidak dapat mengenali kode multi-dimensi berwarna</string>
@@ -3689,7 +3689,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="refresh_or_try_again_later">Segarkan atau coba lagi nanti</string>
     <string name="recommended_features">Fitur yang direkomendasikan</string>
 
-    <string name="confirm_create_public_forge_message">Harap konfirmasi kembali, sekarang akan membuat repositori publik `OperitForge`. Semua rilis selanjutnya akan menggunakan repositori ini.</string>
+    <string name="confirm_create_public_forge_message">Harap konfirmasi kembali, sekarang akan membuat repositori publik `HermesForge`. Semua rilis selanjutnya akan menggunakan repositori ini.</string>
     <string name="create_and_publish">Buat dan Publikasikan</string>
     <string name="artifact_type_script">Skrip</string>
     <string name="artifact_type_package">Paket Alat</string>
@@ -3872,7 +3872,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="screen_title_artifact_market">Pasar Skrip dan Paket Alat</string>
     <string name="screen_title_artifact_manage">Kelola Skrip dan Paket Alat</string>
     <string name="screen_title_artifact_publish">Terbitkan Skrip atau Paket Alat</string>
-    <string name="artifact_publish_info_description">Entri akan diunggah ke repositori terbitan OperitForge Anda sendiri, lalu didaftarkan otomatis ke pasar skrip atau pasar paket alat sesuai jenisnya. Pastikan konten, versi, dan rentang kompatibilitas sudah akurat.</string>
+    <string name="artifact_publish_info_description">Entri akan diunggah ke repositori terbitan HermesForge Anda sendiri, lalu didaftarkan otomatis ke pasar skrip atau pasar paket alat sesuai jenisnya. Pastikan konten, versi, dan rentang kompatibilitas sudah akurat.</string>
     <string name="artifact_edit_info_description">Anda sedang mengedit informasi entri yang sudah diterbitkan. Pembaruan akan menimpa metadata Issue terkait di repositori pasar.</string>
     <string name="need_login_before_publish_artifact">Perlu login ke GitHub sebelum menerbitkan.</string>
     <string name="local_artifact_entry">Entri lokal</string>
@@ -3890,8 +3890,8 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="publish_failed_title">Gagal menerbitkan</string>
     <string name="retry_market_registration">Coba lagi pendaftaran pasar</string>
     <string name="update_to_market">Perbarui ke pasar</string>
-    <string name="create_operit_forge_title">Buat OperitForge?</string>
-    <string name="create_operit_forge_message">Ini adalah pertama kalinya Anda menerbitkan langsung. Hermes perlu membuat repositori publik `OperitForge` di akun GitHub Anda terlebih dahulu.</string>
+    <string name="create_operit_forge_title">Buat HermesForge?</string>
+    <string name="create_operit_forge_message">Ini adalah pertama kalinya Anda menerbitkan langsung. Hermes perlu membuat repositori publik `HermesForge` di akun GitHub Anda terlebih dahulu.</string>
     <string name="confirm_create_public_forge_title">Konfirmasi pembuatan repositori publik</string>
 
     <string name="update_failed_with_error">Pembaruan gagal: %1$s</string>
@@ -3932,7 +3932,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="mcp_issue_body_title_install_info">## Informasi Instalasi</string>
     <string name="mcp_issue_body_repo_address">**Alamat Repositori:** %1$s</string>
     <string name="mcp_issue_body_title_install_method">### Metode Instalasi</string>
-    <string name="mcp_issue_body_install_step1">1. Klik "Impor" di halaman konfigurasi Operit MCP</string>
+    <string name="mcp_issue_body_install_step1">1. Klik "Impor" di halaman konfigurasi Hermes MCP</string>
     <string name="mcp_issue_body_install_step2">2. Pilih "Impor dari Repositori"</string>
 
     <string name="confirm_remove_package_from_market">Apakah Anda yakin ingin menghapus paket alat "%1$s" dari pasar? Tindakan ini akan menutup Issue terkait, tetapi tidak akan menghapus repositori rilis Anda.</string>
@@ -3949,9 +3949,9 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="confirm_skill_git_import_deployment">Saya telah mengonfirmasi bahwa Skill ini dapat diinstal dan digunakan dengan normal melalui metode impor repositori Git perangkat lunak.</string>
     <string name="skill_publish_success_message">Skill Anda telah berhasil dipublikasikan ke pasar, menunggu persetujuan sebelum dapat ditemukan dan digunakan oleh pengguna lain.</string>
     <string name="skill_update_success_message">Informasi Skill Anda telah berhasil diperbarui.</string>
-    <string name="script_publish_info_description">Skrip akan diunggah terlebih dahulu ke repositori rilis OperitForge Anda sendiri, kemudian metadata akan didaftarkan ke OperitScriptMarket. Pastikan konten, versi, dan deskripsi skrip akurat.</string>
+    <string name="script_publish_info_description">Skrip akan diunggah terlebih dahulu ke repositori rilis HermesForge Anda sendiri, kemudian metadata akan didaftarkan ke OperitScriptMarket. Pastikan konten, versi, dan deskripsi skrip akurat.</string>
     <string name="script_edit_info_description">Anda sedang mengedit informasi skrip yang telah dirilis. Pembaruan akan menimpa metadata di Issue terkait di repositori pasar.</string>
-    <string name="package_publish_info_description">Paket alat akan diunggah terlebih dahulu ke repositori rilis OperitForge Anda sendiri, kemudian metadata akan didaftarkan ke OperitPackageMarket. Pastikan konten, versi, dan deskripsi paket alat akurat.</string>
+    <string name="package_publish_info_description">Paket alat akan diunggah terlebih dahulu ke repositori rilis HermesForge Anda sendiri, kemudian metadata akan didaftarkan ke OperitPackageMarket. Pastikan konten, versi, dan deskripsi paket alat akurat.</string>
     <string name="package_edit_info_description">Anda sedang mengedit informasi paket alat yang telah dirilis. Pembaruan akan menimpa metadata di Issue terkait di repositori pasar.</string>
     <string name="script_publish_success_message">Skrip Anda telah berhasil dipublikasikan ke pasar.</string>
     <string name="script_update_success_message">Informasi skrip Anda telah berhasil diperbarui.</string>
@@ -4112,12 +4112,12 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="mcp_publish_body_section_quick_install">## ⚡ Instalasi Cepat</string>
     <string name="mcp_publish_body_section_install_method">## 📦 Metode Instalasi</string>
     <string name="mcp_publish_body_method_repo_import_title">### Metode 1: Impor dari Repositori</string>
-    <string name="mcp_publish_body_method_repo_import_step1">1. Buka halaman konfigurasi Operit MCP</string>
+    <string name="mcp_publish_body_method_repo_import_step1">1. Buka halaman konfigurasi Hermes MCP</string>
     <string name="mcp_publish_body_method_repo_import_step2">2. Klik "Impor" → "Impor dari Repositori"</string>
     <string name="mcp_publish_body_method_repo_import_step3">3. Masukkan alamat repositori: `%1$s`</string>
     <string name="mcp_publish_body_method_repo_import_step4">4. Konfigurasi nama plugin dan impor</string>
     <string name="mcp_publish_body_method_config_import_title">### Metode 2: Impor Konfigurasi</string>
-    <string name="mcp_publish_body_method_config_import_step1">1. Buka halaman konfigurasi Operit MCP</string>
+    <string name="mcp_publish_body_method_config_import_step1">1. Buka halaman konfigurasi Hermes MCP</string>
     <string name="mcp_publish_body_method_config_import_step2">2. Klik "Impor" → "Impor Konfigurasi"</string>
     <string name="mcp_publish_body_method_config_import_step3">3. Tempel konfigurasi berikut:</string>
     <string name="mcp_publish_body_section_tech_info">## 🛠️ Informasi Teknis</string>
@@ -4792,7 +4792,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="backup_faq_why">Mengapa perlu mencadangkan data?</string>
     <string name="backup_faq_why_answer">Mencadangkan riwayat percakapan dapat mencegah hilangnya konten penting Anda saat aplikasi dihapus atau data hilang. Mencadangkan secara berkala adalah kebiasaan yang baik!</string>
     <string name="backup_faq_where">Di mana file ekspor disimpan?</string>
-    <string name="backup_faq_where_answer">File cadangan yang diekspor akan disimpan di folder "Unduhan/Operit" di ponsel Anda. Nama file mencakup jenis data yang diekspor, tanggal, dan waktu.</string>
+    <string name="backup_faq_where_answer">File cadangan yang diekspor akan disimpan di folder "Unduhan/Hermes" di ponsel Anda. Nama file mencakup jenis data yang diekspor, tanggal, dan waktu.</string>
     <string name="backup_faq_duplicate">Apakah akan ada data duplikat setelah diimpor?</string>
     <string name="backup_faq_duplicate_answer">Sistem akan menilai berdasarkan ID catatan. Catatan dengan ID yang sama akan diperbarui, bukan diimpor ulang. Catatan dengan ID berbeda akan ditambahkan sebagai catatan baru.</string>
     <string name="backup_select_export_format">Pilih format ekspor</string>
@@ -4821,7 +4821,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="backup_export_result_success">Berhasil mengekspor ke: %1$s</string>
     <string name="backup_character_cards_title">Kartu Karakter</string>
     <string name="backup_character_cards_subtitle">Cadangkan dan pulihkan konfigurasi kartu karakter</string>
-    <string name="backup_character_cards_current_count">Saat ini ada %1$d kartu karakter. File yang diekspor akan disimpan di folder "Unduhan/Operit".</string>
+    <string name="backup_character_cards_current_count">Saat ini ada %1$d kartu karakter. File yang diekspor akan disimpan di folder "Unduhan/Hermes".</string>
     <string name="backup_character_card_count">Kartu Karakter</string>
     <string name="backup_character_card_files">Kartu Karakter</string>
     <string name="backup_character_cards_export_result_success">Berhasil mengekspor %1$d kartu karakter ke:\n%2$s</string>
@@ -4859,7 +4859,7 @@ Sekarang Anda dapat menggunakan mode AutoGLM di antarmuka percakapan.</string>
     <string name="backup_room_db_restart_later">Nanti</string>
     <string name="backup_room_db_last_success">Cadangan berhasil terakhir: %1$s</string>
     <string name="backup_room_db_last_error">Kesalahan terakhir: %1$s</string>
-    <string name="backup_files_location_hint">Petunjuk: File cadangan disimpan di folder Download/Operit</string>
+    <string name="backup_files_location_hint">Petunjuk: File cadangan disimpan di folder Download/Hermes</string>
     <string name="backup_raw_snapshot_title">Cadangan Snapshot File (Eksperimental)</string>
     <string name="backup_raw_snapshot_subtitle">Cadangan dan pemulihan kompresi keseluruhan berbasis file/direktori</string>
     <string name="backup_raw_snapshot_desc">Akan mengemas direktori data internal aplikasi seperti files/shared_prefs/datastore/databases (lingkungan terminal Linux volumenya sangat besar, tidak dicadangkan secara default). Pemulihan akan menimpa data saat ini dan memerlukan restart aplikasi untuk berlaku. Beberapa data terenkripsi mungkin tidak dapat digunakan setelah pindah perangkat/instal ulang.</string>
