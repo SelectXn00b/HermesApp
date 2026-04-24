@@ -6,7 +6,7 @@
 
 > **让 AI 真正掌控你的 Android 手机。**
 
-底层架构对齐 [Hermes](https://github.com/openclaw/openclaw) 框架，在手机上实现完整的 AI Agent 能力——看屏幕、点 App、跑代码、连平台。
+底层 1:1 复刻 [Hermes](https://github.com/openclaw/openclaw) 框架（NousResearch 出品的 OpenAI-spec tool-calling agent loop），App 层借鉴 [Operit](https://github.com/AAswordman/Operit) 的外壳——把 Hermes 的 Kotlin 版 Agent Loop 嵌进 Android，在手机上跑出完整 AI Agent 能力：看屏幕、点 App、跑代码、连平台。
 
 **[详细文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[快速开始](#-快速开始)** | **[加入社区](#-社区)**
 

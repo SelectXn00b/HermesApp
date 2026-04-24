@@ -6,7 +6,7 @@
 
 > **Let AI truly control your Android phone.**
 
-Architecture aligned with [Hermes](https://github.com/openclaw/openclaw) framework, bringing full AI Agent capabilities to your phone — see the screen, tap apps, run code, connect platforms.
+Core is a 1:1 port of the [Hermes](https://github.com/openclaw/openclaw) framework (NousResearch's OpenAI-spec tool-calling agent loop), with the app shell borrowed from [Operit](https://github.com/AAswordman/Operit) — Hermes's Kotlin agent loop embedded into Android, delivering full AI Agent capabilities on your phone: see the screen, tap apps, run code, connect platforms.
 
 **[📖 Docs (Chinese)](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** · **[🚀 Quick Start](#-quick-start)** · **[💬 Community](#-community)** · **[中文文档](README.md)**
 
