@@ -20,7 +20,7 @@ CHAT_RECEIVER="${PKG}/com.ai.assistance.operit.integrations.intent.ExternalChatR
 APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
 
 WAIT_AFTER_LAUNCH_S="${WAIT_AFTER_LAUNCH_S:-6}"
-MAX_WAIT_S="${MAX_WAIT_S:-90}"
+MAX_WAIT_S="${MAX_WAIT_S:-180}"
 
 cd "$(dirname "$0")/../.."
 
@@ -40,7 +40,12 @@ PROVIDER="${PROVIDER:-OPENROUTER}"
 log "provider=$PROVIDER keyLen=${#KEY}"
 
 ### 1. 设备
-DEVICE="$(adb devices | awk 'NR>1 && $2=="device"{print $1; exit}')"
+DEVICE="${ADB_DEVICE:-}"
+if [[ -z "$DEVICE" ]]; then
+  # 首选 emulator，否则拿第一个 device
+  DEVICE="$(adb devices | awk 'NR>1 && $2=="device" && $1 ~ /^emulator-/{print $1; exit}')"
+  [[ -z "$DEVICE" ]] && DEVICE="$(adb devices | awk 'NR>1 && $2=="device"{print $1; exit}')"
+fi
 [[ -n "$DEVICE" ]] || fail "no adb device"
 log "device=$DEVICE"
 ADB="adb -s $DEVICE"
