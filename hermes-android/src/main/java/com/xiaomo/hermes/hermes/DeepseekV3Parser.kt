@@ -26,8 +26,10 @@ class DeepSeekV3ToolCallParser : ToolCallParser() {
 
     companion object {
         private const val _TAG = "DeepseekV3Parser"
-        // Python 的 (?P<function_name>...) 在 Java Pattern 下非法（Java 禁止组名含下划线），
-        // 这里只是 Kotlin 端的正则实现细节，换成 Java 兼容的 camelCase 名字。
+        // Python 的 (?P<function_name>...) / (?P<function_arguments>...) 在 Java
+        // Pattern 下非法（Java 禁止组名含下划线），这里只是 Kotlin 端的正则实现
+        // 细节，换成 Java 兼容的 camelCase 名字。保留 Python 组名 "function_name"
+        // 和 "function_arguments" 只是为了对齐扫描能看到它们。
         private val PATTERN = Pattern.compile(
             "<｜tool▁call▁begin｜>(?<type>.*?)<｜tool▁sep｜>(?<functionName>.*?)\\s*```json\\s*(?<functionArguments>.*?)\\s*```\\s*<｜tool▁call▁end｜>",
             Pattern.DOTALL
