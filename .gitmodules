@@ -1,6 +1,6 @@
 [submodule "terminal"]
 	path = terminal
-	url = https://github.com/AAswordman/OperitTerminalCore.git
+	url = git@github.com:SelectXn00b/HermesTerminalCore.git
 [submodule "mnn/src/main/cpp/MNN"]
 	path = mnn/src/main/cpp/MNN
 	url = https://github.com/alibaba/MNN.git
