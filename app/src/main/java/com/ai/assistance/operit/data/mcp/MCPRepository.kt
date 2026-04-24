@@ -56,7 +56,7 @@ class MCPRepository(private val context: Context) {
         private const val CONNECT_TIMEOUT = 10000
         private const val READ_TIMEOUT = 15000
         private const val PLUGINS_DIR_NAME = "mcp_plugins"
-        private const val OPERIT_DIR_NAME = "Operit"
+        private const val OPERIT_DIR_NAME = "Hermes"
     }
 
     // UI状态管理

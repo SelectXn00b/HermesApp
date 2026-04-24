@@ -20,7 +20,7 @@ class FreeUsagePreferences(private val context: Context) {
 
     // 外部文件存储相关
     private val EXTERNAL_VERIFY_FILENAME = "usage_verification.dat"
-    private val EXTERNAL_DIRECTORY = "Operit"
+    private val EXTERNAL_DIRECTORY = "Hermes"
 
     private val prefs: SharedPreferences =
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

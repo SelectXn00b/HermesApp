@@ -3382,7 +3382,7 @@ private suspend fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileNa
                 return@withContext false
             } else {
                 val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                val targetDir = File(imagesDir, "Operit").apply { if (!exists()) mkdirs() }
+                val targetDir = File(imagesDir, "Hermes").apply { if (!exists()) mkdirs() }
                 val imageFile = File(targetDir, fileName)
                 FileOutputStream(imageFile).use { outputStream ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)

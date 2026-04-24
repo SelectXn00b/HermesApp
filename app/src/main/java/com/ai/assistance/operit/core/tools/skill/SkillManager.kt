@@ -29,7 +29,7 @@ class SkillManager private constructor(private val context: Context) {
 
     private fun getSkillsRootDir(): File {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val operitDir = File(downloadsDir, "Operit")
+        val operitDir = File(downloadsDir, "Hermes")
         val skillsDir = File(operitDir, "skills")
         if (!skillsDir.exists()) {
             skillsDir.mkdirs()
