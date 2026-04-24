@@ -1,468 +1,378 @@
-<div align="center">
-  <span>中文</span> | <a href="README(E).md">English</a>
-</div>
+# Hermes for Android
 
-<div align="center">
-  <img src="https://img.shields.io/github/last-commit/AAswordman/Operit" alt="Last Commit">
-  <img src="https://img.shields.io/badge/Platform-Android_8.0%2B-brightgreen.svg" alt="Platform">
-  <a href="https://github.com/AAswordman/Operit/releases/latest"><img src="https://img.shields.io/github/v/release/AAswordman/Operit" alt="Latest Release"></a>
-  <br>
-  <a href="https://github.com/AAswordman/Operit/stargazers"><img src="https://img.shields.io/github/stars/AAswordman/Operit" alt="GitHub Stars"></a>
-  <a href="https://aaswordman.github.io/OperitWeb"><img src="https://img.shields.io/badge/📖-用户指南-blue.svg" alt="User Guide"></a>
-  <a href="https://www.patreon.com/c/aaswordsman"><img src="https://img.shields.io/badge/🌍-Patreon-f96854.svg" alt="Patreon"></a>
-  <a href="https://afdian.com/a/aaswordsman"><img src="https://img.shields.io/badge/💖-支持开发-ff6b6b.svg" alt="Support Development"></a>
-  <a href="docs/CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions Welcome"></a>
-  <br>
-  <a href="mailto:aaswordsman@foxmail.com"><img src="https://img.shields.io/badge/📧-Email-red.svg" alt="Email"></a>
-  <a href="https://qm.qq.com/q/Sa4fKEH7sO"><img src="https://img.shields.io/badge/💬-QQ群-blue.svg" alt="QQ Group"></a>
-  <a href="https://discord.gg/YnV9MWurRF"><img src="https://img.shields.io/badge/🎮-Discord-5865F2.svg" alt="Discord"></a>
-  <a href="https://github.com/AAswordman/Operit/issues"><img src="https://img.shields.io/badge/🐛-Issues-orange.svg" alt="Issues"></a>
-</div>
+[![Release](https://img.shields.io/badge/Release-v1.1.17-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
+[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<div align="center">
-  <img src="app/src/main/res/playstore-icon.png" width="120" height="120" alt="Operit Logo">
-  <h1>Operit AI - 智能助手应用</h1>
-  <p>📱 <b>移动端首个功能完备的AI智能助手应用，完全独立运行，拥有强大的工具调用能力</b> 📱</p>
-</div>
+> **让 AI 真正掌控你的 Android 手机。**
 
-<div align="center">
-  <div style="padding: 10px 0; text-align: center;">
-    <img src="docs/assets/9f85b39450c8616909039b66d15a475a.jpg" width="22%" alt="Operit预览图1" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-    <img src="docs/assets/88a7b7520e4628682a849cc00716c8de.jpg" width="22%" alt="Operit预览图2" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-    <img src="docs/assets/9036f349c25888d357de5ce34580176d.jpg" width="22%" alt="Operit预览图3" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-    <img src="docs/assets/d12038f26df3f814b4e3ce967537f039.jpg" width="22%" alt="Operit预览图4" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-  </div>
-</div>
+底层架构对齐 [Hermes](https://github.com/openclaw/openclaw) 框架，在手机上实现完整的 AI Agent 能力——看屏幕、点 App、跑代码、连平台。
+
+**[详细文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)** | **[快速开始](#-快速开始)** | **[加入社区](#-社区)**
 
 ---
 
-## 🌟 项目简介
+## AI 能帮你做什么
 
-**Operit AI** 是移动端首个功能完备的 AI 智能助手应用，完全独立运行于您的 Android 设备上（除API调用），拥有强大的**工具调用能力**、**深度搜索**、**工作流与自动化**、**智能记忆库**，并支持**人设定制**与**角色卡**等高度自定义功能，集成 **MNN/llama.cpp 本地模型**、**MCP/Skill 生态**与**多语言界面**。它不仅仅是聊天界面，更是与Android权限和各种工具深度融合的**全能助手**，内置**Ubuntu 24 环境**，提供前所未有的强大功能。
+### 操控任何 App
 
----
+微信、支付宝、抖音、淘宝、高德……**凡是你能手动操作的，AI 都能操作。**
 
-## ⚡ 核心亮点
+```
+你：帮我打开微信发消息给张三说"明天见"
+AI：→ 打开微信 → 搜索张三 → 输入消息 → 发送 ✅
+```
 
-<table>
-<tr>
-<td width="50%">
+### 跨应用联动
 
-### 🖥️ Ubuntu 24 环境
-内置完整 Ubuntu 24 系统，支持 vim、MCP、Python等工具，在手机上运行复杂的Linux命令和自动化任务
+```
+你：微信收到一个地址，帮我导航过去
+AI：→ 微信复制地址 → 打开高德 → 搜索 → 开始导航
+```
 
-### 🧠 智能记忆系统
-AI自动分类管理记忆，支持时间查询/导入导出/自动总结，智能搜索历史对话，记住您的偏好和习惯，提供个性化服务
+### 执行代码
 
-### 🗣️ 语音交互
-连续自然对话，支持本地/云端 TTS + 本地 STT、自定义音色、语音/特定音频唤醒、自动朗读
+通过 Termux SSH 执行命令（Shell 直接可用，Python/Node.js 需在 Termux 中安装）：
 
-</td>
-<td width="50%">
+```
+你：用 Python 帮我分析一下 Downloads 文件夹里的 CSV
+AI：→ exec("python3 analyze.py") → 返回分析结果
+```
 
-### 🤖 本地AI模型
-支持 MNN / llama.cpp 本地模型（GGUF），完全离线运行AI，保护隐私数据
+### 搜索 & 抓取网页
 
-### 🎭 人设与角色卡
-自定义AI性格、说话风格，支持角色卡导入导出（酒馆/JSON）/备份/二维码分享，角色卡可互聊并拥有独立对话历史
+```
+你：搜一下今天的科技新闻
+AI：→ web_search("科技新闻") → 返回标题+链接+摘要
+```
 
-### 🔌 丰富工具生态
-40+ 内置工具 + MCP/Skill 市场插件 + 工具包/工作流，含自动点击 Agent、绘图/图片搜索、AI 互聊/自我认知、定时任务、提示词市场等，覆盖文件操作、网络请求、系统控制、媒体处理
+### 多平台消息
 
-</td>
-</tr>
-</table>
+通过飞书、Discord 等远程控制你的手机 AI：
 
----
+| 渠道 | 状态 |
+|------|------|
+| 飞书 | ✅ 可用（WebSocket 实时连接，私聊/群聊，39 个飞书工具） |
+| Discord | ✅ 可用（Gateway v10，私聊/群聊，权限策略） |
+| 设备内对话 | ✅ 可用 |
+| Telegram | 🚧 开发中 |
+| Slack | 🚧 开发中 |
 
-## 🛠️ 功能速览
+每个渠道支持**独立模型覆盖**——从已配置的 Provider 中选择该渠道专用的模型。
 
-<details>
-<summary><b>📦 内置工具系统（点击展开）</b></summary>
+### MCP Server（给外部 Agent 用）
 
-| 工具类型 | 功能说明 |
-|---------|---------|
-| 🐧 **Linux环境** | 完整Ubuntu 24，支持apt包管理、Python/Node.js运行环境、自定义软件源 |
-| 📁 **文件系统** | 读写文件、搜索、解压缩、格式转换、Git集成、语法检查 |
-| 🌐 **网络工具** | HTTP请求、网页访问、文件上传下载、Web开发与导出 |
-| ⚙️ **系统操作** | 安装应用、权限管理、无障碍 / ADB / Root 三通道自动化（含 AutoGLM 自动点击 Agent，支持 adb root 虚拟屏/多显示器） |
-| 🎬 **媒体处理** | 视频转换、帧提取、OCR/图像理解、相机拍照、音视频读取 |
-| 🧑‍💻 **开发与终端** | Web 工作区/一键打包、代码编辑/语法高亮、终端 SSH/Chroot/vim、Ctrl 组合键 |
-| 🎨 **AI 创作** | 绘图工具包（OpenAI/Qwen/NanoBanana）、图片搜索/下载 |
-| 🔍 **搜索引擎** | 深度搜索、DuckDuckGo、Tavily、谷歌学术、Bing、Sogou、Quark、百度地图集成 |
-| 🧩 **工具包 & 工作流** | 工具包生态/包管理、工作流自动化、定时触发、语音唤醒触发 |
+内置 MCP Server（端口 8399），将手机的无障碍和截屏能力通过标准 MCP 协议暴露给外部 Agent：
 
-</details>
+```
+工具：get_view_tree / screenshot / tap / swipe / input_text / press_home / press_back / get_current_app
+```
 
-<details>
-<summary><b>🎨 界面定制（点击展开）</b></summary>
+> 这不是 Hermes 自身使用的——是给 Claude Desktop、Cursor 等外部 Agent 调用的。
 
-- ✨ **主题系统**：自定义颜色、字体、间距、内边距
-- 🌍 **多语言支持**：中英覆盖，自动随系统语言切换
-- 🔤 **字体与排版**：全局字体大小、聊天边距自定义
-- 🎭 **桌宠功能**：WebP动画支持、自定义表情、悬浮窗显示
-- 📱 **布局优化**：隐藏状态栏、自定义工具栏、平板适配
-- 🎨 **Markdown渲染**：LaTeX公式（支持左右滚动）、代码高亮、表格、Mermaid图表
-- 🧾 **信息展示**：思考链折叠、HTML块预览、代码/思考块高度限制
-- 🪟 **悬浮窗体验**：悬浮窗/气泡模式头像隐藏、圈选识屏、全屏预览
-- 🧮 **数据统计**：Token 用量统计、模型饼图
+### 技能扩展
 
-</details>
+从 [ClawHub](https://clawhub.com) 搜索安装新能力，或自己创建 Skill：
 
-<details>
-<summary><b>🔗 集成能力（点击展开）</b></summary>
-
-- 🤖 **Tasker集成**：触发自定义AI代理事件，深度自动化
-- 🌐 **MCP/Skill 市场**：一键安装插件、远程MCP、自动描述、uvx/npx支持
-- 🔌 **多模型支持**：OpenAI、Claude、Gemini、百灵、OpenRouter、LMStudio
-- 🧪 **模型与提示词管理**：多配置/参数自定义、提示词市场
-- 🔐 **权限系统**：工具级权限控制与安全提示
-- 🔑 **密钥池与统计**：批量测试/导入、Token 统计（模型饼图）
-- 🗂️ **工作区绑定**：支持 SAF / SFTP / SSH 工作区绑定与文件访问
-- 🖱️ **自动点击 Agent**：AutoGLM + UI Tree 双通道，支持自动化操作
-- 📊 **工具并行**：只读工具并行执行，提升响应速度
-
-</details>
-
-<details>
-<summary><b>💬 对话与记忆管理（点击展开）</b></summary>
-
-- 🧠 **记忆库**：自动分类/搜索、时间查询、导入导出、附件记忆
-- 💬 **对话管理**：自动总结与总结编辑、历史分组/分支/迁移、对话锁定、角色卡独立历史
-- ⚡ **对话并行**：并行对话处理、工具包 state 决策
-- 🤖 **角色互动**：角色卡互聊、查看历史、思考链折叠
-- 📦 **聊天记录**：多格式导入导出、历史备份与恢复
-
-</details>
-
-<details>
-<summary><b>💾 数据与备份（点击展开）</b></summary>
-
-- 🗂️ **全局/自动备份**：数据库定时备份，支持损坏恢复（排除 MCP/Skill/终端/包）
-- 🎭 **角色卡**：备份、导出（酒馆/JSON）、二维码分享
-- 🧷 **工作区**：SAF/SFTP/SSH 绑定、代码编辑/语法高亮、Git ignore
-- 🧰 **Skill 管理**：Skill 开关、仓库解析与缓存下载
-
-</details>
+```
+你：看看 ClawHub 上有什么技能
+AI：→ skills_search("") → 展示可用技能列表
+```
 
 ---
 
-## 📸 功能展示
+## 快速开始
 
-<table>
-<tr>
-<td align="center" width="33%">
-<img src="docs/assets/webdev/c851e530a258bbbbf41f87dcb907b14.png" width="100%"><br>
-<b>Web开发</b><br>
-在手机上设计网页并导出为独立应用
-</td>
-<td align="center" width="33%">
-<img src="docs/assets/floating_and_attach.jpg" height="200px"><br>
-<b>悬浮窗 & 附件</b><br>
-随时调用，便捷分享
-</td>
-<td align="center" width="33%">
-<img src="docs/assets/84ea63a7437eae374f53c5b64f52c24d.png" height="200px"><br>
-<b>插件市场</b><br>
-丰富的MCP生态
-</td>
-</tr>
-</table>
+### 下载安装
+
+从 [Release 页面](https://github.com/SelectXn00b/AndroidForClaw/releases/latest) 下载：
+
+| APK | 说明 | 必装？ |
+|-----|------|--------|
+| **Hermes** | 主应用 (含无障碍服务、Agent、Gateway) | ✅ 必装 |
+| **BrowserForClaw** | AI 浏览器 (网页自动化) | 可选 |
+
+> Termux 需从 [F-Droid](https://f-droid.org/packages/com.termux/) 单独安装（不要用 Play Store 版本）。
+>
+> Termux 可选：不装也能用基础 shell 命令（`ls`、`cat`、`curl`、`input` 等），装了后有完整 Linux 环境（bash、python、git、apt）。
+
+### 3 步上手
+
+1. **安装** — 下载安装 Hermes
+2. **配置** — 打开 App，输入 API Key（或跳过使用内置 Key），开启无障碍 + 录屏权限
+3. **开聊** — 直接对话，或通过飞书/Discord 发消息
+
+> 首次打开自动弹出引导页，默认 OpenRouter + MiMo V2 Pro，支持一键跳过
+
+### Termux 配置（可选）
+
+App 有两层 exec 工具，按需自动路由：
+
+| 工具 | 实现 | 无需 Termux | 装了 Termux |
+|------|------|------------|-------------|
+| **内置 Shell** | `ProcessBuilder` + `sh -c` | ✅ 基础命令可用（`ls`、`cat`、`curl`、`input` 等） | ✅ |
+| **Termux SSH** | SSH 连接池 → Termux sshd | ❌ | ✅ 完整 Linux 环境（bash、python、nodejs、git、apt） |
+
+不装 Termux：基础 shell 命令正常工作，截图/点击/输入等设备操作可用。
+装了 Termux：额外获得 Python/Node.js 运行环境、包管理器、完整工具链。
+
+**设置 → Termux 配置**，按向导完成：
+
+1. 安装 Termux（F-Droid 版）
+2. 生成 SSH 密钥（App 内一键生成）
+3. 在 Termux 中运行 `termux-setup-storage`
+4. `pkg install -y openssh`
+5. 复制密钥配置命令并执行
+6. `sshd`
+7. App 自动验证连接
 
 ---
 
-## 🚀 快速开始
+## 技术架构
+
+```
+846 Kotlin 源文件 · 167,000+ 行代码 · 10 个模块
+```
+
+```
+┌──────────────────────────────────────────┐
+│  Channels                                 │
+│  飞书 · Discord · 设备内对话               │
+├──────────────────────────────────────────┤
+│  Agent Runtime                            │
+│  AgentLoop · 65 Tools · 27 Skills ·       │
+│  Context 管理 (4层防护) · Memory           │
+├──────────────────────────────────────────┤
+│  Providers                                │
+│  OpenRouter · MiMo · Gemini · Anthropic · │
+│  OpenAI · 自定义                           │
+├──────────────────────────────────────────┤
+│  Android Platform                         │
+│  Accessibility · Termux SSH · device tool │
+│  MediaProjection · BrowserForClaw         │
+└──────────────────────────────────────────┘
+```
+
+### 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| **Playwright 模式** | 屏幕操作对齐 Playwright —— `snapshot` 获取 UI 树 + ref → `act` 操作元素 |
+| **统一 exec** | 自动路由 Termux SSH（连接池 + 活动超时 + 断线重连）或内置 Shell |
+| **Context 管理** | 4 层防护对齐 Hermes：limitHistoryTurns + 工具结果裁剪 + budget guard |
+| **Model 智能路由** | Model ID 标准化 + Fallback Chain + API Key 轮换 + Allowlist/Blocklist |
+| **Session 隔离** | 每个会话独立 AgentLoop，多 session 并行互不干扰；30 天自动清理 |
+| **Skill 体系** | 27 个内置 Skill，设备上可自由编辑，支持 ClawHub 在线安装 |
+| **多模型** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
+| **MCP Server** | 将无障碍/截屏能力暴露给外部 Agent（端口 8399，Streamable HTTP） |
+| **渠道模型覆盖** | 每个消息渠道可独立选择模型 |
+| **Steer 注入** | 运行中通过 Channel 向 Agent Loop 注入消息（mid-run steering） |
+| **Termux SSH** | 连接池复用 + IGNORE 探活 + 活动超时（有输出就不超时）+ 自动重连 |
+
+---
+
+## 完整能力表
+
+### 通用 Tools（16 个）
+
+| Tool | 功能 |
+|------|------|
+| `device` | 屏幕操作：snapshot / tap / type / scroll / press / open（Playwright 模式） |
+| `read_file` | 读取文件内容 |
+| `write_file` | 创建或覆盖文件 |
+| `edit_file` | 精确编辑文件（diff 模式） |
+| `list_dir` | 列出目录内容 |
+| `exec` | 执行命令（Termux SSH / 内置 Shell） |
+| `web_search` | Brave 搜索引擎 |
+| `web_fetch` | 抓取网页内容 |
+| `javascript` | 执行 JavaScript（QuickJS） |
+| `tts` | 文本转语音 |
+| `skills_search` | 搜索 ClawHub 技能 |
+| `skills_install` | 从 ClawHub 安装技能 |
+| `config_get` | 读取配置项 |
+| `config_set` | 写入配置项 |
+| `memory_search` | 语义搜索记忆 |
+| `memory_get` | 读取记忆片段 |
+
+### Android 专属 Tools（10 个）
+
+| Tool | 功能 |
+|------|------|
+| `device` | 统一设备操作（截屏、点击、滑动、输入、Home、返回等） |
+| `list_installed_apps` | 列出已安装应用 |
+| `install_app` | 安装 APK |
+| `start_activity` | 启动 Activity |
+| `feishu_send_image` | 通过飞书发送图片 |
+| `eye` | 摄像头拍照 |
+| `log` | 查看系统日志 |
+| `stop` | 停止 Agent |
+
+### 飞书 Tools（39 个）
+
+| 类别 | Tools |
+|------|-------|
+| 文档 | 获取 / 创建 / 更新 / 媒体 / 评论 |
+| Wiki | 空间 / 节点 |
+| 云盘 | 文件操作 |
+| 多维表格 | 应用 / 表 / 字段 / 记录 / 视图 |
+| 任务 | 任务 / 任务列表 / 子任务 / 评论 |
+| 群聊 | 群管理 / 成员管理 |
+| 权限 | 检查 / 授予 / 撤销 |
+| 加急 | 发送加急 / 应用加急 |
+| 日历 | 日历 / 事件 / 参与者 / 忙闲查询 |
+| 消息 | 发消息 / 获取消息 / 话题消息 / 搜索消息 / 资源 / 机器人图片 |
+| 搜索 | 搜索文档/Wiki |
+| 通用 | 获取用户 / 搜索用户 |
+| 多媒体 | 图片上传 |
+| 表格 | 电子表格操作 |
+
+### 27 个 Skills
+
+| 类别 | Skills |
+|------|--------|
+| 飞书全家桶 | `feishu` · `feishu-doc` · `feishu-wiki` · `feishu-drive` · `feishu-bitable` · `feishu-chat` · `feishu-task` · `feishu-perm` · `feishu-urgent` · `feishu-calendar` · `feishu-common` · `feishu-im` · `feishu-search` · `feishu-sheets` |
+| 搜索 & 网页 | `browser` · `weather` · `lark-cli` |
+| 技能管理 | `clawhub` · `skill-creator` |
+| 开发调试 | `debugging` · `data-processing` · `session-logs` · `context-security` |
+| 配置管理 | `model-config` · `channel-config` · `install-app` · `model-usage` |
+
+> Skills 存储在 `/sdcard/.hermes/skills/`，可自由编辑、添加、删除。
+
+> **注意**：从旧版 AndroidForClaw 升级的用户，配置路径已从 `/sdcard/.androidforclaw/` 迁移到 `/sdcard/.hermes/`，请手动复制配置文件。
+
+### 消息渠道
+
+| 渠道 | 状态 | 功能 |
+|------|------|------|
+| **飞书** | ✅ 可用 | WebSocket 实时连接，群聊/私聊，39 个飞书工具，流式卡片回复，图片/文件上传 |
+| **Discord** | ✅ 可用 | Gateway v10，群聊/私聊，DM 策略管理，Embed/Button 组件 |
+| **设备内对话** | ✅ 可用 | 内置聊天界面，多 session 管理 |
+| **Telegram** | 🚧 开发中 | — |
+| **Slack** | 🚧 开发中 | — |
+
+### 支持的模型
+
+| Provider | 模型 | 说明 |
+|----------|------|------|
+| **OpenRouter** | MiMo V2 Pro, Hunter Alpha, DeepSeek R1, Claude Sonnet 4, GPT-4.1 | 推荐，内置 Key |
+| **小米 MiMo** | MiMo V2 Pro, MiMo V2 Flash, MiMo V2 Omni | 直连小米 API |
+| **Google** | Gemini 2.5 Pro, Gemini 2.5 Flash | 直连 |
+| **Anthropic** | Claude Sonnet 4, Claude Opus 4 | 直连 |
+| **OpenAI** | GPT-4.1, GPT-4.1 Mini, o3 | 直连 |
+| **自定义** | 任何 OpenAI 兼容 API | Ollama, vLLM 等 |
+
+> **默认配置**：OpenRouter + MiMo V2 Pro（1M 上下文 + 推理），跳过引导页自动使用内置 Key。
+
+---
+
+## 配置参考
+
+`/sdcard/.hermes/openclaw.json`
+
+```json
+{
+  "models": {
+    "providers": {
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "sk-or-v1-你的key",
+        "models": [{"id": "xiaomi/mimo-v2-pro", "reasoning": true, "contextWindow": 1048576}]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": { "primary": "openrouter/xiaomi/mimo-v2-pro" }
+    }
+  },
+  "channels": {
+    "feishu": { "enabled": true, "appId": "cli_xxx", "appSecret": "xxx" },
+    "discord": {
+      "enabled": true,
+      "botToken": "your-discord-bot-token",
+      "model": "openrouter/xiaomi/mimo-v2-pro"
+    }
+  }
+}
+```
+
+详细配置参考 **[飞书文档](https://vcn23e479dhx.feishu.cn/wiki/UZtFwM6t9iArPVkMvRccwSran6d)**
+
+---
+
+## 从源码构建
+
+```bash
+git clone https://github.com/SelectXn00b/AndroidForClaw.git
+cd AndroidForClaw
+export JAVA_HOME=/path/to/jdk17
+./gradlew assembleRelease
+adb install releases/Hermes-v*.apk
+```
+
+---
+
+## Related Projects
 
 | 项目 | 说明 |
-|-----|------|
-| 📋 **系统要求** | Android 8.0+ (API 26+)，建议 4GB+ 内存，200MB+ 存储 |
-| 📥 **下载安装** | [Release页面](https://github.com/AAswordman/Operit/releases) 下载最新APK |
-| 📖 **使用指南** | [完整文档](https://aaswordman.github.io/OperitWeb) 包含详细教程和示例 |
-
-> **安全提示：** 为确保您的数据安全，请务必从官方 [Release页面](https://github.com/AAswordman/Operit/releases) 或 [官方网站](https://aaswordman.github.io/OperitWeb/) 下载本应用。通过未知渠道下载的安装包可能被恶意修改，从而导致隐私泄露或设备被监听。
-
-**安装步骤：** 下载APK → 安装启动 → 按引导配置 → 开始使用 ✨
+|------|------|
+| [Hermes](https://github.com/openclaw/openclaw) | AI Agent 框架（桌面端） |
+| [iOSForClaw](https://github.com/SelectXn00b/iOSForClaw) | Hermes iOS 客户端 |
+| [Hermes for Android](https://github.com/SelectXn00b/AndroidForClaw) | Hermes Android 客户端（本项目） |
 
 ---
 
-## 🔮 TODO / 开发计划
+## 社区
 
-- **UI 自动化与截图管线**  
-  - ✅ 已支持无障碍 / ADB / Root 三种权限模式的 UI 自动化
-  - ✅ 支持 adb root 场景下的虚拟屏幕/多显示器（`display` 参数）
-  - ✅ UI Tree 支持 AutoGLM + 本地 uiautomator dump 双方案
+<div align="center">
 
----
+#### 飞书群
 
-## 📅 版本更新历程
+[![加入飞书群](docs/images/feishu-qrcode.jpg)](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)
 
-<table>
-<tr><th>版本</th><th>发布日期</th><th>核心更新</th></tr>
-
-<tr>
-<td><b>v1.10.1</b><br><sub>最新</sub></td>
-<td>2026-04-17</td>
-<td>
-• <b>内置浏览器与网页自动化</b>：大幅增强内置浏览器，支持标签页、历史、书签、权限、多窗口、最小化与视口控制，并补齐浏览器脚本的导入、安装、启停、存储与页面菜单能力<br>
-• <b>虚拟形象与界面定制</b>：支持 FBX 虚拟形象并升级 MMD 预览，新增液态玻璃主题效果，并增强侧边栏、聊天气泡与输入栏的外观自定义<br>
-• <b>插件、工作区与上下文增强</b>：支持通过配置编辑器调试和自动编写 Operit 插件，新增本地 HTTP 对话入口、工作区重命名与规则文件自动读取，并增强历史跳转、双向分页与上下文自动补充能力<br>
-• <b>稳定性与性能优化</b>：修复工具权限、HTTP TTS、SSH/tmux 长输出、历史跳转、GIF/公式/Markdown 渲染、MCP 配置与统计等问题，并持续优化对话链路、深度搜索、记忆系统、浏览器与包管理器
-</td>
-</tr>
-
-<tr>
-<td><b>v1.10.0</b></td>
-<td>2026-03-18</td>
-<td>
-• <b>角色卡群聊与 AI 自配置</b>：支持多个角色卡群聊与 @ 交互，新增 AI 自我设置能力，可辅助配置 MCP、Skill、STT、TTS 与模型参数<br>
-• <b>主题与交互升级</b>：新增分组折叠消息、气泡主题及字体/颜色/背景自定义、更宽气泡、输入框液态玻璃、长按图标直达设置/语音模式，以及助手形象与 MP4 虚拟形象支持<br>
-• <b>工具与平台扩展</b>：新增 Ollama、NVIDIA、OpenAI Response 通用模式，补充独立 SSH 插件工具包、Java Bridge、APKTool 插件、Web 自动化下载、Markdown 音视频渲染、xAI 视频生成、工作流取消、终端自定义按键与消息队列<br>
-• <b>修复与性能优化</b>：修复语音识别、记忆并发、悬浮窗交互、终端显示、Web 自动化全屏、MNN Tool Call 等问题，并优化记忆召回、市场搜索、工作区模板、grep 工具性能与 Agent 重试稳定性
-</td>
-</tr>
-
-<tr>
-<td><b>v1.9.1</b></td>
-<td>2026-02-20</td>
-<td>
-• <b>稳定性修复</b>：集中修复 1.9.0 多项问题，提升整体可用性与流畅性<br>
-• <b>终端与工具调用</b>：增强终端工具，修复交互 UI 卡住、严格工具调用历史工具报错、Windows 控制器 raw 命令执行问题<br>
-• <b>MCP 与记忆库</b>：修复远程 MCP 无法关闭，重做记忆库写入逻辑，支持外接向量模型并新增连接修改工具<br>
-• <b>功能补充与界面修复</b>：新增未绑定角色卡聊天记录删除、工作流批量删除与执行日志查看，修复输入法/暗色输入框/主题透明度/工具箱包管理等问题
-</td>
-</tr>
-
-<tr>
-<td><b>v1.9.0</b></td>
-<td>2026-02-17</td>
-<td>
-• <b>移动端网页自动操作</b>：新增网页操作能力，支持工作区 Web 项目 CORS 绕过访问外部网页<br>
-• <b>Windows 终端操作</b>：支持 Windows 命令操作，可控制 Codex 等 CLI，新增严格工具调用模式补充兼容性<br>
-• <b>工具与系统扩展</b>：新增 SQL 查看器、Android 工作区模板、OpenAI response 兼容供应商、skill 直接输入添加、统计饼图<br>
-• <b>修复与优化</b>：修复图片读取/上下文总结/特殊符号截断/ffmpeg 等问题，增强模型连通性测试输出与 MCP 加载提示
-</td>
-</tr>
-
-<tr>
-<td><b>v1.8.1</b></td>
-<td>2026-02-03</td>
-<td>
-• <b>llama.cpp 本地推理</b>：支持 GGUF 本地模型与相关工具<br>
-• <b>工具与界面</b>：图片搜索/下载、HTML 块预览、代码/思考块高度限制、气泡头像隐藏、Token 饼图、思考链折叠<br>
-• <b>数据与备份</b>：全局备份（排除 MCP/skill/终端/包）+ 角色卡备份/导出/分享、Skill 开关、密钥池导入/批量测试、工作区支持 SAF 绑定<br>
-• <b>修复</b>：AI 朗读回声录制、悬浮窗 Token 统计、角色编辑键盘遮挡、深搜 Token 爆炸、MCP 启动、工作流悬浮窗退出、表格截断、硅基流动语音打断
-</td>
-</tr>
-
-<tr>
-<td><b>v1.8.0</b></td>
-<td>2026-01-13</td>
-<td>
-• <b>工作流系统</b>：支持计算/传入传出/执行等能力，并支持语音唤醒触发<br>
-• <b>语音唤醒</b>：直接进入语音对话模式，支持语音下关键词快速附件附着<br>
-• <b>对话并行</b>：支持对话并行处理，工具包 state 机制可动态决定工具<br>
-• <b>新增与优化</b>：记忆时间查询、自动备份、OpenAI 绘图/语音供应商、MCP 启动优化、终端 chroot、修复多项 BUG
-</td>
-</tr>
-
-<tr>
-<td><b>v1.7.1</b></td>
-<td>2025-12-31</td>
-<td>
-• <b>Root 虚拟屏幕自动化</b>：支持 root 启动虚拟屏幕，AutoGLM 并发多窗口任务<br>
-• <b>Skill 生态</b>：新增 Skill 协议与 Skill 市场，并支持 BETA 计划追踪 nightly<br>
-• <b>交互增强</b>：总结编辑、网页访问改悬浮窗模式、圈选识屏、对话锁定<br>
-• <b>修复与优化</b>：大图崩溃、ToolCall 错误、代码块换行、启动速度与虚拟屏稳定性
-</td>
-</tr>
-
-<tr>
-<td><b>v1.7.0</b></td>
-<td>2025-12-19</td>
-<td>
-• <b>GUI 自动化里程碑</b>：Autoglm + 虚拟屏幕（可在设置中开关虚拟屏幕）<br>
-• <b>自动化增强</b>：一键 Autoglm 配置与单独执行器，虚拟屏开关逻辑与截图质量自定义<br>
-• <b>体验优化</b>：密钥非聚焦显示为星号，强制不允许 Autoglm 设置为主模型<br>
-• <b>工具扩展</b>：NanoBanana 绘图包、apply file 非覆盖支持、MNN STT 等
-</td>
-</tr>
-
-<tr>
-<td><b>v1.6.3</b></td>
-<td>2025-12-08</td>
-<td>
-• <b>原生ToolCall支持</b>：支持原生模型工具调用、DeepSeek思考工具<br>
-• <b>工作区与终端增强</b>：新建时选择项目类型、SSH文件系统连接、终端无障碍支持<br>
-• <b>模型与消息显示</b>：支持模型配置多选、消息显示模型名称与提供者<br>
-• <b>优化与修复</b>：优化悬浮窗、修复终端卡顿、迁移工作区到内部存储
-</td>
-</tr>
-
-<tr>
-<td><b>v1.6.2</b></td>
-<td>2025-11-20</td>
-<td>
-• <b>对话管理增强</b>：长按开分支、历史记录分类显示、批量迁移<br>
-• <b>模型配置优化</b>：配置重命名、上下文绑定、谷歌原生搜索<br>
-• <b>Bug修复</b>：界面切换、粗体换行、气泡模式等问题<br>
-• 增加crossref学术论文检索包、升级代码编辑器
-</td>
-</tr>
-
-<tr>
-<td><b>v1.6.1</b></td>
-<td>2025-11-05</td>
-<td>
-• <b>性能大优化</b>：重做UI绘制，大幅提升流畅性<br>
-• <b>AI视觉增强</b>：直接识别图片、间接识别能力<br>
-• <b>终端SSH</b>：支持SSH连接和反向挂载手机文件系统<br>
-• 自动总结机制、深度搜索、新授权系统
-</td>
-</tr>
-
-<tr>
-<td><b>v1.6.0</b></td>
-<td>2025-10-21</td>
-<td>
-• <b>MNN本地模型</b>支持<br>
-• <b>记忆库大更新</b>：AI自动分类、智能搜索、导入导出<br>
-• <b>终端优化</b>：vim支持、进度条、自定义软件源<br>
-• Tasker集成、桌宠功能、故事线标签
-</td>
-</tr>
-
-<tr>
-<td><b>v1.5.2</b></td>
-<td>2025-10-05</td>
-<td>
-• MCP增强：uvx/npx支持、启动加速<br>
-• 工作区Git ignore、语法检查<br>
-• 相机拍照、HTML渲染、正则过滤
-</td>
-</tr>
-
-<tr>
-<td><b>v1.5.0</b></td>
-<td>2025-09</td>
-<td>
-• <b>Ubuntu 24终端</b>完整集成<br>
-• MCP市场上线<br>
-• 桌宠功能、深度搜索模式
-</td>
-</tr>
-
-<tr>
-<td><b>v1.4.0</b></td>
-<td>2025-08</td>
-<td>
-• 多工具并行执行<br>
-• 人设卡系统、角色选择器<br>
-• PNG角色卡导入
-</td>
-</tr>
-
-<tr>
-<td><b>v1.3.0</b></td>
-<td>2025-08</td>
-<td>
-• Web开发功能<br>
-• 主题选择器、自定义UI<br>
-• Anthropic Claude支持
-</td>
-</tr>
-
-<tr>
-<td><b>v1.2.x</b></td>
-<td>2025-07</td>
-<td>
-• 语音对话系统<br>
-• 知识库功能<br>
-• DragonBones动画支持
-</td>
-</tr>
-
-<tr>
-<td><b>v1.1.x</b></td>
-<td>2025-06</td>
-<td>
-• MCP协议支持<br>
-• OCR识别、悬浮窗<br>
-• Gemini完整支持
-</td>
-</tr>
-
-<tr>
-<td><b>v1.0.0</b></td>
-<td>2025-05</td>
-<td>
-• 首个正式版本<br>
-• 基础AI对话、工具调用<br>
-• Shizuku/Root集成
-</td>
-</tr>
-</table>
-
-> 📝 **完整更新日志**：访问 [Releases 页面](https://github.com/AAswordman/Operit/releases) 查看每个版本的详细更新内容
+**[点击加入飞书群](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74)**
 
 ---
 
-## 👨‍💻 开源共创
+#### Discord
 
-欢迎加入 Operit 开源生态！我们欢迎各种贡献：第三方脚本、MCP插件、核心功能开发。
+[![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/rDpaFym2b8)
 
-**开发者须知：**
-- 📚 [开源共创指南](docs/CONTRIBUTING.md) | [脚本开发指南](docs/SCRIPT_DEV_GUIDE.md)
-- 📦 构建项目需从 [Google Drive](https://drive.google.com/drive/folders/1g-Q_i7cf6Ua4KX9ZM6V282EEZvTVVfF7?usp=sharing) 下载依赖库压缩包（`models.zip`、`subpack.zip`、`jniLibs.zip`、`libs.zip`）
-- 💬 加入社区讨论：[QQ群](https://qm.qq.com/q/Sa4fKEH7sO) | [Discord](https://discord.gg/YnV9MWurRF)
-
-### 💖 贡献者
-
-感谢所有为 Operit AI 做出贡献的人！
-
-<a href="https://github.com/AAswordman/Operit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=AAswordman/Operit" />
-</a>
-
-## 💖 支持开发
-
-如果 Operit AI 对您有帮助，欢迎自愿支持项目持续开发与基础运营：
-
-- 海外支持可使用 [Patreon](https://www.patreon.com/c/aaswordsman)
-- 境内支持可使用 [爱发电](https://afdian.com/a/aaswordsman)
-
-- 赞助完全自愿，不与任何功能、额度、更新、答疑或其他权益挂钩
-- 即使不赞助，也不影响正常使用、获取更新或访问开源代码
-- 您也可以直接使用 GitHub 仓库顶部的 `Sponsor` 按钮进入赞助页面
+**[加入 Discord](https://discord.gg/rDpaFym2b8)**
 
 ---
 
-## 📄 许可证
+#### 微信群
 
-本项目采用 [GNU LGPLv3](https://www.gnu.org/licenses/lgpl-3.0.html) 许可证。
+<img src="docs/images/wechat-qrcode.png" width="300" alt="微信群二维码">
 
-简单来说，这意味着：
-- 您可以自由地使用、修改和分发本项目的代码。
-- 如果您修改了代码并进行分发，您也必须以 LGPLv3 许可证开源您修改过的部分。
-- 详细信息请参阅 [LICENSE](LICENSE) 文件。
+**扫码加入微信群** - 7天内有效
+
+</div>
 
 ---
 
-## 📝 问题反馈
+## 相关链接
 
-遇到问题或有建议？欢迎 [提交 Issue](https://github.com/AAswordman/Operit/issues)！
+- [Hermes](https://github.com/openclaw/openclaw) — 架构参照
+- [ClawHub](https://clawhub.com) — 技能市场
+- [架构文档](ARCHITECTURE.md) — 详细设计
 
-**提交指南：**
-- 📝 清晰描述问题/建议，提供复现步骤
-- 📱 附上设备型号、系统版本等信息
-- 📸 如有可能，提供截图或录屏
+---
+
+## License
+
+MIT — [LICENSE](LICENSE)
+
+## 致谢
+
+- **[Hermes](https://github.com/openclaw/openclaw)** — 架构灵感
+- **[Claude](https://www.anthropic.com/claude)** — AI 推理能力
 
 ---
 
 <div align="center">
-  <h3>⭐ 如果觉得项目不错，请给我们一个 Star ⭐</h3>
-  <p><b>🚀 帮助我们推广，让更多人了解 Operit AI 🚀</b></p>
-  
-  <br>
-  
-  <sub>Made with ❤️ by the Operit Team</sub>
+
+**如果这个项目对你有帮助，请给个 Star 支持开源！**
+
 </div>
