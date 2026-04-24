@@ -119,6 +119,9 @@ while :; do
   if echo "$LOG" | grep -Eq "$PASS_PAT"; then
     pass "chat turn completed after ${ELAPSED}s"
     echo "$LOG" | grep -E "$PASS_PAT" | tail -3
+    # Write last-green marker for Stop hook (CLAUDE.md §0.2)
+    HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+    printf '%s\n' "$HEAD_SHA" > scripts/e2e/.green-api-config
     exit 0
   fi
   sleep 2

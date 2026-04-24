@@ -159,6 +159,9 @@ while :; do
     fi
     pass "tool-call turn completed after ${ELAPSED}s (dispatchIn/out=$SAW_DISPATCH_IN/$SAW_DISPATCH_OUT toolEvent=$SAW_TOOL_EVENT)"
     echo "$LOG" | grep -E "HermesBridge/Tool|HermesBridge/Adapter.*ToolCall|$COMPLETE_PAT" | tail -8
+    # Write last-green marker for Stop hook (CLAUDE.md §0.2)
+    HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+    printf '%s\n' "$HEAD_SHA" > scripts/e2e/.green-tool-call
     exit 0
   fi
 

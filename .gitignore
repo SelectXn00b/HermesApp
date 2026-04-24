@@ -56,6 +56,7 @@ mnn/build
 kls_database.db
 .claude
 .codex
+scripts/e2e/.green-*
 operit-pc-agent.zip
 .uv-caches
 
