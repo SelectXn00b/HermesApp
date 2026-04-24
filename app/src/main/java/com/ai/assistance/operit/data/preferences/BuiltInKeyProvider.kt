@@ -63,5 +63,5 @@ object BuiltInKeyProvider {
     }
 
     const val OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-    const val OPENROUTER_DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
+    const val OPENROUTER_DEFAULT_MODEL = "openrouter/free"
 }
