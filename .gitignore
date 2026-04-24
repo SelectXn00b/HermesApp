@@ -60,6 +60,10 @@ scripts/e2e/.green-*
 operit-pc-agent.zip
 .uv-caches
 
+# keystores (should live outside repo under HermesApp/release.jks)
+*.jks
+*.keystore
+
 # generated toolpkg bundles
 *.toolpkg
 .venv

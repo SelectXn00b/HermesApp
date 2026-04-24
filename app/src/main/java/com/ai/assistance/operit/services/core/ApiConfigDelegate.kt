@@ -133,7 +133,7 @@ class ApiConfigDelegate(
     private val _modelName = MutableStateFlow("")
     val modelName: StateFlow<String> = _modelName.asStateFlow()
 
-    private val _apiProviderType = MutableStateFlow(ApiProviderType.DEEPSEEK)
+    private val _apiProviderType = MutableStateFlow(ApiProviderType.OPENROUTER)
     val apiProviderType: StateFlow<ApiProviderType> = _apiProviderType.asStateFlow()
 
     private val _isInitialized = MutableStateFlow(false)

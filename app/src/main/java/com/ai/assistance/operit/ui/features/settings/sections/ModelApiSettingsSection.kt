@@ -521,6 +521,29 @@ fun ModelApiSettingsSection(
                         visualTransformation = if (isApiKeyFocused || apiKeyInput.isEmpty()) VisualTransformation.None else ApiKeyVisualTransformation(),
                         interactionSource = apiKeyInteractionSource
                 )
+
+                val builtInKey = remember { com.ai.assistance.operit.data.preferences.BuiltInKeyProvider.getKey().orEmpty() }
+                if (builtInKey.isNotEmpty()) {
+                    Button(
+                        onClick = {
+                            selectedApiProvider = ApiProviderType.OPENROUTER
+                            apiEndpointInput = com.ai.assistance.operit.data.preferences.BuiltInKeyProvider.OPENROUTER_BASE_URL
+                            modelNameInput = com.ai.assistance.operit.data.preferences.BuiltInKeyProvider.OPENROUTER_DEFAULT_MODEL
+                            apiKeyInput = builtInKey
+                            scope.launch {
+                                try {
+                                    flushSettings(false)
+                                    showNotification(context.getString(R.string.use_builtin_openrouter_key_applied))
+                                } catch (_: Exception) {
+                                    // flushSettings already surfaces errors via showNotification
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(R.string.use_builtin_openrouter_key))
+                    }
+                }
             }
             SettingsTextField(
                     title = stringResource(R.string.model_name),

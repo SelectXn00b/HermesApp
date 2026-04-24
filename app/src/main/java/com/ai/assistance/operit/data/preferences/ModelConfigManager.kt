@@ -50,7 +50,7 @@ class ModelConfigManager(private val context: Context) {
         const val DEFAULT_CONFIG_NAME = "model_config_default_name"
 
         // Default API provider type
-        private val DEFAULT_API_PROVIDER_TYPE = ApiProviderType.MIMO
+        private val DEFAULT_API_PROVIDER_TYPE = ApiProviderType.OPENROUTER
     }
 
     // Json解析器，支持宽松模式

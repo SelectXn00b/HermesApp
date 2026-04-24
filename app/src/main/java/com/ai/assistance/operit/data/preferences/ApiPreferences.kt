@@ -203,10 +203,10 @@ class ApiPreferences private constructor(private val context: Context) {
         const val DEFAULT_TOOL_PROMPT_VISIBILITY_JSON = "{}"
         const val DEFAULT_FEATURE_TOGGLES_JSON = "{}"
 
-        // API 配置默认值
-        const val DEFAULT_API_ENDPOINT = "https://api.xiaomimimo.com/anthropic"
-        const val DEFAULT_MODEL_NAME = "mimo-v2.5-pro"
-        val DEFAULT_API_KEY: String = com.ai.assistance.operit.BuildConfig.MIMO_API_KEY
+        // API 配置默认值 (OpenRouter + built-in key, 密钥加密嵌入见 BuiltInKeyProvider)
+        const val DEFAULT_API_ENDPOINT = BuiltInKeyProvider.OPENROUTER_BASE_URL
+        const val DEFAULT_MODEL_NAME = BuiltInKeyProvider.OPENROUTER_DEFAULT_MODEL
+        val DEFAULT_API_KEY: String = BuiltInKeyProvider.getKey() ?: ""
     }
 
     @Serializable

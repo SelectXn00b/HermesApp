@@ -59,7 +59,7 @@ data class ModelConfigData(
         val apiKey: String = "",
         val apiEndpoint: String = "",
         val modelName: String = "",
-        val apiProviderType: ApiProviderType = ApiProviderType.DEEPSEEK,
+        val apiProviderType: ApiProviderType = ApiProviderType.OPENROUTER,
 
         // 多API Key支持
         val useMultipleApiKeys: Boolean = false, // 是否启用多API Key模式
@@ -146,7 +146,7 @@ data class ModelConfigSummary(
         val name: String,
         val modelName: String = "",
         val apiEndpoint: String = "",
-        val apiProviderType: ApiProviderType = ApiProviderType.DEEPSEEK,
+        val apiProviderType: ApiProviderType = ApiProviderType.OPENROUTER,
         val modelIndex: Int = 0 // 当modelName包含多个模型（逗号分隔）时，选择第几个模型（从0开始）
 )
 

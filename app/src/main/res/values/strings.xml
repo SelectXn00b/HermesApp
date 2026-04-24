@@ -3589,6 +3589,8 @@
     <string name="api_key">API密钥</string>
     <string name="api_key_placeholder_default">使用默认Key, 可直接输入</string>
     <string name="api_key_placeholder_custom">输入API密钥</string>
+    <string name="use_builtin_openrouter_key">使用内置 OpenRouter Key</string>
+    <string name="use_builtin_openrouter_key_applied">已应用内置 OpenRouter Key</string>
     <string name="model_name">模型名称</string>
     <string name="model_name_placeholder">例如: gpt-4, claude-3-opus-20240229...</string>
     <string name="get_models_list">获取模型列表</string>
