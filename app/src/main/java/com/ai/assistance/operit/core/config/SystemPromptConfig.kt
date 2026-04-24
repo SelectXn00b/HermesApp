@@ -295,7 +295,7 @@ AVAILABLE_TOOLS_SECTION""".trimIndent()
    * Applies custom prompt replacements from ApiPreferences to the system prompt
    *
    * @param systemPrompt The original system prompt
-   * @param customIntroPrompt The custom introduction prompt (about Operit)
+   * @param customIntroPrompt The custom introduction prompt (character card identity)
    * @return The system prompt with custom prompts applied
    */
   fun applyCustomPrompts(
