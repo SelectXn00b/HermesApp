@@ -67,14 +67,23 @@ fi
 log "device=$DEVICE"
 ADB="adb -s $DEVICE"
 
-### 2. 清数据 + 安装
+### 2. 安装 + 清数据（先装再清，避免 install-after-clear 的 bind-application NPE race）
 [[ -f "$APK_PATH" ]] || fail "$APK_PATH not found, build first: ./gradlew :app:assembleDebug"
-log "pm clear $PKG"
-$ADB shell pm clear "$PKG" >/dev/null
+log "force-stop any running $PKG"
+$ADB shell am force-stop "$PKG" >/dev/null || true
 log "installing $APK_PATH"
 $ADB install -r -t "$APK_PATH" >/dev/null
+log "pm clear $PKG (wipe DataStore → 新用户状态)"
+$ADB shell pm clear "$PKG" >/dev/null
+sleep 1
 
-### 3. 广播内置 key 配置（等价于点"使用内置 OpenRouter Key"按钮后的运行时状态）
+### 3. 启动 app（模拟新用户首次打开 app，等 DataStore 初始化）
+log "launching app (cold start after pm clear)"
+$ADB logcat -c
+$ADB shell am start -n "$MAIN_ACTIVITY" >/dev/null
+sleep "$WAIT_AFTER_LAUNCH_S"
+
+### 4. 广播内置 key 配置（等价于新用户点"使用内置 OpenRouter Key"按钮）
 log "broadcasting built-in key config"
 $ADB shell am broadcast \
   -n "$API_RECEIVER" \
@@ -84,19 +93,16 @@ $ADB shell am broadcast \
   --es endpoint "$ENDPOINT" \
   --es model "$MODEL" >/dev/null
 
-for i in $(seq 1 20); do
+# 延长到 40*0.5=20s，cold start 后 DataStore/ModelConfigManager 初始化可能耗时
+for i in $(seq 1 40); do
   if $ADB logcat -d -v time -s ApiConfigReceiver:I 2>/dev/null | grep -q "Updated config"; then
     break
   fi
-  sleep 0.2
+  sleep 0.5
 done
 $ADB logcat -d -v time -s ApiConfigReceiver:I | grep "Updated config" | tail -1 \
   >/dev/null || fail "config receiver did not log Updated config"
-
-### 4. 启动 app
-log "launching app"
-$ADB shell am start -n "$MAIN_ACTIVITY" >/dev/null
-sleep "$WAIT_AFTER_LAUNCH_S"
+log "config applied"
 
 ### 5. 发送真实 chat 广播
 REQ_ID="e2e-builtin-$(date +%s)"
