@@ -20,17 +20,17 @@
 </div>
 
 <div align="center">
-  <img src="app/src/main/res/playstore-icon.png" width="120" height="120" alt="Hermes Logo">
-  <h1>Hermes - Your Intelligent Assistant</h1>
+  <img src="app/src/main/res/playstore-icon.png" width="120" height="120" alt="Operit Logo">
+  <h1>Operit AI - Your Intelligent Assistant</h1>
   <p>📱 <b>The first fully functional, standalone AI assistant for mobile devices with powerful tool-calling capabilities</b> 📱</p>
 </div>
 
 <div align="center">
   <div style="padding: 10px 0; text-align: center;">
-    <img src="docs/assets/9f85b39450c8616909039b66d15a475a.jpg" width="22%" alt="Hermes Preview 1" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-    <img src="docs/assets/88a7b7520e4628682a849cc00716c8de.jpg" width="22%" alt="Hermes Preview 2" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-    <img src="docs/assets/9036f349c25888d357de5ce34580176d.jpg" width="22%" alt="Hermes Preview 3" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
-    <img src="docs/assets/d12038f26df3f814b4e3ce967537f039.jpg" width="22%" alt="Hermes Preview 4" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
+    <img src="docs/assets/9f85b39450c8616909039b66d15a475a.jpg" width="22%" alt="Operit Preview 1" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
+    <img src="docs/assets/88a7b7520e4628682a849cc00716c8de.jpg" width="22%" alt="Operit Preview 2" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
+    <img src="docs/assets/9036f349c25888d357de5ce34580176d.jpg" width="22%" alt="Operit Preview 3" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
+    <img src="docs/assets/d12038f26df3f814b4e3ce967537f039.jpg" width="22%" alt="Operit Preview 4" style="display: inline-block; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin: 0 3px; max-width: 220px;">
   </div>
 </div>
 
@@ -38,7 +38,7 @@
 
 ## 🌟 Project Introduction
 
-**Hermes** is the first fully functional AI assistant application on mobile devices that runs **completely standalone** (except for external API calls) on your Android device. It features powerful **tool-calling capabilities**, **Deep Search**, **workflows & automation**, an **intelligent Memory Vault**, and highly customizable **User Personality** and **Character Cards**, with **MNN/llama.cpp local inference**, an **MCP/Skill ecosystem**, and a **multi-language UI**. It's more than just a chat interface—it's an **all-in-one assistant** deeply integrated with Android permissions and various tools, now featuring a built-in **Ubuntu 24 Environment** for unprecedented functionality.
+**Operit AI** is the first fully functional AI assistant application on mobile devices that runs **completely standalone** (except for external API calls) on your Android device. It features powerful **tool-calling capabilities**, **Deep Search**, **workflows & automation**, an **intelligent Memory Vault**, and highly customizable **User Personality** and **Character Cards**, with **MNN/llama.cpp local inference**, an **MCP/Skill ecosystem**, and a **multi-language UI**. It's more than just a chat interface—it's an **all-in-one assistant** deeply integrated with Android permissions and various tools, now featuring a built-in **Ubuntu 24 Environment** for unprecedented functionality.
 
 ---
 
@@ -205,7 +205,7 @@ Rich MCP ecosystem
 <td>
 • <b>In-App Browser & Web Automation</b>: Greatly expanded the built-in browser with tabs, history, bookmarks, permissions, multi-window support, minimization, and viewport control, plus browser-script import, install, storage, runtime, and page-menu support<br>
 • <b>Avatars & UI Customization</b>: Added FBX virtual avatars, upgraded the MMD preview experience, introduced liquid-glass theme effects, and expanded sidebar, chat-bubble, and input-bar appearance customization<br>
-• <b>Plugins, Workspace & Context Enhancements</b>: Added configuration-editor support for debugging and automatically writing Hermes plugins, a local HTTP chat entry point, workspace renaming and rule-file pickup, plus stronger history jumping, bidirectional paging, and automatic context injection<br>
+• <b>Plugins, Workspace & Context Enhancements</b>: Added configuration-editor support for debugging and automatically writing Operit plugins, a local HTTP chat entry point, workspace renaming and rule-file pickup, plus stronger history jumping, bidirectional paging, and automatic context injection<br>
 • <b>Stability & Performance Improvements</b>: Fixed tool-permission checks, HTTP TTS compatibility, SSH/tmux long-output crashes, history jumping, GIF/formula/Markdown rendering, MCP config and stats issues, while continuing to improve conversation flow, deep search, memory, browser behavior, and package management
 </td>
 </tr>
@@ -408,7 +408,7 @@ Rich MCP ecosystem
 
 ## 👨‍💻 Open Source & Collaboration
 
-Join the Hermes open-source ecosystem! We welcome all types of contributions: third-party scripts, MCP plugins, and core feature development.
+Join the Operit open-source ecosystem! We welcome all types of contributions: third-party scripts, MCP plugins, and core feature development.
 
 **Developer Notes:**
 - 📚 [Contribution Guide](docs/CONTRIBUTING.md) | [Script Development Guide (Chinese)](docs/SCRIPT_DEV_GUIDE.md)
@@ -417,7 +417,7 @@ Join the Hermes open-source ecosystem! We welcome all types of contributions: th
 
 ### 💖 Contributors
 
-Thanks to all who have contributed to Hermes!
+Thanks to all who have contributed to Operit AI!
 
 <a href="https://github.com/AAswordman/Operit/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=AAswordman/Operit" />
@@ -425,7 +425,7 @@ Thanks to all who have contributed to Hermes!
 
 ## 💖 Support Development
 
-If Hermes has been helpful to you, you can voluntarily support its ongoing development and basic project maintenance:
+If Operit AI has been helpful to you, you can voluntarily support its ongoing development and basic project maintenance:
 
 - For international support, use [Patreon](https://www.patreon.com/c/aaswordsman)
 - For mainland China support, use [Afdian](https://afdian.com/a/aaswordsman)
@@ -460,9 +460,9 @@ Encountered a problem or have a suggestion? Welcome to [submit an Issue](https:/
 
 <div align="center">
   <h3>⭐ If you like this project, please give us a Star ⭐</h3>
-  <p><b>🚀 Help us promote and let more people discover Hermes 🚀</b></p>
+  <p><b>🚀 Help us promote and let more people discover Operit AI 🚀</b></p>
   
   <br>
   
-  <sub>Made with ❤️ by the Hermes Team</sub>
+  <sub>Made with ❤️ by the Operit Team</sub>
 </div>
