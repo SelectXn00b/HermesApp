@@ -22,7 +22,7 @@
 
 ### 🚀 开发前必读
 
-1.  **先沟通**: 在 [Issue 区](https://github.com/AAswordman/Operit/issues) 提出你的想法或认领任务，**避免重复造轮子**。
+1.  **先沟通**: 在 [Issue 区](https://github.com/AAswordman/Hermes/issues) 提出你的想法或认领任务，**避免重复造轮子**。
 2.  **研究代码**: 动手前，请**深入阅读**相关模块的现有代码，理解项目的设计模式和架构。
 3.  **保持兼容**: 新功能必须**向前兼容**，不能破坏现有用户体验或数据结构。
 4.  **遵循结构**: 将新文件放置在项目结构中合适的目录，保持代码库整洁。
@@ -41,7 +41,7 @@
 
 1.  **准备工作**:
     - Fork 本仓库并 Clone 到本地。
-    - 添加上游仓库: `git remote add upstream https://github.com/AAswordman/Operit.git`
+    - 添加上游仓库: `git remote add upstream https://github.com/AAswordman/Hermes.git`
 
 2.  **开始开发**:
     - 同步最新的 `main` 和 `pr-branch` 分支。

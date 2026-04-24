@@ -27,7 +27,7 @@
 
 ```bash
 # 克隆项目仓库
-git clone https://github.com/AAswordman/Operit.git
+git clone https://github.com/AAswordman/Hermes.git
 cd 墨思
 
 # 安装项目依赖 (主要是TypeScript编译器)

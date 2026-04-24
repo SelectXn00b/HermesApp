@@ -54,7 +54,7 @@ class YourApplication : Application() {
 本库已经在自身模块内置了 `shower-server.jar`：
 
 - 宿主 App **不需要** 再手动打包或拷贝任何 JAR 文件；
-- 运行时库会自动从自身 `assets` 中读取，并复制到 `/sdcard/Download/Operit/shower-server.jar`，再拷贝到 `/data/local/tmp/shower-server.jar`。
+- 运行时库会自动从自身 `assets` 中读取，并复制到 `/sdcard/Download/Hermes/shower-server.jar`，再拷贝到 `/data/local/tmp/shower-server.jar`。
 
 ---
 

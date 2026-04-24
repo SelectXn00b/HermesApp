@@ -174,7 +174,7 @@ org.gradle.parallel=true
 请根据需要选择以下两种克隆方式（项目包含 Git 子模块）：
 
 **推荐：先 Fork 后克隆你的仓库**  
-在 GitHub 打开上游仓库并点击 Fork： [AAswordman/Operit](https://github.com/AAswordman/Operit)  
+在 GitHub 打开上游仓库并点击 Fork： [AAswordman/Hermes](https://github.com/AAswordman/Hermes)  
 克隆你的 Fork（注意使用 --recurse-submodules）：
 ```bash
 git clone --recurse-submodules https://github.com/<你的 GitHub 用户名>/墨思.git
@@ -182,12 +182,12 @@ cd 墨思
 ```  
 （可选）添加上游仓库以便同步更新：  
 ```bash
-git remote add upstream https://github.com/AAswordman/Operit.git
+git remote add upstream https://github.com/AAswordman/Hermes.git
 ```  
 
 **备选：不 Fork，直接克隆上游仓库（只读）**  
 ```bash
-git clone --recurse-submodules https://github.com/AAswordman/Operit.git
+git clone --recurse-submodules https://github.com/AAswordman/Hermes.git
 cd 墨思
 ```  
 

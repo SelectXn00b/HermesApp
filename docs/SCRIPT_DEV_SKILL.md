@@ -21,12 +21,12 @@ description: 用于 墨思 Sandbox Package 开发。
 - 不是直接打开这个 `.js` 文件
 - 而是调用 `operit_editor:debug_run_sandbox_script`
 
-也就是先确保 `operit_editor` 这个 package 可用，再让它执行 `/sdcard/Download/Operit/skills/SandboxPackage_DEV/scripts/install_or_update.js`
+也就是先确保 `operit_editor` 这个 package 可用，再让它执行 `/sdcard/Download/Hermes/skills/SandboxPackage_DEV/scripts/install_or_update.js`
 
 最终目录应当长这样：
 
 ```text
-/sdcard/Download/Operit/skills/SandboxPackage_DEV/
+/sdcard/Download/Hermes/skills/SandboxPackage_DEV/
   SKILL.md
   references/
     SCRIPT_DEV_GUIDE.md
@@ -41,11 +41,11 @@ description: 用于 墨思 Sandbox Package 开发。
 
 首次安装时，按下面顺序做：
 
-1. 先创建 `/sdcard/Download/Operit/skills/SandboxPackage_DEV/scripts/`
-2. 用 `download_file` 下载 `https://cdn.jsdelivr.net/gh/AAswordman/Operit@main/tools/sandboxpackage_dev_install_or_update.js`
-3. 保存为 `/sdcard/Download/Operit/skills/SandboxPackage_DEV/scripts/install_or_update.js`
+1. 先创建 `/sdcard/Download/Hermes/skills/SandboxPackage_DEV/scripts/`
+2. 用 `download_file` 下载 `https://cdn.jsdelivr.net/gh/AAswordman/Hermes@main/tools/sandboxpackage_dev_install_or_update.js`
+3. 保存为 `/sdcard/Download/Hermes/skills/SandboxPackage_DEV/scripts/install_or_update.js`
 4. 调用 `operit_editor` 的 `debug_run_sandbox_script`
-5. 把 `source_path` 设为 `/sdcard/Download/Operit/skills/SandboxPackage_DEV/scripts/install_or_update.js`
+5. 把 `source_path` 设为 `/sdcard/Download/Hermes/skills/SandboxPackage_DEV/scripts/install_or_update.js`
 6. 等脚本执行完成
 
 如果当前环境里没有直接暴露这个工具名，就先使用 `use_package` 调用 `operit_editor`，再执行 `debug_run_sandbox_script`。
@@ -66,7 +66,7 @@ description: 用于 墨思 Sandbox Package 开发。
 
 下载完以后，查资料时默认这样做：
 
-1. 先用 `grep_code` 在 `/sdcard/Download/Operit/skills/SandboxPackage_DEV/` 里搜关键字
+1. 先用 `grep_code` 在 `/sdcard/Download/Hermes/skills/SandboxPackage_DEV/` 里搜关键字
 2. 再用 `read_file_part` 读取命中的具体片段
 3. 只有片段不够时才扩大范围
 
