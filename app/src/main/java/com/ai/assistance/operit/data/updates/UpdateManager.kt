@@ -171,7 +171,7 @@ class UpdateManager private constructor(private val context: Context) {
                         if (matchResult != null) {
                             Pair(matchResult.groupValues[1], matchResult.groupValues[2])
                         } else {
-                            Pair("AAswordman", "Operit") // 默认值
+                            Pair("SelectXn00b", "HermesApp") // 默认值
                         }
 
                 val githubReleaseUtil = GithubReleaseUtil(context)

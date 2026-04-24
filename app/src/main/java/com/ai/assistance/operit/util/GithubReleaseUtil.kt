@@ -115,7 +115,7 @@ class GithubReleaseUtil(private val context: Context) {
                     conn.connectTimeout = timeoutMs
                     conn.readTimeout = timeoutMs
                     conn.requestMethod = "GET"
-                    conn.setRequestProperty("User-Agent", "Operit")
+                    conn.setRequestProperty("User-Agent", "Hermes")
                     conn.setRequestProperty("Range", "bytes=0-${SPEED_TEST_BYTES - 1}")
                     conn.connect()
 

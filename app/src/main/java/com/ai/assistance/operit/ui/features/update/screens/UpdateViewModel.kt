@@ -25,8 +25,8 @@ class UpdateViewModel(private val context: Context) : ViewModel() {
     private val apiService = GitHubApiService(context)
     
     companion object {
-        private const val REPO_OWNER = "AAswordman"
-        private const val REPO_NAME = "Operit"
+        private const val REPO_OWNER = "SelectXn00b"
+        private const val REPO_NAME = "HermesApp"
     }
     
     init {
