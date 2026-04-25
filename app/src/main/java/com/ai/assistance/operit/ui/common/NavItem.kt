@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
@@ -68,4 +69,6 @@ sealed class NavItem(val route: String, val titleResId: Int, val icon: ImageVect
                 NavItem("model_config", R.string.screen_title_model_config, Icons.Default.Api)
         object Feedback :
                 NavItem("feedback", R.string.nav_feedback, Icons.Default.RateReview)
+        object HermesSettings :
+                NavItem("hermes_settings", R.string.screen_title_hermes_settings, Icons.Default.Forum)
 }

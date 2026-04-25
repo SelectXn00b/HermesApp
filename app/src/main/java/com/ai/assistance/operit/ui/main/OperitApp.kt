@@ -225,6 +225,7 @@ fun OperitApp(
             R.string.nav_group_ai_features,
             listOf(
                 NavItem.AiChat,
+                NavItem.HermesSettings,
                 NavItem.AssistantConfig,
                 NavItem.Packages,
                 NavItem.MemoryBase

@@ -47,7 +47,6 @@ private val SettingsScreenScrollPosition = mutableStateOf(0)
 fun SettingsScreen(
         onNavigateToUserPreferences: () -> Unit,
         navigateToGitHubAccount: () -> Unit,
-        navigateToHermesSettings: () -> Unit,
         navigateToToolPermissions: () -> Unit,
         navigateToModelConfig: () -> Unit,
         navigateToThemeSettings: () -> Unit,
@@ -97,20 +96,6 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .verticalScroll(scrollState)
         ) {
-                // ======= Hermes =======
-                SettingsSection(
-                        title = stringResource(id = R.string.settings_section_hermes),
-                        icon = Icons.Default.Hub,
-                        containerColor = cardContainerColor
-                ) {
-                        CompactSettingsItem(
-                                title = stringResource(R.string.screen_title_hermes_settings),
-                                subtitle = stringResource(R.string.settings_hermes_subtitle),
-                                icon = Icons.Default.Hub,
-                                onClick = navigateToHermesSettings
-                        )
-                }
-
                 // ======= 账号 =======
                 SettingsSection(
                         title = stringResource(id = R.string.settings_section_account),

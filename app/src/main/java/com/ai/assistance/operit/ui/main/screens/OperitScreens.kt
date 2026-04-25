@@ -538,7 +538,6 @@ sealed class Screen(
                     navigateToToolPermissions = { navigateTo(ToolPermission) },
                     onNavigateToUserPreferences = { navigateTo(UserPreferencesSettings) },
                     navigateToGitHubAccount = { navigateTo(GitHubAccount) },
-                    navigateToHermesSettings = { navigateTo(HermesSettings) },
                     navigateToModelConfig = { navigateTo(ModelConfig) },
                     navigateToThemeSettings = { navigateTo(ThemeSettings) },
                     navigateToGlobalDisplaySettings = { navigateTo(GlobalDisplaySettings) },
@@ -574,7 +573,7 @@ sealed class Screen(
         }
     }
 
-    data object HermesSettings : Screen(parentScreen = Settings, navItem = NavItem.Settings, titleRes = R.string.screen_title_hermes_settings) {
+    data object HermesSettings : Screen(navItem = NavItem.HermesSettings, titleRes = R.string.screen_title_hermes_settings) {
         @Composable
         override fun Content(
             navController: NavController,
@@ -596,7 +595,7 @@ sealed class Screen(
         }
     }
 
-    data object HermesGatewayCredentials : Screen(parentScreen = HermesSettings, navItem = NavItem.Settings, titleRes = R.string.screen_title_hermes_gateway_credentials) {
+    data object HermesGatewayCredentials : Screen(parentScreen = HermesSettings, navItem = NavItem.HermesSettings, titleRes = R.string.screen_title_hermes_gateway_credentials) {
         @Composable
         override fun Content(
             navController: NavController,
@@ -612,7 +611,7 @@ sealed class Screen(
         }
     }
 
-    data object HermesGatewayPolicies : Screen(parentScreen = HermesSettings, navItem = NavItem.Settings, titleRes = R.string.screen_title_hermes_gateway_policies) {
+    data object HermesGatewayPolicies : Screen(parentScreen = HermesSettings, navItem = NavItem.HermesSettings, titleRes = R.string.screen_title_hermes_gateway_policies) {
         @Composable
         override fun Content(
             navController: NavController,
@@ -628,7 +627,7 @@ sealed class Screen(
         }
     }
 
-    data object HermesAgentParams : Screen(parentScreen = HermesSettings, navItem = NavItem.Settings, titleRes = R.string.screen_title_hermes_agent_params) {
+    data object HermesAgentParams : Screen(parentScreen = HermesSettings, navItem = NavItem.HermesSettings, titleRes = R.string.screen_title_hermes_agent_params) {
         @Composable
         override fun Content(
             navController: NavController,
@@ -644,7 +643,7 @@ sealed class Screen(
         }
     }
 
-    data object HermesGatewayService : Screen(parentScreen = HermesSettings, navItem = NavItem.Settings, titleRes = R.string.screen_title_hermes_gateway_service) {
+    data object HermesGatewayService : Screen(parentScreen = HermesSettings, navItem = NavItem.HermesSettings, titleRes = R.string.screen_title_hermes_gateway_service) {
         @Composable
         override fun Content(
             navController: NavController,
@@ -660,7 +659,7 @@ sealed class Screen(
         }
     }
 
-    data object HermesGatewayQrBind : Screen(parentScreen = HermesSettings, navItem = NavItem.Settings, titleRes = R.string.screen_title_hermes_gateway_qr_bind) {
+    data object HermesGatewayQrBind : Screen(parentScreen = HermesSettings, navItem = NavItem.HermesSettings, titleRes = R.string.screen_title_hermes_gateway_qr_bind) {
         @Composable
         override fun Content(
             navController: NavController,
@@ -1692,6 +1691,7 @@ object OperitRouter {
             NavItem.Toolbox -> Screen.Toolbox
             NavItem.ShizukuCommands -> Screen.ShizukuCommands
             NavItem.Settings -> Screen.Settings
+            NavItem.HermesSettings -> Screen.HermesSettings
             NavItem.Help -> Screen.Help
             NavItem.About -> Screen.About
             NavItem.TokenConfig -> Screen.TokenConfig
