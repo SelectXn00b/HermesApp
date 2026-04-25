@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ai.assistance.operit.R
 import com.ai.assistance.operit.hermes.gateway.HermesGatewayPreferences
+import com.ai.assistance.operit.services.gateway.GatewayForegroundService
 import com.ai.assistance.operit.ui.components.CustomScaffold
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -257,9 +258,12 @@ private fun FeishuQrBindCard() {
                                         gotBotOpenId,
                                     )
                                 }
+                                // 自动打开平台开关 + 拉起网关前台服务
+                                prefs.savePlatformEnabled(HermesGatewayPreferences.PLATFORM_FEISHU, true)
+                                GatewayForegroundService.start(context)
                                 qrBitmap = null
                                 userCode = ""
-                                statusText = "✅ 凭证已保存，重启 Gateway 生效"
+                                statusText = "✅ 凭证已保存,已自动启动网关"
                             }
                         }
                     },
@@ -424,7 +428,9 @@ private fun WeixinQrBindCard() {
                                     )
                                 }
                                 qrBitmap = null
-                                statusText = "✅ 凭证已保存，重启 Gateway 生效"
+                                prefs.savePlatformEnabled(HermesGatewayPreferences.PLATFORM_WEIXIN, true)
+                                GatewayForegroundService.start(context)
+                                statusText = "✅ 凭证已保存,已自动启动网关"
                             }
                         }
                     },

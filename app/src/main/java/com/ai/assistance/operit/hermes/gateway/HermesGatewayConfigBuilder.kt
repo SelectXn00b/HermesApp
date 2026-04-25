@@ -32,7 +32,6 @@ object HermesGatewayConfigBuilder {
     }
 
     private suspend fun buildFeishu(prefs: HermesGatewayPreferences): PlatformConfig? {
-        val enabled = prefs.platformEnabledFlow(HermesGatewayPreferences.PLATFORM_FEISHU).first()
         val appId = prefs.readSecret(
             HermesGatewayPreferences.PLATFORM_FEISHU,
             HermesGatewayPreferences.SECRET_FEISHU_APP_ID,
@@ -61,7 +60,7 @@ object HermesGatewayConfigBuilder {
 
         return PlatformConfig(
             platform = Platform.FEISHU,
-            enabled = enabled,
+            enabled = true,
             dmPolicy = readPolicy(prefs, HermesGatewayPreferences.PLATFORM_FEISHU, HermesGatewayPreferences.FIELD_DM_POLICY, "open"),
             dmAllowFrom = readCsv(prefs, HermesGatewayPreferences.PLATFORM_FEISHU, HermesGatewayPreferences.FIELD_DM_ALLOW_FROM),
             groupPolicy = readPolicy(prefs, HermesGatewayPreferences.PLATFORM_FEISHU, HermesGatewayPreferences.FIELD_GROUP_POLICY, "allowlist"),
@@ -72,7 +71,6 @@ object HermesGatewayConfigBuilder {
     }
 
     private suspend fun buildWeixin(prefs: HermesGatewayPreferences): PlatformConfig? {
-        val enabled = prefs.platformEnabledFlow(HermesGatewayPreferences.PLATFORM_WEIXIN).first()
         val accountId = prefs.readSecret(
             HermesGatewayPreferences.PLATFORM_WEIXIN,
             HermesGatewayPreferences.SECRET_WEIXIN_ACCOUNT_ID,
@@ -90,7 +88,7 @@ object HermesGatewayConfigBuilder {
 
         return PlatformConfig(
             platform = Platform.WEIXIN,
-            enabled = enabled,
+            enabled = true,
             dmPolicy = readPolicy(prefs, HermesGatewayPreferences.PLATFORM_WEIXIN, HermesGatewayPreferences.FIELD_DM_POLICY, "open"),
             dmAllowFrom = readCsv(prefs, HermesGatewayPreferences.PLATFORM_WEIXIN, HermesGatewayPreferences.FIELD_DM_ALLOW_FROM),
             groupPolicy = readPolicy(prefs, HermesGatewayPreferences.PLATFORM_WEIXIN, HermesGatewayPreferences.FIELD_GROUP_POLICY, "allowlist"),

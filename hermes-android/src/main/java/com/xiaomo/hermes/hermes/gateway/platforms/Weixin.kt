@@ -26,96 +26,289 @@ class WeixinAdapter(
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.WEIXIN) {
     companion object { private const val _TAG = "Weixin" }
 
-    private val _appId: String = config.extra("app_id") ?: System.getenv("WEIXIN_APP_ID") ?: ""
-    private val _appSecret: String = config.extra("app_secret") ?: System.getenv("WEIXIN_APP_SECRET") ?: ""
+    /**
+     * iLink Bot API credentials (from QR login):
+     *  - account_id: normalized `ilink_bot_id`
+     *  - login_token: the `bot_token` returned by QR confirm
+     *  - base_url: can be overridden per-account via the QR-confirm response
+     */
+    private val _accountId: String = config.extra("account_id") ?: ""
+    private val _loginToken: String = config.extra("login_token") ?: ""
+    private val _baseUrl: String = (config.extra("base_url")?.takeIf { it.isNotBlank() } ?: ILINK_BASE_URL).let {
+        if (it.endsWith("/")) it else "$it/"
+    }
+    private val _routeTag: String = config.extra("route_tag") ?: ""
 
-    private val _httpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+    private val _apiClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(10, TimeUnit.SECONDS)
+        .build()
+    private val _longPollClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(45, TimeUnit.SECONDS)
+        .writeTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    private var _accessToken: String = ""
-    private var _accessTokenExpiry: Long = 0L
+    /** `context_token` cache keyed by peer user id — harvested from inbound messages. */
+    private val _contextTokens: MutableMap<String, String> = java.util.concurrent.ConcurrentHashMap()
+
+    /** Dedup seen inbound message IDs (LRU up to 500). */
+    private val _seenMessageIds: MutableSet<Long> = java.util.Collections.synchronizedSet(
+        java.util.LinkedHashSet<Long>()
+    )
+
+    /** Client ids we sent — server echos them back; filter them out. */
+    private val _sentClientIds: MutableSet<String> = java.util.Collections.synchronizedSet(
+        java.util.LinkedHashSet<String>()
+    )
+
+    private var _pollJob: Job? = null
 
     override val isConnected: AtomicBoolean = AtomicBoolean(false)
 
     override suspend fun connect(): Boolean {
-        if (_appId.isEmpty() || _appSecret.isEmpty()) {
-            Log.e(_TAG, "WEIXIN_APP_ID or WEIXIN_APP_SECRET not set")
+        if (_accountId.isEmpty() || _loginToken.isEmpty()) {
+            Log.e(_TAG, "account_id or login_token not set — did you complete QR login?")
             return false
         }
-        return _getAccessToken() != null
+        _pollJob?.cancel()
+        _pollJob = scope.launch(Dispatchers.IO) { _runPollLoop() }
+        markConnected()
+        Log.i(_TAG, "Weixin connected: account=${_safeId(_accountId)}")
+        return true
     }
 
     override suspend fun disconnect() {
+        _pollJob?.cancel()
+        _pollJob = null
         markDisconnected()
-    }
-
-    private val _getAccessToken: suspend () -> String? = {
-        withContext(Dispatchers.IO) {
-            if (_accessToken.isNotEmpty() && System.currentTimeMillis() / 1000 < _accessTokenExpiry) {
-                _accessToken
-            } else {
-                try {
-                    val request = Request.Builder()
-                        .url("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$_appId&secret=$_appSecret")
-                        .get()
-                        .build()
-
-                    _httpClient.newCall(request).execute().use { resp ->
-                        if (!resp.isSuccessful) null
-                        else {
-                            val data = JSONObject(resp.body!!.string())
-                            if (data.has("errcode")) null
-                            else {
-                                _accessToken = data.getString("access_token")
-                                _accessTokenExpiry = System.currentTimeMillis() / 1000 + data.getLong("expires_in") - 300
-                                Log.i(_TAG, "Access token refreshed")
-                                markConnected()
-                                _accessToken
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e(_TAG, "Token refresh failed: ${e.message}")
-                    null
-                }
-            }
-        }
     }
 
     override suspend fun send(
         chatId: String,
         content: String,
         replyTo: String?,
-        metadata: JSONObject?): SendResult = withContext(Dispatchers.IO) {
+        metadata: JSONObject?,
+    ): SendResult = withContext(Dispatchers.IO) {
         try {
-            val token = _getAccessToken() ?: return@withContext SendResult(success = false, error = "no access token")
-
-            val payload = JSONObject().apply {
-                put("touser", chatId)
-                put("msgtype", "text")
-                put("text", JSONObject().apply { put("content", content) })
+            val clientId = "hermes-weixin-${java.util.UUID.randomUUID().toString().replace("-", "").take(16)}"
+            synchronized(_sentClientIds) {
+                _sentClientIds.add(clientId)
+                while (_sentClientIds.size > 200) {
+                    val it = _sentClientIds.iterator()
+                    if (it.hasNext()) { it.next(); it.remove() } else break
+                }
             }
 
-            val body = payload.toString()
-                .toRequestBody("application/json; charset=utf-8".toMediaType())
+            val ctxToken = _contextTokens[chatId]
+            val msg = JSONObject().apply {
+                put("to_user_id", chatId)
+                put("client_id", clientId)
+                if (ctxToken != null) put("context_token", ctxToken)
+                put("message_type", MSG_TYPE_BOT)  // iLink envelope sender role
+                put("message_state", 2)             // FINISH
+                put("item_list", org.json.JSONArray().put(
+                    JSONObject().apply {
+                        put("type", ITEM_TEXT)
+                        put("text_item", JSONObject().apply { put("text", content) })
+                    }
+                ))
+            }
+            val payload = JSONObject().apply {
+                put("msg", msg)
+                put("base_info", JSONObject().apply { put("channel_version", CHANNEL_VERSION) })
+            }
 
-            val request = Request.Builder()
-                .url("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=$token")
-                .post(body)
-                .build()
+            val body = payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+            val request = _ilinkRequest(EP_SEND_MESSAGE).post(body).build()
 
-            _httpClient.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) return@withContext SendResult(success = false, error = "HTTP ${resp.code}")
-                val data = JSONObject(resp.body!!.string())
-                if (data.optInt("errcode", 0) != 0) return@withContext SendResult(success = false, error = data.optString("errmsg"))
-                SendResult(success = true)
+            _apiClient.newCall(request).execute().use { resp ->
+                val text = resp.body?.string() ?: ""
+                if (!resp.isSuccessful) {
+                    return@withContext SendResult(success = false, error = "HTTP ${resp.code}: ${text.take(200)}")
+                }
+                val data = try { JSONObject(text) } catch (_: Exception) { JSONObject() }
+                val errcode = data.optInt("errcode", data.optInt("ret", 0))
+                if (errcode != 0) {
+                    return@withContext SendResult(
+                        success = false,
+                        error = "errcode=$errcode ${data.optString("errmsg")}"
+                    )
+                }
+                SendResult(success = true, messageId = clientId)
             }
         } catch (e: Exception) {
             SendResult(success = false, error = e.message)
         }
+    }
+
+    // ── iLink request helper ─────────────────────────────────────────────
+    private fun _ilinkRequest(endpoint: String): Request.Builder {
+        val url = "$_baseUrl$endpoint"
+        val uin = android.util.Base64.encodeToString(
+            kotlin.random.Random.nextInt().toUInt().toString().toByteArray(Charsets.UTF_8),
+            android.util.Base64.NO_WRAP,
+        )
+        val b = Request.Builder()
+            .url(url)
+            .addHeader("Content-Type", "application/json")
+            .addHeader("AuthorizationType", "ilink_bot_token")
+            .addHeader("Authorization", "Bearer $_loginToken")
+            .addHeader("X-WECHAT-UIN", uin)
+        if (_routeTag.isNotEmpty()) b.addHeader("SKRouteTag", _routeTag)
+        return b
+    }
+
+    // ── Long-poll inbound loop ───────────────────────────────────────────
+    private suspend fun _runPollLoop() {
+        val hermesHome = com.xiaomo.hermes.hermes.getHermesHome().absolutePath
+        var syncBuf = _loadSyncBuf(hermesHome, _accountId)
+        var consecutiveFailures = 0
+        Log.i(_TAG, "Poll loop starting, resume=${syncBuf.isNotEmpty()}")
+
+        while (kotlinx.coroutines.currentCoroutineContext().isActive) {
+            try {
+                val payload = JSONObject().apply {
+                    put("get_updates_buf", syncBuf)
+                    put("base_info", JSONObject().apply { put("channel_version", CHANNEL_VERSION) })
+                }
+                val body = payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = _ilinkRequest(EP_GET_UPDATES).post(body).build()
+
+                val text = try {
+                    _longPollClient.newCall(request).execute().use { resp ->
+                        if (!resp.isSuccessful) {
+                            throw java.io.IOException("getUpdates HTTP ${resp.code}")
+                        }
+                        resp.body?.string() ?: ""
+                    }
+                } catch (e: java.net.SocketTimeoutException) {
+                    // Long-poll server timeout — normal. Retry fresh.
+                    continue
+                }
+
+                val data = try { JSONObject(text) } catch (_: Exception) { JSONObject() }
+                val ret = data.optInt("ret", 0)
+                val errcode = data.optInt("errcode", 0)
+
+                if (ret != 0 || errcode != 0) {
+                    val isSessionExpired = (ret == SESSION_EXPIRED_ERRCODE || errcode == SESSION_EXPIRED_ERRCODE)
+                    if (isSessionExpired) {
+                        Log.e(_TAG, "Session expired — pausing 5min; please re-login")
+                        consecutiveFailures = 0
+                        delay(5 * 60_000L)
+                        continue
+                    }
+                    consecutiveFailures++
+                    Log.e(_TAG, "getUpdates err ret=$ret errcode=$errcode ($consecutiveFailures/$MAX_CONSECUTIVE_FAILURES)")
+                    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                        consecutiveFailures = 0
+                        delay(BACKOFF_DELAY_SECONDS * 1000L)
+                    } else {
+                        delay(RETRY_DELAY_SECONDS * 1000L)
+                    }
+                    continue
+                }
+
+                consecutiveFailures = 0
+
+                val newBuf = data.optString("get_updates_buf", "")
+                if (newBuf.isNotEmpty() && newBuf != syncBuf) {
+                    try { _saveSyncBuf(hermesHome, _accountId, newBuf) } catch (_: Exception) { }
+                    syncBuf = newBuf
+                }
+
+                val msgs = data.optJSONArray("msgs") ?: org.json.JSONArray()
+                for (i in 0 until msgs.length()) {
+                    val msg = msgs.optJSONObject(i) ?: continue
+                    _handleInbound(msg)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                consecutiveFailures++
+                Log.e(_TAG, "Poll exception ($consecutiveFailures/$MAX_CONSECUTIVE_FAILURES): ${e.message}")
+                if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                    consecutiveFailures = 0
+                    delay(BACKOFF_DELAY_SECONDS * 1000L)
+                } else {
+                    delay(RETRY_DELAY_SECONDS * 1000L)
+                }
+            }
+        }
+        Log.i(_TAG, "Poll loop ended")
+    }
+
+    private suspend fun _handleInbound(msg: JSONObject) {
+        val msgType = msg.optInt("message_type", -1)
+        // message_type: USER(1) = user, BOT(2) = our own echo, NONE(0) = unknown
+        if (msgType != MSG_TYPE_USER) return
+        val fromUserId = msg.optString("from_user_id", "")
+        if (fromUserId.isEmpty()) return
+        val clientId = msg.optString("client_id", "")
+        if (clientId.isNotEmpty() && synchronized(_sentClientIds) { _sentClientIds.contains(clientId) }) return
+
+        // Dedup by message_id
+        val msgId = msg.optLong("message_id", 0L)
+        if (msgId != 0L) {
+            synchronized(_seenMessageIds) {
+                if (!_seenMessageIds.add(msgId)) return
+                while (_seenMessageIds.size > 500) {
+                    val it = _seenMessageIds.iterator()
+                    if (it.hasNext()) { it.next(); it.remove() } else break
+                }
+            }
+        }
+
+        // Harvest context_token for later send()
+        val ctx = msg.optString("context_token", "")
+        if (ctx.isNotEmpty()) _contextTokens[fromUserId] = ctx
+
+        // Extract text from item_list
+        val itemList = msg.optJSONArray("item_list") ?: return
+        val items = mutableListOf<Map<String, Any?>>()
+        for (i in 0 until itemList.length()) {
+            val it = itemList.optJSONObject(i) ?: continue
+            items.add(_jsonToMap(it))
+        }
+        val text = _extractText(items)
+        if (text.isBlank()) return
+
+        val event = MessageEvent(
+            text = text,
+            messageType = MessageType.TEXT,
+            source = buildSource(
+                chatId = fromUserId,
+                userId = fromUserId,
+                chatType = "dm",
+            ),
+            message_id = msgId.toString(),
+        )
+        handleMessage(event)
+    }
+
+    private fun _jsonToMap(obj: JSONObject): Map<String, Any?> {
+        val out = linkedMapOf<String, Any?>()
+        val keys = obj.keys()
+        while (keys.hasNext()) {
+            val k = keys.next()
+            val v = obj.opt(k)
+            out[k] = when (v) {
+                is JSONObject -> _jsonToMap(v)
+                is org.json.JSONArray -> {
+                    val list = mutableListOf<Any?>()
+                    for (i in 0 until v.length()) {
+                        val el = v.opt(i)
+                        list.add(if (el is JSONObject) _jsonToMap(el) else el)
+                    }
+                    list
+                }
+                JSONObject.NULL -> null
+                else -> v
+            }
+        }
+        return out
     }
 }
 
@@ -483,6 +676,11 @@ internal const val ITEM_IMAGE: Int = 2
 internal const val ITEM_VOICE: Int = 3
 internal const val ITEM_FILE: Int = 4
 internal const val ITEM_VIDEO: Int = 5
+
+// iLink message_type: sender role on the envelope (distinct from item_list types).
+internal const val MSG_TYPE_NONE: Int = 0
+internal const val MSG_TYPE_USER: Int = 1
+internal const val MSG_TYPE_BOT: Int = 2
 
 internal val _LIVE_ADAPTERS: MutableMap<String, Any?> = java.util.concurrent.ConcurrentHashMap()
 

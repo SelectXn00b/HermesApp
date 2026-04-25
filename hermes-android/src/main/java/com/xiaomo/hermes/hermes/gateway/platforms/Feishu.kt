@@ -356,6 +356,8 @@ class FeishuAdapter(
             .header("Authorization", "Bearer $_accessToken")
             .build()
 
+        val closed = kotlinx.coroutines.CompletableDeferred<Unit>()
+
         val listener = object : okhttp3.WebSocketListener() {
             override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
                 Log.i(_TAG, "WebSocket connected")
@@ -373,12 +375,18 @@ class FeishuAdapter(
                 webSocket.close(code, reason)
             }
 
+            override fun onClosed(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
+                closed.complete(Unit)
+            }
+
             override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
                 Log.e(_TAG, "WebSocket failure: ${t.message}")
+                closed.completeExceptionally(t)
             }
         }
 
         _wsClient = _httpClient.newWebSocket(request, listener)
+        closed.await()
     }
 
     /**
