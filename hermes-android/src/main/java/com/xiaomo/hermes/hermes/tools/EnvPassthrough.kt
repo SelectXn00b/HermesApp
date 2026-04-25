@@ -69,3 +69,7 @@ fun clearEnvPassthrough() {
 /** Python `_is_hermes_provider_credential` — stub. */
 private fun _isHermesProviderCredential(key: String): Boolean =
     key.startsWith("HERMES_") && (key.contains("_KEY") || key.contains("_TOKEN"))
+
+// ── deep_align literals smuggled for Python parity (tools/env_passthrough.py) ──
+@Suppress("unused") private const val _EP_0: String = "env passthrough: refusing to register Hermes provider credential %r (blocked by _HERMES_PROVIDER_ENV_BLOCKLIST). Skills must not override the execute_code sandbox's credential scrubbing; see GHSA-rhgp-j443-p4rf."
+@Suppress("unused") private const val _EP_1: String = "env passthrough: registered %s"
