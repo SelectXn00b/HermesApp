@@ -2,6 +2,7 @@ package com.ai.assistance.operit.hermes.gateway
 
 import android.content.Context
 import android.util.Log
+import com.ai.assistance.operit.hermes.HermesAdapter
 import com.xiaomo.hermes.hermes.gateway.GatewayRunner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,9 @@ class HermesGatewayController private constructor(private val appContext: Contex
                 return@withLock false
             }
             val instance = GatewayRunner(appContext, config)
+            instance.agentRunner = { text, sessionKey, platform, chatId, userId ->
+                runHermesAgent(text = text, sessionKey = sessionKey, chatId = chatId)
+            }
             runner = instance
             instance.start()
             _status.value = Status.RUNNING
@@ -85,6 +89,33 @@ class HermesGatewayController private constructor(private val appContext: Contex
 
     /** Fire-and-forget stop used by service onDestroy. */
     fun stopAsync(): Job = _scope.launch { stop() }
+
+    /**
+     * Feed [text] into the app's HermesAdapter, collect all streamed chunks,
+     * and strip internal `<think>` / `<tool>` / `<tool_result>` / `<status>`
+     * markup so the gateway only echoes the user-visible plain text back to
+     * the platform.
+     */
+    private suspend fun runHermesAgent(
+        text: String,
+        sessionKey: String,
+        chatId: String,
+    ): String {
+        val adapter = HermesAdapter.getInstance(appContext)
+        val stream = adapter.sendMessage(message = text, chatId = "gw:$sessionKey:$chatId")
+        val raw = StringBuilder()
+        stream.collect { raw.append(it) }
+        return stripInternalMarkup(raw.toString()).trim().ifEmpty { "(empty response)" }
+    }
+
+    private fun stripInternalMarkup(xml: String): String {
+        if (xml.isEmpty()) return xml
+        return xml
+            .replace(Regex("<think>[\\s\\S]*?</think>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("<tool_result[^>]*>[\\s\\S]*?</tool_result>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("<tool\\s[^>]*>[\\s\\S]*?</tool>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("<status[^>]*>[\\s\\S]*?</status>", RegexOption.IGNORE_CASE), "")
+    }
 
     companion object {
         private const val TAG = "HermesGatewayCtl"

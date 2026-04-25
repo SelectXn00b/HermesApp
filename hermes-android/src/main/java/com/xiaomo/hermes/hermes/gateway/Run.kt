@@ -73,6 +73,14 @@ class GatewayRunner(
     private val _agentCache: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
     private val _agentCacheLock = Any()
 
+    /**
+     * Bridge into the Android [HermesAgentLoop]. Set by the app-side controller
+     * after construction. Text in, full assistant reply out. When null (or it
+     * throws), the gateway falls back to the placeholder string.
+     */
+    @Volatile
+    var agentRunner: (suspend (text: String, sessionKey: String, platform: String, chatId: String, userId: String) -> String)? = null
+
     // ------------------------------------------------------------------
     // Lifecycle
     // ------------------------------------------------------------------
@@ -283,10 +291,26 @@ class GatewayRunner(
 
             // Invoke agent loop - 对齐 hermes-agent/gateway/run.py
             //
-            // Android 不运行 gateway runner 这条路径（AppChat adapter 直接
-            // 挂在 ChatViewModel 上），这里保留占位以便未来把 HermesAgentLoop
-            // 接上。目前永远返回未配置提示。
-            val responseText = "Agent loop not configured"
+            // Android 的实际 agent 挂在 app 模块（HermesAdapter → HermesAgentLoop），
+            // 通过 [agentRunner] 注入。未注入时保留占位提示，不致崩溃。
+            val runner = agentRunner
+            val responseText = if (runner != null) {
+                try {
+                    runner(
+                        event.text,
+                        session.sessionKey,
+                        platformName,
+                        event.source.chatId,
+                        event.source.userId
+                    )
+                } catch (e: Throwable) {
+                    Log.w(_TAG, "agentRunner threw: ${e.message}", e)
+                    "Agent loop error: ${e.message ?: e.javaClass.simpleName}"
+                }
+            } else {
+                Log.w(_TAG, "agentRunner not configured — returning placeholder")
+                "Agent loop not configured"
+            }
 
             // Run post-agent hooks
             val postAgentResult = hookPipeline.run(
