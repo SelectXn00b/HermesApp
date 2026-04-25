@@ -346,47 +346,142 @@ class FeishuAdapter(
     }
 
     /**
-     * Establish a WebSocket connection.
+     * Establish a WebSocket connection using the official lark-oapi SDK.
+     *
+     * Mirrors Python `hermes-agent/gateway/platforms/feishu.py::_connect_websocket`
+     * which delegates to `lark_oapi.ws.Client`. On Android we use the same upstream
+     * SDK (`com.larksuite.oapi:oapi-sdk:2.4.4`) — it does the `/open-apis/gateway/v1/connect`
+     * bootstrap + signed WSS URL + handshake internally, so the hand-rolled 404-prone
+     * `wss://open.feishu.cn/open-apis/ws/v2` fallback is no longer used.
+     *
+     * Suspends until the SDK client's blocking `start()` returns (i.e. connection
+     * closed) so the outer retry loop's backoff actually fires.
      */
     private suspend fun _connectWebsocket() {
         _ensureAccessToken()
-
-        val request = Request.Builder()
-            .url(_wsUrl)
-            .header("Authorization", "Bearer $_accessToken")
-            .build()
-
         val closed = kotlinx.coroutines.CompletableDeferred<Unit>()
 
-        val listener = object : okhttp3.WebSocketListener() {
-            override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
-                Log.i(_TAG, "WebSocket connected")
-                markConnected()
-            }
+        val domainUrl: String = if (_domain.contains("larksuite.com")) {
+            com.lark.oapi.core.enums.BaseUrlEnum.LarkSuite.url
+        } else {
+            com.lark.oapi.core.enums.BaseUrlEnum.FeiShu.url
+        }
 
-            override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
-                scope.launch {
-                    _handleWebSocketMessage(text)
+        val dispatcher = com.lark.oapi.event.EventDispatcher.newBuilder(
+            _verificationToken.ifEmpty { "" },
+            _encryptKey.ifEmpty { "" },
+        )
+            .onP2MessageReceiveV1(object : com.lark.oapi.service.im.ImService.P2MessageReceiveV1Handler() {
+                override fun handle(data: com.lark.oapi.service.im.v1.model.P2MessageReceiveV1?) {
+                    val ev = data?.event ?: return
+                    scope.launch { _dispatchSdkMessage(ev) }
                 }
-            }
+            })
+            .onP2MessageReactionCreatedV1(object : com.lark.oapi.service.im.ImService.P2MessageReactionCreatedV1Handler() {
+                override fun handle(data: com.lark.oapi.service.im.v1.model.P2MessageReactionCreatedV1?) {
+                    val ev = data?.event ?: return
+                    scope.launch { _dispatchSdkReaction(ev) }
+                }
+            })
+            .onP2MessageReadV1(object : com.lark.oapi.service.im.ImService.P2MessageReadV1Handler() {
+                override fun handle(data: com.lark.oapi.service.im.v1.model.P2MessageReadV1?) {
+                    /* ignore read receipts */
+                }
+            })
+            .build()
 
-            override fun onClosing(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
-                Log.i(_TAG, "WebSocket closing: $code $reason")
-                webSocket.close(code, reason)
-            }
+        val sdkClient = com.lark.oapi.ws.Client.Builder(_appId, _appSecret)
+            .domain(domainUrl)
+            .eventHandler(dispatcher)
+            .build()
 
-            override fun onClosed(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
+        Log.i(_TAG, "Starting official Feishu WS client (domain=$domainUrl)")
+        markConnected()
+        scope.launch(Dispatchers.IO) {
+            try {
+                sdkClient.start()
                 closed.complete(Unit)
-            }
-
-            override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
-                Log.e(_TAG, "WebSocket failure: ${t.message}")
+            } catch (t: Throwable) {
                 closed.completeExceptionally(t)
             }
         }
-
-        _wsClient = _httpClient.newWebSocket(request, listener)
         closed.await()
+    }
+
+    /** Dispatch an SDK-parsed P2MessageReceiveV1 event into the existing pipeline. */
+    private suspend fun _dispatchSdkMessage(
+        event: com.lark.oapi.service.im.v1.model.P2MessageReceiveV1Data,
+    ) {
+        try {
+            val sender = event.sender ?: return
+            val message = event.message ?: return
+            val senderInfo = JSONObject().apply {
+                put("sender_id", JSONObject().apply {
+                    put("open_id", sender.senderId?.openId ?: "")
+                    put("user_id", sender.senderId?.userId ?: "")
+                    put("union_id", sender.senderId?.unionId ?: "")
+                })
+                put("sender_type", sender.senderType ?: "user")
+            }
+            val mentions = org.json.JSONArray()
+            message.mentions?.forEach { m ->
+                mentions.put(JSONObject().apply {
+                    put("key", m.key ?: "")
+                    put("name", m.name ?: "")
+                    put("id", JSONObject().apply {
+                        put("open_id", m.id?.openId ?: "")
+                        put("user_id", m.id?.userId ?: "")
+                        put("union_id", m.id?.unionId ?: "")
+                    })
+                })
+            }
+            val msgObj = JSONObject().apply {
+                put("message_id", message.messageId ?: "")
+                put("root_id", message.rootId ?: "")
+                put("parent_id", message.parentId ?: "")
+                put("create_time", message.createTime ?: "")
+                put("chat_id", message.chatId ?: "")
+                put("chat_type", message.chatType ?: "")
+                put("message_type", message.messageType ?: "")
+                put("content", message.content ?: "")
+                put("mentions", mentions)
+                try { put("thread_id", message.threadId ?: "") } catch (_: Exception) { }
+            }
+            val synth = JSONObject().apply {
+                put("header", JSONObject().apply { put("event_type", "im.message.receive_v1") })
+                put("event", JSONObject().apply {
+                    put("sender", senderInfo)
+                    put("message", msgObj)
+                })
+            }
+            _handleMessageEventData(synth)
+        } catch (e: Exception) {
+            Log.w(_TAG, "Error dispatching SDK message: ${e.message}")
+        }
+    }
+
+    /** Dispatch an SDK-parsed P2MessageReactionCreatedV1 event into the existing pipeline. */
+    private suspend fun _dispatchSdkReaction(
+        event: com.lark.oapi.service.im.v1.model.P2MessageReactionCreatedV1Data,
+    ) {
+        try {
+            val synth = JSONObject().apply {
+                put("header", JSONObject().apply { put("event_type", "im.message.reaction.created_v1") })
+                put("event", JSONObject().apply {
+                    put("message_id", event.messageId ?: "")
+                    put("reaction_type", JSONObject().apply {
+                        put("emoji_type", event.reactionType?.emojiType ?: "")
+                    })
+                    put("operator_type", event.operatorType ?: "")
+                    put("user_id", JSONObject().apply {
+                        put("open_id", event.userId?.openId ?: "")
+                    })
+                })
+            }
+            _handleReactionEvent(synth)
+        } catch (e: Exception) {
+            Log.w(_TAG, "Error dispatching SDK reaction: ${e.message}")
+        }
     }
 
     /**

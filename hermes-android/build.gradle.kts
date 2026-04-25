@@ -61,6 +61,18 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Feishu / Lark official SDK (对齐 Python lark_oapi — 提供 WS Client + EventDispatcher)
+    // 使用 com.larksuite.oapi:oapi-sdk:2.4.4（Androidclaw 已验证可用）；旧版
+    // io.github.larksuite:oapi-sdk:1.0.18-rc8 在 Android 上因 javax.servlet-api
+    // 不可 dex——2.4.4 已解决此问题。
+    // 排除：
+    //  - protobuf-java 全量：与 app 侧 protobuf-javalite 冲突（Duplicate class WireFormat 等）
+    //  - commons-logging：与 app 侧 jcl-over-slf4j 冲突（Duplicate class org.apache.commons.logging.*）
+    implementation("com.larksuite.oapi:oapi-sdk:2.4.4") {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     testImplementation("org.mockito:mockito-core:5.11.0")
