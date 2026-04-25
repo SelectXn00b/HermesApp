@@ -74,3 +74,10 @@ app/src/main/assets/web-chat/
 
 # hermes-align scan_stubs.py artifact
 hermes-android/src/main/java/com/xiaomo/hermes/stub-report.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Broken Claude Code IPC symlinks that leak into repo root (aha_ipc_native_* in $TMPDIR)
+/lib*.dylib
