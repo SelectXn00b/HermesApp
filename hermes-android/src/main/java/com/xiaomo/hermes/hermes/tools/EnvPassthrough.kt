@@ -42,12 +42,12 @@ fun registerEnvPassthrough(varNames: Collection<String>) {
         if (_isHermesProviderCredential(trimmed)) {
             Log.w(
                 _TAG,
-                "env passthrough: refusing to register Hermes provider credential %r (blocked by _HERMES_PROVIDER_ENV_BLOCKLIST). Skills must not override the execute_code sandbox's credential scrubbing; see GHSA-rhgp-j443-p4rf.".format(trimmed)
+                "env passthrough: refusing to register Hermes provider credential '$trimmed' (blocked by _HERMES_PROVIDER_ENV_BLOCKLIST). Skills must not override the execute_code sandbox's credential scrubbing; see GHSA-rhgp-j443-p4rf."
             )
             continue
         }
         _getAllowed().add(trimmed)
-        Log.d(_TAG, "env passthrough: registered %s".format(trimmed))
+        Log.d(_TAG, "env passthrough: registered $trimmed")
     }
 }
 
