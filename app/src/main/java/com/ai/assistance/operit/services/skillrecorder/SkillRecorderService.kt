@@ -111,7 +111,7 @@ class SkillRecorderService : Service() {
         // 如果 ActionManager 还没在监听，启动监听
         serviceScope.launch {
             if (!actionManager.isListening.value) {
-                actionManager.startListening { /* primary callback, events also broadcast to registered callbacks */ }
+                actionManager.startListeningWithHighestPermission { /* primary callback, events also broadcast to registered callbacks */ }
             }
         }
 

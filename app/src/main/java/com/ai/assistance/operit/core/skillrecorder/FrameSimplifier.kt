@@ -1,6 +1,6 @@
 package com.ai.assistance.operit.core.skillrecorder
 
-import com.ai.assistance.operit.core.tools.ToolResultDataClasses.SimplifiedUINode
+import com.ai.assistance.operit.core.tools.SimplifiedUINode
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingFrame
 
 /**

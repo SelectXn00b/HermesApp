@@ -119,6 +119,8 @@ class OperitApplication : Application(), ImageLoaderFactory, WorkConfiguration.P
         appStartupTimeMs = startTime
         instance = this
 
+        com.xiaomo.hermes.hermes.initHermesConstants(this)
+
         configureOpenMpEnvironment()
         AppIconManager.ensureComponentState(this)
 

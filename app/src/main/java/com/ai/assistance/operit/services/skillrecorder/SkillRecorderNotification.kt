@@ -52,7 +52,7 @@ object SkillRecorderNotification {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(
                 if (isPaused) context.getString(R.string.skill_recorder_paused)
                 else context.getString(R.string.skill_recorder_recording)
@@ -102,7 +102,7 @@ object SkillRecorderNotification {
 
     fun buildSummarizingNotification(context: Context): Notification {
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(context.getString(R.string.skill_recorder_summarizing))
             .setProgress(0, 0, true)
             .setOngoing(true)

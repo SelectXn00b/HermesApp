@@ -29,6 +29,14 @@ class FrameCapture(private val context: Context) {
         /** 自身包名，过滤掉 */
         private const val SELF_PACKAGE = "com.ai.assistance.operit"
         private const val PROVIDER_PACKAGE = "com.ai.assistance.operit.provider"
+
+        private val SIGNIFICANT_EVENTS = setOf(
+            ActionListener.ActionType.CLICK,
+            ActionListener.ActionType.LONG_CLICK,
+            ActionListener.ActionType.TEXT_INPUT,
+            ActionListener.ActionType.SCROLL,
+            ActionListener.ActionType.SCREEN_CHANGE
+        )
     }
 
     private val frameIndex = AtomicInteger(0)
@@ -123,15 +131,5 @@ class FrameCapture(private val context: Context) {
         lastEventTime = 0L
         lastEventType = ""
         lastScrollTime = 0L
-    }
-
-    private companion object {
-        val SIGNIFICANT_EVENTS = setOf(
-            ActionListener.ActionType.CLICK,
-            ActionListener.ActionType.LONG_CLICK,
-            ActionListener.ActionType.TEXT_INPUT,
-            ActionListener.ActionType.SCROLL,
-            ActionListener.ActionType.SCREEN_CHANGE
-        )
     }
 }
