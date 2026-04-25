@@ -1,0 +1,11 @@
+# Local Gradle caches and build outputs for the helper subproject.
+runtime_helper/.gradle/
+runtime_helper/build/
+
+# Generated jars in this example tree.
+*.jar
+!resources/apktool/*.jar
+
+# Common local IDE noise.
+*.iml
+.idea/

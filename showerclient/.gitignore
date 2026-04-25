@@ -1,0 +1,22 @@
+# Android Build Files
+build/
+.cxx/
+
+# Gradle
+.gradle/
+gradle.properties
+
+# IDE
+.idea/
+*.iml
+
+# Local configuration
+local.properties
+
+# Native build
+obj/
+libs/
+
+# OS generated files
+.DS_Store
+Thumbs.db 

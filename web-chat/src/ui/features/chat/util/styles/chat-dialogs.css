@@ -1,0 +1,226 @@
+.attachment-selector-panel {
+  display: flex;
+  width: min(200px, calc(100vw - 32px));
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0;
+  border: 1px solid var(--chat-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-panel-bg) 95%, transparent);
+  box-shadow: 0 12px 28px var(--chat-shadow);
+}
+
+.attachment-selector-panel header span,
+.configuration-screen-header span,
+.fullscreen-input-dialog header span,
+.history-dialog header p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.attachment-selector-button {
+  display: flex;
+  min-height: 36px;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: transparent;
+  color: var(--chat-text-main);
+  text-align: left;
+}
+
+.attachment-selector-button strong {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.attachment-selector-button.is-disabled {
+  opacity: 0.55;
+}
+
+.attachment-selector-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--chat-text-soft);
+}
+
+.attachment-selector-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.attachment-selector-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 8px;
+}
+
+.attachment-selector-panel header button {
+  color: var(--chat-text-soft);
+}
+
+.attachment-selector-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  color: var(--chat-text-soft);
+}
+
+.dialog-scrim,
+.chat-connection-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--chat-dialog-scrim);
+}
+
+.fullscreen-input-dialog,
+.configuration-screen,
+.history-dialog {
+  width: min(100%, 620px);
+  padding: 18px;
+  border: 1px solid var(--chat-border);
+  border-radius: 24px;
+  background: var(--chat-panel-bg);
+  box-shadow: 0 24px 46px var(--chat-shadow);
+}
+
+.fullscreen-input-dialog header h3,
+.history-dialog header h3,
+.configuration-screen-header h1 {
+  margin: 4px 0 0;
+}
+
+.history-dialog header,
+.fullscreen-input-dialog header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fullscreen-input-dialog textarea {
+  min-height: 220px;
+  margin-top: 12px;
+}
+
+.fullscreen-input-dialog footer,
+.history-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fullscreen-input-dialog footer button,
+.history-dialog footer button,
+.configuration-screen-submit {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--chat-button-filled-bg);
+  color: var(--chat-button-filled-fg);
+  font-weight: 700;
+}
+
+.configuration-screen {
+  width: min(100%, 460px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.model-selector-confirm-dialog,
+.model-selector-info-dialog {
+  width: min(100%, 420px);
+}
+
+.model-selector-confirm-dialog header p,
+.model-selector-info-dialog header p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.configuration-screen-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.configuration-screen-header p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.configuration-screen-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.configuration-screen-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.configuration-screen-inline-card,
+.history-dialog-delete-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--chat-border);
+  border-radius: 14px;
+  background: var(--chat-card-soft);
+}
+
+.configuration-screen-inline-card code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.configuration-screen input,
+.history-dialog input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--chat-border);
+  border-radius: 14px;
+  background: var(--chat-card-soft);
+  color: var(--chat-text-main);
+}
+
+.configuration-screen-submit {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .chat-screen-frame {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .chat-composer-host.is-floating .classic-chat-input-section,
+  .chat-composer-host.is-floating .agent-chat-input-section {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}

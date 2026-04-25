@@ -1,0 +1,20 @@
+if(NOT DEFINED OPENFST_SOURCE_DIR)
+  message(FATAL_ERROR "OPENFST_SOURCE_DIR is not set")
+endif()
+
+set(_openfst_root "${OPENFST_SOURCE_DIR}")
+set(_src_cmake "${_openfst_root}/src/CMakeLists.txt")
+set(_script_cmake "${_openfst_root}/src/script/CMakeLists.txt")
+
+if(EXISTS "${_src_cmake}")
+  file(READ "${_src_cmake}" _src_content)
+  string(REPLACE "enable_testing()" "" _src_content "${_src_content}")
+  string(REPLACE "add_subdirectory(test)" "" _src_content "${_src_content}")
+  file(WRITE "${_src_cmake}" "${_src_content}")
+endif()
+
+if(EXISTS "${_script_cmake}")
+  file(READ "${_script_cmake}" _script_content)
+  string(REGEX REPLACE "[^\n]*message\\([^)]*\\)[^\n]*\n?" "" _script_content "${_script_content}")
+  file(WRITE "${_script_cmake}" "${_script_content}")
+endif()

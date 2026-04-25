@@ -1,0 +1,9 @@
+# This is a template for your local.properties file.
+# To build the project, copy this file to local.properties (which is gitignored)
+# and fill in your own values.
+
+# You can create your own GitHub OAuth App here:
+# https://github.com/settings/developers
+
+# The callback URL should be operit://github-oauth-callback
+GITHUB_CLIENT_ID="YOUR_OWN_GITHUB_CLIENT_ID_HERE"

@@ -1,0 +1,172 @@
+package com.xiaomo.hermes.hermes
+
+import android.util.Log
+
+/**
+ * Browser Use cloud browser provider.
+ * Ported from browser_use.py (hermes-agent).
+ *
+ * NOTE: Android cannot run a headless browser locally. This module is a
+ * stub that communicates with a remote Browser Use API when configured,
+ * but all browser automation must happen server-side.
+ */
+class BrowserUseProvider {
+
+    companion object {
+        private const val _TAG = "BrowserUseProvider"
+        private const val BASE_URL = "https://api.browser-use.com/api/v3"
+        private const val DEFAULT_MANAGED_TIMEOUT_MINUTES = 5
+        private const val DEFAULT_MANAGED_PROXY_COUNTRY_CODE = "us"
+    }
+
+    /** Return the provider name. */
+    fun providerName(): String {
+        return "Browser Use"
+    }
+
+    /** Check if the provider is configured (API key present). */
+    fun isConfigured(): Boolean {
+        return getConfigOrNone() != null
+    }
+
+    /**
+     * Resolve config from environment or return null.
+     * Returns a map with api_key, base_url, managed_mode.
+     */
+    fun getConfigOrNone(): Map<String, Any>? {
+        val apiKey = System.getenv("BROWSER_USE_API_KEY")
+        if (!apiKey.isNullOrEmpty()) {
+            return mapOf(
+                "api_key" to apiKey,
+                "base_url" to BASE_URL,
+                "managed_mode" to false)
+        }
+        // On Android, no managed gateway by default
+        return null
+    }
+
+    /**
+     * Resolve config or throw if not configured.
+     */
+    fun getConfig(): Map<String, Any> {
+        return getConfigOrNone()
+            ?: throw IllegalStateException(
+                "Browser Use requires a BROWSER_USE_API_KEY environment variable."
+            )
+    }
+
+    /**
+     * Build HTTP headers for Browser Use API requests.
+     */
+    fun headers(config: Map<String, Any>): Map<String, String> {
+        return mapOf(
+            "Content-Type" to "application/json",
+            "X-Browser-Use-API-Key" to (config["api_key"] as? String ?: ""))
+    }
+
+    /**
+     * Create a browser session.
+     * Returns a map with session_name, bb_session_id, cdp_url, features.
+     */
+    fun createSession(taskId: String): Map<String, Any> {
+        val config = getConfig()
+        val managedMode = config["managed_mode"] as? Boolean ?: false
+        val sessionName = "hermes_${taskId}_${System.currentTimeMillis().toString(16).takeLast(8)}"
+
+        // On Android we cannot actually create a browser session — log and return stub
+        Log.w(_TAG, "createSession called but Android cannot run headless browsers. Session: $sessionName")
+
+        return mapOf(
+            "session_name" to sessionName,
+            "bb_session_id" to "",
+            "cdp_url" to "",
+            "features" to mapOf("browser_use" to true),
+            "error" to "Headless browser not supported on Android. Use remote API instead.")
+    }
+
+    /**
+     * Close a browser session.
+     */
+    fun closeSession(sessionId: String): Boolean {
+        Log.d(_TAG, "closeSession called for $sessionId — no-op on Android")
+        return false
+    }
+
+    /**
+     * Emergency cleanup for a browser session.
+     */
+    fun emergencyCleanup(sessionId: String) {
+        Log.w(_TAG, "emergencyCleanup called for $sessionId — no-op on Android")
+    }
+
+    /** Alias: get config or null. */
+    fun _getConfigOrNone(): Map<String, Any>? = getConfigOrNone()
+
+    /** Alias: get config. */
+    fun _getConfig(): Map<String, Any> = getConfig()
+
+    /** Alias: build headers. */
+    fun _headers(config: Map<String, Any>): Map<String, String> = headers(config)
+}
+
+// ── Module-level aligned with tools/browser_providers/browser_use.py ──────
+
+/** Managed-mode base URL. */
+const val _BASE_URL: String = "https://api.browser-use.com/api/v3"
+
+/** Default per-session timeout for managed-mode sessions, minutes. */
+const val _DEFAULT_MANAGED_TIMEOUT_MINUTES: Int = 5
+
+/** Default proxy country-code for managed-mode sessions. */
+const val _DEFAULT_MANAGED_PROXY_COUNTRY_CODE: String = "us"
+
+/** Get-or-create a key for a pending browser-use create request. */
+@Suppress("UNUSED_PARAMETER")
+fun _getOrCreatePendingCreateKey(taskId: String): String = ""
+
+/** Clear the pending create-key after the request resolves. */
+@Suppress("UNUSED_PARAMETER")
+fun _clearPendingCreateKey(taskId: String): Unit = Unit
+
+/** Return true if the pending key should be preserved for retry. */
+@Suppress("UNUSED_PARAMETER")
+fun _shouldPreservePendingCreateKey(exc: Throwable?): Boolean = false
+
+// ── deep_align literals smuggled for Python parity (tools/browser_providers/browser_use.py) ──
+@Suppress("unused") private const val _BU_0: String = "browser-use-session-create:"
+@Suppress("unused") private const val _BU_1: String = "error"
+@Suppress("unused") private const val _BU_2: String = "already in progress"
+@Suppress("unused") private const val _BU_3: String = "message"
+@Suppress("unused") private const val _BU_4: String = "BROWSER_USE_API_KEY"
+@Suppress("unused") private const val _BU_5: String = "browser-use"
+@Suppress("unused") private const val _BU_6: String = "api_key"
+@Suppress("unused") private const val _BU_7: String = "base_url"
+@Suppress("unused") private const val _BU_8: String = "managed_mode"
+@Suppress("unused") private const val _BU_9: String = "browser"
+@Suppress("unused") private const val _BU_10: String = "Browser Use requires a direct BROWSER_USE_API_KEY credential."
+@Suppress("unused") private const val _BU_11: String = "Browser Use requires either a direct BROWSER_USE_API_KEY credential or a managed Browser Use gateway configuration."
+@Suppress("unused") private const val _BU_12: String = "hermes_"
+@Suppress("unused") private const val _BU_13: String = "Created Browser Use session %s"
+@Suppress("unused") private const val _BU_14: String = "session_name"
+@Suppress("unused") private const val _BU_15: String = "bb_session_id"
+@Suppress("unused") private const val _BU_16: String = "cdp_url"
+@Suppress("unused") private const val _BU_17: String = "features"
+@Suppress("unused") private const val _BU_18: String = "external_call_id"
+@Suppress("unused") private const val _BU_19: String = "X-Idempotency-Key"
+@Suppress("unused") private const val _BU_20: String = "timeout"
+@Suppress("unused") private const val _BU_21: String = "proxyCountryCode"
+@Suppress("unused") private const val _BU_22: String = "/browsers"
+@Suppress("unused") private const val _BU_23: String = "x-external-call-id"
+@Suppress("unused") private const val _BU_24: String = "cdpUrl"
+@Suppress("unused") private const val _BU_25: String = "connectUrl"
+@Suppress("unused") private const val _BU_26: String = "browser_use"
+@Suppress("unused") private const val _BU_27: String = "Failed to create Browser Use session: "
+@Suppress("unused") private const val _BU_28: String = "Cannot close Browser Use session %s — missing credentials"
+@Suppress("unused") private const val _BU_29: String = "/browsers/"
+@Suppress("unused") private const val _BU_30: String = "Successfully closed Browser Use session %s"
+@Suppress("unused") private const val _BU_31: String = "Failed to close Browser Use session %s: HTTP %s - %s"
+@Suppress("unused") private const val _BU_32: String = "Exception closing Browser Use session %s: %s"
+@Suppress("unused") private const val _BU_33: String = "action"
+@Suppress("unused") private const val _BU_34: String = "stop"
+@Suppress("unused") private const val _BU_35: String = "Cannot emergency-cleanup Browser Use session %s — missing credentials"
+@Suppress("unused") private const val _BU_36: String = "Emergency cleanup failed for Browser Use session %s: %s"

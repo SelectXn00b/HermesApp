@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "toolpkg_id": "com.operit.debug_msg_dump",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "display_name": {
+    "zh": "消息调试转储",
+    "en": "Debug Message Dump"
+  },
+  "description": {
+    "zh": "将每次发送给模型的完整消息列表保存到文件，用于调试",
+    "en": "Dump all messages sent to model into a file for debugging"
+  }
+}

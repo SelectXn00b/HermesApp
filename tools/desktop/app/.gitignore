@@ -1,0 +1,4 @@
+/build
+
+# Keystore file with sensitive information
+keystore.properties

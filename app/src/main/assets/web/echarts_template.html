@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts Knowledge Graph</title>
+    <style>
+        html,
+        body,
+        #main {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+            /* Make background transparent */
+        }
+    </style>
+    <!-- ECharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+</head>
+
+<body>
+    <div id="main"></div>
+    <script>
+        var chart = echarts.init(document.getElementById('main'));
+
+        // Placeholder for graph data from Kotlin
+        const graphData = <!-- ECHARTS_DATA_PLACEHOLDER -->;
+
+        // ECharts option
+        var option = {
+            tooltip: {},
+            animationDurationUpdate: 1500,
+            animationEasingUpdate: 'quinticInOut',
+            series: [
+                {
+                    type: 'graph',
+                    layout: 'force',
+                    symbolSize: 50,
+                    roam: true,
+                    label: {
+                        show: true,
+                        formatter: '{b}' // Show node name
+                    },
+                    force: {
+                        repulsion: 200,
+                        edgeLength: 120
+                    },
+                    edgeSymbol: ['circle', 'arrow'],
+                    edgeSymbolSize: [4, 10],
+                    edgeLabel: {
+                        normal: {
+                            show: true,
+                            textStyle: {
+                                fontSize: 10
+                            },
+                            formatter: "{c}"
+                        }
+                    },
+                    data: graphData.nodes,
+                    links: graphData.links,
+                    categories: graphData.categories,
+                    lineStyle: {
+                        opacity: 0.9,
+                        width: 2,
+                        curveness: 0
+                    }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+
+        // Handle node clicks
+        chart.on('click', function (params) {
+            if (params.componentType === 'series' && params.dataType === 'node') {
+                // TODO: Send clicked node data back to Kotlin if needed
+                // For now, we can just log it
+                console.log('Node clicked:', params.data);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1 @@
+export { MessageAttachmentTag } from './MessageAttachmentTag';

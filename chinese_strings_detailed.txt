@@ -1,0 +1,182 @@
+[OVERALL]
+Total strings found: 1992
+Excluded logs: 1828
+Excluded long prompts(>100 chars): 56
+Remaining UI strings: 108
+Files with Chinese strings: 145
+
+[BY MODULE]
+
+[DETAIL]
+================================================================================
+FILE: app\src\main\java\com\ai\assistance\operit\ui\floating\ui\pet\AvatarEmotionManager.kt
+  remaining=21 total=24 excluded_logs=3 excluded_long=0
+  L19:36 (2 chars) "开心"
+  L19:42 (2 chars) "高兴"
+  L19:48 (2 chars) "不错"
+  L19:54 (1 chars) "棒"
+  L19:59 (3 chars) "太好了"
+  L19:86 (1 chars) "赞"
+  L20:36 (2 chars) "生气"
+  L20:42 (2 chars) "愤怒"
+  L20:48 (2 chars) "气死"
+  L20:54 (2 chars) "讨厌"
+  L20:60 (2 chars) "糟糕"
+  L20:71 (1 chars) "怒"
+  L21:34 (2 chars) "难过"
+  L21:40 (2 chars) "伤心"
+  L21:46 (2 chars) "沮丧"
+  L21:52 (2 chars) "忧伤"
+  L21:58 (1 chars) "哭"
+  L22:34 (2 chars) "害羞"
+  L22:40 (1 chars) "羞"
+  L22:45 (2 chars) "脸红"
+  L22:51 (4 chars) "不好意思"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\toolbox\screens\autoglm\AutoGlmViewModel.kt
+  remaining=11 total=11 excluded_logs=0 excluded_long=0
+  L172:37 (36 chars) "✅ 任务完成: ${finalLines.first().trim()}"
+  L205:44 (11 chars) "yyyy年MM月dd日"
+  L207:44 (3 chars) "星期日"
+  L207:51 (3 chars) "星期一"
+  L207:58 (3 chars) "星期二"
+  L207:65 (3 chars) "星期三"
+  L207:72 (3 chars) "星期四"
+  L207:79 (3 chars) "星期五"
+  L207:86 (3 chars) "星期六"
+  L234:20 (7 chars) "💭 思考过程:"
+  L246:20 (7 chars) "🎯 执行动作:"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\token\preferences\UrlConfigManager.kt
+  remaining=9 total=9 excluded_logs=0 excluded_long=0
+  L104:21 (2 chars) "聊天"
+  L105:25 (2 chars) "项目"
+  L106:26 (2 chars) "工件"
+  L107:25 (2 chars) "设置"
+  L108:24 (2 chars) "账户"
+  L109:24 (2 chars) "历史"
+  L110:21 (2 chars) "帮助"
+  L111:24 (2 chars) "探索"
+  L112:23 (2 chars) "创建"
+
+FILE: app\src\main\java\com\ai\assistance\operit\api\chat\library\MemoryLibrary.kt
+  remaining=9 total=57 excluded_logs=48 excluded_long=0
+  L601:24 (50 chars) "(?s)问题\\s*[：:]\\s*(.+?)(?:\\n\\s*解决方案\\s*[：:]|\\z)"
+  L621:52 (5 chars) "历史记录:"
+  L869:30 (54 chars) "(出生日期|出生年月日|Birth Date|Date of Birth)[:：\\s]+([\\d-]+)"
+  L870:30 (38 chars) "(出生年份|年龄|Birth year|Age)[:：\\s]+(\\d+)"
+  L871:27 (26 chars) "(性别|Gender)[:：\\s]+([^;]+)"
+  L872:32 (46 chars) "(性格(特点)?|Personality( traits)?)[:：\\s]+([^;]+)"
+  L873:29 (48 chars) "(身份(认同)?|Identity( recognition)?)[:：\\s]+([^;]+)"
+  L874:31 (30 chars) "(职业|Occupation)[:：\\s]+([^;]+)"
+  L875:28 (83 chars) "(AI风格|期待的AI风格|偏好的AI风格|AI Style|Expected AI Style|Preferred AI Style)[:：\\s]+([^;]+)"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\toolbox\screens\logcat\LogModels.kt
+  remaining=8 total=8 excluded_logs=0 excluded_long=0
+  L20:13 (2 chars) "详细"
+  L21:11 (2 chars) "调试"
+  L22:10 (2 chars) "信息"
+  L23:13 (2 chars) "警告"
+  L24:11 (2 chars) "错误"
+  L25:11 (2 chars) "致命"
+  L26:12 (2 chars) "静默"
+  L27:13 (2 chars) "未知"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\packages\utils\MCPPluginParser.kt
+  remaining=8 total=8 excluded_logs=0 excluded_long=0
+  L22:9 (2 chars) "简介"
+  L23:9 (2 chars) "描述"
+  L24:9 (2 chars) "介绍"
+  L25:9 (2 chars) "说明"
+  L79:25 (64 chars) "^(描述|简介|介绍|说明|description|desc|summary|introduction)\\s*[:：]\\s*"
+  L136:27 (5 chars) "无描述信息"
+  L146:93 (5 chars) "无描述信息"
+  L157:62 (5 chars) "无描述信息"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\packages\utils\SkillIssueParser.kt
+  remaining=8 total=8 excluded_logs=0 excluded_long=0
+  L18:9 (2 chars) "简介"
+  L19:9 (2 chars) "描述"
+  L20:9 (2 chars) "介绍"
+  L21:9 (2 chars) "说明"
+  L75:25 (64 chars) "^(描述|简介|介绍|说明|description|desc|summary|introduction)\\s*[:：]\\s*"
+  L129:31 (5 chars) "无描述信息"
+  L139:93 (5 chars) "无描述信息"
+  L149:62 (5 chars) "无描述信息"
+
+FILE: app\src\main\java\com\ai\assistance\operit\core\chat\AIMessageManager.kt
+  remaining=6 total=30 excluded_logs=24 excluded_long=0
+  L949:61 (7 chars) "【工具包预热】"
+  L957:21 (28 chars) "本次摘要范围内未检测到包工具调用，因此未进行工具包预热。"
+  L966:17 (61 chars) "以下根据本次摘要范围内的工具使用频次，自动激活了最高频的工具包，并附上 use_package 的返回结果，供下一轮预热。"
+  L981:37 (41 chars) "use_package 调用失败: ${throwable.message ?: "
+  L988:37 (17 chars) "use_package 返回为空。"
+  L995:36 (55 chars) "${index + 1}. 包 ${stat.packageName}（命中 ${stat.count} 次）"
+
+FILE: app\src\main\java\com\ai\assistance\operit\core\avatar\common\state\AvatarMoodType.kt
+  remaining=5 total=5 excluded_logs=0 excluded_long=0
+  L22:30 (24 chars) "用户表达侮辱、不公、责备、生气或强烈不满时使用。"
+  L29:30 (27 chars) "用户表达明确表扬、达成目标、收到礼物或明显开心时使用。"
+  L36:30 (24 chars) "用户夸奖、暧昧、戳中可爱点，角色表现害羞时使用。"
+  L43:30 (21 chars) "用户调侃、轻微争执、角色嘴硬又软化时使用。"
+  L50:30 (23 chars) "用户失落、难过、受挫、哭诉或道歉后低落时使用。"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\chat\webview\workspace\editor\CanvasCodeEditorView.kt
+  remaining=4 total=4 excluded_logs=0 excluded_long=0
+  L1541:47 (2 chars) "复制"
+  L1543:50 (2 chars) "剪切"
+  L1544:52 (2 chars) "粘贴"
+  L1546:53 (2 chars) "全选"
+
+FILE: app\src\main\java\com\ai\assistance\operit\services\core\ChatHistoryDelegate.kt
+  remaining=3 total=44 excluded_logs=41 excluded_long=0
+  L581:54 (17 chars) "删除消息时当前会话已变化，放弃操作"
+  L615:50 (21 chars) "批量删除后续消息时当前会话已变化，放弃操作"
+  L883:50 (19 chars) "截断聊天历史时当前会话已变化，放弃操作"
+
+FILE: app\src\main\java\com\ai\assistance\operit\data\converter\GenericJsonConverter.kt
+  remaining=3 total=3 excluded_logs=0 excluded_long=0
+  L203:30 (2 chars) "用户"
+  L204:48 (2 chars) "助手"
+  L205:23 (2 chars) "系统"
+
+FILE: app\src\main\java\com\ai\assistance\operit\util\LocaleUtils.kt
+  remaining=2 total=2 excluded_logs=0 excluded_long=0
+  L33:67 (4 chars) "跟随系统"
+  L34:47 (2 chars) "中文"
+
+FILE: app\src\main\java\com\ai\assistance\operit\util\stream\StreamGroup.kt
+  remaining=2 total=7 excluded_logs=5 excluded_long=0
+  L166:74 (6 chars) "标签必须设置"
+  L169:77 (7 chars) "数据流必须设置"
+
+FILE: app\src\main\java\com\ai\assistance\operit\services\core\MessageCoordinationDelegate.kt
+  remaining=2 total=42 excluded_logs=40 excluded_long=0
+  L916:13 (13 chars) "$userName（用户）"
+  L918:13 (6 chars) "用户（用户）"
+
+FILE: app\src\main\java\com\ai\assistance\operit\data\mcp\plugins\MCPBridge.kt
+  remaining=2 total=39 excluded_logs=37 excluded_long=0
+  L537:60 (32 chars) "命令[$cmdId: $cmdType]没有收到响应（独立连接）"
+  L587:56 (26 chars) "命令[$cmdId: $cmdType]没有收到响应"
+
+FILE: app\src\main\java\com\ai\assistance\operit\services\CloudEmbeddingService.kt
+  remaining=1 total=1 excluded_logs=0 excluded_long=0
+  L79:101 (4 chars) "请求失败"
+
+FILE: app\src\main\java\com\ai\assistance\operit\util\TextSegmenter.kt
+  remaining=1 total=5 excluded_logs=4 excluded_long=0
+  L15:38 (9 chars) "搜索记忆 分词预热"
+
+FILE: app\src\main\java\com\ai\assistance\operit\ui\features\workflow\viewmodel\WorkflowViewModel.kt
+  remaining=1 total=1 excluded_logs=0 excluded_long=0
+  L925:30 (24 chars) ".*(打开|启动).*(对话|聊天|悬浮窗).*"
+
+FILE: app\src\main\java\com\ai\assistance\operit\data\converter\ChatFormatDetector.kt
+  remaining=1 total=1 excluded_logs=0 excluded_long=0
+  L142:35 (61 chars) "^##\\s*(User|Assistant|AI|System|Model|用户|助手|系统|模型)[:：]?\\s*$"
+
+FILE: app\src\main\java\com\ai\assistance\operit\data\mcp\MCPLocalServer.kt
+  remaining=1 total=53 excluded_logs=52 excluded_long=0
+  L478:55 (31 chars) "MCP服务器 $serverId 的 command 不能为空"
+
