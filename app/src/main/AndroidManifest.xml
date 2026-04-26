@@ -380,6 +380,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- adb 配置 Hermes Gateway 凭证 / 开关入口 -->
+        <receiver
+            android:name=".integrations.intent.GatewayConfigReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.ai.assistance.operit.SET_GATEWAY" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".services.UIDebuggerService"
             android:enabled="true"
