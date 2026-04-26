@@ -325,21 +325,23 @@ class FeishuAdapter(
 
     /**
      * Start the WebSocket connection.
+     *
+     * The Lark SDK's [com.lark.oapi.ws.Client.start] manages its own reconnect
+     * loop internally (ping + exponential backoff). Wrapping it in an outer
+     * `while (isActive)` loop previously caused a tight reconnect spin because
+     * SDK `start()` returns after completing its own setup, not on disconnect —
+     * each spin burned a fresh `/gateway/v1/connect` handshake and quickly hit
+     * Feishu's per-app connection limit. Androidclaw proves the single-call
+     * pattern is correct (see `FeishuWebSocketHandler.kt:80`).
      */
     private fun _startWebSocket(): Boolean {
         _wsJob = scope.launch {
-            var reconnectDelay = WS_RECONNECT_DELAY
-            while (isActive) {
-                try {
-                    _connectWebsocket()
-                    reconnectDelay = WS_RECONNECT_DELAY // Reset on clean disconnect
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.w(_TAG, "WebSocket error: ${e.message}, reconnecting in ${reconnectDelay}s")
-                    delay((reconnectDelay * 1000).toLong())
-                    reconnectDelay = minOf(reconnectDelay * 2, WS_MAX_RECONNECT_DELAY)
-                }
+            try {
+                _connectWebsocket()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(_TAG, "WebSocket start failed: ${e.message}", e)
             }
         }
         return true
