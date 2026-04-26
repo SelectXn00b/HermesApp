@@ -307,7 +307,11 @@ dependencies {
     
     // 用于向量嵌入的TF Lite (如果需要自定义嵌入)
     implementation(libs.tensorflow.lite)
-    implementation(libs.mediapipe.tasks.text)
+    // Exclude protobuf-javalite — conflicts with Lark SDK's protobuf-java (GeneratedMessageV3)
+    // brought in by hermes-android :oapi-sdk:2.4.4. See Androidclaw app/build.gradle for reference.
+    implementation(libs.mediapipe.tasks.text) {
+        exclude(group = "com.google.protobuf", module = "protobuf-javalite")
+    }
     
     // ONNX Runtime for Android - 支持更强大的多语言Embedding模型
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.1")
@@ -423,8 +427,14 @@ dependencies {
     implementation("io.modelcontextprotocol.sdk:mcp:1.1.0")
     
     // Exclude bcprov-jdk15to18 from all configurations to avoid duplicate classes
+    // Force protobuf-java 3.25.5: Lark SDK (hermes-android :oapi-sdk:2.4.4) needs
+    // full protobuf-java (GeneratedMessageV3) at runtime. MediaPipe's javalite is
+    // excluded above. Pattern ported from Androidclaw app/build.gradle.
     configurations.all {
         exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+        resolutionStrategy {
+            force("com.google.protobuf:protobuf-java:3.25.5")
+        }
     }
 
     // Security

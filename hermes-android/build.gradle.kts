@@ -65,11 +65,11 @@ dependencies {
     // 使用 com.larksuite.oapi:oapi-sdk:2.4.4（Androidclaw 已验证可用）；旧版
     // io.github.larksuite:oapi-sdk:1.0.18-rc8 在 Android 上因 javax.servlet-api
     // 不可 dex——2.4.4 已解决此问题。
-    // 排除：
-    //  - protobuf-java 全量：与 app 侧 protobuf-javalite 冲突（Duplicate class WireFormat 等）
-    //  - commons-logging：与 app 侧 jcl-over-slf4j 冲突（Duplicate class org.apache.commons.logging.*）
+    // 保留 protobuf-java 全量（Lark Client.Builder.build() 需要 GeneratedMessageV3）；
+    // 与 MediaPipe 的 protobuf-javalite 冲突在 app/build.gradle.kts 层通过
+    // resolutionStrategy.force + exclude javalite 解决——与 Androidclaw 方案一致。
+    // 排除 commons-logging：与 app 侧 jcl-over-slf4j 冲突（Duplicate class org.apache.commons.logging.*）
     implementation("com.larksuite.oapi:oapi-sdk:2.4.4") {
-        exclude(group = "com.google.protobuf", module = "protobuf-java")
         exclude(group = "commons-logging", module = "commons-logging")
     }
 
