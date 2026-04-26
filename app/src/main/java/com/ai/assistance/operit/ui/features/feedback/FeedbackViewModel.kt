@@ -9,11 +9,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.assistance.operit.data.api.FeedbackApiService
 import com.ai.assistance.operit.data.model.feedback.DeviceInfo
+import com.ai.assistance.operit.data.model.feedback.ErrorContext
 import com.ai.assistance.operit.data.model.feedback.FeedbackRequest
-import com.ai.assistance.operit.util.AppLogger
-import kotlinx.coroutines.Dispatchers
+import com.ai.assistance.operit.util.FeedbackLogCollector
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class FeedbackViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,31 +33,43 @@ class FeedbackViewModel(application: Application) : AndroidViewModel(application
     var logLineCount by mutableStateOf(0)
         private set
 
-    private var capturedLogs: String = ""
+    var hermesErrorLogCount by mutableStateOf(0)
+        private set
+
+    var hermesAgentLogCount by mutableStateOf(0)
+        private set
+
+    var hasPackageLogs by mutableStateOf(false)
+        private set
+
+    private var collectedLogs: FeedbackLogCollector.CollectedLogs? = null
+    private var errorContext: ErrorContext? = null
 
     fun updateContent(newContent: String) {
         feedbackContent = newContent
     }
 
-    fun captureLogs(lastNLines: Int = 200) {
-        viewModelScope.launch {
-            capturedLogs = withContext(Dispatchers.IO) {
-                val logFile = AppLogger.getLogFile()
-                if (logFile != null && logFile.exists()) {
-                    try {
-                        val allLines = logFile.readLines()
-                        val tail = allLines.takeLast(lastNLines)
-                        logLineCount = tail.size
-                        tail.joinToString("\n")
-                    } catch (e: Exception) {
-                        logLineCount = 0
-                        "Failed to capture logs: ${e.message}"
-                    }
-                } else {
-                    logLineCount = 0
-                    ""
-                }
+    fun setErrorContext(message: String?, source: String?) {
+        if (!message.isNullOrBlank()) {
+            errorContext = ErrorContext(
+                errorMessage = message,
+                errorSource = source ?: "manual",
+                errorCategory = classifyError(message)
+            )
+            if (feedbackContent.isBlank()) {
+                feedbackContent = message
             }
+        }
+    }
+
+    fun captureAllLogs() {
+        viewModelScope.launch {
+            val logs = FeedbackLogCollector.collectAll()
+            collectedLogs = logs
+            logLineCount = logs.appLogLineCount
+            hermesErrorLogCount = logs.hermesErrorLogLineCount
+            hermesAgentLogCount = logs.hermesAgentLogLineCount
+            hasPackageLogs = logs.hasPackageLogs
         }
     }
 
@@ -73,11 +84,16 @@ class FeedbackViewModel(application: Application) : AndroidViewModel(application
             errorMessage = null
 
             val deviceInfo = collectDeviceInfo()
+            val logs = collectedLogs
             val request = FeedbackRequest(
                 content = feedbackContent,
-                logs = capturedLogs,
+                logs = logs?.appLogs ?: "",
                 deviceInfo = deviceInfo,
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
+                errorContext = errorContext,
+                hermesErrorLogs = logs?.hermesErrorLogs?.takeIf { it.isNotBlank() },
+                hermesAgentLogs = logs?.hermesAgentLogs?.takeIf { it.isNotBlank() },
+                packageLogs = logs?.packageLogs?.takeIf { it.isNotBlank() }
             )
 
             feedbackApiService.submitFeedback(request).fold(
@@ -95,10 +111,25 @@ class FeedbackViewModel(application: Application) : AndroidViewModel(application
 
     fun resetState() {
         feedbackContent = ""
-        capturedLogs = ""
+        collectedLogs = null
+        errorContext = null
         logLineCount = 0
+        hermesErrorLogCount = 0
+        hermesAgentLogCount = 0
+        hasPackageLogs = false
         submitSuccess = false
         errorMessage = null
+    }
+
+    private fun classifyError(message: String): String {
+        return when {
+            message.contains("timeout", ignoreCase = true) -> "timeout"
+            message.contains("HTTP", ignoreCase = true) -> "api_error"
+            message.contains("NullPointer") || message.contains("IllegalState") -> "runtime_crash"
+            message.contains("tool", ignoreCase = true) || message.contains("package_proxy", ignoreCase = true) -> "tool_error"
+            message.contains("SSL") || message.contains("Certificate") -> "ssl_error"
+            else -> "unknown"
+        }
     }
 
     private fun collectDeviceInfo(): DeviceInfo {

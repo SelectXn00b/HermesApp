@@ -118,7 +118,7 @@ fun AIChatScreen(
         onNavigateToModelConfig: () -> Unit = {},
         onNavigateToModelPrompts: () -> Unit = {},
         onNavigateToPackageManager: () -> Unit = {},
-        onNavigateToFeedback: () -> Unit = {},
+        onNavigateToFeedback: (String?) -> Unit = {},
         onGestureConsumed: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -689,7 +689,14 @@ val actualViewModel: ChatViewModel = viewModel ?: viewModel { ChatViewModel(cont
 
     // 用新的错误弹窗替换原有的错误显示逻辑
     errorMessage?.let { message ->
-        ErrorDialog(errorMessage = message, onDismiss = { actualViewModel.dismissErrorDialog() })
+        ErrorDialog(
+            errorMessage = message,
+            onDismiss = { actualViewModel.dismissErrorDialog() },
+            onReportError = { errorText ->
+                actualViewModel.dismissErrorDialog()
+                onNavigateToFeedback(errorText)
+            }
+        )
     }
 
     val toastEvent by actualViewModel.toastEvent.collectAsState()
@@ -843,7 +850,7 @@ val actualViewModel: ChatViewModel = viewModel ?: viewModel { ChatViewModel(cont
                 }
 
                 // 反馈按钮
-                IconButton(onClick = { onNavigateToFeedback() }) {
+                IconButton(onClick = { onNavigateToFeedback(null) }) {
                     Icon(
                             imageVector = Icons.Default.RateReview,
                             contentDescription = stringResource(R.string.nav_feedback),

@@ -7487,4 +7487,10 @@
     <string name="feedback_error">提交失败: %s</string>
     <string name="feedback_logs_attached">应用日志已自动附加（%d 行）</string>
     <string name="feedback_device_info">设备信息已自动附加</string>
+    <string name="feedback_hermes_errors_attached">Hermes 错误日志已附加（%d 行）</string>
+    <string name="feedback_agent_logs_attached">Agent 运行日志已附加（%d 行）</string>
+    <string name="feedback_package_logs_attached">工具包日志已附加</string>
+    <string name="feedback_error_context_attached">错误上下文已自动附加</string>
+    <string name="feedback_report_error">反馈此错误</string>
+    <string name="crash_report_send_feedback">发送错误反馈</string>
 </resources>

@@ -1505,7 +1505,12 @@ open class OpenAIProvider(
             ChatMarkupRegex.toolParamPattern.findAll(toolBody).forEach { paramMatch ->
                 val paramName = paramMatch.groupValues[1]
                 val paramValue = XmlEscaper.unescape(paramMatch.groupValues[2].trim())
-                params.put(paramName, paramValue)
+                // Detect JSON object/array values and store as native JSONObject/JSONArray
+                // to prevent double-stringification when params.toString() is called later.
+                val jsonValue: Any = runCatching { JSONObject(paramValue) }.getOrNull()
+                    ?: runCatching { org.json.JSONArray(paramValue) }.getOrNull()
+                    ?: paramValue
+                params.put(paramName, jsonValue)
             }
 
             // 构建tool_call对象

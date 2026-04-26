@@ -68,6 +68,31 @@ private fun parseProxyParams(raw: String): JSONObject? {
         } catch (_: Exception) { /* fall through */ }
     }
 
+    // 4. HTML entity unescape: handles cases where XML escaping was not reversed,
+    //    e.g. &quot; → ", &lt; → <, &gt; → >, &apos; → ', &amp; → &
+    val htmlUnescaped = raw
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&")
+    if (htmlUnescaped != raw) {
+        try {
+            return JSONObject(htmlUnescaped)
+        } catch (_: Exception) { /* fall through */ }
+        // Also try double-stringify recovery on the HTML-unescaped result
+        val htmlThenUnescape = htmlUnescaped
+            .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
+            .replace("\\\"", "\"")
+            .replace("\\\\/", "/")
+            .replace("\\\\", "\\")
+        if (htmlThenUnescape != htmlUnescaped) {
+            try {
+                return JSONObject(htmlThenUnescape)
+            } catch (_: Exception) { /* fall through */ }
+        }
+    }
+
     return null
 }
 

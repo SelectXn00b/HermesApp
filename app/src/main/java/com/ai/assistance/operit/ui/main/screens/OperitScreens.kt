@@ -154,7 +154,7 @@ sealed class Screen(
                     onNavigateToModelConfig = { navigateTo(ModelConfig) },
                     onNavigateToModelPrompts = { navigateTo(ModelPromptsSettings) },
                     onNavigateToPackageManager = { navigateTo(Packages) },
-                    onNavigateToFeedback = { navigateTo(Feedback) },
+                    onNavigateToFeedback = { errorMsg -> navigateTo(Feedback(errorMessage = errorMsg, errorSource = "chat")) },
                     onLoading = onLoading,
                     onError = onError,
                     onGestureConsumed = onGestureConsumed
@@ -1650,7 +1650,10 @@ sealed class Screen(
         }
     }
 
-    data object Feedback : Screen(navItem = NavItem.Feedback, titleRes = R.string.screen_title_feedback) {
+    data class Feedback(
+        val errorMessage: String? = null,
+        val errorSource: String? = null
+    ) : Screen(navItem = NavItem.Feedback, titleRes = R.string.screen_title_feedback) {
         @Composable
         override fun Content(
                 navController: NavController,
@@ -1662,7 +1665,11 @@ sealed class Screen(
                 onError: (String) -> Unit,
                 onGestureConsumed: (Boolean) -> Unit
         ) {
-            FeedbackScreen(onNavigateBack = onGoBack)
+            FeedbackScreen(
+                onNavigateBack = onGoBack,
+                initialErrorMessage = errorMessage,
+                initialErrorSource = errorSource
+            )
         }
     }
 
@@ -1700,7 +1707,7 @@ object OperitRouter {
             NavItem.Agreement -> Screen.Agreement
             NavItem.Workflow -> Screen.Workflow
             NavItem.ModelConfig -> Screen.ModelConfig
-            NavItem.Feedback -> Screen.Feedback
+            NavItem.Feedback -> Screen.Feedback()
             else -> Screen.AiChat
         }
     }

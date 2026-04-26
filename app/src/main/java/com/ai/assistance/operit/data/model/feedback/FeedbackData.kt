@@ -3,11 +3,22 @@ package com.ai.assistance.operit.data.model.feedback
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class ErrorContext(
+    val errorMessage: String = "",
+    val errorSource: String = "",
+    val errorCategory: String = ""
+)
+
+@Serializable
 data class FeedbackRequest(
     val content: String,
     val logs: String,
     val deviceInfo: DeviceInfo,
-    val timestamp: Long
+    val timestamp: Long,
+    val errorContext: ErrorContext? = null,
+    val hermesErrorLogs: String? = null,
+    val hermesAgentLogs: String? = null,
+    val packageLogs: String? = null
 )
 
 @Serializable

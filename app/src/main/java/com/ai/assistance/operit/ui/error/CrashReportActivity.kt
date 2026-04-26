@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
@@ -43,6 +44,7 @@ import com.ai.assistance.operit.R
 import com.ai.assistance.operit.ui.features.toolbox.screens.logcat.LogcatExportHelper
 import com.ai.assistance.operit.ui.main.MainActivity
 import com.ai.assistance.operit.ui.theme.OperitTheme
+import com.ai.assistance.operit.util.CrashFeedbackBridge
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -178,6 +180,28 @@ fun CrashReportScreen(stackTrace: String) {
                         }
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                         Text(stringResource(id = R.string.crash_report_export_logs_button))
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Send Feedback button
+                    OutlinedButton(
+                        onClick = {
+                            CrashFeedbackBridge.savePendingCrashFeedback(context, stackTrace)
+                            restartApp(context)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.RateReview,
+                            contentDescription = null,
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(stringResource(id = R.string.crash_report_send_feedback))
                     }
 
                     if (logExportMessage != null) {

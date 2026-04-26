@@ -6,10 +6,16 @@ import com.ai.assistance.operit.api.chat.enhance.ConversationMarkupManager
 import com.ai.assistance.operit.api.chat.enhance.MultiServiceManager
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
+import com.ai.assistance.operit.core.config.SystemPromptConfig
+import com.ai.assistance.operit.core.config.SystemToolPrompts
+import com.ai.assistance.operit.core.tools.AIToolHandler
 import com.ai.assistance.operit.core.tools.StringResultData
+import com.ai.assistance.operit.core.tools.packTool.PackageManager
 import com.ai.assistance.operit.data.model.FunctionType
 import com.ai.assistance.operit.data.model.ToolResult
+import com.ai.assistance.operit.data.preferences.ApiPreferences
 import com.ai.assistance.operit.hermes.gateway.HermesGatewayPreferences
+import com.ai.assistance.operit.util.LocaleUtils
 import com.ai.assistance.operit.util.stream.Stream
 import com.ai.assistance.operit.util.stream.StreamCollector
 import com.ai.assistance.operit.util.stream.stream
@@ -44,17 +50,63 @@ class HermesAdapter private constructor(private val context: Context) {
         } else {
             serviceManager.getServiceForFunction(functionType)
         }
+
+        // Determine whether this is a gateway call (no chatHistory provided).
+        // Gateway callers pass an empty chatHistory; the AI therefore lacks a
+        // system prompt and tool definitions.  We build both here so the model
+        // knows it is running on an Android device with full tool access.
+        val isGatewayCall = chatHistory.isEmpty()
+
+        val apiPrefs = ApiPreferences.getInstance(context.applicationContext)
+        val enableTools = apiPrefs.enableToolsFlow.first()
+        val useEnglish = LocaleUtils.getCurrentLanguage(context.applicationContext)
+            .lowercase().startsWith("en")
+
+        // --- Tool list ---------------------------------------------------
+        val allTools = if (isGatewayCall && enableTools) {
+            val categories = if (useEnglish) {
+                SystemToolPrompts.getAIAllCategoriesEn()
+            } else {
+                SystemToolPrompts.getAIAllCategoriesCn()
+            }
+            categories.flatMap { it.tools }
+        } else null
+
+        val openAiToolSchemas = allTools?.let(::toolPromptsToOpenAiSchemas) ?: emptyList()
+        val validNames = extractToolNames(openAiToolSchemas)
+
         val server = OperitChatCompletionServer(
             context = context.applicationContext,
-            service = resolvedService
+            service = resolvedService,
+            availableTools = allTools
         )
         val dispatcher = OperitToolDispatcher(context.applicationContext)
 
-        val openAiMessages = buildOpenAiMessages(chatHistory, message)
+        // --- Messages (with system prompt for gateway) -------------------
+        val openAiMessages = if (isGatewayCall) {
+            val pkgMgr = PackageManager.getInstance(
+                context.applicationContext,
+                AIToolHandler.getInstance(context.applicationContext))
+            val systemPrompt = SystemPromptConfig.getSystemPrompt(
+                context = context.applicationContext,
+                packageManager = pkgMgr,
+                useEnglish = useEnglish,
+                enableTools = enableTools,
+                enableMemoryQuery = apiPrefs.enableMemoryQueryFlow.first(),
+                useToolCallApi = false   // XML-in-text: tools described inside prompt
+            )
+            val msgs = ArrayList<Map<String, Any?>>(2)
+            msgs.add(mapOf("role" to "system", "content" to systemPrompt))
+            msgs.add(mapOf("role" to "user", "content" to message))
+            msgs
+        } else {
+            buildOpenAiMessages(chatHistory, message)
+        }
 
         Log.d(TAG, "sendMessage: chatId=$chatId historyTurns=${chatHistory.size} " +
             "msgLen=${message.length} functionType=$functionType maxTokens=$maxTokens " +
-            "configOverride=$chatModelConfigIdOverride")
+            "configOverride=$chatModelConfigIdOverride gateway=$isGatewayCall " +
+            "tools=${allTools?.size ?: 0}")
 
         return stream {
             val collector: StreamCollector<String> = this
@@ -65,8 +117,8 @@ class HermesAdapter private constructor(private val context: Context) {
 
             val loop = HermesAgentLoop(
                 server = server,
-                toolSchemas = emptyList(),
-                validToolNames = emptySet(),
+                toolSchemas = openAiToolSchemas,
+                validToolNames = validNames,
                 toolDispatcher = dispatcher,
                 maxTurns = configuredMaxTurns,
                 taskId = chatId,

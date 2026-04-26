@@ -1,9 +1,12 @@
 package com.ai.assistance.operit.ui.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.ai.assistance.operit.R
 
-/** 
+/**
  * 错误弹窗组件，完整显示错误消息内容，包括堆栈跟踪
  * 不做任何简化或截取处理，保持错误消息的原始格式
  */
@@ -32,9 +35,10 @@ import com.ai.assistance.operit.R
 fun ErrorDialog(
         errorMessage: String,
         onDismiss: () -> Unit,
+        onReportError: ((String) -> Unit)? = null,
         properties: DialogProperties =
                 DialogProperties(
-                    dismissOnBackPress = true, 
+                    dismissOnBackPress = true,
                     dismissOnClickOutside = true
                 )
 ) {
@@ -50,14 +54,14 @@ fun ErrorDialog(
                 Box(
                         modifier =
                                 Modifier.padding(vertical = 8.dp)
-                                        .heightIn(max = 350.dp) // 恢复适当的最大高度
-                                        .verticalScroll(scrollState) // 添加垂直滚动功能
+                                        .heightIn(max = 350.dp)
+                                        .verticalScroll(scrollState)
                 ) {
                     SelectionContainer {
                         Text(
                                 text = displayMessage,
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontFamily = FontFamily.Monospace // 保留等宽字体，便于阅读堆栈信息
+                                    fontFamily = FontFamily.Monospace
                                 ),
                                 textAlign = TextAlign.Start,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -66,10 +70,18 @@ fun ErrorDialog(
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { clipboardManager.setText(AnnotatedString(displayMessage)) }
-                ) {
-                    Text(stringResource(android.R.string.copy))
+                Row {
+                    TextButton(
+                        onClick = { clipboardManager.setText(AnnotatedString(displayMessage)) }
+                    ) {
+                        Text(stringResource(android.R.string.copy))
+                    }
+                    if (onReportError != null) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        TextButton(onClick = { onReportError(displayMessage) }) {
+                            Text(stringResource(R.string.feedback_report_error))
+                        }
+                    }
                 }
             },
             confirmButton = {

@@ -227,6 +227,26 @@ object ToolExecutionManager {
             runCatching { JSONObject(alt) }.getOrNull()?.let { return it }
         }
 
+        // 4. HTML entity unescape: handles cases where XML escaping was not reversed
+        val htmlUnescaped = raw
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&amp;", "&")
+        if (htmlUnescaped != raw) {
+            runCatching { JSONObject(htmlUnescaped) }.getOrNull()?.let { return it }
+            // Also try double-stringify recovery on the HTML-unescaped result
+            val htmlThenStrip = htmlUnescaped
+                .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
+                .replace("\\\"", "\"")
+                .replace("\\\\/", "/")
+                .replace("\\\\", "\\")
+            if (htmlThenStrip != htmlUnescaped) {
+                runCatching { JSONObject(htmlThenStrip) }.getOrNull()?.let { return it }
+            }
+        }
+
         return null
     }
 

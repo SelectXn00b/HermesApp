@@ -716,9 +716,17 @@ class FeishuAdapter(
         val reactionType = event.optJSONObject("reaction_type") ?: return
         val emoji = reactionType.optString("emoji_type", "")
         val messageId = event.optString("message_id", "")
-        val operatorId = event.optJSONObject("operator")?.optJSONObject("operator_id")?.optString("open_id", "") ?: ""
+        // SDK path puts operator in event.user_id.open_id;
+        // WebSocket path puts it in event.operator.operator_id.open_id.
+        // Try both so we always resolve the operator correctly.
+        val operatorId = event.optJSONObject("operator")
+            ?.optJSONObject("operator_id")
+            ?.optString("open_id", "")
+            ?: event.optJSONObject("user_id")
+                ?.optString("open_id", "")
+            ?: ""
 
-        if (operatorId == _botUserId) return // Ignore bot's own reactions
+        if (operatorId.isEmpty() || operatorId == _botUserId) return // Ignore bot's own reactions
 
         // Route reaction as a synthetic text event
         val chatId = event.optString("chat_id", "")

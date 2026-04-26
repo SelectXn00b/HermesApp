@@ -94,6 +94,19 @@ fun OperitApp(
     var topBarTitleContent by remember { mutableStateOf<TopBarTitleContent?>(null) }
     var lastHandledShortcutRequestId by remember { mutableStateOf(0L) }
 
+    // Check for pending crash feedback and navigate to Feedback screen
+    LaunchedEffect(Unit) {
+        val crashTrace = com.ai.assistance.operit.util.CrashFeedbackBridge
+            .consumePendingCrashFeedback(context)
+        if (crashTrace != null) {
+            currentScreen = Screen.Feedback(
+                errorMessage = crashTrace,
+                errorSource = "crash"
+            )
+            selectedItem = NavItem.Feedback
+        }
+    }
+
     LaunchedEffect(shortcutNavRequestId, shortcutNavRequest) {
         val requestNavItem = shortcutNavRequest
         if (requestNavItem == null || shortcutNavRequestId == 0L) {
