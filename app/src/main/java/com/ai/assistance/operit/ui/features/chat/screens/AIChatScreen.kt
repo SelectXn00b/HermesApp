@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -117,6 +118,7 @@ fun AIChatScreen(
         onNavigateToModelConfig: () -> Unit = {},
         onNavigateToModelPrompts: () -> Unit = {},
         onNavigateToPackageManager: () -> Unit = {},
+        onNavigateToFeedback: () -> Unit = {},
         onGestureConsumed: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -838,6 +840,15 @@ val actualViewModel: ChatViewModel = viewModel ?: viewModel { ChatViewModel(cont
                                 else appBarContentColor
                         )
                     }
+                }
+
+                // 反馈按钮
+                IconButton(onClick = { onNavigateToFeedback() }) {
+                    Icon(
+                            imageVector = Icons.Default.RateReview,
+                            contentDescription = stringResource(R.string.nav_feedback),
+                            tint = appBarContentColor
+                    )
                 }
             }
         }

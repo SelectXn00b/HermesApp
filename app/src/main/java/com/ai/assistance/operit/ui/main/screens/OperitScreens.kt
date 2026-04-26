@@ -90,6 +90,7 @@ import com.ai.assistance.operit.ui.features.toolbox.screens.autoglm.AutoGlmOneCl
 import com.ai.assistance.operit.ui.features.toolbox.screens.autoglm.AutoGlmToolScreen
 import com.ai.assistance.operit.ui.features.toolbox.screens.skillrecorder.SkillRecorderScreen
 import com.ai.assistance.operit.ui.features.toolbox.screens.skillrecorder.SkillRecorderReviewScreen
+import com.ai.assistance.operit.ui.features.feedback.FeedbackScreen
 import com.ai.assistance.operit.ui.features.update.screens.UpdateScreen
 import com.ai.assistance.operit.ui.features.workflow.screens.WorkflowListScreen
 import com.ai.assistance.operit.ui.features.workflow.screens.WorkflowDetailScreen
@@ -153,6 +154,7 @@ sealed class Screen(
                     onNavigateToModelConfig = { navigateTo(ModelConfig) },
                     onNavigateToModelPrompts = { navigateTo(ModelPromptsSettings) },
                     onNavigateToPackageManager = { navigateTo(Packages) },
+                    onNavigateToFeedback = { navigateTo(Feedback) },
                     onLoading = onLoading,
                     onError = onError,
                     onGestureConsumed = onGestureConsumed
@@ -1649,6 +1651,22 @@ sealed class Screen(
         }
     }
 
+    data object Feedback : Screen(navItem = NavItem.Feedback, titleRes = R.string.screen_title_feedback) {
+        @Composable
+        override fun Content(
+                navController: NavController,
+                navigateTo: ScreenNavigationHandler,
+                updateNavItem: NavItemChangeHandler,
+                onGoBack: () -> Unit,
+                hasBackgroundImage: Boolean,
+                onLoading: (Boolean) -> Unit,
+                onError: (String) -> Unit,
+                onGestureConsumed: (Boolean) -> Unit
+        ) {
+            FeedbackScreen(onNavigateBack = onGoBack)
+        }
+    }
+
     // 获取屏幕标题
     @Composable
     open fun getTitle(): String = titleRes?.let { stringResource(it) } ?: ""
@@ -1682,6 +1700,7 @@ object OperitRouter {
             NavItem.Agreement -> Screen.Agreement
             NavItem.Workflow -> Screen.Workflow
             NavItem.ModelConfig -> Screen.ModelConfig
+            NavItem.Feedback -> Screen.Feedback
             else -> Screen.AiChat
         }
     }

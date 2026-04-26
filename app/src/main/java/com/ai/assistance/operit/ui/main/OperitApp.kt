@@ -242,6 +242,7 @@ fun OperitApp(
             R.string.nav_group_system,
             listOfNotNull(
                 NavItem.Settings,
+                NavItem.Feedback,
                 NavItem.Help,
                 NavItem.About
             )

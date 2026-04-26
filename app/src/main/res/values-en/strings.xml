@@ -7331,4 +7331,14 @@
     <string name="skill_recorder_saved">Saved as Skill</string>
     <string name="skill_recorder_save_dialog_title">Save as Skill</string>
     <string name="skill_recorder_skill_name">Skill Name</string>
+
+    <!-- Feedback -->
+    <string name="nav_feedback">Feedback</string>
+    <string name="screen_title_feedback">Feedback</string>
+    <string name="feedback_description_hint">Describe the issue or suggestion…</string>
+    <string name="feedback_submit">Submit Feedback</string>
+    <string name="feedback_success">Feedback submitted successfully, thank you!</string>
+    <string name="feedback_error">Submit failed: %s</string>
+    <string name="feedback_logs_attached">App logs auto-attached (%d lines)</string>
+    <string name="feedback_device_info">Device info auto-attached</string>
 </resources>

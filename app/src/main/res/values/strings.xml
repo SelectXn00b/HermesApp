@@ -7476,4 +7476,14 @@
     <string name="skill_recorder_saved">已保存为 Skill</string>
     <string name="skill_recorder_save_dialog_title">保存为 Skill</string>
     <string name="skill_recorder_skill_name">Skill 名称</string>
+
+    <!-- Feedback -->
+    <string name="nav_feedback">反馈</string>
+    <string name="screen_title_feedback">反馈</string>
+    <string name="feedback_description_hint">请描述您遇到的问题或建议…</string>
+    <string name="feedback_submit">提交反馈</string>
+    <string name="feedback_success">反馈提交成功，感谢您的反馈！</string>
+    <string name="feedback_error">提交失败: %s</string>
+    <string name="feedback_logs_attached">应用日志已自动附加（%d 行）</string>
+    <string name="feedback_device_info">设备信息已自动附加</string>
 </resources>

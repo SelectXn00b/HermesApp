@@ -91,7 +91,7 @@ fun DrawerContent(
                 topContentPadding ?:
                 WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         val fixedBottomItems = remember {
-                setOf(NavItem.Settings, NavItem.Help, NavItem.About)
+                setOf(NavItem.Settings, NavItem.Help, NavItem.About, NavItem.Feedback)
         }
         val quickActionItems = remember {
                 setOf(NavItem.Packages, NavItem.Workflow)
@@ -706,6 +706,13 @@ private fun DrawerBottomShortcutRow(
                         selected = selectedItem == NavItem.Settings,
                         appearance = appearance,
                         onClick = { onNavItemClick(NavItem.Settings) }
+                )
+                BottomShortcutDrawerItem(
+                        modifier = Modifier.weight(1f),
+                        item = NavItem.Feedback,
+                        selected = selectedItem == NavItem.Feedback,
+                        appearance = appearance,
+                        onClick = { onNavItemClick(NavItem.Feedback) }
                 )
         }
 }

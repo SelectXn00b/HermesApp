@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Token
@@ -65,4 +66,6 @@ sealed class NavItem(val route: String, val titleResId: Int, val icon: ImageVect
         object Workflow : NavItem("workflow", R.string.nav_workflow, Icons.Default.AccountTree)
         object ModelConfig :
                 NavItem("model_config", R.string.screen_title_model_config, Icons.Default.Api)
+        object Feedback :
+                NavItem("feedback", R.string.nav_feedback, Icons.Default.RateReview)
 }
