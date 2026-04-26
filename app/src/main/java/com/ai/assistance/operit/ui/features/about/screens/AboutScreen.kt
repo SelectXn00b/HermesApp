@@ -57,7 +57,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-private const val GITHUB_PROJECT_URL = "https://github.com/AAswordman/Operit"
+private const val GITHUB_PROJECT_URL = "https://github.com/SelectXn00b/HermesApp"
 
 private enum class PatchUpdatePhase {
     SELECTING_MIRROR,

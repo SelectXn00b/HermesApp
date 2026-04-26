@@ -579,8 +579,8 @@
     <string name="about_title">About Hermes</string>
     <string name="about_version">Version: %1$s</string>
     <string name="about_description">Hermes is an intelligent assistant application that helps users use their devices more efficiently, providing interface analysis, chat conversations, and more.</string>
-    <string name="about_developer">Developer: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
-    <string name="about_contact">Contact Us: aaswordsman@foxmail.com</string>
+    <string name="about_developer">Developer: &lt;a href="https://github.com/SelectXn00b"&gt;SelectXn00b&lt;/a&gt;</string>
+    <string name="about_contact">Contact Us: xiaomochn@gmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/SelectXn00b/HermesApp"&gt;GitHub: https://github.com/SelectXn00b/HermesApp&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 Hermes. All Rights Reserved.</string>
     <string name="star_on_github">Star on GitHub</string>

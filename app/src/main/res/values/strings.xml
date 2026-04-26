@@ -575,8 +575,8 @@
     <string name="about_title">关于 墨思</string>
     <string name="about_version">版本: %1$s</string>
     <string name="about_description">墨思是一个智能助手应用，能够帮助用户更高效地使用设备，提供界面分析、聊天对话等功能。</string>
-    <string name="about_developer">开发者: &lt;a href="https://github.com/AAswordman"&gt;AAswordman&lt;/a&gt;</string>
-    <string name="about_contact">联系我们: aaswordsman@foxmail.com</string>
+    <string name="about_developer">开发者: &lt;a href="https://github.com/SelectXn00b"&gt;SelectXn00b&lt;/a&gt;</string>
+    <string name="about_contact">联系我们: xiaomochn@gmail.com</string>
     <string name="about_website">&lt;a href="https://github.com/SelectXn00b/HermesApp"&gt;GitHub: https://github.com/SelectXn00b/HermesApp&lt;/a&gt;</string>
     <string name="about_copyright">© 2025 - 2026 墨思. 保留所有权利。</string>
     <string name="star_on_github">在 GitHub 点个 Star</string>
