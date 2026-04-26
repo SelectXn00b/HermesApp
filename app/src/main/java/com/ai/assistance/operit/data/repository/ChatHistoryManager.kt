@@ -921,6 +921,19 @@ class ChatHistoryManager private constructor(private val context: Context) {
         }
     }
 
+    /**
+     * Ensure a [ChatHistory] row exists with the given [chatId]. Used by the
+     * Hermes gateway to surface inbound-message sessions (chatId = `gw:…`) in
+     * the chat list even though they are driven by a platform adapter instead
+     * of the normal [ChatViewModel] path.
+     */
+    suspend fun ensureChatWithId(chatId: String, title: String): Boolean {
+        if (chatExists(chatId)) return false
+        val history = ChatHistory(id = chatId, title = title, messages = emptyList())
+        chatDao.insertChat(ChatEntity.fromChatHistory(history))
+        return true
+    }
+
     suspend fun canDeleteChatHistory(chatId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {

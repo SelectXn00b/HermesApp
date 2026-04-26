@@ -1,6 +1,7 @@
 package com.ai.assistance.operit.hermes.gateway
 
 import android.content.Context
+import android.util.Log
 import com.xiaomo.hermes.hermes.gateway.GatewayConfig
 import com.xiaomo.hermes.hermes.gateway.Platform
 import com.xiaomo.hermes.hermes.gateway.PlatformConfig
@@ -40,7 +41,14 @@ object HermesGatewayConfigBuilder {
             HermesGatewayPreferences.PLATFORM_FEISHU,
             HermesGatewayPreferences.SECRET_FEISHU_APP_SECRET,
         )
-        if (appId.isEmpty() || appSecret.isEmpty()) return null
+        if (appId.isEmpty() || appSecret.isEmpty()) {
+            Log.w(
+                TAG,
+                "buildFeishu: skipped — app_id=${if (appId.isEmpty()) "MISSING" else "set(len=${appId.length})"} " +
+                    "app_secret=${if (appSecret.isEmpty()) "MISSING" else "set(len=${appSecret.length})"}",
+            )
+            return null
+        }
 
         val verificationToken = prefs.readSecret(
             HermesGatewayPreferences.PLATFORM_FEISHU,
@@ -79,7 +87,10 @@ object HermesGatewayConfigBuilder {
             HermesGatewayPreferences.PLATFORM_WEIXIN,
             HermesGatewayPreferences.SECRET_WEIXIN_LOGIN_TOKEN,
         )
-        if (accountId.isEmpty()) return null
+        if (accountId.isEmpty()) {
+            Log.w(TAG, "buildWeixin: skipped — account_id MISSING")
+            return null
+        }
 
         val extra = buildMap<String, Any> {
             put("account_id", accountId)
@@ -111,4 +122,6 @@ object HermesGatewayConfigBuilder {
         field: String,
     ): List<String> = prefs.platformPolicyFieldFlow(platform, field, "").first()
         .split(',', '\n').map { it.trim() }.filter { it.isNotEmpty() }
+
+    private const val TAG = "HermesGatewayCfg"
 }

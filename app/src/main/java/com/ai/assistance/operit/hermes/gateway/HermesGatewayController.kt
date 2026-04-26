@@ -2,6 +2,8 @@ package com.ai.assistance.operit.hermes.gateway
 
 import android.content.Context
 import android.util.Log
+import com.ai.assistance.operit.data.model.ChatMessage
+import com.ai.assistance.operit.data.repository.ChatHistoryManager
 import com.ai.assistance.operit.hermes.HermesAdapter
 import com.xiaomo.hermes.hermes.gateway.GatewayRunner
 import kotlinx.coroutines.CoroutineScope
@@ -94,18 +96,44 @@ class HermesGatewayController private constructor(private val appContext: Contex
      * Feed [text] into the app's HermesAdapter, collect all streamed chunks,
      * and strip internal `<think>` / `<tool>` / `<tool_result>` / `<status>`
      * markup so the gateway only echoes the user-visible plain text back to
-     * the platform.
+     * the platform. Also persists both the inbound user message and the
+     * outbound assistant reply into [ChatHistoryManager] so the session
+     * surfaces in the main 会话记录 UI alongside in-app chats.
      */
     private suspend fun runHermesAgent(
         text: String,
         sessionKey: String,
         chatId: String,
     ): String {
+        val historyChatId = "gw:$sessionKey:$chatId"
         val adapter = HermesAdapter.getInstance(appContext)
-        val stream = adapter.sendMessage(message = text, chatId = "gw:$sessionKey:$chatId")
+        val history = ChatHistoryManager.getInstance(appContext)
+
+        try {
+            history.ensureChatWithId(historyChatId, title = gatewayChatTitle(sessionKey, chatId))
+            history.addMessage(historyChatId, ChatMessage(sender = "user", content = text))
+        } catch (e: Throwable) {
+            Log.w(TAG, "failed to persist inbound gateway message: ${e.message}")
+        }
+
+        val stream = adapter.sendMessage(message = text, chatId = historyChatId)
         val raw = StringBuilder()
         stream.collect { raw.append(it) }
-        return stripInternalMarkup(raw.toString()).trim().ifEmpty { "(empty response)" }
+        val reply = stripInternalMarkup(raw.toString()).trim().ifEmpty { "(empty response)" }
+
+        try {
+            history.addMessage(historyChatId, ChatMessage(sender = "ai", content = reply))
+        } catch (e: Throwable) {
+            Log.w(TAG, "failed to persist outbound gateway reply: ${e.message}")
+        }
+
+        return reply
+    }
+
+    private fun gatewayChatTitle(sessionKey: String, chatId: String): String {
+        val platform = sessionKey.substringBefore(':').ifEmpty { sessionKey }
+        val shortChat = chatId.substringBefore('@').take(24).ifEmpty { chatId.take(24) }
+        return "$platform: $shortChat"
     }
 
     private fun stripInternalMarkup(xml: String): String {
