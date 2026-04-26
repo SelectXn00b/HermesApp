@@ -184,7 +184,7 @@ object ToolExecutionManager {
             return emptyList()
         }
 
-        val paramsObject = runCatching { JSONObject(paramsRaw) }.getOrNull() ?: return emptyList()
+        val paramsObject = parseProxyParamsRobust(paramsRaw) ?: return emptyList()
         val forwardedParameters = mutableListOf<ToolParameter>()
         val keys = paramsObject.keys()
         while (keys.hasNext()) {
@@ -198,6 +198,36 @@ object ToolExecutionManager {
             forwardedParameters.add(ToolParameter(name = key, value = valueString))
         }
         return forwardedParameters
+    }
+
+    /**
+     * Robustly parse a proxy params string that may have been double-stringified or over-escaped.
+     */
+    private fun parseProxyParamsRobust(raw: String): JSONObject? {
+        // 1. Direct parse
+        runCatching { JSONObject(raw) }.getOrNull()?.let { return it }
+
+        // 2. Strip outer quotes + unescape
+        val stripped = raw
+            .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
+            .replace("\\\"", "\"")
+            .replace("\\\\/", "/")
+            .replace("\\\\", "\\")
+        if (stripped != raw) {
+            runCatching { JSONObject(stripped) }.getOrNull()?.let { return it }
+        }
+
+        // 3. Reverse order: unescape first, then strip quotes
+        val alt = raw
+            .replace("\\\"", "\"")
+            .replace("\\\\/", "/")
+            .replace("\\\\", "\\")
+            .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
+        if (alt != raw && alt != stripped) {
+            runCatching { JSONObject(alt) }.getOrNull()?.let { return it }
+        }
+
+        return null
     }
 
     /**

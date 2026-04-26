@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import com.ai.assistance.operit.util.AppLogger
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -21,6 +22,54 @@ import org.json.JSONObject
  * This file contains all tool registrations centralized for easier maintenance and integration It
  * extracts the registerTools logic from AIToolHandler into a dedicated file
  */
+
+/**
+ * Attempt to parse the raw params string from a package_proxy call into a JSONObject.
+ *
+ * Handles several common malformations produced by the bridge layer:
+ *  1. Normal JSON object  →  parse directly.
+ *  2. Blank / empty       →  return empty JSONObject (tool has no params).
+ *  3. Double-stringified   →  the value is a JSON-encoded string wrapping the real object,
+ *     e.g. `"{\"key\":\"value\"}"`.  Strip the outer quotes and unescape, then parse.
+ *  4. Over-escaped          →  stray `\"` patterns that survived an extra serialisation round.
+ *
+ * Returns `null` only when all recovery strategies fail.
+ */
+private fun parseProxyParams(raw: String): JSONObject? {
+    if (raw.isBlank()) return JSONObject()
+
+    // 1. Direct parse
+    try {
+        return JSONObject(raw)
+    } catch (_: Exception) { /* fall through */ }
+
+    // 2. Double-stringified: the outer value is a JSON string literal wrapping the real object.
+    //    e.g. raw = "\"{ \\\"k\\\": \\\"v\\\" }\""  or  raw = "{\\\"k\\\":\\\"v\\\"}"
+    val unescaped = raw
+        .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
+        .replace("\\\"", "\"")
+        .replace("\\\\/", "/")
+        .replace("\\\\", "\\")
+    if (unescaped != raw) {
+        try {
+            return JSONObject(unescaped)
+        } catch (_: Exception) { /* fall through */ }
+    }
+
+    // 3. Aggressive unescape: sometimes multiple escaping rounds leave stray backslashes.
+    val aggressiveClean = raw
+        .replace("\\\"", "\"")
+        .replace("\\\\/", "/")
+        .replace("\\\\", "\\")
+        .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
+    if (aggressiveClean != raw && aggressiveClean != unescaped) {
+        try {
+            return JSONObject(aggressiveClean)
+        } catch (_: Exception) { /* fall through */ }
+    }
+
+    return null
+}
 
 /**
  * Register all available tools with the AIToolHandler
@@ -674,32 +723,20 @@ fun registerAllTools(handler: AIToolHandler, context: Context) {
                 }
 
                 val paramsParams = tool.parameters.filter { it.name == "params" }
-                if (paramsParams.size != 1) {
-                    return@registerTool ToolResult(
-                        toolName = tool.name,
-                        success = false,
-                        result = StringResultData(""),
-                        error = "Exactly one params parameter is required"
-                    )
-                }
-                val paramsRaw = paramsParams.first().value.trim()
-                if (paramsRaw.isBlank()) {
-                    return@registerTool ToolResult(
-                        toolName = tool.name,
-                        success = false,
-                        result = StringResultData(""),
-                        error = "params must be a JSON object"
-                    )
-                }
+                val paramsRaw = paramsParams.firstOrNull()?.value?.trim().orEmpty()
 
-                val paramsObject = try {
-                    JSONObject(paramsRaw)
-                } catch (_: Exception) {
+                val paramsObject = parseProxyParams(paramsRaw)
+                if (paramsObject == null) {
+                    AppLogger.e(
+                        "ToolRegistration",
+                        "package_proxy params parse failed for tool=$targetToolName, " +
+                            "raw(len=${paramsRaw.length})=${paramsRaw.take(500)}"
+                    )
                     return@registerTool ToolResult(
                         toolName = tool.name,
                         success = false,
                         result = StringResultData(""),
-                        error = "params must be a valid JSON object"
+                        error = "params must be a valid JSON object, received: ${paramsRaw.take(200)}"
                     )
                 }
 
