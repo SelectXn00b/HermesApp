@@ -2,7 +2,7 @@
 # End-to-end 验证：新用户 → 选择预置 OpenRouter Key 路径
 #
 # 模拟"全新安装 + 点击 使用内置 OpenRouter Key 按钮"的场景：
-#   1. pm clear 清掉 app 所有 DataStore
+#   1. run-as rm 清掉 api_settings DataStore（保留 Keystore + gateway 凭证）
 #   2. 安装 APK
 #   3. 解密 BuiltInKeyProvider 里的内置 key，广播写入 default 配置
 #      (provider=OPENROUTER, model=openrouter/free — 与 ConfigurationScreen 里
@@ -67,56 +67,24 @@ fi
 log "device=$DEVICE"
 ADB="adb -s $DEVICE"
 
-### 2. 安装 + 清数据（先装再清，避免 install-after-clear 的 bind-application NPE race）
-### 备份 gateway 凭证（pm clear 会冲掉 Feishu/Weixin 绑定），clear 完再 restore 回去
+### 2. 安装 + 目标性清 API 相关的 DataStore
+### 原先用 pm clear 会把 Android Keystore 里的 EncryptedSharedPreferences master key 一起抹掉
+### (E/keystore2: Error::Km(VERIFICATION_FAILED)) 导致 gateway 加密凭证失活；改成 run-as rm
+### 只删 api_settings.preferences_pb，Keystore + gateway prefs + 其他一切都保留
 [[ -f "$APK_PATH" ]] || fail "$APK_PATH not found, build first: ./gradlew :app:assembleDebug"
 log "force-stop any running $PKG"
 $ADB shell am force-stop "$PKG" >/dev/null || true
 log "installing $APK_PATH"
 $ADB install -r -t "$APK_PATH" >/dev/null
 
-# gateway backup (only if already installed & has prefs — first-run case 是空的，跳过)
-GATEWAY_BACKUP_DIR="$(mktemp -d -t hermes-gwbk.XXXXXX)"
-trap 'rm -rf "$GATEWAY_BACKUP_DIR"' EXIT
-GATEWAY_HAS_BACKUP=0
-
-# exec-out 是 binary-safe 的 adb 通道（shell 会 mangle \r\n）
-$ADB exec-out "run-as $PKG sh -c 'cat shared_prefs/hermes_gateway_secrets.xml 2>/dev/null || true'" \
-    > "$GATEWAY_BACKUP_DIR/hermes_gateway_secrets.xml" 2>/dev/null || true
-$ADB exec-out "run-as $PKG sh -c 'cat files/datastore/hermes_gateway_preferences.preferences_pb 2>/dev/null || true'" \
-    > "$GATEWAY_BACKUP_DIR/hermes_gateway_preferences.preferences_pb" 2>/dev/null || true
-[[ -s "$GATEWAY_BACKUP_DIR/hermes_gateway_secrets.xml" ]] && GATEWAY_HAS_BACKUP=1
-[[ -s "$GATEWAY_BACKUP_DIR/hermes_gateway_preferences.preferences_pb" ]] && GATEWAY_HAS_BACKUP=1
-if [[ "$GATEWAY_HAS_BACKUP" == "1" ]]; then
-    log "backed up gateway prefs (secrets=$(stat -f%z "$GATEWAY_BACKUP_DIR/hermes_gateway_secrets.xml" 2>/dev/null || stat -c%s "$GATEWAY_BACKUP_DIR/hermes_gateway_secrets.xml" 2>/dev/null || echo 0)B policy=$(stat -f%z "$GATEWAY_BACKUP_DIR/hermes_gateway_preferences.preferences_pb" 2>/dev/null || stat -c%s "$GATEWAY_BACKUP_DIR/hermes_gateway_preferences.preferences_pb" 2>/dev/null || echo 0)B)"
-fi
-
-log "pm clear $PKG (wipe DataStore → 新用户状态)"
-$ADB shell pm clear "$PKG" >/dev/null
+log "wiping API-specific DataStore (preserves Keystore + gateway creds)"
+# 只删 API key 相关的 DataStore 文件，确保广播 SET_API_KEY 走到 new-user 默认路径
+# 其他文件（character_cards / custom_emoji / user_preferences / hermes_gateway_*）全部保留
+$ADB shell "run-as $PKG sh -c 'rm -f files/datastore/api_settings.preferences_pb files/datastore/model_configs.preferences_pb 2>/dev/null; true'" >/dev/null || true
 sleep 1
 
-# gateway restore BEFORE launch — cold start 会直接读到恢复后的文件
-if [[ "$GATEWAY_HAS_BACKUP" == "1" ]]; then
-    log "restoring gateway prefs"
-    # 用 on-device pipe 绕开 /sdcard 权限问题：shell UID 能读 /sdcard，run-as 切到 app UID 写入
-    if [[ -s "$GATEWAY_BACKUP_DIR/hermes_gateway_secrets.xml" ]]; then
-        $ADB push "$GATEWAY_BACKUP_DIR/hermes_gateway_secrets.xml" /sdcard/_hermes_gwbk_secrets.xml >/dev/null
-        $ADB shell "cat /sdcard/_hermes_gwbk_secrets.xml | run-as $PKG sh -c 'mkdir -p shared_prefs && cat > shared_prefs/hermes_gateway_secrets.xml && chmod 600 shared_prefs/hermes_gateway_secrets.xml'" >/dev/null || true
-        $ADB shell rm -f /sdcard/_hermes_gwbk_secrets.xml >/dev/null || true
-    fi
-    if [[ -s "$GATEWAY_BACKUP_DIR/hermes_gateway_preferences.preferences_pb" ]]; then
-        $ADB push "$GATEWAY_BACKUP_DIR/hermes_gateway_preferences.preferences_pb" /sdcard/_hermes_gwbk_policy.pb >/dev/null
-        $ADB shell "cat /sdcard/_hermes_gwbk_policy.pb | run-as $PKG sh -c 'mkdir -p files/datastore && cat > files/datastore/hermes_gateway_preferences.preferences_pb && chmod 600 files/datastore/hermes_gateway_preferences.preferences_pb'" >/dev/null || true
-        $ADB shell rm -f /sdcard/_hermes_gwbk_policy.pb >/dev/null || true
-    fi
-    # verify restore landed
-    RESTORED_SECRETS=$($ADB shell "run-as $PKG sh -c 'stat -c%s shared_prefs/hermes_gateway_secrets.xml 2>/dev/null || echo 0'" | tr -d '\r\n')
-    RESTORED_POLICY=$($ADB shell "run-as $PKG sh -c 'stat -c%s files/datastore/hermes_gateway_preferences.preferences_pb 2>/dev/null || echo 0'" | tr -d '\r\n')
-    log "restore verified (secrets=${RESTORED_SECRETS}B policy=${RESTORED_POLICY}B)"
-fi
-
 ### 3. 启动 app（模拟新用户首次打开 app，等 DataStore 初始化）
-log "launching app (cold start after pm clear)"
+log "launching app (cold start with wiped api_settings)"
 $ADB logcat -c
 $ADB shell am start -n "$MAIN_ACTIVITY" >/dev/null
 sleep "$WAIT_AFTER_LAUNCH_S"
