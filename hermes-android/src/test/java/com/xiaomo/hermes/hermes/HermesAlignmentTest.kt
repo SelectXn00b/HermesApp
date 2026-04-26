@@ -9,11 +9,14 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Hermes 对齐回归测试（CLAUDE.md §0.1 四指标）。
+ * Hermes 对齐回归测试（CLAUDE.md §0.1 三指标）。
  *
  * 当 `./gradlew :hermes-android:test` 执行时自动跑：
  *   - scan_stubs.py       → 空方法体 stub 数量 == 0
- *   - check_reverse.py    → Kotlin 端非白名单多余类/方法/常量数量 == 0
+ *
+ * （反向对齐 check_reverse.py 2026-04-26 已删除，不再检查多余类/方法/常量。
+ *  verify_align.py 和 deep_align.py 由 prevent-stop.sh 钩子在 commit 前守护，
+ *  JVM 单测只把 scan_stubs 这一项做成回归测试。）
  *
  * 如果本机没装 python3.11（比如纯 Android 开发环境），测试会 `assumeTrue`
  * 自动跳过而不是失败 — 这是 CI/本地通用的稳妥做法。
@@ -27,7 +30,6 @@ class HermesAlignmentTest {
     private lateinit var python: String
     private lateinit var workspace: File
     private lateinit var scriptsDir: File
-    private lateinit var hermesRoot: File
     private lateinit var androidRoot: File
 
     @Before
@@ -39,11 +41,9 @@ class HermesAlignmentTest {
         val moduleDir = File(System.getProperty("user.dir") ?: ".").absoluteFile
         workspace = resolveWorkspace(moduleDir)
         scriptsDir = File(workspace, "scripts/hermes-align/scripts")
-        hermesRoot = File(workspace, "reference/hermes-agent")
         androidRoot = File(moduleDir, "src/main/java/com/xiaomo/hermes")
 
         assumeTrue("scripts dir missing: $scriptsDir", scriptsDir.isDirectory)
-        assumeTrue("hermes Python root missing: $hermesRoot", hermesRoot.isDirectory)
         assumeTrue("hermes-android Kotlin root missing: $androidRoot", androidRoot.isDirectory)
     }
 
@@ -59,20 +59,6 @@ class HermesAlignmentTest {
         assertEquals(
             "§0.1 stub==0 regressed; see $reportJson",
             0, summary.getInt("stubs"))
-    }
-
-    @Test
-    fun `check_reverse reports zero non-whitelist extras`() {
-        val out = runPython(listOf(
-            File(scriptsDir, "check_reverse.py").absolutePath,
-            "--hermes", hermesRoot.absolutePath,
-            "--android", androidRoot.absolutePath,
-            "--json"))
-
-        val summary = JSONObject(out).getJSONObject("summary")
-        assertEquals("§0.1 extra_classes regressed",  0, summary.getInt("extra_classes"))
-        assertEquals("§0.1 extra_methods regressed",  0, summary.getInt("extra_methods"))
-        assertEquals("§0.1 extra_constants regressed", 0, summary.getInt("extra_constants"))
     }
 
     private fun assertTrue(msg: String, cond: Boolean) {

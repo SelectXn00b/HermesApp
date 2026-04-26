@@ -30,7 +30,7 @@
 
 **平台差异容许**: 函数体允许替换实现（Python SDK → OkHttp / Kotlin idiom / 显式 "not supported on Android" stub），**但签名与结构必须保持**。
 
-**回归守卫**: CLAUDE.md §2 四件套（verify_align / scan_stubs / check_reverse 只看"多余类" / deep_align）持续零。
+**回归守卫**: CLAUDE.md §2 三件套（verify_align / scan_stubs / deep_align）持续零。
 
 ### R-CORE-002: 与 Hermes 冲突时以 Hermes 为准
 
@@ -206,7 +206,7 @@ HermesApp 作为网关把 agent 能力接到外部 IM / 协作平台（飞书、
 
 ### R-GW-005: 其余平台维持类方法级对齐
 **来源**: `reference/hermes-agent/gateway/platforms/{telegram,slack,discord,wecom,matrix,whatsapp,signal,dingtalk,email,sms,api_server,webhook,homeassistant,mattermost,bluebubbles}.py`
-**行为**: 以上平台保持与 Python 上游的类 / 方法签名对齐（verify_align / check_reverse 零违规）；Android 上不可用的路径在方法体里返回显式"not supported on Android"；用户后续明确要完整跑通时按 R-GW-002 / 003 的方式补充实现。
+**行为**: 以上平台保持与 Python 上游的类 / 方法签名对齐（verify_align 零违规）；Android 上不可用的路径在方法体里返回显式"not supported on Android"；用户后续明确要完整跑通时按 R-GW-002 / 003 的方式补充实现。
 
 ### R-GW-006: Gateway 运行时前台服务
 **来源**: 无 Python 直接上游（Android 特有）；对应 Python runner 的生命周期
