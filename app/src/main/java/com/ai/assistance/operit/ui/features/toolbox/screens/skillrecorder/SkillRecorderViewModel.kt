@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingSession
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingState
+import com.ai.assistance.operit.data.repository.UIHierarchyManager
 import com.ai.assistance.operit.services.skillrecorder.SkillRecorderNotification
 import com.ai.assistance.operit.services.skillrecorder.SkillRecorderService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +26,23 @@ class SkillRecorderViewModel(application: Application) : AndroidViewModel(applic
     private val _isSaved = MutableStateFlow(false)
     val isSaved = _isSaved.asStateFlow()
 
+    /** true when user tried to start recording but accessibility service was not enabled */
+    private val _showAccessibilityPrompt = MutableStateFlow(false)
+    val showAccessibilityPrompt = _showAccessibilityPrompt.asStateFlow()
+
+    fun dismissAccessibilityPrompt() {
+        _showAccessibilityPrompt.value = false
+    }
+
     fun startRecording() {
-        SkillRecorderService.start(getApplication())
+        viewModelScope.launch {
+            val enabled = UIHierarchyManager.isAccessibilityServiceEnabled(getApplication())
+            if (!enabled) {
+                _showAccessibilityPrompt.value = true
+                return@launch
+            }
+            SkillRecorderService.start(getApplication())
+        }
     }
 
     fun pauseRecording() {

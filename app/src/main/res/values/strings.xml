@@ -7476,6 +7476,7 @@
     <string name="skill_recorder_saved">已保存为 Skill</string>
     <string name="skill_recorder_save_dialog_title">保存为 Skill</string>
     <string name="skill_recorder_skill_name">Skill 名称</string>
+    <string name="skill_recorder_accessibility_required">Skill 录制器需要无障碍服务来捕获屏幕操作。请先在系统设置中启用无障碍服务。</string>
 
     <!-- Feedback -->
     <string name="nav_feedback">反馈</string>

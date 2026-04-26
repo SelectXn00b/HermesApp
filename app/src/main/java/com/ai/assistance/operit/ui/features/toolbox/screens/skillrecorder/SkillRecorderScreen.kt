@@ -1,5 +1,7 @@
 package com.ai.assistance.operit.ui.features.toolbox.screens.skillrecorder
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +34,35 @@ fun SkillRecorderScreen(
 ) {
     val recordingState by viewModel.recordingState.collectAsState()
     val frameCount by viewModel.frameCount.collectAsState()
+    val showAccessibilityPrompt by viewModel.showAccessibilityPrompt.collectAsState()
     val context = LocalContext.current
+
+    // 无障碍服务未开启提示
+    if (showAccessibilityPrompt) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissAccessibilityPrompt() },
+            title = { Text(stringResource(R.string.a11y_service_not_enabled)) },
+            text = { Text(stringResource(R.string.skill_recorder_accessibility_required)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.dismissAccessibilityPrompt()
+                    try {
+                        context.startActivity(
+                            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    } catch (_: Exception) { }
+                }) {
+                    Text(stringResource(R.string.accessibility_wizard_open_settings))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissAccessibilityPrompt() }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 
     // 当进入 REVIEW 状态时导航到审阅页面
     LaunchedEffect(recordingState) {

@@ -7331,6 +7331,7 @@
     <string name="skill_recorder_saved">Saved as Skill</string>
     <string name="skill_recorder_save_dialog_title">Save as Skill</string>
     <string name="skill_recorder_skill_name">Skill Name</string>
+    <string name="skill_recorder_accessibility_required">Skill Recorder requires the accessibility service to capture screen operations. Please enable it in system settings first.</string>
 
     <!-- Feedback -->
     <string name="nav_feedback">Feedback</string>
