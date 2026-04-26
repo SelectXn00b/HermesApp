@@ -340,4 +340,27 @@ class BrowserToolTest {
         cleanupBrowser()
         cleanupAllBrowsers()
     }
+
+    // ── TC-TOOL-280-a: merges browser path ──
+    /**
+     * TC-TOOL-280-a — `_mergeBrowserPath("/opt:/usr/bin")` must preserve the
+     * caller's PATH prefix and append every entry from `_SANE_PATH_DIRS`.
+     * Supplements the more detailed test above by asserting the exact TC
+     * example and its canonical shape.
+     */
+    @Test
+    fun `merges browser path`() {
+        val merged = _mergeBrowserPath("/opt:/usr/bin")
+        assertTrue(
+            "merged path must start with caller's input: $merged",
+            merged.startsWith("/opt:/usr/bin:"),
+        )
+        for (dir in _SANE_PATH_DIRS) {
+            assertTrue("SANE dir $dir must appear in merged PATH", merged.contains(dir))
+        }
+        // Canonical order: caller's PATH comes first, SANE dirs follow.
+        val tailStart = merged.indexOf("/opt:/usr/bin") + "/opt:/usr/bin".length
+        val tail = merged.substring(tailStart)
+        assertTrue("SANE dirs must follow caller's PATH", tail.startsWith(":"))
+    }
 }

@@ -169,4 +169,44 @@ class HermesStateTest {
         val list = state.get("list")
         assertTrue(list is List<*>)
     }
+
+    /**
+     * TC-STATE-005-a — 并发 save 通过 FileChannel.lock 串行。
+     *
+     * Testing the real OS-level lock with two processes would need Robolectric
+     * + forked JVMs. Within one JVM, FileChannel.lock is exclusive (the second
+     * tryLock throws OverlappingFileLockException), which is a weaker guarantee
+     * than what Python's filelock gives us cross-process. We lock the contract
+     * at two layers:
+     *   1. Source-level: acquireLock calls channel.lock() on a .state.lock file
+     *      before delegating to the block.
+     *   2. Behavioral: save() creates the `.<name>.lock` sibling file and leaves
+     *      it on disk (released but not deleted, mirroring Python filelock).
+     */
+    @Test
+    fun `save uses file lock`() {
+        // Layer 1 — source-level guard.
+        val src = java.io.File(
+            "src/main/java/com/xiaomo/hermes/hermes/HermesState.kt"
+        )
+        assertTrue("HermesState.kt must be readable from cwd: ${src.absolutePath}", src.exists())
+        val text = src.readText()
+        assertTrue(
+            "acquireLock() must call FileChannel.lock()",
+            text.contains("channel.lock()")
+        )
+        assertTrue(
+            "acquireLock() must use a .<name>.lock sidecar file",
+            text.contains(".\${statePath.name}.lock")
+        )
+
+        // Layer 2 — behavioral: after save(), the .lock sidecar exists on disk.
+        state.set("sample", "v")
+        state.save()
+        val lockFile = java.io.File(tempDir, ".${stateFile.name}.lock")
+        assertTrue(
+            "expected lock file at ${lockFile.absolutePath} after save",
+            lockFile.exists()
+        )
+    }
 }

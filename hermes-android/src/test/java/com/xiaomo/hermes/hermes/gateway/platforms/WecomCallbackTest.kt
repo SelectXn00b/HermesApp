@@ -62,4 +62,28 @@ class WecomCallbackTest {
         runBlocking { adapter.disconnect() }  // must not throw
         assertFalse(adapter.isConnected.get())
     }
+
+    /**
+     * TC-GW-124-a: aggregator check — all public entry points on the Android
+     * stub adapter return a deny/no-op response. This is the "all entry points
+     * denied on Android" contract from the requirements doc, pinned in a
+     * single test so a future partial-implementation that forgets one path
+     * fails loudly.
+     */
+    @Test
+    fun `android denies all entry points`() {
+        val adapter = newAdapter()
+        val ok = runBlocking { adapter.connect() }
+        assertFalse("connect must deny on Android (no aiohttp server)", ok)
+
+        val result = runBlocking {
+            adapter.send(chatId = "x", content = "hi", replyTo = null, metadata = null)
+        }
+        assertFalse("send must deny on Android", result.success)
+        assertNotNull("send must return non-null error", result.error)
+
+        // disconnect is a no-op but must remain callable without throwing.
+        runBlocking { adapter.disconnect() }
+        assertFalse(adapter.isConnected.get())
+    }
 }

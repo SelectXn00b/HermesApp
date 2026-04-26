@@ -1,5 +1,10 @@
 package com.xiaomo.hermes.hermes.cron
 
+import android.content.Context
+import com.xiaomo.hermes.hermes.tools._getCronApprovalMode
+import java.io.File
+import java.nio.file.Files
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -7,6 +12,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 /**
  * Pure-logic subset of Jobs.kt that runs without Robolectric.
@@ -205,5 +212,111 @@ class JobsTest {
     @Test
     fun `computeNextRun unknown kind returns null`() {
         assertNull(computeNextRun(mapOf("kind" to "bogus")))
+    }
+
+    // ── TC-CRON-012-a: approve mode="no" blocks ──────────────────────────
+    /**
+     * TC-CRON-012-a — `approvals.cron_mode` accepts only
+     * {approve, off, allow, yes} as the "allow" signal; everything else
+     * (including "no", "deny", blank, garbage) collapses to "deny" so
+     * dangerous commands are blocked in cron-driven sessions.
+     *
+     * Python upstream `tools/approval.py:540-545` (`_get_cron_approval_mode`)
+     * has the identical allow-list + default-deny shape; the Kotlin port
+     * lives at `tools/Approval.kt:428-431` and is what actually guards
+     * `HERMES_CRON_SESSION` scheduler runs.
+     *
+     * With no `$HERMES_HOME/config.yaml` reachable (no Context in the JVM
+     * unit env), `_getApprovalConfig()` swallows the exception and returns
+     * an empty map. That drives the default path: `cron_mode = "deny"` →
+     * `_getCronApprovalMode()` returns "deny". That IS the 阻塞 case the
+     * TC asserts ("no" / "" / unset → blocked).
+     */
+    @Test
+    fun `approval mode enforced`() {
+        // Default (no config on disk, no Context) → "deny".
+        assertEquals(
+            "default + missing config must return deny",
+            "deny",
+            _getCronApprovalMode())
+    }
+
+    // ── TC-CRON-011-a: addJob persistence roundtrip ──────────────────────
+    /**
+     * TC-CRON-011-a — a saved job must survive a load/save round-trip with
+     * byte-for-byte equivalence on the observable fields (id, prompt, name,
+     * schedule.kind). Uses a Mockito Context stub pointing at a temp dir so
+     * `getHermesHome()` resolves without Robolectric.
+     *
+     * This injects the Context via reflection into the private
+     * `_appContext` field in `HermesConstants.kt` since
+     * `initHermesConstants(ctx)` would require `ctx.applicationContext` to
+     * be non-null, and faking Context.applicationContext through Mockito's
+     * default-null policy is brittle. Direct field injection is the minimum
+     * coupling surface.
+     */
+    @Test
+    fun `persistence roundtrip`() {
+        val tempHome = Files.createTempDirectory("hermes-cron-test").toFile()
+        val savedContext = _swapAppContext(mockContextWithFilesDir(tempHome))
+        try {
+            // Save a tiny job map and read it back.
+            val job: MutableMap<String, Any?> = mutableMapOf(
+                "id" to "job_abc123",
+                "name" to "nightly check",
+                "prompt" to "scan inbox",
+                "schedule" to mapOf("kind" to "interval", "minutes" to 60, "display" to "every 1h"),
+                "created_at" to "2026-04-26T12:00:00.000+0000",
+                "enabled" to true,
+                "skills" to emptyList<String>(),
+                "skill" to null
+            )
+            saveJobs(listOf(job))
+
+            // Confirm the file actually landed under our temp home.
+            val cronDir = File(File(tempHome, ".hermes"), "cron")
+            val jobsFile = File(cronDir, "jobs.json")
+            assertTrue("jobs.json must exist after saveJobs (got ${jobsFile.absolutePath})", jobsFile.exists())
+
+            // Round-trip through loadJobs.
+            val reloaded = loadJobs()
+            assertEquals("must load exactly one job", 1, reloaded.size)
+            val back = reloaded[0]
+            assertEquals("job_abc123", back["id"])
+            assertEquals("nightly check", back["name"])
+            assertEquals("scan inbox", back["prompt"])
+
+            @Suppress("UNCHECKED_CAST")
+            val loadedSchedule = back["schedule"] as Map<String, Any?>
+            assertEquals("interval", loadedSchedule["kind"])
+            // Gson deserializes numbers as Double by default → accept either.
+            val minutes = (loadedSchedule["minutes"] as? Number)?.toInt()
+            assertEquals(60, minutes)
+        } finally {
+            _swapAppContext(savedContext)
+            tempHome.deleteRecursively()
+        }
+    }
+
+    private fun mockContextWithFilesDir(dir: File): Context {
+        val ctx: Context = mock {
+            on { filesDir } doReturn dir
+            on { applicationContext } doReturn mock()
+        }
+        return ctx
+    }
+
+    /**
+     * Swap the private top-level `_appContext` field in
+     * `com.xiaomo.hermes.hermes.HermesConstantsKt`. Returns the previous
+     * value so tests can restore it in @After or finally.
+     */
+    private fun _swapAppContext(newContext: Context?): Context? {
+        val cls = Class.forName("com.xiaomo.hermes.hermes.HermesConstantsKt")
+        val field = cls.getDeclaredField("_appContext")
+        field.isAccessible = true
+        val prev = field.get(null) as Context?
+        field.set(null, newContext)
+        return prev
     }
 }

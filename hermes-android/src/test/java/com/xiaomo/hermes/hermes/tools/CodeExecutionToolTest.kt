@@ -235,4 +235,95 @@ class CodeExecutionToolTest {
             assertEquals(envOverride, _RPC_DIR)
         }
     }
+
+    // ── TC-TOOL-225-a: always toolError on android ──
+    /**
+     * TC-TOOL-225-a — every entry point that would run user code returns
+     * a structured toolError JSON on Android (no subprocess backend).
+     * Covered in aggregate here: executeCode, _executeRemote, and the
+     * schema-facing factory. Complements the existing per-entry tests.
+     */
+    @Test
+    fun `always toolError on android`() {
+        val paths = listOf(
+            executeCode(code = "print(1)"),
+            _executeRemote(code = "print(2)", taskId = "tid", enabledTools = null),
+            executeCode(code = "print(3)", taskId = "t1"),
+            executeCode(code = "print(4)", taskId = "t2", enabledTools = listOf("terminal")),
+        )
+        for (out in paths) {
+            @Suppress("UNCHECKED_CAST")
+            val parsed = gson.fromJson(out, Map::class.java) as Map<String, Any?>
+            assertEquals(
+                "every execute path must return the same error on Android: $parsed",
+                "code_execution tool is not available on Android",
+                parsed["error"],
+            )
+        }
+        // SANDBOX_AVAILABLE and SANDBOX_ALLOWED_TOOLS also lock the "no
+        // backend" contract.
+        assertFalse(SANDBOX_AVAILABLE)
+        assertTrue(SANDBOX_ALLOWED_TOOLS.isEmpty())
+    }
+
+    // ── TC-TOOL-226-a: rpc loops throw ──
+    /**
+     * TC-TOOL-226-a — both RPC loops (server and poll) must throw
+     * UnsupportedOperationException rather than silently returning, to
+     * prevent accidental sandbox RPC launch on Android.
+     */
+    @Test
+    fun `rpc loops throw`() {
+        var threwServer = false
+        var threwPoll = false
+        try { _rpcServerLoop() } catch (e: UnsupportedOperationException) {
+            threwServer = true
+            assertTrue("server error must mention Android", e.message!!.contains("not available on Android"))
+        }
+        try { _rpcPollLoop(rpcDir = "/tmp/any") } catch (e: UnsupportedOperationException) {
+            threwPoll = true
+            assertTrue("poll error must mention Android", e.message!!.contains("not available on Android"))
+        }
+        assertTrue("_rpcServerLoop must throw", threwServer)
+        assertTrue("_rpcPollLoop must throw", threwPoll)
+    }
+
+    // ── TC-TOOL-228-a: _resolveChildCwd env wins ──
+    /**
+     * TC-TOOL-228-a — in project mode, `_resolveChildCwd` must prefer the
+     * `TERMINAL_CWD` env var over `user.dir` when set (Python upstream
+     * `tools/code_execution_tool.py:1417-1428`; TC originally named
+     * `HERMES_CHILD_CWD` — corrected here to match both Kotlin and Python
+     * sources). We can't mutate the process env portably, so we cover the
+     * source-level contract plus the strict-mode counterpart: strict
+     * always returns staging; env-wins applies to project mode only.
+     */
+    @Test
+    fun `_resolveChildCwd env wins`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/CodeExecutionTool.kt")
+        assertTrue("CodeExecutionTool.kt must be readable", src.exists())
+        val text = src.readText()
+        assertTrue(
+            "_resolveChildCwd must consult TERMINAL_CWD env var",
+            text.contains("TERMINAL_CWD"),
+        )
+        assertTrue(
+            "_resolveChildCwd must short-circuit when mode != project",
+            text.contains("fun _resolveChildCwd(") &&
+                text.contains("if (mode != \"project\") return stagingDir"),
+        )
+        // Behavioural: strict mode always returns staging dir regardless.
+        val staging = File(System.getProperty("java.io.tmpdir") ?: "/tmp").absolutePath
+        assertEquals(
+            "strict mode must always return staging (env ignored)",
+            staging,
+            _resolveChildCwd("strict", staging),
+        )
+        // Project mode returns a real dir (env wins if set, else user.dir).
+        val projectCwd = _resolveChildCwd("project", staging)
+        assertTrue(
+            "project mode must return an existing directory: $projectCwd",
+            File(projectCwd).isDirectory,
+        )
+    }
 }

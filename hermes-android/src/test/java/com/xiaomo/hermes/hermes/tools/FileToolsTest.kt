@@ -242,4 +242,42 @@ class FileToolsTest {
         val a2 = _getFileOps("to-clear")
         assertTrue("instance should be fresh after clear", a1 !== a2)
     }
+
+    // ── TC-TOOL-077-a: moveFile cross-device fallback ──
+    /**
+     * TC-TOOL-077-a — `moveFile` must survive an EXDEV rename failure by
+     * falling back to copy-then-delete. On a single-volume JVM test host the
+     * renameTo() path always succeeds, so we dual-guard:
+     *   (a) source: the `else { copyTo(...); delete() }` fallback exists in
+     *       FileOperations.kt
+     *   (b) behavior: moveFile within tmpdir produces a success/no-error
+     *       WriteResult regardless of which branch runs.
+     */
+    @Test
+    fun `moveFile cross-device fallback`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/FileOperations.kt")
+        assertTrue("FileOperations.kt must be readable", src.exists())
+        val text = src.readText()
+        assertTrue(
+            "moveFile must attempt renameTo before falling back",
+            text.contains("srcFile.renameTo(dstFile)"),
+        )
+        assertTrue(
+            "moveFile must fall back to copyTo on rename failure",
+            text.contains("srcFile.copyTo(dstFile, overwrite = true)"),
+        )
+        assertTrue(
+            "moveFile must delete the source after copy fallback",
+            text.contains("srcFile.delete()"),
+        )
+        // Behavioural: whichever branch wins, the move must succeed.
+        val srcFile = tmp.newFile("mover-src.txt").apply { writeText("payload-EXDEV") }
+        val dstFile = File(tmp.root, "subdir/mover-dst.txt")
+        val ops = ShellFileOperations(cwd = tmp.root.absolutePath)
+        val result = ops.moveFile(srcFile.absolutePath, dstFile.absolutePath)
+        assertNull("move should succeed within tmpdir: ${result.error}", result.error)
+        assertFalse("source must be gone after move", srcFile.exists())
+        assertTrue("destination must exist after move", dstFile.exists())
+        assertEquals("payload-EXDEV", dstFile.readText())
+    }
 }

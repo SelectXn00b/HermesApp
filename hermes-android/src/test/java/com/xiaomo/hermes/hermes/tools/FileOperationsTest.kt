@@ -351,4 +351,147 @@ class FileOperationsTest {
         assertTrue(".jpeg" in IMAGE_EXTENSIONS)
         assertFalse("PNG" in IMAGE_EXTENSIONS)
     }
+
+    // ── TC-TOOL-097-a: notifyOtherToolCall resets per-task dedup ──
+    /**
+     * TC-TOOL-097-a — `notifyOtherToolCall(taskId)` must drop the task's
+     * read-dedup bucket so staleness logic restarts. Proof: reflectively
+     * seed the file-private `_readDedup` map, call the reset, assert the
+     * bucket is gone.
+     */
+    @Test
+    fun `notifyOtherToolCall resets dedup`() {
+        val clazz = Class.forName("com.xiaomo.hermes.hermes.tools.FileToolsKt")
+        val f = clazz.getDeclaredField("_readDedup")
+        f.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val readDedup = f.get(null) as java.util.concurrent.ConcurrentHashMap<
+            String,
+            java.util.concurrent.ConcurrentHashMap<String, Int>
+        >
+
+        val tid = "dedup-reset-${System.nanoTime()}"
+        readDedup[tid] = java.util.concurrent.ConcurrentHashMap<String, Int>().apply {
+            put("/tmp/a.txt", 3)
+        }
+        assertTrue("pre: bucket must exist", readDedup.containsKey(tid))
+
+        notifyOtherToolCall(tid)
+
+        assertFalse("post: bucket must be removed", readDedup.containsKey(tid))
+    }
+
+    // ── TC-TOOL-099-a: per-task cache on same file ──
+    /**
+     * TC-TOOL-099-a — `_getFileOps(taskId)` returns the same
+     * `ShellFileOperations` instance across successive calls for the same
+     * task id, so consecutive reads hit the shared cache.
+     */
+    @Test
+    fun `per-task cache on same file`() {
+        val tid = "cache-probe-${System.nanoTime()}"
+        try {
+            val a = _getFileOps(tid)
+            val b = _getFileOps(tid)
+            assertTrue("same taskId must return same ShellFileOperations instance", a === b)
+            // Different taskIds must have distinct instances.
+            val c = _getFileOps("$tid-other")
+            assertFalse("different taskId must yield a new instance", a === c)
+        } finally {
+            clearFileOpsCache(tid)
+            clearFileOpsCache("$tid-other")
+        }
+    }
+
+    // ── TC-TOOL-100-a: LRU eviction bounds caches ──
+    /**
+     * TC-TOOL-100-a — `_capReadTrackerData` must trim history / dedup /
+     * timestamps down to their declared caps. Supplements the existing
+     * `trims history beyond cap` / `trims dedup and timestamps` tests with
+     * a combined assertion that all three buckets are bounded by the caps
+     * simultaneously.
+     */
+    @Test
+    fun `LRU eviction bounds caches`() {
+        val history = java.util.LinkedHashSet<Any?>()
+        for (i in 1.._READ_HISTORY_CAP + 50) history.add("h-$i")
+        val dedup: MutableMap<Any?, Any?> = LinkedHashMap()
+        for (i in 1.._DEDUP_CAP + 50) dedup["d-$i"] = i
+        val ts: MutableMap<Any?, Any?> = LinkedHashMap()
+        for (i in 1.._READ_TIMESTAMPS_CAP + 50) ts["p-$i"] = i.toLong()
+
+        val bucket: MutableMap<String, Any?> = mutableMapOf(
+            "history" to history,
+            "dedup" to dedup,
+            "timestamps" to ts,
+        )
+        _capReadTrackerData(bucket)
+
+        @Suppress("UNCHECKED_CAST")
+        val h = bucket["history"] as java.util.LinkedHashSet<Any?>
+        @Suppress("UNCHECKED_CAST")
+        val d = bucket["dedup"] as Map<Any?, Any?>
+        @Suppress("UNCHECKED_CAST")
+        val t = bucket["timestamps"] as Map<Any?, Any?>
+        assertEquals("history trimmed to cap", _READ_HISTORY_CAP, h.size)
+        assertEquals("dedup trimmed to cap", _DEDUP_CAP, d.size)
+        assertEquals("timestamps trimmed to cap", _READ_TIMESTAMPS_CAP, t.size)
+        // The most-recently-added entries must be the ones kept (LRU semantics
+        // for LinkedHashSet / LinkedHashMap: iteration order is insertion order,
+        // eviction pops the head).
+        assertTrue(h.contains("h-${_READ_HISTORY_CAP + 50}"))
+        assertFalse(h.contains("h-1"))
+    }
+
+    // ── TC-TOOL-101-a: handler tolerates non-map-shaped args ──
+    /**
+     * TC-TOOL-101-a — the `_handleXxx` entry points must not crash when
+     * the caller passes an args map missing expected keys, or with wrong
+     * types for those keys. All four read/write/patch/search handlers
+     * should return a well-formed JSON error instead of throwing.
+     */
+    @Test
+    fun `handler tolerates non-map args`() {
+        // Empty map — all keys absent. Each handler must return a valid JSON
+        // object (not throw); read / write / patch surface an error, search
+        // returns a structured (empty) result — that's still valid.
+        val readResp = _handleReadFile(emptyMap())
+        val writeResp = _handleWriteFile(emptyMap())
+        val patchResp = _handlePatch(emptyMap())
+        val searchResp = _handleSearchFiles(emptyMap())
+        for ((label, r) in listOf(
+            "read" to readResp,
+            "write" to writeResp,
+            "patch" to patchResp,
+            "search" to searchResp,
+        )) {
+            @Suppress("UNCHECKED_CAST")
+            val parsed = gson.fromJson(r, Map::class.java) as Map<String, Any?>
+            assertNotNull("$label handler must return JSON, not null", parsed)
+        }
+        // Read / write / patch with empty path should produce an error key —
+        // there's no reasonable fallback. Search has `.` as default path +
+        // empty pattern, so it may succeed with zero matches.
+        @Suppress("UNCHECKED_CAST")
+        assertNotNull(
+            "read on empty path must be an error",
+            (gson.fromJson(readResp, Map::class.java) as Map<String, Any?>)["error"],
+        )
+        @Suppress("UNCHECKED_CAST")
+        assertNotNull(
+            "patch on empty path must be an error",
+            (gson.fromJson(patchResp, Map::class.java) as Map<String, Any?>)["error"],
+        )
+        // Wrong-typed values — path as Int, offset as String — should coerce
+        // via `as?` to null/default and still produce an error response
+        // rather than throwing.
+        val resp = _handleReadFile(mapOf(
+            "path" to 42,                  // wrong type
+            "offset" to "not a number",    // wrong type
+            "limit" to null,
+        ))
+        @Suppress("UNCHECKED_CAST")
+        val parsed = gson.fromJson(resp, Map::class.java) as Map<String, Any?>
+        assertNotNull("wrong-typed args must still yield error JSON", parsed["error"])
+    }
 }

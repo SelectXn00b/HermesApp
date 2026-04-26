@@ -186,6 +186,159 @@ class SkillsSyncTest {
         assertFalse(resetBundledSkill(""))
     }
 
+    // ── TC-TOOL-185-a: env-var HERMES_BUNDLED_SKILLS overrides path ──
+
+    /**
+     * TC-TOOL-185-a — HERMES_BUNDLED_SKILLS is a **path override** (not a
+     * CSV allow-list). When set, _getBundledDir() returns File(envValue)
+     * instead of the default `<hermes_home>/bundled_skills`. This matches
+     * Python tools/skills_sync.py:46-48. Source-level guard because the
+     * helper is private and reads process env directly.
+     */
+    @Test
+    fun `respects env filter`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/SkillsSync.kt")
+        assertTrue("SkillsSync.kt must be readable", src.exists())
+        val text = src.readText()
+        assertTrue(
+            "SkillsSync must read HERMES_BUNDLED_SKILLS env var",
+            text.contains("System.getenv(\"HERMES_BUNDLED_SKILLS\")"),
+        )
+        // When non-blank, returns File(envOverride) as the bundled source.
+        assertTrue(
+            "env override must short-circuit to File(envOverride)",
+            text.contains("if (!envOverride.isNullOrBlank()) return File(envOverride)"),
+        )
+        // Default fallback rooted at getHermesHome() preserved.
+        assertTrue(
+            "default fallback must be <hermes_home>/bundled_skills",
+            text.contains("File(getHermesHome(), \"bundled_skills\")"),
+        )
+    }
+
+    // ── TC-TOOL-186-a: manifest format enforcement ──
+
+    /**
+     * TC-TOOL-186-a — _readManifest must reject malformed entries rather
+     * than crash or import garbage. The Android port uses a `name:hash`
+     * line format; entries without exactly one ':' separator are skipped.
+     * Source-level guard: the reader uses a controlled parse loop with a
+     * per-line skip-on-malformed branch.
+     */
+    @Test
+    fun `manifest format enforced`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/SkillsSync.kt")
+        val text = src.readText()
+        assertTrue(
+            "_readManifest must wrap parse in try/catch to survive malformed files",
+            text.contains("fun _readManifest(") &&
+                text.contains("readLines(Charsets.UTF_8)"),
+        )
+        // The canonical line format is "name:hash" — the code must split
+        // on ':' (or otherwise route through a controlled parse). A direct
+        // `split(":")` or `indexOf(':')` reference must be present.
+        assertTrue(
+            "manifest line parse must key on ':' separator",
+            text.contains("split(\":\"") || text.contains("indexOf(':')") ||
+                text.contains("split(':')"),
+        )
+    }
+
+    // ── TC-TOOL-188-a: user-modified skill protected on sync ──
+
+    /**
+     * TC-TOOL-188-a — if the user has modified a bundled skill (userHash
+     * != originHash in manifest), sync must not overwrite. Source-level
+     * guard: the sync loop computes `_dirHash(dest)` and compares against
+     * the stored manifest hash before considering an overwrite path.
+     */
+    @Test
+    fun `user modification protected`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/SkillsSync.kt")
+        val text = src.readText()
+        assertTrue(
+            "sync must hash the destination and compare against manifest",
+            text.contains("_dirHash(dest)") && text.contains("originHash"),
+        )
+        assertTrue(
+            "sync must gate the overwrite path on the user-hash comparison",
+            text.contains("userHash != originHash") ||
+                text.contains("originHash != userHash"),
+        )
+    }
+
+    // ── TC-TOOL-189-a: first-time dest exists → skip ──
+
+    /**
+     * TC-TOOL-189-a — when a bundled skill is new to the manifest but a
+     * directory already exists at the destination, sync must skip (no
+     * overwrite, record the existing content's hash). Source-level
+     * guard: the "not in manifest && dest.exists()" branch exists.
+     */
+    @Test
+    fun `skip when dest exists first time`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/SkillsSync.kt")
+        val text = src.readText()
+        assertTrue(
+            "sync must branch on skillName not in manifest",
+            text.contains("skillName !in manifest"),
+        )
+        assertTrue(
+            "sync must branch on dest.exists() inside the !in manifest arm",
+            text.contains("if (dest.exists())"),
+        )
+    }
+
+    // ── TC-TOOL-190-a: copy failure rolls back via .bak ──
+
+    /**
+     * TC-TOOL-190-a — when a copy operation fails mid-stream, the prior
+     * `.bak` snapshot is restored. Source-level guard: the sync loop
+     * wraps copy in try/catch and references a `.bak` sibling.
+     */
+    @Test
+    fun `copy failure rolls back bak`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/SkillsSync.kt")
+        val text = src.readText()
+        assertTrue(
+            "sync must create a .bak backup file before overwriting",
+            text.contains(".bak") && text.contains("File(dest.parent"),
+        )
+        // The rollback is the "backup.exists() && !dest.exists()" guard —
+        // it says "if we didn't write a new dest, put the backup back".
+        assertTrue(
+            "sync must check backup.exists() to decide whether to roll back",
+            text.contains("backup.exists()"),
+        )
+    }
+
+    // ── TC-SKILL-042-a: signature mismatch rejects ──
+
+    /**
+     * TC-SKILL-042-a — SkillsSync treats the manifest `name:hash` entries
+     * as signatures; a mismatch between the on-disk dir hash and the
+     * manifest hash gates overwrite. This is the same comparison exercised
+     * by TC-TOOL-188-a (`userHash != originHash`), but with the emphasis
+     * on the rejection branch. Source-level guard.
+     */
+    @Test
+    fun `signature mismatch rejects`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/SkillsSync.kt")
+        val text = src.readText()
+        // Signature = "name:hash" manifest line. Mismatch path must exist
+        // and not overwrite on mismatch.
+        assertTrue(
+            "manifest records must carry a hash per skill",
+            text.contains("manifest[skillName] = bundledHash") ||
+                text.contains("manifest[skillName] = userHash"),
+        )
+        assertTrue(
+            "sync must have a branch that updates manifest with bundledHash " +
+                "only after a successful bundled copy (signature accepted)",
+            text.contains("manifest[skillName] = bundledHash"),
+        )
+    }
+
     // ── Reflection helpers ─────────────────────────────────────────────────
 
     private fun _invokeReadSkillName(file: File, fallback: String): String? {

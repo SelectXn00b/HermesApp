@@ -149,4 +149,26 @@ class BrowserCdpToolTest {
         val result = browserCdp(method = "")  // will error-out early
         assertNotNull(result)
     }
+
+    // ── TC-TOOL-281-a: requires env ──
+    /**
+     * TC-TOOL-281-a — `browserCdp` must surface a `toolError`-shaped JSON
+     * when `BROWSER_CDP_URL` is unset (no CDP endpoint configured).
+     * Behavioural alias for the detailed env-probe tests above with the
+     * method name matching the TC doc exactly.
+     */
+    @Test
+    fun `requires env`() {
+        // Only assert the env-unset branch when env is actually unset.
+        if (!System.getenv("BROWSER_CDP_URL").isNullOrBlank()) return
+        val out = browserCdp(method = "Target.getTargets")
+        val json = JSONObject(out)
+        assertTrue("must surface an error key", json.has("error"))
+        val err = json.getString("error")
+        assertTrue(
+            "error must mention no CDP endpoint: $err",
+            err.contains("No CDP endpoint is available"),
+        )
+        assertEquals(CDP_DOCS_URL, json.getString("cdp_docs"))
+    }
 }

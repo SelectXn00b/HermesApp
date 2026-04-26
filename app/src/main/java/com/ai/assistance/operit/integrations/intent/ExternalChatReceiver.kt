@@ -116,6 +116,17 @@ class ExternalChatReceiver : BroadcastReceiver() {
         if (!result.error.isNullOrBlank()) {
             out.putExtra(EXTRA_RESULT_ERROR, result.error)
         }
+        val responsePreview = result.aiResponse
+            ?.replace('\n', ' ')
+            ?.replace('\r', ' ')
+            ?.take(1500)
+        AppLogger.i(
+            TAG,
+            "Result broadcast: requestId=${result.requestId} success=${result.success} " +
+                "chatId=${result.chatId} errorLen=${result.error?.length ?: 0} " +
+                "aiResponseLen=${result.aiResponse?.length ?: 0} " +
+                "aiResponsePreview=<<<${responsePreview ?: ""}>>>"
+        )
         context.sendBroadcast(out)
     }
 }

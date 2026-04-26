@@ -217,4 +217,25 @@ class DiscordToolTest {
     fun `DISCORD_API_BASE is v10 endpoint`() {
         assertEquals("https://discord.com/api/v10", DISCORD_API_BASE)
     }
+
+    // ── TC-TOOL-300-a: intent flags ──
+    /**
+     * TC-TOOL-300-a — the four Discord intent bitflags must map to the
+     * Python upstream bit positions 1<<14 / 1<<15 / 1<<18 / 1<<19.
+     * Behavioural alias with the exact TC method name.
+     */
+    @Test
+    fun `intent flags`() {
+        val clazz = Class.forName("com.xiaomo.hermes.hermes.tools.DiscordToolKt")
+        val pairs = listOf(
+            "_FLAG_GATEWAY_GUILD_MEMBERS" to (1 shl 14),
+            "_FLAG_GATEWAY_GUILD_MEMBERS_LIMITED" to (1 shl 15),
+            "_FLAG_GATEWAY_MESSAGE_CONTENT" to (1 shl 18),
+            "_FLAG_GATEWAY_MESSAGE_CONTENT_LIMITED" to (1 shl 19),
+        )
+        for ((name, expected) in pairs) {
+            val f = clazz.getDeclaredField(name).apply { isAccessible = true }
+            assertEquals("$name must equal $expected", expected, f.getInt(null))
+        }
+    }
 }

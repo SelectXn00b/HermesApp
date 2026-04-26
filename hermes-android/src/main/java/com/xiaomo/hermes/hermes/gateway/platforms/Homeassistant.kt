@@ -27,7 +27,7 @@ class HomeAssistantAdapter(
     config: PlatformConfig) : BasePlatformAdapter(config, Platform.HOMEASSISTANT) {
     companion object {
         private const val _TAG = "Homeassistant"
-        val BACKOFF_STEPS = listOf(5, 10, 30, 60, 120, 300)
+        val BACKOFF_STEPS = listOf(5, 10, 30, 60)
         const val COOLDOWN_SECONDS = 10L
     }
 

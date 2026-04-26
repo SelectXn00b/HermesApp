@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-# End-to-end 验证：
+# End-to-end 验证（纯聊天路径，agent-level）：
 #   1. 通过 ApiConfigReceiver 用 adb 广播写入 API key
 #   2. 启动 app
-#   3. 通过 ExternalChatReceiver 让 app 真实调用 LLM
-#   4. 观察 logcat，判定是否出现 401 或回合完成
+#   3. 通过 ExternalChatReceiver 让 app 真实调用 LLM，并要求 agent 回复中含 TOKEN
+#   4. 观察 logcat，断言：
+#        - ExternalChatReceiver Result broadcast success=true
+#        - aiResponsePreview 中含 TOKEN （★ agent 真实产生了正确回复）
+#   5. 任何 401/4xx/NonRetriableException 直接 FAIL
+#
+# 这是 agent-level 验收：provider 通了但 agent 回复为空 / 只有 <think> —— FAIL。
 #
 # 使用：
 #   HERMES_E2E_KEY=... HERMES_E2E_PROVIDER=OPENROUTER ./scripts/e2e/test_api_config_e2e.sh
@@ -81,11 +86,12 @@ log "launching app"
 $ADB shell am start -n "$MAIN_ACTIVITY" >/dev/null
 sleep "$WAIT_AFTER_LAUNCH_S"
 
-### 6. 清日志后发真实 chat 广播
+### 6. 清日志后发真实 chat 广播（带 TOKEN 要求 agent 原文回显）
 #    注意：adb shell 会做两次 shell 解析，message 里有空格必须用内单引号包裹。
 REQ_ID="e2e-$(date +%s)"
-MSG="ReplyOK"
-log "sending chat message requestId=$REQ_ID"
+TOKEN="HERMES_E2E_API_OK_$((RANDOM))"
+MSG="请严格只用一行回复，回复内容必须以 $TOKEN 开头，不要加任何其他前缀或 XML。"
+log "sending chat message requestId=$REQ_ID token=$TOKEN"
 $ADB logcat -c
 $ADB shell "am broadcast \
   -n '$CHAT_RECEIVER' \
@@ -96,9 +102,9 @@ $ADB shell "am broadcast \
   --ez create_new_chat true \
   --ez show_floating true" >/dev/null
 
-### 7. 监听 logcat，直到拿到 PASS/FAIL 信号
+### 7. 监听 logcat，直到拿到 PASS/FAIL 信号（agent-level）
 START_TS=$(date +%s)
-PASS_PAT='MessageProcessingDelegate.*: 回合完成|handleTaskCompletion|EXTERNAL_CHAT_RESULT.*success=true'
+RESULT_BCAST_PAT="ExternalChatReceiver.*Result broadcast: requestId=$REQ_ID success=true"
 FAIL_PAT='User not found|status code: 40[0-9]|NonRetriableException|error.*code.*40[0-9]'
 
 while :; do
@@ -107,7 +113,7 @@ while :; do
   if (( ELAPSED > MAX_WAIT_S )); then
     log "--- last 40 log lines ---"
     $ADB logcat -d -v time 2>/dev/null | grep -E "AIService|Hermes|OpenRouter|ExternalChat|MessageProcessing|ApiConfig" | tail -40 || true
-    fail "timeout ${MAX_WAIT_S}s waiting for completion"
+    fail "timeout ${MAX_WAIT_S}s waiting for agent-level completion"
   fi
 
   LOG="$($ADB logcat -d -v time 2>/dev/null || true)"
@@ -116,9 +122,24 @@ while :; do
     echo "$LOG" | grep -E "$FAIL_PAT|AIService|HermesAgentLoop" | tail -20
     fail "saw auth/4xx error after ${ELAPSED}s"
   fi
-  if echo "$LOG" | grep -Eq "$PASS_PAT"; then
-    pass "chat turn completed after ${ELAPSED}s"
-    echo "$LOG" | grep -E "$PASS_PAT" | tail -3
+
+  RESULT_LINE="$(echo "$LOG" | grep -E "$RESULT_BCAST_PAT" | tail -1 || true)"
+  if [[ -n "$RESULT_LINE" ]]; then
+    PREVIEW="$(printf '%s' "$RESULT_LINE" | sed -n 's/.*aiResponsePreview=<<<\(.*\)>>>.*/\1/p')"
+    if [[ -z "$PREVIEW" ]]; then
+      log "--- empty aiResponsePreview; raw result line ---"
+      printf '%s\n' "$RESULT_LINE"
+      fail "aiResponsePreview empty — agent produced no final reply text"
+    fi
+    if ! printf '%s' "$PREVIEW" | grep -Fq "$TOKEN"; then
+      log "--- TOKEN missing from aiResponsePreview ---"
+      log "expected TOKEN=$TOKEN"
+      log "preview (first 800 chars): ${PREVIEW:0:800}"
+      fail "agent reply missing TOKEN — chat turn completed but text is wrong"
+    fi
+    pass "agent-level chat turn completed after ${ELAPSED}s (tokenOK=yes)"
+    printf '  TOKEN=%s found in aiResponsePreview\n' "$TOKEN"
+    echo "$LOG" | grep -E "$RESULT_BCAST_PAT" | tail -1
     # Write last-green marker for Stop hook (CLAUDE.md §0.2)
     HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
     printf '%s\n' "$HEAD_SHA" > scripts/e2e/.green-api-config

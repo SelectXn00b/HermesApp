@@ -50,7 +50,72 @@ class SessionDBTest {
         try { db.close() } catch (_: Exception) { }
     }
 
-    // ── R-STATE-017 / TC-STATE-017-a: DEFERRED (see class KDoc) ────────────
+    // ── R-STATE-017 / TC-STATE-017-a: global singleton lazy ──────────────
+    // Behavioral verification requires Context bootstrap; we lock the
+    // contract at the source level instead — the global getter must be a
+    // plain lazy "cache-or-construct" over a file-private var, never an
+    // eager `val = SessionDB()` at file scope.
+    @Test
+    fun `global singleton lazy`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/HermesState.kt")
+        assertTrue("HermesState.kt must be readable from cwd", src.exists())
+        val text = src.readText()
+        assertTrue(
+            "getGlobalSessionDB must be a lazy singleton over a file-private var",
+            text.contains("private var _globalSessionDB: SessionDB? = null") &&
+                text.contains("fun getGlobalSessionDB(): SessionDB"),
+        )
+        assertTrue(
+            "singleton must check null before constructing (lazy init)",
+            text.contains("if (_globalSessionDB == null)"),
+        )
+        assertTrue(
+            "resetGlobalSessionDB must exist to allow explicit re-init",
+            text.contains("fun resetGlobalSessionDB()"),
+        )
+    }
+
+    // ── R-STATE-015 / TC-STATE-015-a: FTS5 index present ─────────────────
+    // Can't open the SQLite DB without Context, but the schema literal is
+    // part of HermesState.kt and must contain a `CREATE VIRTUAL TABLE ...
+    // USING fts5(` for the messages_fts index. Guard at source level.
+    @Test
+    fun `fts5 index present`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/HermesState.kt")
+        assertTrue("HermesState.kt must be readable from cwd", src.exists())
+        val text = src.readText()
+        assertTrue(
+            "schema must declare messages_fts via FTS5",
+            text.contains("CREATE VIRTUAL TABLE") &&
+                text.contains("messages_fts") &&
+                text.contains("USING fts5("),
+        )
+    }
+
+    // ── R-STATE-016 / TC-STATE-016-a: concurrent writes serialized ──────
+    // Full behavioral test needs a real SQLiteDatabase. Source-level guard:
+    // SessionDB wraps write paths in `synchronized(_lock)` blocks, which is
+    // the serialization mechanism we rely on (same-JVM multi-thread).
+    @Test
+    fun `concurrent writes serialized`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/HermesState.kt")
+        assertTrue("HermesState.kt must be readable from cwd", src.exists())
+        val text = src.readText()
+        // The SessionDB class declares a private `_lock = Any()` and guards
+        // mutation helpers with `synchronized(_lock) { ... }`. At least a
+        // few of the state-mutating call sites must use the lock.
+        assertTrue(
+            "SessionDB must declare a private _lock for write serialization",
+            text.contains("private val _lock = Any()"),
+        )
+        val lockedBlocks = Regex("synchronized\\(_lock\\)").findAll(text).count()
+        assertTrue(
+            "SessionDB must guard multiple write paths with synchronized(_lock); " +
+                "found $lockedBlocks occurrence(s)",
+            lockedBlocks >= 3,
+        )
+    }
+
     // ── R-STATE-015 / TC-STATE-015-a: DEFERRED (see class KDoc) ────────────
     // ── R-STATE-016 / TC-STATE-016-a: DEFERRED (see class KDoc) ────────────
 

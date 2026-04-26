@@ -110,10 +110,11 @@ $ADB logcat -d -v time -s ApiConfigReceiver:I | grep "Updated config" | tail -1 
   >/dev/null || fail "config receiver did not log Updated config"
 log "config applied"
 
-### 5. 发送真实 chat 广播
+### 5. 发送真实 chat 广播（带 TOKEN，agent-level 验收）
 REQ_ID="e2e-builtin-$(date +%s)"
-MSG="Say OK in one word"
-log "sending chat message requestId=$REQ_ID"
+TOKEN="HERMES_E2E_BUILTIN_OK_$((RANDOM))"
+MSG="请严格只用一行回复，回复内容必须以 $TOKEN 开头，不要加任何其他前缀或 XML。"
+log "sending chat message requestId=$REQ_ID token=$TOKEN"
 $ADB logcat -c
 $ADB shell "am broadcast \
   -n '$CHAT_RECEIVER' \
@@ -124,9 +125,9 @@ $ADB shell "am broadcast \
   --ez create_new_chat true \
   --ez show_floating true" >/dev/null
 
-### 6. 监听 logcat
+### 6. 监听 logcat（agent-level：断言 aiResponsePreview 里含 TOKEN）
 START_TS=$(date +%s)
-PASS_PAT='MessageProcessingDelegate.*: 回合完成|handleTaskCompletion|EXTERNAL_CHAT_RESULT.*success=true'
+RESULT_BCAST_PAT="ExternalChatReceiver.*Result broadcast: requestId=$REQ_ID success=true"
 FAIL_PAT='User not found|status code: 40[0-9]|NonRetriableException|error.*code.*40[0-9]'
 
 while :; do
@@ -135,7 +136,7 @@ while :; do
   if (( ELAPSED > MAX_WAIT_S )); then
     log "--- last 40 log lines ---"
     $ADB logcat -d -v time 2>/dev/null | grep -E "AIService|Hermes|OpenRouter|ExternalChat|MessageProcessing|ApiConfig" | tail -40 || true
-    fail "timeout ${MAX_WAIT_S}s waiting for completion"
+    fail "timeout ${MAX_WAIT_S}s waiting for agent-level completion"
   fi
 
   LOG="$($ADB logcat -d -v time 2>/dev/null || true)"
@@ -144,9 +145,24 @@ while :; do
     echo "$LOG" | grep -E "$FAIL_PAT|AIService|HermesAgentLoop" | tail -20
     fail "saw auth/4xx error after ${ELAPSED}s"
   fi
-  if echo "$LOG" | grep -Eq "$PASS_PAT"; then
-    pass "builtin-key chat turn completed after ${ELAPSED}s"
-    $ADB logcat -d -v time 2>/dev/null | grep -E "回合完成|AIService.*连接成功|AIService.*输入token" | tail -5
+
+  RESULT_LINE="$(echo "$LOG" | grep -E "$RESULT_BCAST_PAT" | tail -1 || true)"
+  if [[ -n "$RESULT_LINE" ]]; then
+    PREVIEW="$(printf '%s' "$RESULT_LINE" | sed -n 's/.*aiResponsePreview=<<<\(.*\)>>>.*/\1/p')"
+    if [[ -z "$PREVIEW" ]]; then
+      log "--- empty aiResponsePreview; raw result line ---"
+      printf '%s\n' "$RESULT_LINE"
+      fail "aiResponsePreview empty — agent produced no final reply text"
+    fi
+    if ! printf '%s' "$PREVIEW" | grep -Fq "$TOKEN"; then
+      log "--- TOKEN missing from aiResponsePreview ---"
+      log "expected TOKEN=$TOKEN"
+      log "preview (first 800 chars): ${PREVIEW:0:800}"
+      fail "agent reply missing TOKEN — chat turn completed but text is wrong"
+    fi
+    pass "builtin-key agent-level chat turn completed after ${ELAPSED}s (tokenOK=yes)"
+    printf '  TOKEN=%s found in aiResponsePreview\n' "$TOKEN"
+    echo "$LOG" | grep -E "$RESULT_BCAST_PAT" | tail -1
     # write last-green marker so Stop hook accepts this SHA
     HEAD=$(git rev-parse HEAD 2>/dev/null || echo unknown)
     MARKER_DIR="scripts/e2e"

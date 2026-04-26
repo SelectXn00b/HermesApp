@@ -213,4 +213,39 @@ class McpToolTest {
         val parsed = gson.fromJson(s, Map::class.java) as Map<String, Any?>
         assertEquals("MCP call interrupted", parsed["error"])
     }
+
+    /**
+     * TC-MCP-002-a — registration failure on one server must not abort the
+     * loop over other servers. Android stub is inert, so the contract we pin
+     * is: mixed config with well-formed + obviously-broken entries completes
+     * without throwing and returns the same empty list either way.
+     */
+    @Test
+    fun `isolation on failure`() {
+        val mixed = mapOf(
+            // well-formed http entry
+            "okHttp" to mapOf("url" to "http://127.0.0.1:9/mcp"),
+            // stdio with empty command — would normally crash python stdio spawn
+            "bogusStdio" to mapOf("command" to "", "args" to emptyList<String>()),
+            // completely malformed (no command / url)
+            "brokenEmpty" to emptyMap<String, Any?>(),
+            // second healthy-ish entry after a broken neighbour
+            "okStdio" to mapOf("command" to "noop-cmd"),
+        )
+        // Must not throw; all four must be processed. On Android stub path
+        // the result is empty but the failure in one entry cannot abort the
+        // loop over the others.
+        val registered = registerMcpServers(mixed)
+        assertTrue(
+            "SDK-unavailable path must skip all servers without propagating exceptions: $registered",
+            registered.isEmpty(),
+        )
+        // Also assert individual MCPServerTask construction doesn't throw
+        // for a "failed" config — the disconnected-by-default state is the
+        // isolation boundary.
+        val failed = MCPServerTask("brokenEmpty")
+        val ok = MCPServerTask("okStdio")
+        assertFalse(failed.connected)
+        assertFalse(ok.connected)
+    }
 }

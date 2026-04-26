@@ -2,15 +2,17 @@
 # End-to-end 验证（带 tool 调用路径）：
 #   1. 通过 ApiConfigReceiver 广播写入 API key
 #   2. 启动 app
-#   3. 发一条**必须**触发工具调用的 chat 广播
+#   3. 发一条**必须**触发工具调用的 chat 广播，并要求 agent 在最终回复中包含一个 TOKEN
 #   4. 观察 logcat，断言同时出现：
 #        - HermesBridge/Tool dispatch IN/OUT （工具真的被派发了）
-#        - 回合完成 / EXTERNAL_CHAT_RESULT success=true （多轮走完）
+#        - ExternalChatReceiver Result broadcast success=true （回合完成 + 结果广播）
+#        - aiResponsePreview 中含 TOKEN （★ agent 读到 tool_result 后给出了正确回复）
 #   5. 任何 401/4xx/NonRetriableException 直接 FAIL
 #
+# 这是 agent-level 验收：工具派发成功但 agent 没把 tool_result 合入回复 —— FAIL。
 # 覆盖的"盲点"：
 #   OperitChatCompletionServer 正则抽 <tool> XML → 合成 OpenAI toolCalls
-#   → HermesAgentLoop.dispatch → OperitToolDispatcher → 返回结果 → 下一轮
+#   → HermesAgentLoop.dispatch → OperitToolDispatcher → 返回结果 → 下一轮 → 含 TOKEN 的 final reply
 #
 # 使用：
 #   HERMES_E2E_KEY=... HERMES_E2E_PROVIDER=MIMO ./scripts/e2e/test_tool_call_e2e.sh
@@ -105,12 +107,13 @@ $ADB shell "am broadcast \
   --ez create_new_chat true \
   --ez show_floating true" >/dev/null
 
-### 7. 两阶段断言：先见到 tool dispatch，然后见到回合完成
+### 7. 三阶段断言：tool dispatch → 回合完成 → agent 回复含 TOKEN
 START_TS=$(date +%s)
 DISPATCH_IN_PAT='HermesBridge/Tool.*dispatch IN'
 DISPATCH_OUT_PAT='HermesBridge/Tool.*dispatch OUT'
 TOOL_EVENT_PAT='HermesBridge/Adapter.*ToolCall(Start|End)'
 COMPLETE_PAT='MessageProcessingDelegate.*回合完成|handleTaskCompletion|EXTERNAL_CHAT_RESULT.*success=true'
+RESULT_BCAST_PAT="ExternalChatReceiver.*Result broadcast: requestId=$REQ_ID success=true"
 FAIL_PAT='User not found|status code: 40[0-9]|NonRetriableException|error.*code.*40[0-9]'
 
 SAW_DISPATCH_IN=0
@@ -149,7 +152,9 @@ while :; do
     log "saw ToolCall event after ${ELAPSED}s"
   fi
 
-  if echo "$LOG" | grep -Eq "$COMPLETE_PAT"; then
+  # Find the Result broadcast line for *our* requestId (agent-level).
+  RESULT_LINE="$(echo "$LOG" | grep -E "$RESULT_BCAST_PAT" | tail -1 || true)"
+  if [[ -n "$RESULT_LINE" ]]; then
     if (( SAW_DISPATCH_IN == 0 || SAW_DISPATCH_OUT == 0 )); then
       log "--- completion without dispatch; last 40 lines ---"
       $ADB logcat -d -v time 2>/dev/null \
@@ -157,8 +162,31 @@ while :; do
         | tail -40 || true
       fail "turn completed without HermesBridge/Tool dispatch IN+OUT — model skipped the tool"
     fi
-    pass "tool-call turn completed after ${ELAPSED}s (dispatchIn/out=$SAW_DISPATCH_IN/$SAW_DISPATCH_OUT toolEvent=$SAW_TOOL_EVENT)"
-    echo "$LOG" | grep -E "HermesBridge/Tool|HermesBridge/Adapter.*ToolCall|$COMPLETE_PAT" | tail -8
+
+    # Agent-level assertion: the TOKEN we seeded must appear in aiResponsePreview.
+    # Preview is logged as: aiResponsePreview=<<<...>>> — scan just within the markers.
+    PREVIEW="$(printf '%s' "$RESULT_LINE" | sed -n 's/.*aiResponsePreview=<<<\(.*\)>>>.*/\1/p')"
+    if [[ -z "$PREVIEW" ]]; then
+      log "--- empty aiResponsePreview; raw result line ---"
+      printf '%s\n' "$RESULT_LINE"
+      fail "aiResponsePreview empty — agent produced no final reply text"
+    fi
+    if ! printf '%s' "$PREVIEW" | grep -Fq "$TOKEN"; then
+      log "--- TOKEN missing from aiResponsePreview ---"
+      log "expected TOKEN=$TOKEN"
+      log "preview (first 800 chars): ${PREVIEW:0:800}"
+      fail "agent reply missing TOKEN — model dispatched tool but did not consume tool_result correctly"
+    fi
+
+    if ! echo "$LOG" | grep -Eq "$COMPLETE_PAT"; then
+      # Result broadcast preceded the completion log in a race — it's still PASS
+      # because the broadcast is emitted only after the turn finishes.
+      :
+    fi
+
+    pass "agent-level turn completed after ${ELAPSED}s (dispatchIn/out=$SAW_DISPATCH_IN/$SAW_DISPATCH_OUT toolEvent=$SAW_TOOL_EVENT tokenOK=yes)"
+    printf '  TOKEN=%s found in aiResponsePreview\n' "$TOKEN"
+    echo "$LOG" | grep -E "HermesBridge/Tool|HermesBridge/Adapter.*ToolCall|$COMPLETE_PAT|ExternalChatReceiver.*Result broadcast" | tail -8
     # Write last-green marker for Stop hook (CLAUDE.md §0.2)
     HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
     printf '%s\n' "$HEAD_SHA" > scripts/e2e/.green-tool-call

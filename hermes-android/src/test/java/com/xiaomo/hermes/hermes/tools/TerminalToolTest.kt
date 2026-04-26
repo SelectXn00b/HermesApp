@@ -7,6 +7,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import java.lang.reflect.Method
 
 /**
@@ -239,5 +240,158 @@ class TerminalToolTest {
         assertTrue(_INLINE_BACKGROUND_AMP_RE.containsMatchIn("a & b"))
         assertTrue(_TRAILING_BACKGROUND_AMP_RE.containsMatchIn("a &"))
         assertTrue(_LONG_LIVED_FOREGROUND_PATTERNS.isEmpty())
+    }
+
+    // ── TC-TOOL-200-a: platform defaults to android ──
+    /**
+     * TC-TOOL-200-a — Python upstream's `_get_session_platform` returns the
+     * remote SSH session's platform or "linux" as default; the Android port
+     * has no session concept, so the only supported platform is Android.
+     * Source-level guard: the Kotlin module must hardcode `/system/bin/sh`
+     * as its only shell path, with no alternative platform branch.
+     */
+    @Test
+    fun `platform defaults android`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/TerminalTool.kt")
+        assertTrue("TerminalTool.kt must be readable", src.exists())
+        val text = src.readText()
+        // Only one shell path reference: /system/bin/sh. No /bin/bash, /bin/sh, etc.
+        assertTrue(
+            "must hardcode /system/bin/sh as the android shell path",
+            text.contains("\"/system/bin/sh\""),
+        )
+        assertFalse(
+            "must not reference /bin/bash (remote-linux path)",
+            text.contains("\"/bin/bash\""),
+        )
+    }
+
+    // ── TC-TOOL-201-a: remote env neutralized ──
+    /**
+     * TC-TOOL-201-a — Python upstream ships env customization for remote
+     * sessions (SSH / Modal backend). The Android port must NOT propagate
+     * remote-env plumbing (no session id routing). Source-level guard:
+     * `_createEnvironment` / `_getModalBackendState` / `_cleanupInactiveEnvs`
+     * all exist as parity stubs with no-op bodies (= empty map / Unit).
+     */
+    @Test
+    fun `remote env neutralized`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/TerminalTool.kt")
+        val text = src.readText()
+        assertTrue(
+            "_createEnvironment must be a parity stub",
+            text.contains("private fun _createEnvironment(") &&
+                text.contains("emptyMap()"),
+        )
+        assertTrue(
+            "_getModalBackendState must be a parity stub returning empty map",
+            text.contains("private fun _getModalBackendState(") &&
+                text.contains("Map<String, Any?> = emptyMap()"),
+        )
+        assertTrue(
+            "registerTaskEnvOverrides must be a no-op (Unit return)",
+            text.contains("fun registerTaskEnvOverrides(") &&
+                text.contains("Unit = Unit"),
+        )
+        // The behavioural contract: even after registering "remote" env, the
+        // getter returns null. Already asserted in `task env override registration is no-op`;
+        // here we lock the source shape so future edits don't silently add a backend.
+    }
+
+    // ── TC-TOOL-211-a: timeout clamps to FOREGROUND_MAX_TIMEOUT ──
+    /**
+     * TC-TOOL-211-a — passing a timeout larger than `FOREGROUND_MAX_TIMEOUT`
+     * must be coerced down. Source-level guard: `terminalTool` clamps via
+     * `coerceAtMost(FOREGROUND_MAX_TIMEOUT)` before process spawn.
+     */
+    @Test
+    fun `timeout double clamp`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/TerminalTool.kt")
+        val text = src.readText()
+        assertTrue(
+            "timeout must be clamped to FOREGROUND_MAX_TIMEOUT",
+            text.contains(".coerceAtMost(FOREGROUND_MAX_TIMEOUT)"),
+        )
+        // Behavioural: a huge timeout still yields a structured response
+        // (proxy: no throw, has exit_code key). On JVM host the shell isn't
+        // there so we get the error branch, but the contract "no exception
+        // bubble" is what we're pinning.
+        val out = terminalTool(command = "true", timeout = 99999)
+        @Suppress("UNCHECKED_CAST")
+        val parsed = gson.fromJson(out, Map::class.java) as Map<String, Any?>
+        assertTrue(parsed.containsKey("exit_code"))
+    }
+
+    // ── TC-TOOL-212-a: android shell path fixed ──
+    /**
+     * TC-TOOL-212-a — the Android port must route every shell invocation
+     * through `/system/bin/sh -c`, never an alternative interpreter.
+     */
+    @Test
+    fun `android shell path fixed`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/TerminalTool.kt")
+        val text = src.readText()
+        assertTrue(
+            "ProcessBuilder must be invoked with /system/bin/sh -c",
+            text.contains(".command(\"/system/bin/sh\", \"-c\", command)"),
+        )
+    }
+
+    // ── TC-TOOL-213-a: timeout returns exit_code=124 ──
+    /**
+     * TC-TOOL-213-a — on process timeout, `terminalTool` must return
+     * structured JSON with exit_code=124 + a "timed out" message. Source
+     * guard: the timeout branch writes `exit_code` 124 and destroys the
+     * process.
+     */
+    @Test
+    fun `timeout returns 124`() {
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/TerminalTool.kt")
+        val text = src.readText()
+        assertTrue(
+            "timeout branch must set exit_code=124",
+            text.contains("put(\"exit_code\", 124)"),
+        )
+        assertTrue(
+            "timeout branch must destroyForcibly()",
+            text.contains("process.destroyForcibly()"),
+        )
+        assertTrue(
+            "timeout branch must emit human-readable error",
+            text.contains("Command timed out"),
+        )
+    }
+
+    // ── TC-TOOL-216-a: sudo path is stubbed ──
+    /**
+     * TC-TOOL-216-a — Python has a full sudo-rewrite pipeline; the Android
+     * port stubs all of it: `_rewriteRealSudoInvocations`,
+     * `_transformSudoCommand`, `_promptForSudoPassword` return pass-through
+     * or empty values. Behavioral + source guard.
+     */
+    @Test
+    fun `sudo stub`() {
+        // Behavioural: reflection-invoked stubs return inert values.
+        @Suppress("UNCHECKED_CAST")
+        val rewritten = invokePrivate("_rewriteRealSudoInvocations", "sudo rm -rf /") as Pair<String, Boolean>
+        assertEquals("sudo rm -rf /", rewritten.first)
+        assertFalse("stub must not flag sudo as rewritten", rewritten.second)
+
+        @Suppress("UNCHECKED_CAST")
+        val transformed = invokePrivate("_transformSudoCommand", "sudo apt update") as Pair<String?, String?>
+        assertEquals("stub returns command unchanged", "sudo apt update", transformed.first)
+        assertNull("stub returns no sudo_stdin", transformed.second)
+
+        val promptResult = invokePrivate("_promptForSudoPassword", 45) as String
+        assertEquals("stub returns empty password", "", promptResult)
+
+        // Source: the prompt function must be a parity stub (empty return).
+        val src = File("src/main/java/com/xiaomo/hermes/hermes/tools/TerminalTool.kt")
+        val text = src.readText()
+        assertTrue(
+            "_promptForSudoPassword must be a parity stub",
+            text.contains("private fun _promptForSudoPassword(") &&
+                text.contains(": String = \"\""),
+        )
     }
 }

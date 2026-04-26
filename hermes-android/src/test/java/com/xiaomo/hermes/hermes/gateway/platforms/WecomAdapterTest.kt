@@ -128,4 +128,32 @@ class WecomAdapterTest {
         runBlocking { adapter.disconnect() }  // must not throw
         assertFalse(adapter.isConnected.get())
     }
+
+    // ── TC-GW-122-a: send truncates long bodies at 2048 chars ─────────────
+
+    /**
+     * TC-GW-122-a: WeComAdapter.send chunks outgoing text via `content.take(2048)`
+     * because WeCom's `/cgi-bin/message/send` endpoint rejects text bodies longer
+     * than 2048 chars. We can't exercise the HTTP round-trip in a JVM unit test,
+     * so lock the contract at the source level: the 2048 literal must be present
+     * inside the adapter body (not elsewhere).
+     */
+    @Test
+    fun `send truncates body at 2048 chars`() {
+        val path = java.io.File(
+            "src/main/java/com/xiaomo/hermes/hermes/gateway/platforms/Wecom.kt"
+        )
+        assertTrue(
+            "Wecom.kt source should be readable from working dir: ${path.absolutePath}",
+            path.exists()
+        )
+        val text = path.readText()
+        assertTrue(
+            "Wecom.kt must call .take(2048) on outgoing text content",
+            text.contains("content.take(2048)")
+        )
+        // Also verify Kotlin's take() semantics: strings >2048 get truncated.
+        val oversize = "x".repeat(3000)
+        assertEquals(2048, oversize.take(2048).length)
+    }
 }
