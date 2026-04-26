@@ -293,6 +293,11 @@ class GatewayRunner(
             //
             // Android 的实际 agent 挂在 app 模块（HermesAdapter → HermesAgentLoop），
             // 通过 [agentRunner] 注入。未注入时保留占位提示，不致崩溃。
+            val adapter = _adapters[platformName]
+            try { adapter?.onProcessingStart(event) } catch (e: Throwable) {
+                Log.w(_TAG, "onProcessingStart hook failed: ${e.message}")
+            }
+            var agentOk = true
             val runner = agentRunner
             val responseText = if (runner != null) {
                 try {
@@ -305,10 +310,12 @@ class GatewayRunner(
                     )
                 } catch (e: Throwable) {
                     Log.w(_TAG, "agentRunner threw: ${e.message}", e)
+                    agentOk = false
                     "Agent loop error: ${e.message ?: e.javaClass.simpleName}"
                 }
             } else {
                 Log.w(_TAG, "agentRunner not configured — returning placeholder")
+                agentOk = false
                 "Agent loop not configured"
             }
 
@@ -369,6 +376,13 @@ class GatewayRunner(
                 platform = platformName,
                 chatId = event.source.chatId,
                 userId = event.source.userId)
+
+            // Fire processing-complete hook so adapters can clear typing/reaction
+            try {
+                adapter?.onProcessingComplete(event, success = agentOk && result.success)
+            } catch (e: Throwable) {
+                Log.w(_TAG, "onProcessingComplete hook failed: ${e.message}")
+            }
 
             // Record turn
             session.turnCount.incrementAndGet()

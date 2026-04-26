@@ -332,6 +332,18 @@ abstract class BasePlatformAdapter(
      */
     open suspend fun getChatInfo(chatId: String): JSONObject = JSONObject()
 
+    // ── Processing lifecycle hooks (ported from gateway/platforms/base.py) ──
+    //
+    // Subclasses override these to provide immediate "I got your message"
+    // feedback to the user (e.g. Feishu adds a Typing reaction on start
+    // and removes it on complete; Weixin sends the typing ticket).
+
+    /** Hook called when background processing begins. */
+    open suspend fun onProcessingStart(event: MessageEvent): Unit = Unit
+
+    /** Hook called when background processing completes. */
+    open suspend fun onProcessingComplete(event: MessageEvent, success: Boolean): Unit = Unit
+
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------

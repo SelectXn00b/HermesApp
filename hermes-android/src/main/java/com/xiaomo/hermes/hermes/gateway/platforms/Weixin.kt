@@ -53,6 +53,9 @@ class WeixinAdapter(
     /** `context_token` cache keyed by peer user id — harvested from inbound messages. */
     private val _contextTokens: MutableMap<String, String> = java.util.concurrent.ConcurrentHashMap()
 
+    /** Short-lived typing-ticket cache keyed by peer user id. */
+    private val _typingCache: TypingTicketCache = TypingTicketCache()
+
     /** Dedup seen inbound message IDs (LRU up to 500). */
     private val _seenMessageIds: MutableSet<Long> = java.util.Collections.synchronizedSet(
         java.util.LinkedHashSet<Long>()
@@ -140,6 +143,70 @@ class WeixinAdapter(
             }
         } catch (e: Exception) {
             SendResult(success = false, error = e.message)
+        }
+    }
+
+    // ── Processing-indicator typing signal (parity with weixin.py send/stop_typing) ──
+
+    override suspend fun onProcessingStart(event: MessageEvent) {
+        _sendTypingSignal(event.source.chatId, TYPING_START)
+    }
+
+    override suspend fun onProcessingComplete(event: MessageEvent, success: Boolean) {
+        _sendTypingSignal(event.source.chatId, TYPING_STOP)
+    }
+
+    /**
+     * Fetch a typing ticket (from cache or `getconfig`) and send a typing
+     * start/stop signal. Best-effort — silently no-ops if the ticket can't
+     * be obtained.
+     */
+    private suspend fun _sendTypingSignal(chatId: String, status: Int) {
+        if (chatId.isEmpty()) return
+        withContext(Dispatchers.IO) {
+            try {
+                val ticket = _typingCache.get(chatId) ?: _fetchTypingTicket(chatId) ?: return@withContext
+                val payload = JSONObject().apply {
+                    put("ilink_user_id", chatId)
+                    put("typing_ticket", ticket)
+                    put("status", status)
+                }
+                val body = payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = _ilinkRequest(EP_SEND_TYPING).post(body).build()
+                _apiClient.newCall(request).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        Log.w(_TAG, "sendtyping failed: HTTP ${resp.code}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(_TAG, "sendtyping error for ${_safeId(chatId)}: ${e.message}")
+            }
+        }
+    }
+
+    /** Fetch the typing ticket via `getconfig`, caching the result. */
+    private suspend fun _fetchTypingTicket(chatId: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val payload = JSONObject().apply {
+                put("ilink_user_id", chatId)
+                _contextTokens[chatId]?.let { put("context_token", it) }
+                put("base_info", JSONObject().apply { put("channel_version", CHANNEL_VERSION) })
+            }
+            val body = payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+            val request = _ilinkRequest(EP_GET_CONFIG).post(body).build()
+            _apiClient.newCall(request).execute().use { resp ->
+                if (!resp.isSuccessful) return@withContext null
+                val text = resp.body?.string() ?: return@withContext null
+                val data = try { JSONObject(text) } catch (_: Exception) { return@withContext null }
+                val ticket = data.optString("typing_ticket", "")
+                if (ticket.isNotEmpty()) {
+                    _typingCache.set(chatId, ticket)
+                    ticket
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.w(_TAG, "getconfig for typing ticket failed: ${e.message}")
+            null
         }
     }
 
@@ -681,6 +748,9 @@ internal const val ITEM_VIDEO: Int = 5
 internal const val MSG_TYPE_NONE: Int = 0
 internal const val MSG_TYPE_USER: Int = 1
 internal const val MSG_TYPE_BOT: Int = 2
+
+internal const val TYPING_START: Int = 1
+internal const val TYPING_STOP: Int = 2
 
 internal val _LIVE_ADAPTERS: MutableMap<String, Any?> = java.util.concurrent.ConcurrentHashMap()
 

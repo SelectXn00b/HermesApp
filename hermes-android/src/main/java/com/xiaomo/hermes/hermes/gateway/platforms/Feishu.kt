@@ -100,8 +100,8 @@ class FeishuAdapter(
     /** Whether to send ACK reaction on inbound messages. */
     private val _sendAckReaction: Boolean = config.extraBool("send_ack_reaction", true)
 
-    /** ACK reaction emoji (default: eyes 👀). */
-    private val _ackEmoji: String = config.extra("ack_emoji", "ONLOOKER")
+    /** ACK reaction emoji (default: Typing — matches Androidclaw "正在输入"). */
+    private val _ackEmoji: String = config.extra("ack_emoji", _FEISHU_REACTION_IN_PROGRESS)
 
     /** Reply mode: "thread", "normal", "quote". */
     private val _replyMode: String = config.extra("reply_mode", "normal")
@@ -147,7 +147,7 @@ class FeishuAdapter(
     /** Message deduplicator. */
     private val _dedup: MessageDeduplicator = MessageDeduplicator(maxSize = MAX_DEDUP_ENTRIES)
 
-    /** Pending reactions (message_id → emoji). */
+    /** Pending processing-indicator reaction ids (message_id → reaction_id). */
     private val _pendingReactions: ConcurrentHashMap<String, String> = ConcurrentHashMap()
 
     /** Processed card action IDs (for dedup). */
@@ -587,8 +587,10 @@ class FeishuAdapter(
             message_id = messageId,
             timestamp = Instant.now())
 
-        // Send ACK reaction
-        if (_sendAckReaction && chatType != "p2p") {
+        // Send ACK reaction (processing-indicator) on message receive.
+        // Androidclaw parity: fires in DMs too — "Typing" shows up immediately
+        // to tell the user their message landed, independent of chatType.
+        if (_sendAckReaction) {
             _sendAckReactionAsync(messageId)
         }
 
@@ -795,9 +797,16 @@ class FeishuAdapter(
     }
 
     /**
-     * Send an ACK reaction asynchronously.
+     * Send an ACK "processing-indicator" reaction asynchronously.
+     *
+     * The Feishu API returns a `reaction_id` we have to remember so we can
+     * delete the badge once the agent replies. Parity with
+     * feishu.py._add_reaction + _remember_processing_reaction and
+     * Androidclaw FeishuReactions.addReaction.
      */
     private fun _sendAckReactionAsync(messageId: String) {
+        if (messageId.isEmpty()) return
+        if (_pendingReactions.containsKey(messageId)) return
         scope.launch {
             try {
                 _ensureAccessToken()
@@ -816,12 +825,88 @@ class FeishuAdapter(
                 _httpClient.newCall(request).execute().use { resp ->
                     if (!resp.isSuccessful) {
                         Log.w(_TAG, "ACK reaction failed: HTTP ${resp.code}")
+                        return@use
+                    }
+                    val bodyText = resp.body?.string() ?: return@use
+                    val json = try { JSONObject(bodyText) } catch (_: Exception) { return@use }
+                    val code = json.optInt("code", -1)
+                    if (code != 0) {
+                        Log.w(_TAG, "ACK reaction rejected: code=$code msg=${json.optString("msg")}")
+                        return@use
+                    }
+                    val reactionId = json.optJSONObject("data")?.optString("reaction_id", "").orEmpty()
+                    if (reactionId.isNotEmpty()) {
+                        _pendingReactions[messageId] = reactionId
                     }
                 }
             } catch (e: Exception) {
                 Log.w(_TAG, "ACK reaction error: ${e.message}")
             }
         }
+    }
+
+    /**
+     * Remove the processing-indicator reaction previously recorded for
+     * [messageId]. Parity with feishu.py._remove_reaction +
+     * _pop_processing_reaction.
+     */
+    private suspend fun _removeAckReaction(messageId: String) {
+        val reactionId = _pendingReactions.remove(messageId) ?: return
+        withContext(Dispatchers.IO) {
+            try {
+                _ensureAccessToken()
+                val request = Request.Builder()
+                    .url("$_domain/open-apis/im/v1/messages/$messageId/reactions/$reactionId")
+                    .header("Authorization", "Bearer $_accessToken")
+                    .delete()
+                    .build()
+                _httpClient.newCall(request).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        Log.w(_TAG, "Remove reaction failed: HTTP ${resp.code}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(_TAG, "Remove reaction error: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Add a terminal "failure" reaction (CrossMark) when the agent loop
+     * errored out. Parity with feishu.py on_processing_complete FAILURE branch.
+     */
+    private suspend fun _addFailureReaction(messageId: String) {
+        if (messageId.isEmpty()) return
+        withContext(Dispatchers.IO) {
+            try {
+                _ensureAccessToken()
+                val payload = JSONObject().apply {
+                    put("reaction_type", JSONObject().apply {
+                        put("emoji_type", _FEISHU_REACTION_FAILURE)
+                    })
+                }
+                val body = payload.toString()
+                    .toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = Request.Builder()
+                    .url("$_domain/open-apis/im/v1/messages/$messageId/reactions")
+                    .header("Authorization", "Bearer $_accessToken")
+                    .post(body)
+                    .build()
+                _httpClient.newCall(request).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        Log.w(_TAG, "Failure reaction failed: HTTP ${resp.code}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(_TAG, "Failure reaction error: ${e.message}")
+            }
+        }
+    }
+
+    override suspend fun onProcessingComplete(event: MessageEvent, success: Boolean) {
+        val messageId = event.message_id ?: return
+        _removeAckReaction(messageId)
+        if (!success) _addFailureReaction(messageId)
     }
 
     // ------------------------------------------------------------------
