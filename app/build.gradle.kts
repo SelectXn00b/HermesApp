@@ -135,6 +135,7 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.isIncludeAndroidResources = true
     }
 
     packaging {
@@ -408,6 +409,13 @@ dependencies {
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.mockito.android)
+
+    // Robolectric + Compose UI test (JVM-side Android runtime for DataStore,
+    // EncryptedSharedPreferences, Compose UI testing — covers the
+    // HermesGateway* / HermesAgentParams* / HermesSettings* TCs flagged
+    // 🟡 in docs/hermes-test-cases.md).
+    testImplementation(libs.robolectric)
+    testImplementation(libs.ui.test.junit4)
     
     // // 新增的测试依赖 - mockk 和 kotlin-test
     // testImplementation(libs.mockk)

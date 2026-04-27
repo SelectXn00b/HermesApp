@@ -79,6 +79,7 @@ glance = "1.0.0"
 activityKtx = "1.7.1"
  ui = "1.10.4"
  animation = "1.10.4"
+robolectric = "4.11.1"
 
  [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -225,6 +226,7 @@ nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanoht
 test-runner = { group = "androidx.test", name = "runner", version.ref = "test-runner" }
 test-rules = { group = "androidx.test", name = "rules", version.ref = "test-rules" }
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 # Coroutines
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
