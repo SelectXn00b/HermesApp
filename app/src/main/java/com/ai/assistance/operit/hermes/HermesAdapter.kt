@@ -118,7 +118,7 @@ class HermesAdapter private constructor(private val context: Context) {
             val loop = HermesAgentLoop(
                 server = server,
                 toolSchemas = openAiToolSchemas,
-                validToolNames = validNames,
+                validToolNames = emptySet(),
                 toolDispatcher = dispatcher,
                 maxTurns = configuredMaxTurns,
                 taskId = chatId,

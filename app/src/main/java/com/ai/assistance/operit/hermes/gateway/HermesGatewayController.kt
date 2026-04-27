@@ -2,21 +2,25 @@ package com.ai.assistance.operit.hermes.gateway
 
 import android.content.Context
 import android.util.Log
+import com.ai.assistance.operit.api.chat.EnhancedAIService
+import com.ai.assistance.operit.core.chat.AIMessageManager
 import com.ai.assistance.operit.data.model.ChatMessage
+import com.ai.assistance.operit.data.model.ModelConfigDefaults
 import com.ai.assistance.operit.data.repository.ChatHistoryManager
-import com.ai.assistance.operit.hermes.HermesAdapter
+import com.ai.assistance.operit.util.ChatMarkupRegex
 import com.xiaomo.hermes.hermes.gateway.GatewayRunner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Drives a single [GatewayRunner] instance on behalf of
@@ -93,12 +97,11 @@ class HermesGatewayController private constructor(private val appContext: Contex
     fun stopAsync(): Job = _scope.launch { stop() }
 
     /**
-     * Feed [text] into the app's HermesAdapter, collect all streamed chunks,
-     * and strip internal `<think>` / `<tool>` / `<tool_result>` / `<status>`
-     * markup so the gateway only echoes the user-visible plain text back to
-     * the platform. Also persists both the inbound user message and the
-     * outbound assistant reply into [ChatHistoryManager] so the session
-     * surfaces in the main 会话记录 UI alongside in-app chats.
+     * Feed [text] into the app's [EnhancedAIService] — the same path the
+     * in-app chat dialog uses — so the gateway gets identical tool capabilities,
+     * system prompts, memory, and prompt hooks.  Collects all streamed chunks
+     * and strips internal markup so the gateway only echoes user-visible plain
+     * text back to the platform.
      */
     private suspend fun runHermesAgent(
         text: String,
@@ -106,9 +109,10 @@ class HermesGatewayController private constructor(private val appContext: Contex
         chatId: String,
     ): String {
         val historyChatId = "gw:$sessionKey:$chatId"
-        val adapter = HermesAdapter.getInstance(appContext)
+        val service = EnhancedAIService.getInstance(appContext)
         val history = ChatHistoryManager.getInstance(appContext)
 
+        // Persist the inbound user message
         try {
             history.ensureChatWithId(historyChatId, title = gatewayChatTitle(sessionKey, chatId))
             history.addMessage(historyChatId, ChatMessage(sender = "user", content = text))
@@ -116,18 +120,74 @@ class HermesGatewayController private constructor(private val appContext: Contex
             Log.w(TAG, "failed to persist inbound gateway message: ${e.message}")
         }
 
-        val stream = adapter.sendMessage(message = text, chatId = historyChatId)
+        // Load prior chat history so the AI retains context across messages
+        val chatHistory = try {
+            val msgs = history.loadChatMessages(historyChatId)
+            // Drop the last message (the one we just added) — sendMessage
+            // appends the current user message itself.
+            val msgsWithoutCurrent = if (msgs.isNotEmpty()) msgs.dropLast(1) else msgs
+            AIMessageManager.getMemoryFromMessages(messages = msgsWithoutCurrent)
+        } catch (e: Throwable) {
+            Log.w(TAG, "failed to load chat history, proceeding without: ${e.message}")
+            emptyList()
+        }
+
+        val prefs = HermesGatewayPreferences.getInstance(appContext)
+        val maxTurns = prefs.agentMaxTurnsFlow.first()
+        val timeoutMs = maxTurns.toLong() * 120_000L
+
+        // Use model config defaults for token budget
+        val maxTokens = (ModelConfigDefaults.DEFAULT_CONTEXT_LENGTH * 1024).toInt()
+        val tokenUsageThreshold = ModelConfigDefaults.DEFAULT_SUMMARY_TOKEN_THRESHOLD.toDouble()
+
+        Log.i(TAG, "runHermesAgent: text=${text.take(80)} chatId=$historyChatId " +
+            "historyTurns=${chatHistory.size} " +
+            "timeoutMs=$timeoutMs maxTurns=$maxTurns maxTokens=$maxTokens")
+
+        val startMs = System.currentTimeMillis()
+        val stream = service.sendMessage(
+            message = text,
+            chatId = historyChatId,
+            chatHistory = chatHistory,
+            maxTokens = maxTokens,
+            tokenUsageThreshold = tokenUsageThreshold,
+            isSubTask = true
+        )
         val raw = StringBuilder()
-        stream.collect { raw.append(it) }
-        val reply = stripInternalMarkup(raw.toString()).trim().ifEmpty { "(empty response)" }
+        val completed = withTimeoutOrNull(timeoutMs) {
+            stream.collect { chunk ->
+                raw.append(chunk)
+                if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                    Log.v(TAG, "runHermesAgent: chunk len=${chunk.length} totalLen=${raw.length}")
+                }
+            }
+            true
+        }
+        val elapsedMs = System.currentTimeMillis() - startMs
+
+        if (completed == null) {
+            Log.w(TAG, "runHermesAgent: TIMED OUT after ${elapsedMs}ms " +
+                "collectedLen=${raw.length}")
+        } else {
+            Log.i(TAG, "runHermesAgent: completed in ${elapsedMs}ms " +
+                "rawLen=${raw.length}")
+        }
+
+        val rawText = raw.toString()
+        // Save the full raw AI response (with tool markup) to history so
+        // future calls can reconstruct the complete conversation context.
+        val strippedReply = stripInternalMarkup(rawText).trim().ifEmpty {
+            if (completed == null) "(agent timed out)" else "(empty response)"
+        }
 
         try {
-            history.addMessage(historyChatId, ChatMessage(sender = "ai", content = reply))
+            history.addMessage(historyChatId, ChatMessage(sender = "ai", content = rawText))
         } catch (e: Throwable) {
             Log.w(TAG, "failed to persist outbound gateway reply: ${e.message}")
         }
 
-        return reply
+        // Return stripped text to the platform (no XML markup)
+        return strippedReply
     }
 
     private fun gatewayChatTitle(sessionKey: String, chatId: String): String {
@@ -139,10 +199,14 @@ class HermesGatewayController private constructor(private val appContext: Contex
     private fun stripInternalMarkup(xml: String): String {
         if (xml.isEmpty()) return xml
         return xml
-            .replace(Regex("<think>[\\s\\S]*?</think>", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("<tool_result[^>]*>[\\s\\S]*?</tool_result>", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("<tool\\s[^>]*>[\\s\\S]*?</tool>", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("<status[^>]*>[\\s\\S]*?</status>", RegexOption.IGNORE_CASE), "")
+            .replace(ChatMarkupRegex.thinkTag, "")
+            .replace(ChatMarkupRegex.thinkSelfClosingTag, "")
+            .replace(ChatMarkupRegex.toolResultTag, "")
+            .replace(ChatMarkupRegex.toolResultSelfClosingTag, "")
+            .replace(ChatMarkupRegex.toolTag, "")
+            .replace(ChatMarkupRegex.toolSelfClosingTag, "")
+            .replace(ChatMarkupRegex.statusTag, "")
+            .replace(ChatMarkupRegex.statusSelfClosingTag, "")
     }
 
     companion object {

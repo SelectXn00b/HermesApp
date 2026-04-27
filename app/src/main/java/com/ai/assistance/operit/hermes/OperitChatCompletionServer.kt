@@ -66,6 +66,8 @@ class OperitChatCompletionServer(
         val chatHistory = messages.map { it.toPromptTurn(toolCallIdToName) }
 
         val aggregated = StringBuilder()
+        val apiStartMs = System.currentTimeMillis()
+        Log.d(TAG, "chatCompletion: calling service.sendMessage...")
         service.sendMessage(
             context = context,
             chatHistory = chatHistory,
@@ -76,6 +78,8 @@ class OperitChatCompletionServer(
             onTokensUpdated = onTokensUpdated,
             onNonFatalError = onNonFatalError
         ).collect { chunk -> aggregated.append(chunk) }
+        val apiElapsedMs = System.currentTimeMillis() - apiStartMs
+        Log.d(TAG, "chatCompletion: service.sendMessage completed in ${apiElapsedMs}ms")
 
         onTurnComplete(
             service.inputTokenCount,

@@ -55,8 +55,8 @@ android {
         applicationId = "com.xiaomo.androidforclaw"
         minSdk = 26
         targetSdk = 34
-        versionCode = 46
-        versionName = "2.0.2"
+        versionCode = 52
+        versionName = "2.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

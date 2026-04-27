@@ -1463,11 +1463,10 @@ class EnhancedAIService private constructor(private val context: Context) {
             dispatchToolPromptComposeHooks: (PromptHookContext) -> PromptHookContext =
                 PromptHookRegistry::dispatchToolPromptComposeHooks
     ): List<PromptTurn> {
-        // Check if backend image recognition service is configured (for intent-based vision)
-        // For subtasks, always disable backend image recognition (only support OCR)
-        val hasImageRecognition = if (isSubTask) false else multiServiceManager.hasImageRecognitionConfigured()
-        val hasAudioRecognition = if (isSubTask) false else multiServiceManager.hasAudioRecognitionConfigured()
-        val hasVideoRecognition = if (isSubTask) false else multiServiceManager.hasVideoRecognitionConfigured()
+        // Check if backend recognition services are configured (for intent-based vision/audio/video)
+        val hasImageRecognition = multiServiceManager.hasImageRecognitionConfigured()
+        val hasAudioRecognition = multiServiceManager.hasAudioRecognitionConfigured()
+        val hasVideoRecognition = multiServiceManager.hasVideoRecognitionConfigured()
 
         // 获取当前功能类型（通常是聊天模型）的模型配置，用于判断聊天模型是否自带识图能力
         val config = getModelConfigForFunction(
