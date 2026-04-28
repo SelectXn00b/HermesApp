@@ -1,8 +1,10 @@
 package com.ai.assistance.operit.ui.features.toolbox.screens.skillrecorder
 
 import android.app.Application
+import android.os.Environment
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.assistance.operit.core.tools.skill.SkillManager
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingSession
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingState
 import com.ai.assistance.operit.data.repository.UIHierarchyManager
@@ -90,12 +92,15 @@ class SkillRecorderViewModel(application: Application) : AndroidViewModel(applic
                 val content = _editedSkillMd.value
                 if (content.isBlank()) return@launch
 
-                val hermesHome = File(
-                    getApplication<Application>().filesDir, "hermes"
-                )
-                val skillDir = File(hermesHome, "skills/$skillName")
+                // Write to the same external storage path that SkillManager scans,
+                // so saved skills appear in the AI's available packages list.
+                val skillManager = SkillManager.getInstance(getApplication())
+                val skillDir = File(skillManager.getSkillsDirectoryPath(), skillName)
                 skillDir.mkdirs()
                 File(skillDir, "SKILL.md").writeText(content)
+
+                // Refresh so the skill is immediately discoverable
+                skillManager.refreshAvailableSkills()
 
                 currentSession.value?.savedSkillName = skillName
                 _isSaved.value = true

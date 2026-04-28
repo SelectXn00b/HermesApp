@@ -2592,6 +2592,32 @@ object SystemToolPromptsInternal {
                                 )
                         )
                     )
+            ),
+            SystemToolPromptCategory(
+                categoryName = "Skill Recorder Tools",
+                tools =
+                    listOf(
+                        ToolPrompt(
+                            name = "skill_recorder",
+                            description = "Control the Skill Recorder to record user actions on the device and generate reusable SKILL.md files. Actions: start (begin recording), stop (stop and generate SKILL.md via AI summarization), pause (pause recording), resume (resume recording), discard (discard current recording), save (save generated SKILL.md to skills directory), status (check recorder state).",
+                            parametersStructured =
+                                listOf(
+                                    ToolParameterSchema(
+                                        name = "action",
+                                        type = "string",
+                                        description = "Action to perform: start, stop, pause, resume, discard, save, status",
+                                        required = true
+                                    ),
+                                    ToolParameterSchema(
+                                        name = "skill_name",
+                                        type = "string",
+                                        description = "Required when action=save. Name for the skill directory.",
+                                        required = false
+                                    )
+                                ),
+                            notes = "Workflow: start → perform actions on device → stop (waits for AI summarization) → save(skill_name=...). After saving, the skill becomes available via use_package."
+                        )
+                    )
             )
         )
 
@@ -5179,6 +5205,32 @@ object SystemToolPromptsInternal {
                                         default = "true"
                                     )
                                 )
+                        )
+                    )
+            ),
+            SystemToolPromptCategory(
+                categoryName = "技能录制工具",
+                tools =
+                    listOf(
+                        ToolPrompt(
+                            name = "skill_recorder",
+                            description = "控制技能录制器，录制设备上的用户操作并生成可复用的 SKILL.md 文件。操作：start（开始录制）、stop（停止并通过 AI 总结生成 SKILL.md）、pause（暂停录制）、resume（恢复录制）、discard（丢弃当前录制）、save（将生成的 SKILL.md 保存到技能目录）、status（查看录制器状态）。",
+                            parametersStructured =
+                                listOf(
+                                    ToolParameterSchema(
+                                        name = "action",
+                                        type = "string",
+                                        description = "要执行的操作：start、stop、pause、resume、discard、save、status",
+                                        required = true
+                                    ),
+                                    ToolParameterSchema(
+                                        name = "skill_name",
+                                        type = "string",
+                                        description = "action=save 时必填，技能目录名称。",
+                                        required = false
+                                    )
+                                ),
+                            notes = "工作流程：start → 在设备上执行操作 → stop（等待 AI 总结）→ save(skill_name=...)。保存后可通过 use_package 使用该技能。"
                         )
                     )
             )

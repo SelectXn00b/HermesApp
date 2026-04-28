@@ -1,16 +1,22 @@
 package com.ai.assistance.operit.core.tools
 
 import android.content.Context
+import android.os.Environment
 import com.ai.assistance.operit.R
 import com.ai.assistance.operit.core.tools.defaultTool.ToolGetter
+import com.ai.assistance.operit.core.tools.skill.SkillManager
 import com.ai.assistance.operit.data.model.AITool
 import com.ai.assistance.operit.data.model.ToolParameter
 import com.ai.assistance.operit.data.model.ToolResult
+import com.ai.assistance.operit.data.model.skillrecorder.RecordingState
 import com.ai.assistance.operit.integrations.tasker.triggerAIAgentAction
 import com.ai.assistance.operit.services.FloatingChatService
+import com.ai.assistance.operit.services.skillrecorder.SkillRecorderNotification
+import com.ai.assistance.operit.services.skillrecorder.SkillRecorderService
 import com.ai.assistance.operit.ui.common.displays.VirtualDisplayOverlay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -43,7 +49,20 @@ private fun parseProxyParams(raw: String): JSONObject? {
         return JSONObject(raw)
     } catch (_: Exception) { /* fall through */ }
 
-    // 2. Double-stringified: the outer value is a JSON string literal wrapping the real object.
+    // 2. XML entity unescape: &quot; → ", &lt; → <, etc.
+    val xmlUnescaped = raw
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&")
+    if (xmlUnescaped != raw) {
+        try {
+            return JSONObject(xmlUnescaped)
+        } catch (_: Exception) { /* fall through */ }
+    }
+
+    // 3. Double-stringified: the outer value is a JSON string literal wrapping the real object.
     //    e.g. raw = "\"{ \\\"k\\\": \\\"v\\\" }\""  or  raw = "{\\\"k\\\":\\\"v\\\"}"
     val unescaped = raw
         .let { if (it.startsWith("\"") && it.endsWith("\"")) it.substring(1, it.length - 1) else it }
@@ -56,7 +75,7 @@ private fun parseProxyParams(raw: String): JSONObject? {
         } catch (_: Exception) { /* fall through */ }
     }
 
-    // 3. Aggressive unescape: sometimes multiple escaping rounds leave stray backslashes.
+    // 4. Aggressive unescape: sometimes multiple escaping rounds leave stray backslashes.
     val aggressiveClean = raw
         .replace("\\\"", "\"")
         .replace("\\\\/", "/")
@@ -2065,6 +2084,151 @@ fun registerAllTools(handler: AIToolHandler, context: Context) {
             executor = { tool ->
                 runBlocking(Dispatchers.IO) {
                     executeUiToolWithVisibility(tool) { uiTools.swipe(it) }
+                }
+            }
+    )
+
+    // Skill Recorder — lets the AI start/stop recording, check status, and save skills
+    handler.registerTool(
+            name = "skill_recorder",
+            descriptionGenerator = { tool ->
+                val action = tool.parameters.find { it.name == "action" }?.value ?: "status"
+                "Skill recorder: $action"
+            },
+            executor = { tool ->
+                val action = tool.parameters.find { it.name == "action" }?.value ?: "status"
+                val skillName = tool.parameters.find { it.name == "skill_name" }?.value
+
+                runBlocking(Dispatchers.IO) {
+                    when (action) {
+                        "start" -> {
+                            SkillRecorderService.start(context)
+                            // Wait briefly for service to start
+                            delay(500)
+                            val state = SkillRecorderService.recordingState.value
+                            ToolResult(
+                                toolName = tool.name,
+                                success = state == RecordingState.RECORDING,
+                                result = StringResultData("Recording started. State: $state. Switch to the target app and perform the actions you want to record. Call skill_recorder(action=stop) when done.")
+                            )
+                        }
+                        "stop" -> {
+                            SkillRecorderService.sendAction(context, SkillRecorderNotification.ACTION_STOP)
+                            // Wait for summarization to complete (up to 60 seconds)
+                            var waited = 0
+                            while (waited < 60000) {
+                                delay(2000)
+                                waited += 2000
+                                val st = SkillRecorderService.recordingState.value
+                                if (st == RecordingState.REVIEW || st == RecordingState.IDLE) break
+                            }
+                            val session = SkillRecorderService.currentSession.value
+                            val skillMd = session?.generatedSkillMd ?: ""
+                            ToolResult(
+                                toolName = tool.name,
+                                success = skillMd.isNotBlank(),
+                                result = StringResultData(
+                                    if (skillMd.isNotBlank())
+                                        "Recording stopped. AI generated SKILL.md (${skillMd.length} chars). " +
+                                        "Call skill_recorder(action=save, skill_name=<name>) to save it.\n\nGenerated SKILL.md:\n$skillMd"
+                                    else
+                                        "Recording stopped but no SKILL.md was generated. State: ${SkillRecorderService.recordingState.value}"
+                                )
+                            )
+                        }
+                        "pause" -> {
+                            SkillRecorderService.sendAction(context, SkillRecorderNotification.ACTION_PAUSE)
+                            delay(300)
+                            ToolResult(
+                                toolName = tool.name,
+                                success = true,
+                                result = StringResultData("Recording paused. State: ${SkillRecorderService.recordingState.value}")
+                            )
+                        }
+                        "resume" -> {
+                            SkillRecorderService.sendAction(context, SkillRecorderNotification.ACTION_RESUME)
+                            delay(300)
+                            ToolResult(
+                                toolName = tool.name,
+                                success = true,
+                                result = StringResultData("Recording resumed. State: ${SkillRecorderService.recordingState.value}")
+                            )
+                        }
+                        "discard" -> {
+                            SkillRecorderService.sendAction(context, SkillRecorderNotification.ACTION_DISCARD)
+                            delay(300)
+                            ToolResult(
+                                toolName = tool.name,
+                                success = true,
+                                result = StringResultData("Recording discarded.")
+                            )
+                        }
+                        "save" -> {
+                            val name = skillName?.trim()?.replace(Regex("[^a-zA-Z0-9_-]"), "") ?: ""
+                            if (name.isBlank()) {
+                                ToolResult(
+                                    toolName = tool.name,
+                                    success = false,
+                                    result = StringResultData("skill_name parameter is required for save action. Use alphanumeric characters, hyphens, and underscores only.")
+                                )
+                            } else {
+                                val session = SkillRecorderService.currentSession.value
+                                val content = session?.generatedSkillMd ?: ""
+                                if (content.isBlank()) {
+                                    ToolResult(
+                                        toolName = tool.name,
+                                        success = false,
+                                        result = StringResultData("No generated SKILL.md to save. Record and stop first.")
+                                    )
+                                } else {
+                                    try {
+                                        val skillManager = SkillManager.getInstance(context)
+                                        val skillDir = java.io.File(skillManager.getSkillsDirectoryPath(), name)
+                                        skillDir.mkdirs()
+                                        java.io.File(skillDir, "SKILL.md").writeText(content)
+                                        skillManager.refreshAvailableSkills()
+                                        session?.savedSkillName = name
+                                        ToolResult(
+                                            toolName = tool.name,
+                                            success = true,
+                                            result = StringResultData("Skill '$name' saved to ${skillDir.absolutePath}. It is now available as a package via use_package(\"$name\").")
+                                        )
+                                    } catch (e: Exception) {
+                                        ToolResult(
+                                            toolName = tool.name,
+                                            success = false,
+                                            result = StringResultData("Failed to save skill: ${e.message}")
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        "status" -> {
+                            val state = SkillRecorderService.recordingState.value
+                            val frames = SkillRecorderService.frameCount.value
+                            val running = SkillRecorderService.isServiceRunning.value
+                            val session = SkillRecorderService.currentSession.value
+                            ToolResult(
+                                toolName = tool.name,
+                                success = true,
+                                result = StringResultData(
+                                    "Skill Recorder Status:\n" +
+                                    "  state: $state\n" +
+                                    "  running: $running\n" +
+                                    "  frames_captured: $frames\n" +
+                                    "  has_skill_md: ${session?.generatedSkillMd?.isNotBlank() == true}\n" +
+                                    "  saved_as: ${session?.savedSkillName ?: "(not saved)"}"
+                                )
+                            )
+                        }
+                        else -> {
+                            ToolResult(
+                                toolName = tool.name,
+                                success = false,
+                                result = StringResultData("Unknown action '$action'. Valid actions: start, stop, pause, resume, discard, save, status")
+                            )
+                        }
+                    }
                 }
             }
     )

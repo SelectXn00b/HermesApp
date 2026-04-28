@@ -97,6 +97,14 @@ class EnhancedAIService private constructor(private val context: Context) {
     companion object {
         private const val TAG = "EnhancedAIService"
 
+        /**
+         * Maximum number of auto-continue retries for sub-task (gateway) calls.
+         * When the AI stops with wait_for_user_need instead of completing, we
+         * inject a continuation message and re-run the agent loop up to this
+         * many times.  This simulates the main app's interactive multi-turn flow.
+         */
+        private const val MAX_SUBTASK_CONTINUES = 3
+
         @Volatile private var INSTANCE: EnhancedAIService? = null
 
         private val CHAT_INSTANCES = ConcurrentHashMap<String, EnhancedAIService>()
@@ -1065,6 +1073,11 @@ class EnhancedAIService private constructor(private val context: Context) {
             collector.emit(piece)
         }
 
+        // Flag set by AgentEvent.Final when isSubTask and AI stopped without
+        // completing (wait_for_user_need).  Checked after loop.run() returns to
+        // decide whether to inject a continuation message and re-run.
+        var pendingWaitForUserNeed = false
+
         val sink: AgentEventSink = { event ->
             when (event) {
                 is AgentEvent.Thinking -> {
@@ -1113,6 +1126,14 @@ class EnhancedAIService private constructor(private val context: Context) {
                             characterName = characterName,
                             avatarUri = avatarUri
                         )
+                    } else if (isSubTask) {
+                        // For sub-tasks (gateway): set flag so the outer retry
+                        // loop injects a continuation message and re-runs the
+                        // agent instead of terminating.  This mirrors the main
+                        // app's interactive flow where a user can reply after
+                        // wait_for_user_need.
+                        AppLogger.d(TAG, "isSubTask: deferring wait_for_user_need for auto-continue")
+                        pendingWaitForUserNeed = true
                     } else {
                         val waitContent = ConversationMarkupManager.createWaitForUserNeedContent(
                             execContext.roundManager.getDisplayContent()
@@ -1133,15 +1154,9 @@ class EnhancedAIService private constructor(private val context: Context) {
         val openAiToolSchemas = availableTools?.let(::toolPromptsToOpenAiSchemas) ?: emptyList()
         val configuredMaxTurns = HermesGatewayPreferences.getInstance(context.applicationContext)
             .agentMaxTurnsFlow.first()
-        val loop = HermesAgentLoop(
-            server = server,
-            toolSchemas = openAiToolSchemas,
-            validToolNames = extractToolNames(openAiToolSchemas),
-            toolDispatcher = dispatcher,
-            maxTurns = configuredMaxTurns,
-            taskId = chatId ?: "chat_${execContext.executionId}",
-            eventSink = sink,
-            beforeNextTurn = beforeNextTurnLambda@{ turn, _ ->
+
+        val beforeNextTurnLambda: suspend (Int, List<Map<String, Any?>>) -> Boolean =
+            beforeNextTurnLambda@{ turn, _ ->
                 if (!isExecutionContextActive(execContext)) return@beforeNextTurnLambda false
                 if (turn > 0 && maxTokens > 0) {
                     _perRequestTokenCounts.value = null
@@ -1169,9 +1184,79 @@ class EnhancedAIService private constructor(private val context: Context) {
                 }
                 true
             }
+
+        // ── Auto-continue retry loop for isSubTask ──
+        // When the AI stops with wait_for_user_need (asks the user) during a
+        // sub-task/gateway call, there is no interactive user to reply.  In the
+        // main app the user simply types a follow-up.  Here we simulate that by
+        // injecting a continuation message and re-running the agent loop, up to
+        // MAX_SUBTASK_CONTINUES times.
+        val maxContinues = if (isSubTask) MAX_SUBTASK_CONTINUES else 0
+        var continueCount = 0
+
+        var loop = HermesAgentLoop(
+            server = server,
+            toolSchemas = openAiToolSchemas,
+            validToolNames = extractToolNames(openAiToolSchemas),
+            toolDispatcher = dispatcher,
+            maxTurns = configuredMaxTurns,
+            taskId = chatId ?: "chat_${execContext.executionId}",
+            eventSink = sink,
+            beforeNextTurn = beforeNextTurnLambda
         )
 
         loop.run(openAiMessages)
+
+        while (pendingWaitForUserNeed && continueCount < maxContinues
+            && isExecutionContextActive(execContext)) {
+            continueCount++
+            pendingWaitForUserNeed = false
+            AppLogger.i(TAG, "isSubTask auto-continue $continueCount/$maxContinues: " +
+                "injecting continuation message (openAiMessages=${openAiMessages.size})")
+            // Inject a synthetic user message that nudges the AI to keep working
+            openAiMessages.add(mapOf(
+                "role" to "user",
+                "content" to "Continue executing the task. Do NOT stop or ask for help. " +
+                    "If the previous step completed, proceed to the next step. " +
+                    "If you are waiting for content to appear (e.g., an AI response), " +
+                    "use sleep(duration_ms=3000) then get_page_info to check. " +
+                    "Repeat the wait-and-check cycle until content appears. " +
+                    "When the entire task is finished, use <status type=\"complete\">."
+            ))
+            // Reset the stream buffer for this new round so we track fresh content
+            execContext.streamBuffer.clear()
+            execContext.roundManager.startNewRound()
+
+            loop = HermesAgentLoop(
+                server = server,
+                toolSchemas = openAiToolSchemas,
+                validToolNames = extractToolNames(openAiToolSchemas),
+                toolDispatcher = dispatcher,
+                maxTurns = configuredMaxTurns,
+                taskId = chatId ?: "chat_${execContext.executionId}",
+                eventSink = sink,
+                beforeNextTurn = beforeNextTurnLambda
+            )
+            loop.run(openAiMessages)
+        }
+
+        // If we exhausted auto-continues and the AI still hasn't completed,
+        // fall through to handleWaitForUserNeed so the caller gets a response.
+        if (pendingWaitForUserNeed) {
+            AppLogger.w(TAG, "isSubTask auto-continue exhausted ($maxContinues retries). " +
+                "Falling through to handleWaitForUserNeed.")
+            val waitContent = ConversationMarkupManager.createWaitForUserNeedContent(
+                execContext.roundManager.getDisplayContent()
+            )
+            handleWaitForUserNeed(
+                context = execContext,
+                content = waitContent,
+                isSubTask = isSubTask,
+                chatId = chatId,
+                characterName = characterName,
+                avatarUri = avatarUri
+            )
+        }
 
         logMessageTiming(
             stage = "enhanced.sendMessage.streamComplete",

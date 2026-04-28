@@ -60,6 +60,24 @@ object SystemToolPrompts {
                         required = true
                     )
                 )
+            ),
+            ToolPrompt(
+                name = "skill_recorder",
+                description = "Control the Skill Recorder to record user actions on the device and generate reusable SKILL.md files. Workflow: start → perform actions on device → stop (waits for AI summarization) → save(skill_name=...). After saving, the skill becomes available via use_package.",
+                parametersStructured = listOf(
+                    ToolParameterSchema(
+                        name = "action",
+                        type = "string",
+                        description = "Action to perform: start, stop, pause, resume, discard, save, status",
+                        required = true
+                    ),
+                    ToolParameterSchema(
+                        name = "skill_name",
+                        type = "string",
+                        description = "Required when action=save. Name for the skill directory.",
+                        required = false
+                    )
+                )
             )
         )
     )
@@ -79,6 +97,24 @@ object SystemToolPrompts {
                 description = "在当前会话中激活包。",
                 parametersStructured = listOf(
                     ToolParameterSchema(name = "package_name", type = "string", description = "要激活的包名", required = true)
+                )
+            ),
+            ToolPrompt(
+                name = "skill_recorder",
+                description = "控制技能录制器，录制设备上的用户操作并生成可复用的 SKILL.md 文件。工作流程：start → 在设备上执行操作 → stop（等待 AI 总结）→ save(skill_name=...)。保存后可通过 use_package 使用该技能。",
+                parametersStructured = listOf(
+                    ToolParameterSchema(
+                        name = "action",
+                        type = "string",
+                        description = "要执行的操作：start、stop、pause、resume、discard、save、status",
+                        required = true
+                    ),
+                    ToolParameterSchema(
+                        name = "skill_name",
+                        type = "string",
+                        description = "action=save 时必填，技能目录名称。",
+                        required = false
+                    )
                 )
             )
         )

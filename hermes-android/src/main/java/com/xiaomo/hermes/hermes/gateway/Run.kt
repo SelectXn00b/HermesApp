@@ -66,6 +66,9 @@ class GatewayRunner(
     /** Concurrent session limiter. */
     private val _sessionSemaphore = java.util.concurrent.Semaphore(config.maxConcurrentSessions)
 
+    /** Tracks sessions that currently have an agent runner in-flight. */
+    private val _processingSessions = ConcurrentHashMap.newKeySet<String>()
+
     /** Per-session /model overrides (keyed by sessionKey). */
     private val _sessionModelOverrides: ConcurrentHashMap<String, Map<String, Any?>> = ConcurrentHashMap()
 
@@ -224,9 +227,24 @@ class GatewayRunner(
      * Handle an incoming message from a platform adapter.
      */
     private suspend fun _handleMessage(event: MessageEvent) {
+        // Skip non-text events (e.g. REACTION) that should not reach the agent
+        if (event.messageType == MessageType.REACTION) {
+            Log.d(_TAG, "Dropping REACTION event, not forwarding to agent")
+            return
+        }
+
         val platformName = event.source.platform
+
+        // Per-session guard: if this session already has an agent running,
+        // drop the new message so concurrent runs don't interfere.
+        if (!_processingSessions.add(event.sessionKey)) {
+            Log.w(_TAG, "Session ${event.sessionKey} already processing, dropping message")
+            return
+        }
+
         // Acquire session semaphore
         if (!_sessionSemaphore.tryAcquire()) {
+            _processingSessions.remove(event.sessionKey)
             Log.w(_TAG, "Max concurrent sessions reached, dropping message")
             return
         }
@@ -389,6 +407,7 @@ class GatewayRunner(
         } catch (e: Exception) {
             Log.e(_TAG, "Error handling message: ${e.message}")
         } finally {
+            _processingSessions.remove(event.sessionKey)
             sessionStore.get(event.sessionKey)?.let {
                 it.isProcessing = false
                 it.processingStartedAt = 0L

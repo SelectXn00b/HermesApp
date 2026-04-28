@@ -475,8 +475,12 @@ class FeishuAdapter(
                         put("emoji_type", event.reactionType?.emojiType ?: "")
                     })
                     put("operator_type", event.operatorType ?: "")
-                    put("user_id", JSONObject().apply {
-                        put("open_id", event.userId?.openId ?: "")
+                    // Match the key path that _handleReactionEvent reads:
+                    // operator -> operator_id -> open_id
+                    put("operator", JSONObject().apply {
+                        put("operator_id", JSONObject().apply {
+                            put("open_id", event.userId?.openId ?: "")
+                        })
                     })
                 })
             }

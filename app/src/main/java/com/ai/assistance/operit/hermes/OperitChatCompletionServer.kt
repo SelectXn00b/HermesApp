@@ -135,9 +135,9 @@ class OperitChatCompletionServer(
             val toolName = match.groupValues[2]
             val body = match.groupValues[3]
             val paramsJson = JSONObject()
-            ChatMarkupRegex.toolParamPattern.findAll(body).forEach { paramMatch ->
+        ChatMarkupRegex.toolParamPattern.findAll(body).forEach { paramMatch ->
                 val key = paramMatch.groupValues[1]
-                val value = paramMatch.groupValues[2]
+                val value = unescapeXml(paramMatch.groupValues[2])
                 paramsJson.put(key, value)
             }
             ToolCall(
@@ -180,6 +180,51 @@ class OperitChatCompletionServer(
                 toolName = toolName
             )
         }
+
+        // When the assistant message carries structured tool_calls, rebuild
+        // the content as clean XML from the structured data so the provider
+        // re-parses the exact same set of tool calls on the next turn.
+        // This prevents the "User cancelled" injection that happens when
+        // positional matching between re-parsed tool calls and tool results
+        // gets out of sync due to regex mismatches on the raw content.
+        val toolCalls = this["tool_calls"] as? List<*>
+        if (role == "assistant" && toolCalls != null && toolCalls.isNotEmpty()) {
+            // Strip XML tool tags from content — keep only plain text
+            val textOnly = ChatMarkupRegex.toolTag.replace(rawContent, "").trim()
+            // Rebuild tool XML from the structured tool_calls list
+            val toolXml = StringBuilder()
+            for (tc in toolCalls) {
+                val tcMap = tc as? Map<*, *> ?: continue
+                val function = tcMap["function"] as? Map<*, *> ?: continue
+                val name = function["name"] as? String ?: continue
+                val argsStr = function["arguments"] as? String ?: "{}"
+                toolXml.append("<tool name=\"").append(escapeAttr(name)).append("\">")
+                try {
+                    val argsJson = JSONObject(argsStr)
+                    argsJson.keys().forEach { key ->
+                        val value = argsJson.opt(key)?.toString().orEmpty()
+                        toolXml.append("<param name=\"").append(escapeAttr(key)).append("\">")
+                        toolXml.append(escapeXmlText(value))
+                        toolXml.append("</param>")
+                    }
+                } catch (_: Exception) {
+                    toolXml.append("<param name=\"raw\">")
+                    toolXml.append(escapeXmlText(argsStr))
+                    toolXml.append("</param>")
+                }
+                toolXml.append("</tool>")
+            }
+            val rebuiltContent = if (textOnly.isNotEmpty()) {
+                "$textOnly\n$toolXml"
+            } else {
+                toolXml.toString()
+            }
+            return PromptTurn(
+                kind = PromptTurnKind.TOOL_CALL,
+                content = rebuiltContent
+            )
+        }
+
         val kind = PromptTurnKind.fromRole(role)
         val toolName = this["name"] as? String
         return PromptTurn(kind = kind, content = rawContent, toolName = toolName)
@@ -203,5 +248,13 @@ class OperitChatCompletionServer(
 
     companion object {
         private const val TAG = "HermesBridge/Server"
+
+        /** Unescape XML entities so param values round-trip correctly. */
+        private fun unescapeXml(text: String): String =
+            text.replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&apos;", "'")
     }
 }
