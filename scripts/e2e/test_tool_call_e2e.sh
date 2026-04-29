@@ -156,6 +156,25 @@ while :; do
   RESULT_LINE="$(echo "$LOG" | grep -E "$RESULT_BCAST_PAT" | tail -1 || true)"
   if [[ -n "$RESULT_LINE" ]]; then
     if (( SAW_DISPATCH_IN == 0 || SAW_DISPATCH_OUT == 0 )); then
+      # On some devices, adb logcat -d may not immediately surface
+      # entries written a few seconds earlier (ring-buffer read race).
+      # Re-poll up to 3 times with a short sleep to give the buffer
+      # time to become consistent.  Use direct pipe instead of
+      # variable capture to avoid any bash string-size issues.
+      for _retry in 1 2 3; do
+        sleep 1
+        if (( SAW_DISPATCH_IN == 0 )) && $ADB logcat -d -v time 2>/dev/null | grep -Eq "$DISPATCH_IN_PAT"; then
+          SAW_DISPATCH_IN=1
+          log "saw dispatch IN (retry $_retry)"
+        fi
+        if (( SAW_DISPATCH_OUT == 0 )) && $ADB logcat -d -v time 2>/dev/null | grep -Eq "$DISPATCH_OUT_PAT"; then
+          SAW_DISPATCH_OUT=1
+          log "saw dispatch OUT (retry $_retry)"
+        fi
+        if (( SAW_DISPATCH_IN == 1 && SAW_DISPATCH_OUT == 1 )); then break; fi
+      done
+    fi
+    if (( SAW_DISPATCH_IN == 0 || SAW_DISPATCH_OUT == 0 )); then
       log "--- completion without dispatch; last 40 lines ---"
       $ADB logcat -d -v time 2>/dev/null \
         | grep -E "AIService|Hermes|OpenRouter|ExternalChat|MessageProcessing|dispatch" \
