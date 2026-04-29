@@ -65,9 +65,9 @@ class HermesAdapter private constructor(private val context: Context) {
         // --- Tool list ---------------------------------------------------
         val allTools = if (isGatewayCall && enableTools) {
             val categories = if (useEnglish) {
-                SystemToolPrompts.getAIAllCategoriesEn()
+                SystemToolPrompts.getAllCategoriesEn()
             } else {
-                SystemToolPrompts.getAIAllCategoriesCn()
+                SystemToolPrompts.getAllCategoriesCn()
             }
             categories.flatMap { it.tools }
         } else null

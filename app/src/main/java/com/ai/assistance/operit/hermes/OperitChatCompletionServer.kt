@@ -7,6 +7,7 @@ import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
 import com.ai.assistance.operit.data.model.ModelParameter
 import com.ai.assistance.operit.data.model.ToolPrompt
+import com.ai.assistance.operit.hermes.gateway.GatewayFileLogger
 import com.ai.assistance.operit.util.ChatMarkupRegex
 import com.xiaomo.hermes.hermes.AssistantMessage
 import com.xiaomo.hermes.hermes.ChatCompletionResponse
@@ -97,6 +98,15 @@ class OperitChatCompletionServer(
         if (!toolCalls.isNullOrEmpty()) {
             Log.d(TAG, "chatCompletion OUT: toolNames=${toolCalls.map { it.function.name }}")
         }
+
+        // Gateway file log: full AI response (capped at 2000 chars) + token usage
+        GatewayFileLogger.d(TAG, "  AI_RESPONSE turn: ${apiElapsedMs}ms " +
+            "tokens(in=${service.inputTokenCount} cached=${service.cachedInputTokenCount} out=${service.outputTokenCount}) " +
+            "toolCalls=${toolCalls?.size ?: 0}")
+        val responsePreview = if (fullText.length > 2000) {
+            fullText.take(2000) + "…[${fullText.length} total]"
+        } else fullText
+        GatewayFileLogger.d(TAG, "  AI_TEXT: $responsePreview")
 
         return ChatCompletionResponse(
             choices = listOf(

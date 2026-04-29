@@ -34,6 +34,7 @@ import com.ai.assistance.operit.data.model.ModelParameter
 import com.ai.assistance.operit.data.preferences.ApiPreferences
 import com.ai.assistance.operit.data.preferences.ExternalHttpApiPreferences
 import com.ai.assistance.operit.data.preferences.WakeWordPreferences
+import com.ai.assistance.operit.hermes.gateway.GatewayFileLogger
 import com.ai.assistance.operit.hermes.gateway.HermesGatewayPreferences
 import com.ai.assistance.operit.util.stream.MutableSharedStream
 import com.ai.assistance.operit.util.stream.Stream
@@ -103,7 +104,7 @@ class EnhancedAIService private constructor(private val context: Context) {
          * inject a continuation message and re-run the agent loop up to this
          * many times.  This simulates the main app's interactive multi-turn flow.
          */
-        private const val MAX_SUBTASK_CONTINUES = 3
+        private const val MAX_SUBTASK_CONTINUES = 10
 
         @Volatile private var INSTANCE: EnhancedAIService? = null
 
@@ -681,7 +682,8 @@ class EnhancedAIService private constructor(private val context: Context) {
                 functionType = functionType,
                 roleCardId = roleCardId,
                 chatModelConfigIdOverride = chatModelConfigIdOverride,
-                chatModelIndexOverride = chatModelIndexOverride
+                chatModelIndexOverride = chatModelIndexOverride,
+                includeInternalTools = isSubTask
             )
 
         var finalProcessedInput = message
@@ -867,7 +869,8 @@ class EnhancedAIService private constructor(private val context: Context) {
                         functionType = functionType,
                         roleCardId = roleCardId,
                         chatModelConfigIdOverride = chatModelConfigIdOverride,
-                        chatModelIndexOverride = chatModelIndexOverride
+                        chatModelIndexOverride = chatModelIndexOverride,
+                        includeInternalTools = isSubTask
                     )
                     val tAfterGetTools = messageTimingNow()
                     AppLogger.d(TAG, "sendMessage本地耗时: getAvailableToolsForFunction=${tAfterGetTools - tAfterGetService}ms")
@@ -1088,6 +1091,9 @@ class EnhancedAIService private constructor(private val context: Context) {
                 }
                 is AgentEvent.ToolCallStart -> {
                     onToolInvocation?.invoke(event.name)
+                    if (isSubTask) {
+                        GatewayFileLogger.d(TAG, "tool call: ${event.name} (turn=${event.turn})")
+                    }
                     if (!isSubTask) {
                         withContext(Dispatchers.Main) {
                             _inputProcessingState.value =
@@ -1097,6 +1103,10 @@ class EnhancedAIService private constructor(private val context: Context) {
                     emitChunk(renderHermesToolCallXml(event.name, event.argsJson))
                 }
                 is AgentEvent.ToolCallEnd -> {
+                    if (isSubTask) {
+                        val status = if (event.error == null) "OK" else "ERR: ${event.error?.take(100)}"
+                        GatewayFileLogger.d(TAG, "tool done: ${event.name} → $status")
+                    }
                     val synthetic = ToolResult(
                         toolName = event.name,
                         success = event.error == null,
@@ -1106,6 +1116,9 @@ class EnhancedAIService private constructor(private val context: Context) {
                     emitChunk(ConversationMarkupManager.formatToolResultForMessage(synthetic))
                 }
                 is AgentEvent.Error -> {
+                    if (isSubTask) {
+                        GatewayFileLogger.e(TAG, "agent error: ${event.message}")
+                    }
                     onNonFatalError(event.message)
                 }
                 is AgentEvent.Final -> {
@@ -1115,7 +1128,14 @@ class EnhancedAIService private constructor(private val context: Context) {
                         openAiMessages.toPromptTurnsForHistory()
                     )
                     val aggregatedContent = execContext.roundManager.getCurrentRoundContent()
-                    if (ConversationMarkupManager.containsTaskCompletion(aggregatedContent)) {
+                    val hasComplete = ConversationMarkupManager.containsTaskCompletion(aggregatedContent)
+                    val hasWait = ConversationMarkupManager.containsWaitForUserNeed(aggregatedContent)
+                    if (isSubTask) {
+                        GatewayFileLogger.i(TAG, "agent final: turns=${event.turnsUsed} " +
+                            "finished=${event.finishedNaturally} hasComplete=$hasComplete hasWait=$hasWait " +
+                            "contentLen=${aggregatedContent.length}")
+                    }
+                    if (hasComplete) {
                         handleTaskCompletion(
                             context = execContext,
                             content = aggregatedContent,
@@ -1127,13 +1147,23 @@ class EnhancedAIService private constructor(private val context: Context) {
                             avatarUri = avatarUri
                         )
                     } else if (isSubTask) {
-                        // For sub-tasks (gateway): set flag so the outer retry
-                        // loop injects a continuation message and re-runs the
-                        // agent instead of terminating.  This mirrors the main
-                        // app's interactive flow where a user can reply after
-                        // wait_for_user_need.
-                        AppLogger.d(TAG, "isSubTask: deferring wait_for_user_need for auto-continue")
-                        pendingWaitForUserNeed = true
+                        // Gateway auto-continue logic:
+                        // - If AI explicitly asked to wait (wait_for_user_need): auto-continue
+                        // - If AI was interrupted mid-task (finished=false, e.g. token
+                        //   limit or maxTurns hit while tools were being called): auto-continue
+                        // - If AI naturally finished (finished=true) with just a text
+                        //   reply and no wait_for_user_need: respect the AI's decision
+                        //   and let it end. This prevents forcing unnecessary continuations
+                        //   on simple responses like "好的，已切换到新话题。"
+                        if (hasWait || !event.finishedNaturally) {
+                            val reason = if (hasWait) "wait_for_user_need" else "interrupted (finished=false)"
+                            AppLogger.d(TAG, "isSubTask: deferring for auto-continue: $reason")
+                            GatewayFileLogger.i(TAG, "auto-continue triggered: $reason")
+                            pendingWaitForUserNeed = true
+                        } else {
+                            AppLogger.d(TAG, "isSubTask: AI naturally finished without wait_for_user_need — not auto-continuing")
+                            GatewayFileLogger.i(TAG, "AI naturally finished — no auto-continue needed")
+                        }
                     } else {
                         val waitContent = ConversationMarkupManager.createWaitForUserNeedContent(
                             execContext.roundManager.getDisplayContent()
@@ -1155,9 +1185,16 @@ class EnhancedAIService private constructor(private val context: Context) {
         val configuredMaxTurns = HermesGatewayPreferences.getInstance(context.applicationContext)
             .agentMaxTurnsFlow.first()
 
+        var tokenLimitHit = false
+
         val beforeNextTurnLambda: suspend (Int, List<Map<String, Any?>>) -> Boolean =
             beforeNextTurnLambda@{ turn, _ ->
-                if (!isExecutionContextActive(execContext)) return@beforeNextTurnLambda false
+                if (!isExecutionContextActive(execContext)) {
+                    if (isSubTask) {
+                        GatewayFileLogger.w(TAG, "beforeNextTurn: execution context inactive at turn $turn — aborting")
+                    }
+                    return@beforeNextTurnLambda false
+                }
                 if (turn > 0 && maxTokens > 0) {
                     _perRequestTokenCounts.value = null
                     execContext.conversationHistory.clear()
@@ -1171,11 +1208,18 @@ class EnhancedAIService private constructor(private val context: Context) {
                         publishEstimate = true
                     )
                     val usageRatio = currentTokens.toDouble() / maxTokens.toDouble()
+                    if (isSubTask) {
+                        GatewayFileLogger.d(TAG, "beforeNextTurn: turn=$turn tokens=$currentTokens/$maxTokens ratio=${"%.3f".format(usageRatio)} threshold=$tokenUsageThreshold")
+                    }
                     if (usageRatio >= tokenUsageThreshold) {
                         AppLogger.w(
                             TAG,
                             "Token usage ($usageRatio) exceeds threshold ($tokenUsageThreshold) at turn $turn. Aborting loop."
                         )
+                        if (isSubTask) {
+                            GatewayFileLogger.w(TAG, "beforeNextTurn: TOKEN LIMIT EXCEEDED — aborting loop at turn $turn")
+                        }
+                        tokenLimitHit = true
                         onTokenLimitExceeded?.invoke()
                         execContext.isConversationActive.set(false)
                         if (!isSubTask) stopAiService(characterName, avatarUri)
@@ -1207,12 +1251,17 @@ class EnhancedAIService private constructor(private val context: Context) {
 
         loop.run(openAiMessages)
 
-        while (pendingWaitForUserNeed && continueCount < maxContinues
+        while (pendingWaitForUserNeed && !tokenLimitHit && continueCount < maxContinues
             && isExecutionContextActive(execContext)) {
             continueCount++
             pendingWaitForUserNeed = false
+            // Re-activate the execution context (it may have been deactivated
+            // by the token-limit check in beforeNextTurn during the previous
+            // loop iteration).
+            execContext.isConversationActive.set(true)
             AppLogger.i(TAG, "isSubTask auto-continue $continueCount/$maxContinues: " +
                 "injecting continuation message (openAiMessages=${openAiMessages.size})")
+            GatewayFileLogger.i(TAG, "auto-continue $continueCount/$maxContinues (msgs=${openAiMessages.size})")
             // Inject a synthetic user message that nudges the AI to keep working
             openAiMessages.add(mapOf(
                 "role" to "user",
@@ -1245,6 +1294,7 @@ class EnhancedAIService private constructor(private val context: Context) {
         if (pendingWaitForUserNeed) {
             AppLogger.w(TAG, "isSubTask auto-continue exhausted ($maxContinues retries). " +
                 "Falling through to handleWaitForUserNeed.")
+            GatewayFileLogger.w(TAG, "auto-continue exhausted ($maxContinues retries) — falling through")
             val waitContent = ConversationMarkupManager.createWaitForUserNeedContent(
                 execContext.roundManager.getDisplayContent()
             )
@@ -1692,7 +1742,8 @@ class EnhancedAIService private constructor(private val context: Context) {
         functionType: FunctionType,
         roleCardId: String? = null,
         chatModelConfigIdOverride: String? = null,
-        chatModelIndexOverride: Int? = null
+        chatModelIndexOverride: Int? = null,
+        includeInternalTools: Boolean = false
     ): List<ToolPrompt>? {
         return try {
             // 先读取全局工具和记忆开关
@@ -1745,25 +1796,49 @@ class EnhancedAIService private constructor(private val context: Context) {
             val chatModelHasDirectVideo = config.enableDirectVideoProcessing
 
             val categories = if (isEnglish) {
-                SystemToolPrompts.getAIAllCategoriesEn(
-                    hasBackendImageRecognition = hasBackendImageRecognition,
-                    chatModelHasDirectImage = chatModelHasDirectImage,
-                    hasBackendAudioRecognition = hasBackendAudioRecognition,
-                    hasBackendVideoRecognition = hasBackendVideoRecognition,
-                    chatModelHasDirectAudio = chatModelHasDirectAudio,
-                    chatModelHasDirectVideo = chatModelHasDirectVideo,
-                    safBookmarkNames = safBookmarkNames
-                )
+                if (includeInternalTools) {
+                    SystemToolPrompts.getAllCategoriesEn(
+                        hasBackendImageRecognition = hasBackendImageRecognition,
+                        chatModelHasDirectImage = chatModelHasDirectImage,
+                        hasBackendAudioRecognition = hasBackendAudioRecognition,
+                        hasBackendVideoRecognition = hasBackendVideoRecognition,
+                        chatModelHasDirectAudio = chatModelHasDirectAudio,
+                        chatModelHasDirectVideo = chatModelHasDirectVideo,
+                        safBookmarkNames = safBookmarkNames
+                    )
+                } else {
+                    SystemToolPrompts.getAIAllCategoriesEn(
+                        hasBackendImageRecognition = hasBackendImageRecognition,
+                        chatModelHasDirectImage = chatModelHasDirectImage,
+                        hasBackendAudioRecognition = hasBackendAudioRecognition,
+                        hasBackendVideoRecognition = hasBackendVideoRecognition,
+                        chatModelHasDirectAudio = chatModelHasDirectAudio,
+                        chatModelHasDirectVideo = chatModelHasDirectVideo,
+                        safBookmarkNames = safBookmarkNames
+                    )
+                }
             } else {
-                SystemToolPrompts.getAIAllCategoriesCn(
-                    hasBackendImageRecognition = hasBackendImageRecognition,
-                    chatModelHasDirectImage = chatModelHasDirectImage,
-                    hasBackendAudioRecognition = hasBackendAudioRecognition,
-                    hasBackendVideoRecognition = hasBackendVideoRecognition,
-                    chatModelHasDirectAudio = chatModelHasDirectAudio,
-                    chatModelHasDirectVideo = chatModelHasDirectVideo,
-                    safBookmarkNames = safBookmarkNames
-                )
+                if (includeInternalTools) {
+                    SystemToolPrompts.getAllCategoriesCn(
+                        hasBackendImageRecognition = hasBackendImageRecognition,
+                        chatModelHasDirectImage = chatModelHasDirectImage,
+                        hasBackendAudioRecognition = hasBackendAudioRecognition,
+                        hasBackendVideoRecognition = hasBackendVideoRecognition,
+                        chatModelHasDirectAudio = chatModelHasDirectAudio,
+                        chatModelHasDirectVideo = chatModelHasDirectVideo,
+                        safBookmarkNames = safBookmarkNames
+                    )
+                } else {
+                    SystemToolPrompts.getAIAllCategoriesCn(
+                        hasBackendImageRecognition = hasBackendImageRecognition,
+                        chatModelHasDirectImage = chatModelHasDirectImage,
+                        hasBackendAudioRecognition = hasBackendAudioRecognition,
+                        hasBackendVideoRecognition = hasBackendVideoRecognition,
+                        chatModelHasDirectAudio = chatModelHasDirectAudio,
+                        chatModelHasDirectVideo = chatModelHasDirectVideo,
+                        safBookmarkNames = safBookmarkNames
+                    )
+                }
             }
 
             // 按类别拆分记忆工具和非记忆工具，以与 SystemPromptConfig 中的语义保持一致
