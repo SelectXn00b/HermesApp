@@ -6,6 +6,7 @@ import com.ai.assistance.operit.api.chat.llmprovider.AIServiceFactory
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
 import com.ai.assistance.operit.data.model.skillrecorder.BuilderStep
+import com.ai.assistance.operit.data.model.skillrecorder.EventDetails
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingFrame
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingSession
 import com.ai.assistance.operit.data.preferences.ModelConfigManager
@@ -113,22 +114,33 @@ class SkillSummarizer(private val context: Context) {
         val base = """
 你是一位 Android 自动化 Skill 编写专家。
 你的任务是根据用户提供的步骤序列，生成一份 SKILL.md 文件。
-这份文件将被 AI Agent (Hermes) 读取并通过无障碍服务在手机上复现这些操作。
+这份文件将被 AI Agent (Hermes) 读取并**通过无障碍服务在手机上精确复现这些操作**。
+
+⚠️ 最重要的原则：Agent 是通过无障碍服务操作手机的程序，不是人类。它需要**精确的 UI 元素定位信息**才能找到并操作目标元素。
 
 输入包含两种类型的步骤：
-- **录制步骤（录制操作）**：用户在设备上实际执行的操作，以帧序列形式提供，应转化为精确的 UI 操作指令
+- **录制步骤（录制操作）**：用户在设备上实际执行的操作，以帧序列形式提供，每帧包含事件类型、目标元素信息和当前页面的 UI 层级树
 - **思考步骤（推理逻辑）**：用户手动编写的推理逻辑和条件判断，应自然融入操作流程
 
 要求：
 1. 开头使用 YAML frontmatter，包含 name, description, category: recorded, platform: android
-2. 用清晰的自然语言逐步描述操作流程，保持步骤的原始顺序
-3. 录制步骤：包含足够的 UI 元素上下文（文本标签、描述、元素类型）让 Agent 能定位元素
-4. 思考步骤：将用户的推理逻辑自然地融入流程中，作为条件判断或决策说明
-5. 如果发现有重复或循环操作，用概括性描述代替逐一列举
-6. 使用中文编写""".trimIndent()
+2. 逐步描述操作流程，保持步骤的原始顺序
+3. **录制步骤必须保留具体的 UI 元素定位信息**，这是最关键的要求：
+   - 每个操作必须明确指出目标元素的 **text**（显示文字）、**contentDescription**（无障碍描述）、**className**（元素类型如 Button/TextView）
+   - 如果输入数据中包含 **resourceId**（如 `com.example:id/btn_submit`），必须保留
+   - 写成 Agent 可直接执行的格式，例如：
+     - `点击 text="房态房量" 的 [TextView] 元素`
+     - `点击 resourceId="com.meituan.hotel:id/tab_status" 的按钮`
+     - `在 [EditText] className="android.widget.EditText" 中输入 "搜索内容"`
+     - `向下滚动页面`
+   - **不要**把具体元素信息概括成模糊的自然语言（如"找到并进入房态房量页面"）
+4. 每个操作步骤需注明所在的 **Activity**（从帧数据的 activityName 获取）和 **包名**（packageName）
+5. 思考步骤：将用户的推理逻辑自然地融入流程中，作为条件判断或决策说明
+6. 如果发现有连续滚动操作，可以合并为一条（如"向下滚动 3 次"）；但点击、输入等操作不要合并
+7. 使用中文编写""".trimIndent()
 
         return if (!draftText.isNullOrBlank()) {
-            base + "\n7. 用户在构建前提供了意图描述（草稿），请优先参考该描述来理解操作目的，并据此优化 Skill 的 name、description 和步骤描述"
+            base + "\n8. 用户在构建前提供了意图描述（草稿），请优先参考该描述来理解操作目的，并据此优化 Skill 的 name、description 和步骤描述"
         } else {
             base
         }
@@ -162,7 +174,7 @@ $stepsText
     }
 
     /**
-     * AI 不可用时的 fallback：直接从步骤生成简单的 SKILL.md
+     * AI 不可用时的 fallback：直接从步骤生成结构化的 SKILL.md，保留 UI 元素定位信息
      */
     private fun generateFallbackSkillMd(session: RecordingSession): String {
         val sb = StringBuilder()
@@ -190,15 +202,27 @@ $stepsText
                         sb.appendLine()
                     }
                     for (frame in step.frames) {
+                        val details = frame.eventDetails
+                        val activity = frame.activityName ?: "unknown"
                         val desc = when (frame.eventType) {
-                            "CLICK" -> "点击 \"${frame.eventDetails.text ?: frame.eventDetails.contentDescription ?: "元素"}\""
-                            "LONG_CLICK" -> "长按 \"${frame.eventDetails.text ?: "元素"}\""
-                            "TEXT_INPUT" -> "输入 \"${frame.eventDetails.inputText ?: frame.eventDetails.text ?: ""}\""
-                            "SCROLL" -> "滚动页面"
+                            "CLICK" -> {
+                                val target = buildElementSelector(details)
+                                "点击 $target"
+                            }
+                            "LONG_CLICK" -> {
+                                val target = buildElementSelector(details)
+                                "长按 $target"
+                            }
+                            "TEXT_INPUT" -> {
+                                val input = details.inputText ?: details.text ?: ""
+                                val cls = details.className ?: "EditText"
+                                "在 [$cls] 中输入 \"$input\""
+                            }
+                            "SCROLL" -> "向下滚动页面"
                             "SCREEN_CHANGE" -> "页面切换到 ${frame.activityName ?: "新页面"}"
                             else -> frame.eventType
                         }
-                        sb.appendLine("${frame.index + 1}. $desc")
+                        sb.appendLine("${frame.index + 1}. $desc (Activity: $activity)")
                     }
                     sb.appendLine()
                 }
@@ -213,5 +237,17 @@ $stepsText
         }
 
         return sb.toString()
+    }
+
+    /**
+     * 构建元素选择器描述，保留尽可能多的定位信息
+     */
+    private fun buildElementSelector(details: EventDetails): String {
+        val parts = mutableListOf<String>()
+        val cls = details.className
+        if (cls != null) parts.add("[$cls]")
+        if (!details.text.isNullOrBlank()) parts.add("text=\"${details.text}\"")
+        if (!details.contentDescription.isNullOrBlank()) parts.add("contentDescription=\"${details.contentDescription}\"")
+        return if (parts.isEmpty()) "元素" else parts.joinToString(" ")
     }
 }
