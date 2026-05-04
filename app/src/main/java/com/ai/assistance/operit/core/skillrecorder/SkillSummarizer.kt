@@ -5,83 +5,81 @@ import com.ai.assistance.operit.api.chat.llmprovider.AIService
 import com.ai.assistance.operit.api.chat.llmprovider.AIServiceFactory
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
+import com.ai.assistance.operit.data.model.skillrecorder.BuilderStep
+import com.ai.assistance.operit.data.model.skillrecorder.RecordingFrame
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingSession
 import com.ai.assistance.operit.data.preferences.ModelConfigManager
 import com.ai.assistance.operit.util.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Skill 总结器：将录制帧序列发送给 LLM，生成 SKILL.md 内容。
+ * Skill 总结器：将构建器步骤（录制帧 + 思考逻辑）发送给 LLM，生成 SKILL.md 内容。
  */
 class SkillSummarizer(private val context: Context) {
 
     companion object {
         private const val TAG = "SkillSummarizer"
+        private const val AI_TIMEOUT_MS = 60_000L // 60 seconds
     }
 
     /**
      * 对录制会话进行 AI 总结，生成 SKILL.md 内容。
+     * @param configId 用户选择的模型配置 ID，为 null 时使用第一个可用配置
      * @return 生成的 SKILL.md 文本，失败返回 null
      */
-    suspend fun summarize(session: RecordingSession): String? = withContext(Dispatchers.IO) {
+    suspend fun summarize(session: RecordingSession, configId: String? = null): String? = withContext(Dispatchers.IO) {
         try {
-            val frames = FrameSimplifier.condenseFrames(session.frames)
-            if (frames.isEmpty()) {
-                AppLogger.w(TAG, "没有帧可总结")
+            if (session.steps.isEmpty()) {
+                AppLogger.w(TAG, "没有步骤可总结")
                 return@withContext null
             }
 
-            val mainPackage = frames
-                .mapNotNull { it.packageName }
-                .groupingBy { it }
-                .eachCount()
-                .maxByOrNull { it.value }?.key ?: "未知应用"
-
-            val durationSec = session.duration / 1000
-            val stepsText = FrameSimplifier.framesToPromptText(frames)
-
-            val systemPrompt = buildSystemPrompt()
-            val userPrompt = buildUserPrompt(mainPackage, durationSec, frames.size, stepsText)
+            val stepsText = buildStepsPromptText(session.steps)
+            val systemPrompt = buildSystemPrompt(session.draftText)
+            val userPrompt = buildUserPrompt(session, stepsText)
 
             val chatHistory = listOf(
                 PromptTurn(kind = PromptTurnKind.SYSTEM, content = systemPrompt),
                 PromptTurn(kind = PromptTurnKind.USER, content = userPrompt)
             )
 
-            val service = createAIService() ?: return@withContext generateFallbackSkillMd(session, frames)
+            val service = createAIService(configId) ?: return@withContext generateFallbackSkillMd(session)
 
-            val stream = service.sendMessage(
-                context = context,
-                chatHistory = chatHistory,
-                stream = true,
-                enableRetry = true
-            )
+            val result = withTimeoutOrNull(AI_TIMEOUT_MS) {
+                val stream = service.sendMessage(
+                    context = context,
+                    chatHistory = chatHistory,
+                    stream = true,
+                    enableRetry = true
+                )
 
-            val sb = StringBuilder()
-            stream.collect { chunk ->
-                sb.append(chunk)
+                val sb = StringBuilder()
+                stream.collect { chunk ->
+                    sb.append(chunk)
+                }
+                sb.toString().trim()
             }
 
-            val result = sb.toString().trim()
-            if (result.isBlank()) {
-                AppLogger.w(TAG, "AI 返回空结果，使用 fallback")
-                return@withContext generateFallbackSkillMd(session, frames)
+            if (result.isNullOrBlank()) {
+                AppLogger.w(TAG, if (result == null) "AI 总结超时，使用 fallback" else "AI 返回空结果，使用 fallback")
+                return@withContext generateFallbackSkillMd(session)
             }
 
             result
         } catch (e: Exception) {
             AppLogger.e(TAG, "AI 总结失败", e)
-            generateFallbackSkillMd(session, session.frames)
+            generateFallbackSkillMd(session)
         }
     }
 
-    private suspend fun createAIService(): AIService? {
+    private suspend fun createAIService(configId: String? = null): AIService? {
         return try {
             val configManager = ModelConfigManager(context)
             val configs = configManager.getAllConfigSummaries()
-            val firstConfigId = configs.firstOrNull()?.id ?: return null
-            val config = configManager.getModelConfig(firstConfigId) ?: return null
+            val targetId = configId ?: configs.firstOrNull()?.id ?: return null
+            val config = configManager.getModelConfig(targetId) ?: return null
             AIServiceFactory.createService(config, configManager, context)
         } catch (e: Exception) {
             AppLogger.e(TAG, "创建 AI 服务失败", e)
@@ -89,73 +87,129 @@ class SkillSummarizer(private val context: Context) {
         }
     }
 
-    private fun buildSystemPrompt(): String = """
+    /**
+     * 将步骤列表转换为 LLM prompt 文本，交替输出录制帧和思考文本。
+     */
+    private fun buildStepsPromptText(steps: List<BuilderStep>): String {
+        val sb = StringBuilder()
+        steps.forEachIndexed { index, step ->
+            when (step) {
+                is BuilderStep.Record -> {
+                    sb.appendLine("=== 步骤 ${index + 1}: 录制操作 ===")
+                    val condensed = FrameSimplifier.condenseFrames(step.frames)
+                    sb.appendLine(FrameSimplifier.framesToPromptText(condensed))
+                }
+                is BuilderStep.Think -> {
+                    sb.appendLine("=== 步骤 ${index + 1}: 推理逻辑 ===")
+                    sb.appendLine(step.content)
+                    sb.appendLine()
+                }
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun buildSystemPrompt(draftText: String? = null): String {
+        val base = """
 你是一位 Android 自动化 Skill 编写专家。
-你的任务是根据用户录制的手机操作帧序列，生成一份 SKILL.md 文件。
+你的任务是根据用户提供的步骤序列，生成一份 SKILL.md 文件。
 这份文件将被 AI Agent (Hermes) 读取并通过无障碍服务在手机上复现这些操作。
+
+输入包含两种类型的步骤：
+- **录制步骤（录制操作）**：用户在设备上实际执行的操作，以帧序列形式提供，应转化为精确的 UI 操作指令
+- **思考步骤（推理逻辑）**：用户手动编写的推理逻辑和条件判断，应自然融入操作流程
 
 要求：
 1. 开头使用 YAML frontmatter，包含 name, description, category: recorded, platform: android
-2. 用清晰的自然语言逐步描述操作流程
-3. 每个步骤包含足够的 UI 元素上下文（文本标签、描述、元素类型）让 Agent 能定位元素
-4. 如果发现有重复或循环操作，用概括性描述代替逐一列举
-5. 使用中文编写
-""".trimIndent()
+2. 用清晰的自然语言逐步描述操作流程，保持步骤的原始顺序
+3. 录制步骤：包含足够的 UI 元素上下文（文本标签、描述、元素类型）让 Agent 能定位元素
+4. 思考步骤：将用户的推理逻辑自然地融入流程中，作为条件判断或决策说明
+5. 如果发现有重复或循环操作，用概括性描述代替逐一列举
+6. 使用中文编写""".trimIndent()
+
+        return if (!draftText.isNullOrBlank()) {
+            base + "\n7. 用户在构建前提供了意图描述（草稿），请优先参考该描述来理解操作目的，并据此优化 Skill 的 name、description 和步骤描述"
+        } else {
+            base
+        }
+    }
 
     private fun buildUserPrompt(
-        mainPackage: String,
-        durationSec: Long,
-        stepCount: Int,
+        session: RecordingSession,
         stepsText: String
-    ): String = """
-## 录制概要
-- 主要应用: $mainPackage
-- 时长: ${durationSec}秒
-- 步骤数: $stepCount
+    ): String {
+        val draftSection = if (!session.draftText.isNullOrBlank()) {
+            "## 用户意图描述\n${session.draftText}\n\n"
+        } else ""
 
-## 录制的操作步骤:
+        val recordSteps = session.steps.filterIsInstance<BuilderStep.Record>()
+        val thinkSteps = session.steps.filterIsInstance<BuilderStep.Think>()
+        val totalFrames = recordSteps.sumOf { it.frames.size }
+        val durationSec = session.duration / 1000
+
+        return """
+${draftSection}## 构建概要
+- 总步骤数: ${session.steps.size} (${recordSteps.size} 个录制步骤, ${thinkSteps.size} 个思考步骤)
+- 总帧数: $totalFrames
+- 时长: ${durationSec}秒
+
+## 步骤详情:
 
 $stepsText
 
-请根据以上录制数据生成 SKILL.md 文件内容。
+请根据以上步骤生成 SKILL.md 文件内容。
 """.trimIndent()
+    }
 
     /**
-     * AI 不可用时的 fallback：直接生成简单的步骤列表
+     * AI 不可用时的 fallback：直接从步骤生成简单的 SKILL.md
      */
-    private fun generateFallbackSkillMd(
-        session: RecordingSession,
-        frames: List<com.ai.assistance.operit.data.model.skillrecorder.RecordingFrame>
-    ): String {
-        val mainPackage = frames.mapNotNull { it.packageName }
-            .groupingBy { it }.eachCount()
-            .maxByOrNull { it.value }?.key ?: "未知应用"
-
+    private fun generateFallbackSkillMd(session: RecordingSession): String {
         val sb = StringBuilder()
         sb.appendLine("---")
         sb.appendLine("name: recorded-skill-${session.id.take(8)}")
-        sb.appendLine("description: 录制的操作流程 ($mainPackage)")
+        sb.appendLine("description: ${session.draftText?.takeIf { it.isNotBlank() } ?: "录制的操作流程"}")
         sb.appendLine("category: recorded")
         sb.appendLine("platform: android")
         sb.appendLine("---")
         sb.appendLine()
         sb.appendLine("# 录制的操作流程")
         sb.appendLine()
-        sb.appendLine("应用: $mainPackage")
-        sb.appendLine()
-        sb.appendLine("## 操作步骤")
-        sb.appendLine()
 
-        for (frame in frames) {
-            val desc = when (frame.eventType) {
-                "CLICK" -> "点击 \"${frame.eventDetails.text ?: frame.eventDetails.contentDescription ?: "元素"}\""
-                "LONG_CLICK" -> "长按 \"${frame.eventDetails.text ?: "元素"}\""
-                "TEXT_INPUT" -> "输入 \"${frame.eventDetails.inputText ?: frame.eventDetails.text ?: ""}\""
-                "SCROLL" -> "滚动页面"
-                "SCREEN_CHANGE" -> "页面切换到 ${frame.activityName ?: "新页面"}"
-                else -> frame.eventType
+        var stepNum = 1
+        for (step in session.steps) {
+            when (step) {
+                is BuilderStep.Record -> {
+                    sb.appendLine("## 步骤 $stepNum: 录制操作")
+                    sb.appendLine()
+                    val mainPackage = step.frames.mapNotNull { it.packageName }
+                        .groupingBy { it }.eachCount()
+                        .maxByOrNull { it.value }?.key
+                    if (mainPackage != null) {
+                        sb.appendLine("应用: $mainPackage")
+                        sb.appendLine()
+                    }
+                    for (frame in step.frames) {
+                        val desc = when (frame.eventType) {
+                            "CLICK" -> "点击 \"${frame.eventDetails.text ?: frame.eventDetails.contentDescription ?: "元素"}\""
+                            "LONG_CLICK" -> "长按 \"${frame.eventDetails.text ?: "元素"}\""
+                            "TEXT_INPUT" -> "输入 \"${frame.eventDetails.inputText ?: frame.eventDetails.text ?: ""}\""
+                            "SCROLL" -> "滚动页面"
+                            "SCREEN_CHANGE" -> "页面切换到 ${frame.activityName ?: "新页面"}"
+                            else -> frame.eventType
+                        }
+                        sb.appendLine("${frame.index + 1}. $desc")
+                    }
+                    sb.appendLine()
+                }
+                is BuilderStep.Think -> {
+                    sb.appendLine("## 步骤 $stepNum: 推理逻辑")
+                    sb.appendLine()
+                    sb.appendLine(step.content)
+                    sb.appendLine()
+                }
             }
-            sb.appendLine("${frame.index + 1}. $desc")
+            stepNum++
         }
 
         return sb.toString()

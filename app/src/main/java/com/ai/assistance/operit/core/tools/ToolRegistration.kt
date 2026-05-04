@@ -2102,13 +2102,17 @@ fun registerAllTools(handler: AIToolHandler, context: Context) {
                 runBlocking(Dispatchers.IO) {
                     when (action) {
                         "start" -> {
+                            // Start a build session if not already in one, then start recording a step
+                            if (SkillRecorderService.recordingState.value == RecordingState.IDLE) {
+                                SkillRecorderService.startBuildSession(null)
+                            }
                             SkillRecorderService.start(context)
                             // Wait briefly for service to start
                             delay(500)
                             val state = SkillRecorderService.recordingState.value
                             ToolResult(
                                 toolName = tool.name,
-                                success = state == RecordingState.RECORDING,
+                                success = state == RecordingState.STEP_RECORDING,
                                 result = StringResultData("Recording started. State: $state. Switch to the target app and perform the actions you want to record. Call skill_recorder(action=stop) when done.")
                             )
                         }
@@ -2205,7 +2209,7 @@ fun registerAllTools(handler: AIToolHandler, context: Context) {
                         }
                         "status" -> {
                             val state = SkillRecorderService.recordingState.value
-                            val frames = SkillRecorderService.frameCount.value
+                            val frames = SkillRecorderService.stepFrameCount.value
                             val running = SkillRecorderService.isServiceRunning.value
                             val session = SkillRecorderService.currentSession.value
                             ToolResult(

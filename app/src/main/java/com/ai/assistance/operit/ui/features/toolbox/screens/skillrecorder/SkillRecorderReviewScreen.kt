@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
@@ -14,14 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ai.assistance.operit.R
+import com.ai.assistance.operit.data.model.skillrecorder.BuilderStep
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingState
 
 /**
- * 录制审阅页面：查看帧时间线、编辑并保存生成的 SKILL.md
+ * 录制审阅页面：查看步骤概览、编辑并保存生成的 SKILL.md
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,9 +36,11 @@ fun SkillRecorderReviewScreen(
     val editedSkillMd by viewModel.editedSkillMd.collectAsState()
     val isSaved by viewModel.isSaved.collectAsState()
     val recordingState by viewModel.recordingState.collectAsState()
+    val modelConfigs by viewModel.modelConfigs.collectAsState()
+    val selectedModelConfigId by viewModel.selectedModelConfigId.collectAsState()
     var skillName by remember { mutableStateOf("") }
     var showSaveDialog by remember { mutableStateOf(false) }
-    var selectedFrameIndex by remember { mutableIntStateOf(-1) }
+    var modelDropdownExpanded by remember { mutableStateOf(false) }
 
     // 初始化编辑内容
     LaunchedEffect(session?.generatedSkillMd) {
@@ -49,16 +54,49 @@ fun SkillRecorderReviewScreen(
         }
     }
 
+    // 保存成功后自动跳回主页
+    LaunchedEffect(isSaved) {
+        if (isSaved) {
+            viewModel.finishAfterSave()
+            onGoBack()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // 帧时间线
-        val frames = session?.frames ?: emptyList()
-        if (frames.isNotEmpty()) {
+        // 草稿显示（只读）
+        val sessionDraft = session?.draftText
+        if (!sessionDraft.isNullOrBlank()) {
             Text(
-                text = stringResource(R.string.skill_recorder_timeline, frames.size),
+                text = stringResource(R.string.skill_recorder_draft_section_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            ) {
+                Text(
+                    text = sessionDraft,
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // 步骤概览
+        val steps = session?.steps ?: emptyList()
+        if (steps.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.skill_recorder_steps_overview, steps.size),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -70,48 +108,19 @@ fun SkillRecorderReviewScreen(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                frames.forEachIndexed { index, frame ->
-                    FilterChip(
-                        selected = index == selectedFrameIndex,
-                        onClick = {
-                            selectedFrameIndex = if (selectedFrameIndex == index) -1 else index
-                        },
-                        label = {
-                            Text(
-                                "${index + 1}: ${frame.eventType}",
-                                maxLines = 1,
-                                fontSize = 11.sp
-                            )
-                        }
-                    )
-                }
-            }
-
-            // 选中帧的详情
-            if (selectedFrameIndex in frames.indices) {
-                val frame = frames[selectedFrameIndex]
-                Spacer(modifier = Modifier.height(8.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            "Step ${frame.index + 1}: ${frame.eventType}",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        frame.activityName?.let {
-                            Text("Activity: $it", style = MaterialTheme.typography.bodySmall)
-                        }
-                        frame.eventDetails.text?.let {
-                            Text("Text: \"$it\"", style = MaterialTheme.typography.bodySmall)
-                        }
-                        frame.eventDetails.contentDescription?.let {
-                            Text("Desc: \"$it\"", style = MaterialTheme.typography.bodySmall)
-                        }
+                steps.forEachIndexed { index, step ->
+                    val label = when (step) {
+                        is BuilderStep.Record ->
+                            "${index + 1}: ${stringResource(R.string.skill_recorder_step_record_label)} (${step.frames.size})"
+                        is BuilderStep.Think ->
+                            "${index + 1}: ${stringResource(R.string.skill_recorder_step_think_label)}"
                     }
+                    SuggestionChip(
+                        onClick = {},
+                        label = {
+                            Text(label, maxLines = 1, fontSize = 11.sp)
+                        }
+                    )
                 }
             }
 
@@ -137,6 +146,10 @@ fun SkillRecorderReviewScreen(
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(stringResource(R.string.skill_recorder_summarizing))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(onClick = { viewModel.skipSummarization() }) {
+                        Text(stringResource(R.string.skill_recorder_skip_summary))
+                    }
                 }
             }
         } else {
@@ -155,13 +168,50 @@ fun SkillRecorderReviewScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // 模型选择（用于重新生成）
+        if (modelConfigs.size > 1) {
+            val selectedConfig = modelConfigs.find { it.id == selectedModelConfigId }
+            Box {
+                OutlinedButton(
+                    onClick = { modelDropdownExpanded = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.skill_recorder_model_label,
+                            selectedConfig?.name ?: "—"),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                DropdownMenu(
+                    expanded = modelDropdownExpanded,
+                    onDismissRequest = { modelDropdownExpanded = false }
+                ) {
+                    modelConfigs.forEach { config ->
+                        DropdownMenuItem(
+                            text = { Text(config.name) },
+                            onClick = {
+                                viewModel.selectModelConfig(config.id)
+                                modelDropdownExpanded = false
+                            },
+                            trailingIcon = {
+                                if (config.id == selectedModelConfigId) {
+                                    Text("✓")
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         // 底部按钮
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(
-                onClick = { viewModel.stopRecording() },
+                onClick = { viewModel.regenerateSummary() },
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Default.Refresh, contentDescription = null)
@@ -180,14 +230,29 @@ fun SkillRecorderReviewScreen(
             }
         }
 
-        // 已保存提示
+        // 已保存提示 + 新建录制按钮
         if (isSaved) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.skill_recorder_saved),
+                text = stringResource(R.string.skill_recorder_saved, session?.savedSkillName ?: ""),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodySmall
             )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 新建录制按钮
+        OutlinedButton(
+            onClick = {
+                viewModel.newRecording()
+                onGoBack()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(stringResource(R.string.skill_recorder_new_recording))
         }
     }
 

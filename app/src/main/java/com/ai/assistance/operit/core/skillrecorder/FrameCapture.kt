@@ -4,7 +4,6 @@ import android.content.Context
 import com.ai.assistance.operit.core.tools.system.action.ActionListener
 import com.ai.assistance.operit.data.model.skillrecorder.EventDetails
 import com.ai.assistance.operit.data.model.skillrecorder.RecordingFrame
-import com.ai.assistance.operit.data.model.skillrecorder.RecordingSession
 import com.ai.assistance.operit.data.repository.UIHierarchyManager
 import com.ai.assistance.operit.util.AppLogger
 import kotlinx.coroutines.Dispatchers
@@ -26,9 +25,6 @@ class FrameCapture(private val context: Context) {
         private const val SCROLL_THROTTLE_MS = 500L
         /** 最大帧数 */
         private const val MAX_FRAMES = 500
-        /** 自身包名，过滤掉 */
-        private const val SELF_PACKAGE = "com.ai.assistance.operit"
-        private const val PROVIDER_PACKAGE = "com.ai.assistance.operit.provider"
 
         private val SIGNIFICANT_EVENTS = setOf(
             ActionListener.ActionType.CLICK,
@@ -44,21 +40,23 @@ class FrameCapture(private val context: Context) {
     private var lastEventTime = 0L
     private var lastEventType = ""
     private var lastScrollTime = 0L
+    /** Resolved at construction time so we filter against the real applicationId */
+    private val selfPackage: String = context.packageName
 
     /**
-     * 处理一个 ActionEvent，决定是否捕获帧并加入 session。
+     * 处理一个 ActionEvent，决定是否捕获帧并加入 frameBuffer。
      * 在协程中调用。
      */
     suspend fun processEvent(
         event: ActionListener.ActionEvent,
-        session: RecordingSession
+        frameBuffer: MutableList<RecordingFrame>
     ): RecordingFrame? = withContext(Dispatchers.IO) {
         // 帧数限制
-        if (session.frames.size >= MAX_FRAMES) return@withContext null
+        if (frameBuffer.size >= MAX_FRAMES) return@withContext null
 
         // 过滤自身事件
         val pkg = event.elementInfo?.packageName
-        if (pkg == SELF_PACKAGE || pkg == PROVIDER_PACKAGE) return@withContext null
+        if (pkg != null && (pkg == selfPackage || pkg.startsWith("$selfPackage."))) return@withContext null
 
         val eventType = event.actionType.name
 
@@ -118,7 +116,7 @@ class FrameCapture(private val context: Context) {
                 uiHierarchySummary = uiHierarchy
             )
 
-            session.frames.add(frame)
+            frameBuffer.add(frame)
             frame
         } catch (e: Exception) {
             AppLogger.e(TAG, "构建帧失败", e)
